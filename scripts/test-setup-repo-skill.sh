@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Tests for skills/setup-repo: the skill exists with user-invoked frontmatter naming it.
 # The skill has no script, and no test reads its prose for a phrase (the spec's Testing
-# Decisions), so the frontmatter is all there is to drive from outside.
+# Decisions, which allow frontmatter-structure checks), so the frontmatter is all there is
+# to check from outside.
 # Usage: scripts/test-setup-repo-skill.sh
 set -uo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)

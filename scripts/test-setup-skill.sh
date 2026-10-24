@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Tests for skills/setup: the frontmatter is user-invoked, the baseline settings snippet is
 # valid settings JSON with nothing org-specific, and check-prereqs.sh reports each
-# prerequisite and changes nothing. Driven from outside: jq on the snippet, the helper run
-# against stub binaries on a throwaway PATH.
+# prerequisite and changes nothing. No check reads the SKILL.md body, only its frontmatter
+# structure (the spec's Testing Decisions). Driven from outside: jq on the snippet, the
+# helper run against stub binaries on a throwaway PATH.
 # Usage: scripts/test-setup-skill.sh
 set -uo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
@@ -47,12 +48,6 @@ fx_check "baseline has no allowed network domains" jq -e '(.sandbox.network.allo
 fx_check "baseline sandbox holds only the enabled flag, the exclusions and the writable dirs" jq -e '
   .sandbox | keys == ["enabled", "excludedCommands", "filesystem"]' "$snippet"
 fx_check "CLAUDE.md stub exists and is non-empty" test -s "$stub"
-stub_line() { grep -n "$1" "$stub" | head -1 | cut -d: -f1; }
-stub_leads_with_command_grep() { # before the cd rule, the stub's first shell line (dev-5o3)
-  local g c; g=$(stub_line 'command grep'); c=$(stub_line 'cd <repo>')
-  [ -n "$g" ] && [ -n "$c" ] && [ "$g" -lt "$c" ]
-}
-fx_check "CLAUDE.md stub leads its shell lines with command grep" stub_leads_with_command_grep
 
 # the prerequisite check, on throwaway machines. PATH is the machine's bin dir (stubs) plus a
 # tools dir of symlinks to only what the helper needs, so a host /usr/bin/gh never leaks in.
@@ -70,11 +65,14 @@ mkbin() { # <bin dir> <names...>: stub executables
 machine() { mkdir -p "$work/$1/bin" "$work/$1/home" "$work/$1/cwd" "$work/$1/plugins"; }
 mcp_config() { printf '{"mcpServers":{"claude_ai_Atlassian_Rovo":{"type":"http"}}}\n' >"$work/$1/home/.claude.json"; }
 plugin_installed() { printf '{"version":2,"plugins":{"mattpocock-skills@claude-plugins-official":[{}]}}\n' >"$work/$1/plugins/installed_plugins.json"; }
-for m in full tea empty stale noauth unreadable stray emptyrec nojq subdir projmcp mcpjson; do machine "$m"; done
+for m in full tea empty nobd noforge stale noauth unreadable stray emptyrec nojq subdir projmcp mcpjson; do machine "$m"; done
 # a claude that fails (as it does inside the sandbox): the helper must not depend on it
 printf '#!/bin/sh\necho "sandbox: operation not permitted" >&2\nexit 1\n' >"$work/full/bin/claude"; chmod +x "$work/full/bin/claude"
 mkbin "$work/full/bin" bd gh;  mcp_config full; plugin_installed full
 mkbin "$work/tea/bin" bd tea;  mcp_config tea;  plugin_installed tea
+# full but for one prerequisite each
+mkbin "$work/nobd/bin" gh;     mcp_config nobd;    plugin_installed nobd
+mkbin "$work/noforge/bin" bd;  mcp_config noforge; plugin_installed noforge
 # stale cache dir only, no installed_plugins.json entry
 mkbin "$work/stale/bin" bd gh; mcp_config stale
 mkdir -p "$work/stale/plugins/cache/mkt/mattpocock-skills"
@@ -104,6 +102,9 @@ run() { # <machine> [subdir] [tools dir]: run the helper there; sets out and rc
         SETUP_PLUGINS_DIR="$work/$1/plugins" SETUP_PROJECT_MCP_JSON="$work/$1/project-mcp.json" "$(command -v bash)" "$prereqs" 2>&1)
   rc=$?
 }
+only_missing() { # <prerequisite>: $out names it, and only it, on a missing: line, and $rc is non-zero
+  [ "$rc" != 0 ] && [ "$(grep '^missing: ' <<<"$out" | cut -d' ' -f2- | sed 's/ (.*//')" = "$1" ]
+}
 # portable listing: names, contents, and anything newer than a marker (GNU and BSD alike)
 snapshot() { { find "$work" | sort; find "$work" -type f -exec cksum {} + | sort
                find "$work" -newer "$work/.marker"; } | cksum; }
@@ -118,13 +119,23 @@ fx_check "full machine exits 0" test "$rc" = 0
 fx_check "full machine says all prerequisites are present" grep -q '^all prerequisites present' <<<"$out"
 fx_check "full machine prints the CLAUDE.md stub" bash -c '[[ $1 == *"$(cat "$2")"* ]]' _ "$out" "$stub"
 fx_check "full machine prints the baseline snippet" bash -c '[[ $1 == *"$(cat "$2")"* ]]' _ "$out" "$snippet"
+out_line() { grep -n "$1" <<<"$out" | head -1 | cut -d: -f1; }
+stub_leads_with_command_grep() { # before the cd rule, the printed stub's first shell line (dev-5o3)
+  local g c; g=$(out_line 'command grep'); c=$(out_line 'cd <repo>')
+  [ -n "$g" ] && [ -n "$c" ] && [ "$g" -lt "$c" ]
+}
+fx_check "the printed CLAUDE.md stub leads its shell lines with command grep" stub_leads_with_command_grep
 fx_check "full machine changes nothing" test "$(snapshot)" = "$before"
 run tea
 fx_check "tea satisfies the forge prerequisite" test "$rc" = 0
+run nobd
+fx_check "a machine missing only bd reports bd, alone, and exits non-zero" only_missing bd
+run noforge
+fx_check "a machine missing only the forge CLI reports it, alone, and exits non-zero" only_missing "gh or tea"
 run stale
-fx_check "a stale mattpocock-skills cache does not count" grep -q '^missing: mattpocock-skills' <<<"$out"
+fx_check "a stale mattpocock-skills cache does not count" only_missing mattpocock-skills
 run emptyrec
-fx_check "an empty mattpocock-skills record does not count" grep -q "^missing: mattpocock-skills" <<<"$out"
+fx_check "an empty mattpocock-skills record does not count" only_missing mattpocock-skills
 run full
 fx_check "a real .mcpServers Atlassian entry is present" grep -q '^present: Atlassian' <<<"$out"
 run noauth

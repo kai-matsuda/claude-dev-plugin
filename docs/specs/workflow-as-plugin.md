@@ -115,7 +115,9 @@ settings).
 
 - A good test drives the lint and the skills from outside: exit codes and messages of
   the lint on fixture skill docs, and the fixture tests that run a stage against a
-  throwaway beads database. No test reads a skill's prose for a phrase.
+  throwaway beads database. No test reads a skill's prose for a phrase. A test may check
+  a SKILL.md's frontmatter structure (its name, a description, the invocation flag),
+  which is the plugin's contract with Claude Code, not prose a reword would break.
 - One seam: `make lint` in this repo, which runs the skill-doc lint, its regression test,
   the guard-rm test and, last, the fixture tests. The lint gains two cases: a bare
   `/<skill>` reference fails with the namespace message, and a change under `skills/`
