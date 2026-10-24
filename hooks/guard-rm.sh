@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# PreToolUse hook on Bash (registered in hooks/hooks.json): refuses a recursive rm whose target carries a shell variable not
-# guarded with :? or ends in /*, before the command runs. Exit 2 refuses and the stderr line
-# reaches the model; exit 0 lets the command through. A fix-up implementer whose mktemp -d was
-# denied ran rm -rf "$s"/* with $s empty, as rm -rf /*, for five minutes (chezmoi-cyc, INFRA-29).
+# PreToolUse hook on Bash (registered in hooks/hooks.json): refuses a recursive rm whose target
+# carries a shell variable not guarded with :? or ends in /*, before the command runs. Exit 2
+# refuses and the stderr line reaches the model; exit 0 lets the command through. A fix-up
+# implementer whose mktemp -d was denied ran rm -rf "$s"/* with $s empty, as rm -rf /*, for
+# five minutes (chezmoi-cyc, INFRA-29).
 #
 # Checked: every unquoted word `rm` (also /bin/rm and \rm) in the command, in any position
 # (`sudo rm`, `&& rm`, a second line, `-exec rm`, inside a $(...) or `...`), unless an earlier
@@ -64,8 +65,7 @@ while IFS= read -r line; do
     [ "$w" = git ] && seen_git=1
     base=${w##*/}; base=${base#\\}
     if [ "$base" = rm ] && [ -z "$seen_git" ]; then
-      args=()
-      [ $((i + 1)) -lt "$n" ] && args=("${words[@]:i+1}")
+      args=("${words[@]:i+1}")
       recursive=
       targets=()
       opts_done=

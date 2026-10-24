@@ -98,9 +98,9 @@ check "hooks.json entries have the harness schema" jq -e '
     all(.[]; (.matcher | type == "string") and (.hooks | type == "array" and length > 0 and
       all(.[]; .type == "command" and (.command | type == "string" and length > 0)))))' "$hooks_json"
 check "hooks.json runs guard-rm on Bash before tool use, through the plugin root" jq -e '
-  .hooks.PreToolUse | any(.matcher == "Bash" and any(.hooks[]; .command == "${CLAUDE_PLUGIN_ROOT}/hooks/guard-rm.sh"))' "$hooks_json"
+  .hooks.PreToolUse | any(.matcher == "Bash" and any(.hooks[]; .command == "\"${CLAUDE_PLUGIN_ROOT}/hooks/guard-rm.sh\""))' "$hooks_json"
 check "hooks.json runs bd prime --hook-json on session start" jq -e '
-  .hooks.SessionStart | any(.[]; any(.hooks[]; .command == "bd prime --hook-json"))' "$hooks_json"
+  .hooks.SessionStart | any(.[]; any(.hooks[]; .command == "command -v bd >/dev/null 2>&1 && bd prime --hook-json || true"))' "$hooks_json"
 check "the guard-rm script is executable" test -x "$hook"
 
 report_fails

@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/guard-rm.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/guard-rm.sh\""
           }
         ]
       }
@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bd prime --hook-json"
+            "command": "command -v bd >/dev/null 2>&1 && bd prime --hook-json || true"
           }
         ]
       }
