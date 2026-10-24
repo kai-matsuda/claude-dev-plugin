@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# Tests for hooks/guard-rm.sh, the PreToolUse hook on Bash that refuses a
-# recursive rm whose target carries a shell variable not guarded with :? or ends in /*
-# (chezmoi-cyc, INFRA-29: a fix-up implementer ran rm -rf "$s"/* with $s empty). Each case
+# Tests for hooks/guard-rm.sh, the PreToolUse hook on Bash that refuses a recursive rm whose
+# target carries a shell variable, special parameter or ~ not guarded with :?, or whose last
+# path segment is a * (chezmoi-cyc, INFRA-29: a fix-up implementer ran rm -rf "$s"/* with $s
+# empty; INFRA-30: the parser gaps of dev-n3w). Each case
 # feeds the hook the tool-input JSON Claude Code sends and asserts the exit code: 2 refuses the
 # command before it runs, 0 lets it through.
 # Usage: scripts/test-guard-rm.sh
@@ -57,10 +58,45 @@ expect 2 '\rm -rf "$x"'
 expect 2 $'rm -rf \\\n  "$s"'
 expect 2 'rm -rf "$x" > "$log"'
 
+# refused: the parser gaps of dev-n3w (INFRA-30)
+# a target whose last segment is * or */, not only one ending in exactly /*
+expect 2 'rm -rf /*/'
+expect 2 'rm -rf ./*/'
+expect 2 'rm -rf */'
+expect 2 'rm -rf "$s"/*/'
+expect 2 'rm -rf /*//'
+expect 2 'rm -rf /**'
+# special parameters and a leading ~ are variables too
+expect 2 'rm -rf $!'
+expect 2 'rm -rf "$?"'
+expect 2 'rm -rf $$'
+expect 2 'rm -rf "$-"'
+expect 2 'rm -rf ~'
+expect 2 'rm -rf ~/.cache/plugin'
+expect 2 'rm -rf ~user/tmp'
+# a background & separates commands, and git turns the check off only as the command word
+expect 2 'sleep 1 & rm -rf $x'
+expect 2 'git status & rm -rf "$x"'
+expect 2 'sudo -u git rm -rf $x'
+expect 2 'git submodule foreach rm -rf $x'
+expect 2 'echo "a; b" && rm -rf $x'
+# a substitution whose body has parentheses is still lifted
+expect 2 'rm -rf "$(dirname "$(pwd)")"/*'
+expect 2 'rm -rf "$((n + 1))"/*'
+expect 2 'rm -rf "$(echo $(mktemp -d))"/*'
+# an unquoted heredoc delimiter leaves the body's substitutions live, and the commands after
+# a heredoc are still commands
+expect 2 $'cat <<EOF\n$(rm -rf $x)\nEOF'
+expect 2 $'cat <<EOF\n$(\n  rm -rf $x\n)\nEOF'
+expect 2 $'cat <<\'EOF\'\nrm -rf $x\nEOF\nrm -rf $y'
+
 # passes: the acceptance criteria's three forms
 expect 0 'rm -rf "${s:?}"/sub'
 expect 0 'rm -rf ./build'
 expect 0 'rm -r /absolute/literal/path'
+# the guarded spelling of ~ and of a positional parameter
+expect 0 'rm -rf "${HOME:?}"/.cache/plugin'
+expect 0 'rm -rf "${1:?}"/sub'
 
 # passes: no recursive delete in the command
 expect 0 'rm "$file"'
@@ -74,6 +110,21 @@ expect 0 'rm -rf "$(git rev-parse --show-toplevel)"/.fixtures/x'
 expect 0 'rm -rf ./build > "$log" 2>&1'
 expect 0 'rm -rf ./build 2>"$log"'
 expect 0 'xargs rm -rf <<<"$x"'
+# git is the command word after assignments and wrappers; a redirection's & is not a separator
+expect 0 'sudo git rm -r --cached "$x"'
+expect 0 'git -c core.quotepath=off -C /repo rm -r --cached "$x"'
+expect 0 'GIT_DIR=.git git rm -r --cached "$x"'
+expect 0 'rm -rf ./build 2>&1 & wait'
+
+# passes: quoted text, heredoc bodies and comments are not commands (the triage run that
+# filed dev-n3w was refused for quoting these forms in a bead body)
+expect 0 'bd create --title="guard-rm gaps" --description="rm -rf \"$s\"/* ran with \$s empty; rm -r $dir"'
+expect 0 "git commit -m 'fix(hooks): refuse rm -rf \$x after a background &'"
+expect 0 'echo "rm -rf $x; rm -rf *"'
+expect 0 $'cat <<\'EOF\'\nrm -rf "$s"/*\nEOF'
+expect 0 $'cat <<-EOF\n\trm -rf $x\n\tEOF'
+expect 0 $'bd update dev-1 --description="$(cat <<EOF\nthe guard refuses rm -rf $x\nEOF\n)"'
+expect 0 $'# clean up with rm -rf $x later\necho ok'
 
 # passes: not the Bash tool, or no command to read
 check "another tool's input passes" eq "$(hook_rc Read 'rm -rf $x')" 0
