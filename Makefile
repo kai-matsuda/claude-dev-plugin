@@ -8,3 +8,4 @@ help: ## Show this help
 lint: ## Lint the skill docs, then run the lint's regression test
 	scripts/lint-skill-docs.sh
 	scripts/test-lint-skill-docs.sh
+	scripts/test-guard-rm.sh
