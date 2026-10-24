@@ -38,7 +38,7 @@
 #   cite the "epic bead writes" convention that section 6 checks)
 #   5. the agent docs and every file under the skills dir: no retired "cut one", "cut two" or
 #      <spec-slug>, as whole words, and no story-cut.md (the notes moved to the story bead's
-#      design field, chezmoi-cdf); and across those, the user-level CLAUDE.md and the runbook:
+#      design field, chezmoi-cdf); and across those, the project CLAUDE.md and the runbook:
 #      none of the retired walk-up phrases ("nearest ancestor", "walking up", "walk up",
 #      "one level up", "the home repo included", "the workspace root included",
 #      "no repos.yaml above", "workspace inbox", "workspace's inbox", the "home repo <home repo>"
@@ -104,7 +104,7 @@
 # Each section guards on its doc existing, so the lint passes on a tree without that doc yet;
 # the plugin layout is skills/, docs/agents/, docs/WORKFLOW.md and CLAUDE.md under the repo root.
 # SKILLS_DIR and AGENT_DOCS override the skills and agent docs directories (scratch copies).
-# USER_CLAUDE_MD overrides the user-level CLAUDE.md (default: CLAUDE.md).
+# USER_CLAUDE_MD overrides the project CLAUDE.md (default: CLAUDE.md under the repo root).
 # PLUGIN_SKILLS overrides the plugin skills directory (default: newest installed mattpocock-skills).
 set -u
 root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
@@ -115,8 +115,16 @@ hasc() { grep -qF -- "$2" "$f" || bad "missing (case-sensitive): $1 ($2)"; }
 hase() { grep -qE -- "$2" "$f" || bad "missing: $1 ($2)"; }
 lacks() { [ -f "$f" ] || return 0; if grep -qiE -- "$2" "$f"; then bad "present: $1 ($2)"; grep -niE -- "$2" "$f" | head -3; fi; }
 
+skills=${SKILLS_DIR:-$root/skills}
+agents=${AGENT_DOCS:-$root/docs/agents}
+user_claude_md=${USER_CLAUDE_MD:-$root/CLAUDE.md}
+# an explicitly passed path must exist; only the defaults are guarded by [ -f ] below
+for given in "${1:-}" "${2:-}"; do
+  [ -z "$given" ] || [ -f "$given" ] || bad "no such file: $given"
+done
+
 # ---- 1. /implement-spec driver ----
-f=${1:-${SKILLS_DIR:-$root/skills}/implement-spec/SKILL.md}
+f=${1:-$skills/implement-spec/SKILL.md}
 if [ -f "$f" ]; then
 echo "== $f"
 lacks "worktree steps" 'worktree'
@@ -170,9 +178,6 @@ echo "== $f"
 plugin=${PLUGIN_SKILLS:-$(ls -d "$HOME"/.claude/plugins/cache/claude-plugins-official/mattpocock-skills/*/skills 2>/dev/null | sort -V | tail -1)}
 builtin=" model add-dir code-review "
 
-user_claude_md=${USER_CLAUDE_MD:-$root/CLAUDE.md}
-skills=${SKILLS_DIR:-$root/skills}
-agents=${AGENT_DOCS:-$root/docs/agents}
 # every /command token in file $1 maps to a skill directory (built-ins allowlisted)
 cmds() { # <file>
   local tok name
@@ -433,7 +438,7 @@ while IFS= read -r f; do
 done < <(find "$agents" "$skills" -type f 2>/dev/null | sort)
 
 # two lists are retired everywhere a reader meets them, the four file kinds: the skills, the
-# agent docs, the user-level CLAUDE.md and the runbook (section 2's file).
+# agent docs, the project CLAUDE.md and the runbook (section 2's file).
 # Session mode (ADR 0008): the walk-up wording.
 walkup='nearest ancestor|walking up|walk up|one level up|the home repo included|the workspace root included|no repos\.yaml above|workspace inbox|workspace'\''s inbox|home repo <home repo>'
 # The story-DAG wording (ADR 0011): one story per repo (now one per PR), the keyed branch
