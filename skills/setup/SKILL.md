@@ -10,7 +10,8 @@ Machine setup, run once per machine from any directory. It reports and prints; i
 edits `~/.claude` or any file outside the repo it runs in, and the check itself writes no file. The owner pastes what it prints.
 
 1. Run `bash ${CLAUDE_PLUGIN_ROOT}/skills/setup/check-prereqs.sh`. It lists `bd`, `gh` or
-   `tea`, `jq`, the `mattpocock-skills` plugin and the Atlassian MCP, each as `present:`,
+   `tea`, `jq` (the check reads the plugin and MCP config with it), the
+   `mattpocock-skills` plugin and the Atlassian MCP, each as `present:`,
    `missing:` or `confirm:`, then prints the `CLAUDE.md` stub and the baseline settings
    snippet, on every machine. The Atlassian MCP is `present:` only when `~/.claude.json`
    (top level or this project) or the project's `.mcp.json` lists it under `mcpServers`;
@@ -26,6 +27,6 @@ edits `~/.claude` or any file outside the repo it runs in, and the check itself 
 
 The baseline is org-neutral: it denies reads of secret files, asks before destructive git
 and `bd dolt push`, allows `bd`, and enables the sandbox with the beads and Dolt
-directories writable, push, fetch and pull excluded, and Bash commands auto-allowed
-while sandboxed (`autoAllowBashIfSandboxed`). Toolchain, registry and forge entries
+directories writable and push, fetch and pull excluded. `~/.config/bd` is writable too,
+because `bd` writes its user-level config there. Toolchain, registry and forge entries
 are the owner's own to add.

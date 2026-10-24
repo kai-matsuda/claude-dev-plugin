@@ -45,6 +45,7 @@ Run it from the repo root; the flag loads that checkout in place of the installe
 - `gh` (GitHub) or `tea` (Gitea) for pull requests
 - the `mattpocock-skills` plugin from the official marketplace (`code-review`, `pr`, `tdd`)
 - the Atlassian MCP connector, for the Jira Epic
+- `jq`, which `/dev:setup` reads the plugin and MCP config with
 
 ## Setup
 

@@ -81,6 +81,9 @@ git_init() { # <dir> <name>   git dir at OUT/.git-dirs/<name>, see "Sandbox" abo
   git -C "$1" config beads.role maintainer      # silences "beads.role not configured" when no global value
 }
 commit() { # <dir> <message>   (--no-verify: the global commit-lint hook wants a Bead: trailer)
+  # <dir> must be its own repo's top level: git discovers upward, so an add in a dir whose init
+  # failed would commit into the enclosing checkout
+  [ "$(git -C "$1" rev-parse --show-toplevel)" = "$(cd "$1" && pwd -P)" ] || { echo "refusing to commit: $1 is not a repo's top level" >&2; exit 1; }
   git -C "$1" add -A && git -C "$1" commit -q --no-verify -m "$2"
 }
 bd_init() { # <dir> <prefix>   bd -C cannot init: it needs an existing .beads, so cd in a subshell

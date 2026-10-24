@@ -46,12 +46,12 @@ more than one repo is typed at the workspace root from `/mattpocock-skills:to-sp
 - `.beads/` exists at the workspace root (same `bd init` as per repo). It is the
   home of a workspace session: the **inbox** is the home's beads, and the workspace's own
   beads live there too.
-- Per machine (`/dev:setup`'s baseline sets it): `~/src` is in the sandbox read and write
-  allowlists (user settings), so a workspace session can `bd -C` into any manifest repo's
-  `.beads/` without a prompt.
-- Per machine (also `/dev:setup`'s baseline): `git config --global beads.role maintainer`.
-  `bd` reads this from the shell's current directory, so without the global value every
-  `bd -C <other repo>` prints a warning.
+- Per machine, by hand (`/dev:setup`'s baseline leaves it out): add `~/src` to the
+  sandbox read and write allowlists in your user settings, so a workspace session can
+  `bd -C` into any manifest repo's `.beads/` without a prompt.
+- Per machine, by hand: `git config --global beads.role maintainer`. `bd` reads this from
+  the shell's current directory, so without the global value every `bd -C <other repo>`
+  prints a warning.
 - Optional: `triage.jira-epic: <KEY>-<n>` in `repos.yaml` names a standing Jira epic that
   `/dev:triage` comments on once per run. Absent, it skips the comment.
 
@@ -92,9 +92,9 @@ Cross-repo notes:
   mode, adds the story that crate's repo needs.
 - One `bd ready` across every repo needs `bd repo sync` at the workspace root, which
   reads each repo's JSONL export under `.beads/`. That export is on everywhere through
-  `BD_EXPORT_AUTO=true` in the shell profile, a per-machine setting `/dev:setup`'s baseline
-  covers (bd has no user-level config file for it), and the file is hidden by the global
-  git ignore. Each
+  `BD_EXPORT_AUTO=true` in the shell profile, a per-machine line you add by hand (bd has no
+  user-level config file for it, and `/dev:setup` does not set it), and the file is hidden
+  by the global git ignore. Each
   repo still needs one `bd repo add ./<name>` at the workspace root the first time it
   gets a `.beads/`. Without the sync, the closed inbox beads are the cross-repo record:
   `bd list -l retro --all` from the workspace root.

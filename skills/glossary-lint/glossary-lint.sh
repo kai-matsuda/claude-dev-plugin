@@ -13,8 +13,9 @@
 # line as "<path> <term>  # reason"; each allows the term everywhere in <path>.
 #
 # Entries are "**Term**:" lines followed by "_Avoid_: a, b (note)", the format
-# /domain-modeling writes; *Avoid*, **Avoid**, __Avoid__ and bare Avoid also
-# parse. A glossary that yields no entries gets a warning on stderr.
+# /mattpocock-skills:domain-modeling writes; *Avoid*, **Avoid**, __Avoid__ and bare
+# Avoid also parse. A note may wrap onto the next lines, up to a blank line or the
+# next entry. A glossary that yields no entries gets a warning on stderr.
 #
 # Exit status: 0 clean (or no glossary), 1 violations found.
 set -eu
@@ -38,28 +39,42 @@ function doc_prefix(file) {
   if (file ~ /\.rs$/) return "^[[:space:]]*//[/!] ?"
   return ""
 }
+# Record the terms of one _Avoid_ note (all its lines joined) for glossary dir d, entry h.
+function add_avoid(note, d, h,    n, i, t, k, parts) {
+  # /mattpocock-skills:domain-modeling writes _Avoid_:; accept *Avoid*, **Avoid**, __Avoid__, Avoid.
+  sub(/^[_*]*[Aa][Vv][Oo][Ii][Dd][_*]*: */, "", note)
+  # Notes are parenthetical, and one may hold commas; an unclosed one runs to the end.
+  gsub(/\([^)]*\)/, "", note); sub(/\(.*/, "", note)
+  n = split(note, parts, ",")
+  for (i = 1; i <= n; i++) {
+    t = tolower(parts[i]); gsub(/^ +| +$/, "", t)
+    if (t == "") continue
+    k = d SUBSEP t
+    use[k] = (k in use) ? use[k] " or " tolower(h) : tolower(h)
+  }
+}
 BEGIN {
   ng = split(ENVIRON["GLOSSARY_LINT_GLOSSARIES"], gs, "\n")
   for (g = 1; g <= ng; g++) {
     dir = gs[g]; sub(/GLOSSARY\.md$/, "", dir)
-    head = ""; entries = 0
+    head = ""; entries = 0; note = ""
     while ((getline line < gs[g]) > 0) {
+      # An _Avoid_ note wraps onto the following lines until a blank line or the next entry.
+      if (note != "") {
+        if (line !~ /^[[:space:]]*$/ && line !~ /^\*\*[^*]+\*\*:/ && tolower(line) !~ /^[_*]*avoid[_*]*:/ && line !~ /^#/) {
+          note = note " " line; continue
+        }
+        add_avoid(note, dir, head); note = ""
+      }
       # Tested before the entry heading: **Avoid**: is bold too.
       if (tolower(line) ~ /^[_*]*avoid[_*]*:/) {
-        # /domain-modeling writes _Avoid_:; accept *Avoid*, **Avoid**, __Avoid__, Avoid.
-        sub(/^[_*]*[Aa][Vv][Oo][Ii][Dd][_*]*: */, "", line); gsub(/\([^)]*\)/, "", line)
-        n = split(line, parts, ",")
-        for (i = 1; i <= n; i++) {
-          t = tolower(parts[i]); gsub(/^ +| +$/, "", t)
-          if (t == "") continue
-          k = dir SUBSEP t
-          use[k] = (k in use) ? use[k] " or " tolower(head) : tolower(head)
-        }
+        note = line
       } else if (line ~ /^\*\*[^*]+\*\*:/) {
         head = line; sub(/^\*\*/, "", head); sub(/\*\*:.*/, "", head)
         entries++
       }
     }
+    if (note != "") add_avoid(note, dir, head)
     close(gs[g])
     # A glossary with no **Term**: entries checks nothing; say so rather than pass silently.
     if (!entries)

@@ -6,14 +6,12 @@
 # Usage: scripts/test-setup-skill.sh
 set -uo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-source "$repo_root/scripts/fixture-test-lib.sh"   # check, scratch_dir, report_fails
+source "$repo_root/scripts/fixture-test-lib.sh"   # check, front, scratch_dir, report_fails
 skill=$repo_root/skills/setup
 snippet=$skill/baseline-settings.json
 stub=$skill/claude-md-stub.md
 prereqs=$skill/check-prereqs.sh
 
-# front <file>: the frontmatter lines, between the first two --- lines
-front() { awk 'NR==1 && $0!="---"{exit} NR>1 && $0=="---"{exit} NR>1{print}' "$1"; }
 fm=$(front "$skill/SKILL.md")
 check "frontmatter names the skill setup" grep -qx 'name: setup' <<<"$fm"
 check "frontmatter is user-invoked" grep -qx 'disable-model-invocation: true' <<<"$fm"
@@ -46,6 +44,8 @@ no_org() { ! jq -c '[.. | strings]' "$1" |
   grep -Eiq 'cargo|rustup|crates|npm|pip|gh |tea |github|gitea|mice'; }
 check "baseline carries no toolchain, registry or forge line" no_org "$snippet"
 check "baseline has no allowed network domains" jq -e '(.sandbox.network.allowedDomains // []) | length == 0' "$snippet"
+check "baseline sandbox holds only the enabled flag, the exclusions and the writable dirs" jq -e '
+  .sandbox | keys == ["enabled", "excludedCommands", "filesystem"]' "$snippet"
 check "CLAUDE.md stub exists and is non-empty" test -s "$stub"
 
 # the prerequisite check, on throwaway machines. PATH is the machine's bin dir (stubs) plus a

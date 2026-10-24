@@ -370,9 +370,10 @@ _Avoid_: the orchestration (that is one rules doc), the skills, dotfiles, the wo
 **Machine setup**:
 The per-machine part of running the dev plugin, which a plugin cannot carry: the
 user-level `CLAUDE.md` stub that points at the plugin's docs, the baseline settings, and
-the commit-lint git hook. `/dev:setup` checks the prerequisites and hands the owner the
-snippets to paste; on Kai's own machines chezmoi applies them and the skill finds nothing
-missing.
+the lines the runbook has the owner add by hand (the `~/src` sandbox allowlist,
+`beads.role`, `BD_EXPORT_AUTO`). `/dev:setup` checks the prerequisites and hands the owner
+the stub and the baseline to paste, nothing more; on Kai's own machines chezmoi applies
+all of it, the commit-lint git hook too, and the skill finds nothing missing.
 _Avoid_: install, bootstrap, onboarding
 
 **Repo setup**:

@@ -41,7 +41,6 @@
   },
   "sandbox": {
     "enabled": true,
-    "autoAllowBashIfSandboxed": true,
     "excludedCommands": [
       "git push*",
       "git -C * push*",

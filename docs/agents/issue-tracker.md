@@ -549,9 +549,10 @@ when it closes).
 
 ### bd writes outside the session's repo
 
-`bd -C <other repo>` writes to that repo's `.beads/`. `~/src` is in the sandbox's read and
-write allowlists (user settings), so any repo under a workspace is
-reachable from any session with no prompt. A repo outside `~/src` fails with `Operation
+`bd -C <other repo>` writes to that repo's `.beads/`. With `~/src` in the sandbox's read
+and write allowlists, a per-machine line the owner adds to their user settings by hand
+(`/dev:setup`'s baseline leaves it out), any repo under a workspace is reachable from any
+session with no prompt. A repo outside the allowlists fails with `Operation
 not permitted`: that is the sandbox, so rerun that one command with the sandbox disabled;
 it still passes the permission gate.
 

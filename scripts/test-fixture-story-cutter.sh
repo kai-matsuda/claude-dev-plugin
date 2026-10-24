@@ -44,7 +44,7 @@ seed_file() { echo "$out/seed/$1.$2"; }   # <repo> <beads|git>
 
 seed() { # <case>
   local r epic story dep crate version
-  "$repo_root/scripts/fixture-workspace.sh" --stage-boundary "$out" >/dev/null || { echo "FAIL build fixture"; exit 1; }
+  build_fixture --stage-boundary
   epic=$(one . '.issue_type=="epic"'); story=$(one "$1" '.issue_type=="story"'); read -r crate version <<<"$(pair)"
   [ -n "$epic" ] && [ -n "$story" ] && [ -n "$version" ] || { echo "FAIL find the epic bead, the $1 story and the pair"; exit 1; }
   mkdir -p "$out/seed"

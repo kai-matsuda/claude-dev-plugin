@@ -231,16 +231,13 @@ cmd_tokens() { # <file>
 # every namespaced /command token in $@ maps to a skill directory: dev: ones under the
 # skills dir, mattpocock-skills: ones under the plugin skills dir. Bare and unknown-namespace
 # tokens are the namespace rule's (section 11), which calls this for every doc it scans.
-# A dev: name passes when its skill dir exists or it is one of the plugin's planned skills
-# below: the rules docs land before the skill tickets build what they name, and each skill
-# batch lands on its own (INFRA-30). An unknown or typo'd dev: name fails either way.
-planned_skills=" spec-to-stories spec-to-tickets story-to-tickets workflow glossary-lint triage retro implement-spec implement-story close-epic close-story setup setup-repo "
+# A dev: name passes only when its skill dir exists, so a dropped, renamed or typo'd skill fails.
 cmds() { # <token>...
   local tok name
   for tok in "$@"; do
     name=${tok##*:}
     case "$tok" in
-      dev:*) [ -d "$skills/$name" ] || [[ "$planned_skills" == *" $name "* ]] || bad "/$tok names no skill" ;;
+      dev:*) [ -d "$skills/$name" ] || bad "/$tok names no skill" ;;
       mattpocock-skills:*)
         if [ ! -d "$plugin" ]; then
           bad "/$tok cannot be resolved: plugin skills dir not found (${plugin:-unset}; install mattpocock-skills or set PLUGIN_SKILLS)"

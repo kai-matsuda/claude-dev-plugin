@@ -26,7 +26,7 @@ con_fix="Main prints without a label. layer: code. file: \$FIX/consumer/src/main
 
 seed() { # <case>
   local home home_dir survivors
-  "$repo_root/scripts/fixture-workspace.sh" "$out" >/dev/null || { echo "FAIL build fixture"; exit 1; }
+  build_fixture
   home=$(home_of "$1"); home_dir=$(home_path "$1")
   if [ "$1" = bare ]; then
     mkdir -p "$out/bare" && git -C "$out/bare" init -q -b main --separate-git-dir "$out/.git-dirs/bare" || { echo "FAIL init bare"; exit 1; }

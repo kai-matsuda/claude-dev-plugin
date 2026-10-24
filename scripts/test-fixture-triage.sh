@@ -17,7 +17,7 @@ home_of() { echo consumer; }
 
 seed() { # <case>
   [ "$1" = triage ] || return 1
-  "$repo_root/scripts/fixture-workspace.sh" "$out" >/dev/null || { echo "FAIL build fixture"; exit 1; }
+  build_fixture
   bd -C "$out/consumer" create "Reviewer misses unused imports" --type chore \
     -l retro,needs-triage,retro:foreign --silent --body-file - >/dev/null <<'T' || { echo "FAIL seed inbox bead"; exit 1; }
 ## Moment

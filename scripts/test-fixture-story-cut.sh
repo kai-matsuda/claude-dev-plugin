@@ -27,7 +27,7 @@ home_of() { case "$1" in workspace) echo . ;; *) echo consumer ;; esac; }
 
 seed() { # <case>
   local home home_dir epic spec_rel spec
-  "$repo_root/scripts/fixture-workspace.sh" "$out" >/dev/null || { echo "FAIL build fixture"; exit 1; }
+  build_fixture
   home=$(home_of "$1"); home_dir=$(home_path "$1")
   mkdir -p "$out/$home/specs"
   spec_rel=specs/feature.md   # the Spec: line's path, relative to the case's home (tracker doc, "gather the epic bead")
