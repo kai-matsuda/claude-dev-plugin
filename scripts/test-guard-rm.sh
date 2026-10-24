@@ -10,7 +10,6 @@ repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 hook=$repo_root/hooks/guard-rm.sh
 source "$repo_root/scripts/fixture-test-lib.sh"   # fails, report_fails
 
-eq() { [ "$1" = "$2" ]; }   # for check: two strings equal
 
 # hook_json <json>: run the hook on that stdin; prints the exit code
 hook_json() { "$hook" <<<"$1" >/dev/null 2>&1; echo $?; }
