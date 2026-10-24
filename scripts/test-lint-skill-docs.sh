@@ -146,4 +146,35 @@ fresh
 echo "run /story-to-tickets" > "$scratch/driver.md"
 expect "a driver passed as \$1 outside the skills dir gets the namespace check" 1 "$ns_msg in $scratch/driver.md" "$scratch/driver.md" "$scratch/WORKFLOW.md"
 
+# paths after a placeholder, a substitution or a closing backtick are not commands
+fresh
+printf 'see <home>/repos.yaml and $(pwd)/x.sh and `package.json`/build-tool\nalso /usr/x.sh and /compact /init /permissions /hooks /resume\n' >> "$scratch/skills/sample/SKILL.md"
+expect "paths after a placeholder, substitution or closing backtick, and more built-ins, pass" 0
+
+# a command followed by a colon is still checked
+fresh
+echo "Run /close-story: it closes" >> "$scratch/skills/sample/SKILL.md"
+expect "a bare /<skill>: fails" 1 "$ns_msg in $scratch/skills/sample/SKILL.md: /close-story"
+fresh
+echo "Run /dev:nope: x" >> "$scratch/skills/sample/SKILL.md"
+expect "/dev:<missing>: fails as naming no skill" 1 "/dev:nope names no skill"
+fresh
+echo "write /dev:<skill> and /dev:workflow." >> "$scratch/skills/sample/SKILL.md"
+expect "a /dev:<placeholder> passes" 0
+
+# a DOCS_DIR override must exist
+fresh
+out=$(DOCS_DIR=/typo-no-such-dir SKILLS_DIR=$scratch/skills AGENT_DOCS=$scratch/agents USER_CLAUDE_MD=$scratch/CLAUDE.md PLUGIN_SKILLS=$scratch/plugin "$lint" "" "$scratch/WORKFLOW.md" 2>&1; echo "rc=$?")
+check "a DOCS_DIR that does not exist fails" grep -qF "no such directory: /typo-no-such-dir" <<<"$out"
+
+# docs/specs: the namespace rule applies, the existence check does not
+fresh
+mkdir -p "$scratch/docs/specs"
+echo "run /story-to-tickets" > "$scratch/docs/specs/s.md"
+expect "a bare /<skill> in docs/specs fails the namespace rule" 1 "$ns_msg in $scratch/docs/specs/s.md"
+fresh
+mkdir -p "$scratch/docs/specs"
+echo "run /dev:not-built-yet" > "$scratch/docs/specs/s.md"
+expect "a /dev:<not yet built> in docs/specs passes" 0
+
 report_fails

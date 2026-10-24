@@ -124,13 +124,14 @@ lacks() { [ -f "$f" ] || return 0; if grep -qiE -- "$2" "$f"; then bad "present:
 skills=${SKILLS_DIR:-$root/skills}
 agents=${AGENT_DOCS:-$root/docs/agents}
 docs=${DOCS_DIR:-$root/docs}
+docs=${docs%/}
 user_claude_md=${USER_CLAUDE_MD:-$root/CLAUDE.md}
 # an explicitly passed path ($1, $2) or a set override must exist; only the defaults are guarded
 # by [ -f ] below
 for given in "${1:-}" "${2:-}"; do
   [ -z "$given" ] || [ -f "$given" ] || bad "no such file: $given"
 done
-for given in "${SKILLS_DIR:-}" "${AGENT_DOCS:-}"; do
+for given in "${SKILLS_DIR:-}" "${AGENT_DOCS:-}" "${DOCS_DIR:-}"; do
   [ -z "$given" ] || [ -d "$given" ] || bad "no such directory: $given"
 done
 [ -z "${USER_CLAUDE_MD:-}" ] || [ -f "$USER_CLAUDE_MD" ] || bad "no such file: $USER_CLAUDE_MD"
@@ -187,22 +188,41 @@ fi
 f=${2:-$root/docs/WORKFLOW.md}
 runbook=$f
 plugin=${PLUGIN_SKILLS:-$(ls -d "$HOME"/.claude/plugins/cache/claude-plugins-official/mattpocock-skills/*/skills 2>/dev/null | sort -V | tail -1)}
-builtin=" model add-dir code-review plugin sandbox clear mcp help config tmp "
+builtin=" model add-dir code-review plugin sandbox clear mcp help config tmp compact init permissions hooks resume agents bug context cost doctor exit login logout memory pr-comments review status statusline terminal-setup vim ide install-github-app release-notes rewind export usage theme output-style loop schedule security-review simplify run fewer-permission-prompts keybindings-help update-config claude-api "
 
-# the /command tokens of file $1, one per line: a slash after a non-word, non-path character
-# (so not a/b, ~/x, a closing tag or a URL), the name with an optional :skill, and one trailing
-# character kept only to tell a path (/tmp/x) or a placeholder (/dev:<x>) from a command. The
-# trailing character is not a delimiter, so adjacent commands and a sentence-final "." match.
+# the /command tokens of file $1, one per line. A slash starts a command only at the start of a
+# line or after whitespace, an opening delimiter or an opening backtick (so not a/b, ~/x, a URL,
+# a closing tag, <home>/x, $(pwd)/x or a closing `x`/y). The name is [a-z-]+ with an optional
+# :skill; what follows it tells a command from a path (/tmp/x, /x.sh) or a placeholder
+# (/dev:<x>): a command ends at a space, the end of line or punctuation, and a ":" or "." that
+# ends a sentence still counts, so adjacent commands and "/skill." or "/skill: x" are checked.
 cmd_tokens() { # <file>
-  grep -oE '(^|[^A-Za-z0-9~._/:<-])/[a-z][a-z-]*(:[a-z-]+)?[/:_A-Z0-9]?' "$1" \
-    | sed -E 's/^[^/]*\///' | grep -E '[a-z-]$' | sed -E 's/-+$//' | sort -u
+  awk -v q="'" '{
+    line = $0; n = length(line); inc = 0
+    for (i = 1; i <= n; i++) {
+      ch = substr(line, i, 1)
+      if (ch == "`") { inc = !inc; continue }
+      if (ch != "/") continue
+      p = (i > 1) ? substr(line, i - 1, 1) : ""
+      ok = (p == "" || p ~ /[ \t(\[{|,;"]/ || p == q || (p == "`" && inc))
+      if (!ok) continue
+      rest = substr(line, i + 1)
+      if (!match(rest, /^[a-z][a-z-]*(:[a-z-]+)?/)) continue
+      tok = substr(rest, 1, RLENGTH); c = substr(rest, RLENGTH + 1, 1); d = substr(rest, RLENGTH + 2, 1)
+      if (c ~ /[\/_A-Z0-9<]/) continue
+      if (c == "." && d ~ /[A-Za-z0-9_]/) continue
+      if (c == ":" && d != "" && d !~ /[ \t,;.)`]/) continue
+      sub(/-+$/, "", tok)
+      print tok
+    }
+  }' "$1" | sort -u
 }
-# every namespaced /command token in file $1 maps to a skill directory: dev: ones under the
+# every namespaced /command token in $@ maps to a skill directory: dev: ones under the
 # skills dir, mattpocock-skills: ones under the plugin skills dir. Bare and unknown-namespace
 # tokens are the namespace rule's (section 11), which calls this for every doc it scans.
-cmds() { # <file>
+cmds() { # <token>...
   local tok name
-  for tok in $(cmd_tokens "$1"); do
+  for tok in "$@"; do
     name=${tok##*:}
     case "$tok" in
       dev:*) [ -d "$skills/$name" ] || bad "/$tok names no skill" ;;
@@ -772,18 +792,20 @@ fi
 # our skills are dev:<skill>, mattpocock's are mattpocock-skills:<skill>. A bare /<skill> or a
 # /<other>:<skill> in a skill doc, any doc under docs/ or the runbook fails, and so does a
 # namespaced one naming no skill; a path (/tmp/x) and a built-in command do not count as skills.
-# The driver passed as $1 is scanned too, wherever it lives. docs/specs/ is skipped: a spec
-# names the skills its stories have yet to build.
+# The driver passed as $1 is scanned too, wherever it lives. In docs/specs/ only the existence
+# check is skipped: a spec names the skills its stories have yet to build.
 echo "== namespace rule"
 while IFS= read -r f; do
   [ -f "$f" ] || continue
-  cmds "$f"
-  for tok in $(cmd_tokens "$f"); do
+  toks=$(cmd_tokens "$f")
+  # shellcheck disable=SC2086
+  case "$f" in "$docs/specs/"*) ;; *) cmds $toks ;; esac
+  for tok in $toks; do
     case "$tok" in dev:*|mattpocock-skills:*) continue;; esac
     case "$builtin" in *" $tok "*) continue;; esac
     bad "bare or unknown skill namespace in $f: /$tok (use dev:<skill> or mattpocock-skills:<skill>)"
   done
-done < <({ find "$docs" "$agents" "$skills" -type f -not -path "$docs/specs/*" 2>/dev/null; echo "$runbook"; echo "${1:-}"; } | grep . | sort -u)
+done < <({ find "$docs" "$agents" "$skills" -type f 2>/dev/null; echo "$runbook"; echo "${1:-}"; } | grep . | sort -u)
 
 [ "$fail" = 0 ] && echo "PASS"
 exit "$fail"
