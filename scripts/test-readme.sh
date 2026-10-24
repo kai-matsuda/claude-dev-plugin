@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Tests for README.md: the sections a coworker needs (what the plugin is, the four
+# Tests for README.md: the sections a coworker needs (what the plugin is, the five
 # prerequisites, both install forms, /dev:setup and /dev:setup-repo, the developing
 # section), the settings blocks marked as examples, and every JSON block parsing.
 # Driven from outside: grep and awk on the README, jq on its settings block.
@@ -26,6 +26,7 @@ check "prerequisite: bd" grep -q '`bd`' <<<"$pre"
 check "prerequisite: gh or tea for pull requests" bash -c 'grep -q "gh" <<<"$1" && grep -q "tea" <<<"$1"' _ "$pre"
 check "prerequisite: the mattpocock-skills plugin" grep -q 'mattpocock-skills' <<<"$pre"
 check "prerequisite: the Atlassian MCP connector" grep -q 'Atlassian MCP' <<<"$pre"
+check "prerequisite: jq, which the setup check reads its config with" grep -q '`jq`' <<<"$pre"
 
 inst=$(section Install)
 check "marketplace install: marketplace add" grep -q '/plugin marketplace add' <<<"$inst"
