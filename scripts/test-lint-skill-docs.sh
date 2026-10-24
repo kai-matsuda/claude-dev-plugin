@@ -209,6 +209,33 @@ mkdir -p "$scratch/plugin/engineering/tdd"
 echo "run /mattpocock-skills:tdd" >> "$scratch/skills/sample/SKILL.md"
 expect "a skill under a category directory resolves" 0
 
+# before any skill ships (a skills dir with no SKILL.md), the docs may name dev: skills the
+# skill tickets have yet to build; a bare /<skill> still fails, and so does a missing
+# mattpocock-skills: one
+fresh
+mkdir -p "$scratch/noskills"
+echo "run /dev:nope" >> "$scratch/agents/sample.md"
+skills_dir=$scratch/noskills expect "/dev:<x> passes while no skill has shipped" 0
+fresh
+mkdir -p "$scratch/noskills"
+echo "run /close-story" >> "$scratch/agents/sample.md"
+skills_dir=$scratch/noskills expect "a bare /<skill> fails while no skill has shipped" 1 "$ns_msg in $scratch/agents/sample.md: /close-story"
+fresh
+mkdir -p "$scratch/noskills"
+echo "run /mattpocock-skills:nope" >> "$scratch/agents/sample.md"
+skills_dir=$scratch/noskills expect "/mattpocock-skills:<missing> fails while no skill has shipped" 1 "/mattpocock-skills:nope names no skill"
+
+# the docs ship in the plugin: a path into the dotfiles deployment or the chezmoi source fails
+# in any doc under docs/ and in the runbook
+for path in '~/.claude/docs/agents/orchestration.md' '~/.claude/hooks/guard-rm.sh' '~/.local/share/chezmoi/GLOSSARY.md'; do
+  fresh
+  echo "see \`$path\`" >> "$scratch/docs/adr/0001.md"
+  expect "a dotfiles deployment path ($path) under docs/ fails" 1 "dotfiles deployment path in $scratch/docs/adr/0001.md"
+done
+fresh
+echo 'see `~/.claude/docs/agents/*.md`' >> "$scratch/WORKFLOW.md"
+expect "a dotfiles deployment path in the runbook fails" 1 "dotfiles deployment path in $scratch/WORKFLOW.md"
+
 # a DOCS_DIR override must exist
 fresh
 out=$(VERSION_BUMP_REPO=$scratch/no-repo VERSION_BUMP_BASE=HEAD DOCS_DIR=/typo-no-such-dir SKILLS_DIR=$scratch/skills AGENT_DOCS=$scratch/agents USER_CLAUDE_MD=$scratch/CLAUDE.md PLUGIN_SKILLS=$scratch/plugin "$lint" "" "$scratch/WORKFLOW.md" 2>&1; echo "rc=$?")
