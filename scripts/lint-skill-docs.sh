@@ -100,10 +100,16 @@
 #      and orders a middle story of a chain in one topological pass, creates every
 #      repo-session story under the epic bead, and makes a deploy split wait on the
 #      earlier story's closure (ADR 0011).
+#  11. the namespace rule: in every .md file under the skills dir, docs/ (the agent docs, ADRs, specs),
+#      the runbook and the driver passed as $1, a /<command> is dev:<skill> or
+#      mattpocock-skills:<skill> naming a skill that exists, or a built-in or a path; a bare
+#      /<skill> or another namespace fails. The /command extraction (cmd_tokens) and the
+#      existence check (cmds) moved here from section 2, which no longer calls them.
 # Usage: scripts/lint-skill-docs.sh [implement-spec SKILL.md [WORKFLOW.md]]
 # Each section guards on its doc existing, so the lint passes on a tree without that doc yet;
 # the plugin layout is skills/, docs/agents/, docs/WORKFLOW.md and CLAUDE.md under the repo root.
 # SKILLS_DIR and AGENT_DOCS override the skills and agent docs directories (scratch copies).
+# DOCS_DIR overrides the docs directory the namespace rule scans (default: docs under the repo root).
 # USER_CLAUDE_MD overrides the project CLAUDE.md (default: CLAUDE.md under the repo root).
 # PLUGIN_SKILLS overrides the plugin skills directory (default: newest installed mattpocock-skills).
 # The last section is the version-bump rule (INFRA-30): a diff under skills/ or docs/ needs a
@@ -121,13 +127,15 @@ lacks() { [ -f "$f" ] || return 0; if grep -qiE -- "$2" "$f"; then bad "present:
 
 skills=${SKILLS_DIR:-$root/skills}
 agents=${AGENT_DOCS:-$root/docs/agents}
+docs=${DOCS_DIR:-$root/docs}
+docs=${docs%/}
 user_claude_md=${USER_CLAUDE_MD:-$root/CLAUDE.md}
 # an explicitly passed path ($1, $2) or a set override must exist; only the defaults are guarded
 # by [ -f ] below
 for given in "${1:-}" "${2:-}"; do
   [ -z "$given" ] || [ -f "$given" ] || bad "no such file: $given"
 done
-for given in "${SKILLS_DIR:-}" "${AGENT_DOCS:-}"; do
+for given in "${SKILLS_DIR:-}" "${AGENT_DOCS:-}" "${DOCS_DIR:-}"; do
   [ -z "$given" ] || [ -d "$given" ] || bad "no such directory: $given"
 done
 [ -z "${USER_CLAUDE_MD:-}" ] || [ -f "$USER_CLAUDE_MD" ] || bad "no such file: $USER_CLAUDE_MD"
@@ -144,13 +152,13 @@ if grep -qi 'merge' <<<"$merge_scan"; then
   bad "present: merge steps (merge)"; grep -ni 'merge' <<<"$merge_scan" | head -3
 fi
 has "story-closure blocker is open until closed" 'open until that story is closed'
-has "story-closure human stop line" 'the PR to merge and the /close-story <story-id> to run'
+has "story-closure human stop line" 'the PR to merge and the /dev:close-story <story-id> to run'
 has "human stop line carries the PR url" '<owner repo> <story-id> <pr url>'
 has "human stop trigger covers story closures" 'held only by blockers naming finished stories not yet closed'
 has "chain of story closures counts toward the human stop" 'itself waits only on story closures'
 has "add-mode hint keyed on the failed twice: note" 'carries a `failed twice:` note'
-has "add-mode stall hint" '/spec-to-stories <KEY>-<n>'
-has "add-mode stall hint without an external ref" '/spec-to-stories <epic-id>'
+has "add-mode stall hint" '/dev:spec-to-stories <KEY>-<n>'
+has "add-mode stall hint without an external ref" '/dev:spec-to-stories <epic-id>'
 has "final report waiting: names a finished story" 'a finished story not yet closed'
 hasc "report template shows the story-closure human: line" 'human:   <owner repo> <story-id> <pr url>'
 # the glossary avoids "human ticket" for the human gate ticket ("ready-for-human ticket" is fine)
@@ -158,7 +166,7 @@ lacks "glossary's avoided term human ticket" '(^|[^-])human ticket'
 lacks "review steps" 'review'
 lacks "PR steps" 'gh pr|tea pr|draft PR|mark ready'
 has "frontmatter" 'disable-model-invocation: true'
-has "legacy line" 'refused: flat epic (tickets directly under the epic bead); the story skills do not handle it — the small-bug path does: /implement <ticket-id> per ticket, then bd close <epic-id>'
+has "legacy line" 'refused: flat epic (tickets directly under the epic bead); the story skills do not handle it — the small-bug path does: /mattpocock-skills:implement <ticket-id> per ticket, then bd close <epic-id>'
 has "add-dir refusal" '/add-dir <'
 hasc "Human stop" '**Human stop**'
 hasc "Stall" '**Stall**'
@@ -170,7 +178,7 @@ has "story orchestrator" 'story orchestrator'
 has "implement-story" 'implement-story'
 has "opus" 'opus'
 hasc "waiting rule pointer" "the rules doc's Waiting"
-has "resume command" '/implement-spec <KEY>-<n>'
+has "resume command" '/dev:implement-spec <KEY>-<n>'
 has "Jira step pointer" '"the spec is done"'
 has "Jira already-made read" 'getJiraIssue'
 has "no-startable path" 'No startable story'
@@ -184,41 +192,85 @@ fi
 f=${2:-$root/docs/WORKFLOW.md}
 runbook=$f
 plugin=${PLUGIN_SKILLS:-$(ls -d "$HOME"/.claude/plugins/cache/claude-plugins-official/mattpocock-skills/*/skills 2>/dev/null | sort -V | tail -1)}
-builtin=" model add-dir code-review "
+builtin=" model add-dir code-review plugin sandbox clear mcp help config tmp compact init permissions hooks resume agents bug context cost doctor exit login logout memory pr-comments review status statusline terminal-setup vim ide install-github-app release-notes rewind export usage theme output-style loop schedule security-review simplify run fewer-permission-prompts keybindings-help update-config claude-api "
 
-# every /command token in file $1 maps to a skill directory (built-ins allowlisted)
-cmds() { # <file>
+# the /command tokens of file $1, one per line. A slash starts a command only at the start of a
+# line or after whitespace, an opening delimiter or an opening backtick (so not a/b, ~/x, a URL,
+# a closing tag, <home>/x, $(pwd)/x or a closing `x`/y). The name is [a-z-]+ with an optional
+# :skill; what follows it tells a command from a path (/tmp/x, /x.sh) or a placeholder
+# (/dev:<x>): a command ends at a space, the end of line or punctuation, and a ":" or "." that
+# ends a sentence still counts, so adjacent commands and "/skill." or "/skill: x" are checked.
+cmd_tokens() { # <file>
+  local out
+  # LC_ALL=C: a multibyte char (arrow, em dash) next to a slash must not abort awk; an extractor
+  # failure is the caller's to report, never swallowed by the sort
+  out=$(LC_ALL=C awk -v q="'" '{
+    line = $0; n = length(line); inc = 0
+    for (i = 1; i <= n; i++) {
+      ch = substr(line, i, 1)
+      if (ch == "`") { inc = !inc; continue }
+      if (ch != "/") continue
+      p = (i > 1) ? substr(line, i - 1, 1) : ""
+      ok = (p == "" || p ~ /[ \t(\[{|,;"*_=]/ || p == q || (p == "`" && inc))
+      # a ">" opens a command only when it is not the end of a <placeholder>: <home>/x is a path
+      if (p == ">" && substr(line, 1, i - 1) !~ /<[^ \t<>]*>$/) ok = 1
+      if (!ok) continue
+      rest = substr(line, i + 1)
+      if (!match(rest, /^[a-z][a-z-]*(:[a-z-]+)?/)) continue
+      tok = substr(rest, 1, RLENGTH); c = substr(rest, RLENGTH + 1, 1); d = substr(rest, RLENGTH + 2, 1)
+      if (c ~ /[\/_A-Z0-9<]/) continue
+      if (c == ":" && (tok == "dev" || tok == "mattpocock-skills")) continue   # a namespace alone
+      if (c == "." && d ~ /[A-Za-z0-9_]/) continue
+      if (c == ":" && d != "" && d !~ /[ \t,;.)`]/) continue
+      sub(/-+$/, "", tok)
+      print tok
+    }
+  }' "$1") || return 1
+  [ -z "$out" ] || printf '%s\n' "$out" | sort -u
+}
+# every namespaced /command token in $@ maps to a skill directory: dev: ones under the
+# skills dir, mattpocock-skills: ones under the plugin skills dir. Bare and unknown-namespace
+# tokens are the namespace rule's (section 11), which calls this for every doc it scans.
+cmds() { # <token>...
   local tok name
-  for tok in $(grep -oE '(^|[^A-Za-z0-9~._/-])/[a-z][a-z-]*(:[a-z-]+)?' "$1" | sed -E 's/^[^/]*\///' | sort -u); do
+  for tok in "$@"; do
     name=${tok##*:}
-    if [ "$name" != "$tok" ] && [ "${tok%%:*}" != "mattpocock-skills" ]; then bad "/$tok has an unknown namespace"; continue; fi
-    case "$builtin" in *" $tok "*) continue;; esac
-    [ -d "$skills/$name" ] && continue
-    find "$plugin" -type d -name "$name" 2>/dev/null | grep -q . && continue
-    bad "/$tok names no skill"
+    case "$tok" in
+      dev:*) [ -d "$skills/$name" ] || bad "/$tok names no skill" ;;
+      mattpocock-skills:*)
+        if [ ! -d "$plugin" ]; then
+          bad "/$tok cannot be resolved: plugin skills dir not found (${plugin:-unset}; install mattpocock-skills or set PLUGIN_SKILLS)"
+        else
+          # a skill dir sits at the plugin's skills level, directly or under one category dir
+          # (engineering/tdd), and is not a subdirectory of another skill (tdd/scripts)
+          local m found=
+          while IFS= read -r m; do
+            [ -f "$(dirname "$m")/SKILL.md" ] || { found=1; break; }
+          done < <(find "$plugin" -mindepth 1 -maxdepth 2 -type d -name "$name" 2>/dev/null)
+          [ -n "$found" ] || bad "/$tok names no skill"
+        fi ;;
+    esac
   done
 }
 if [ -f "$f" ]; then
 echo "== $f"
-cmds "$f"
 # the cut skills take the feature as their one argument; the runbook has a paragraph on it and
 # writes it in the 3a and 3b rows below (chezmoi-nz0)
 hasc "argument paragraph" '**The argument.**'
 fi
 if [ -f "$skills/workflow/SKILL.md" ]; then
 echo "== $skills/workflow/SKILL.md"
-cmds "$skills/workflow/SKILL.md"
 # /workflow prints each next command with the argument filled in, so a fresh session types it as-is
 f=$skills/workflow/SKILL.md
-hasc "workflow prints the story cut's argument" 'next: `/spec-to-stories <arg>`'
-hasc "workflow prints the ticket cut's argument" 'next: `/spec-to-tickets <arg>`'
+hasc "workflow prints the story cut's argument" 'next: `/dev:spec-to-stories <arg>`'
+hasc "workflow prints the ticket cut's argument" 'next: `/dev:spec-to-tickets <arg>`'
 fi
 f=$runbook
 if [ -f "$f" ]; then
 
 # flat /to-tickets appears only in the Variants section
-awk '/^## /{sec=$0} /\/to-tickets/ && sec !~ /Variants/ {print NR": "$0; n=1} END{exit n}' "$f" >/dev/null \
-  || bad "/to-tickets outside Variants"
+awk '/^## /{sec=$0} /\/mattpocock-skills:to-tickets/ && sec !~ /Variants/ {print NR": "$0; n=1} END{exit n}' "$f" >/dev/null \
+  || bad "/mattpocock-skills:to-tickets outside Variants"
 
 # stale wording
 for pat in 'cross-repo ticket' 'per-ticket `pr:`' 'single orchestrator' 'one orchestrator drives'; do
@@ -236,27 +288,27 @@ hasc "inbox is the home's beads" "the home's beads"
 grep -E '^\| 4a \|' "$f" | grep -q sonnet && bad "sonnet at 4a in session-model table"
 
 # required content
-hasc "one-line flow" '/grill-with-docs → /to-spec → /spec-to-stories → /spec-to-tickets → /implement-spec → /close-epic'
+hasc "one-line flow" '/mattpocock-skills:grill-with-docs → /mattpocock-skills:to-spec → /dev:spec-to-stories → /dev:spec-to-tickets → /dev:implement-spec → /dev:close-epic'
 hase "4a session model is opus" '^\| 4a \| opus'
-hase "3a row" '^\| 3a \| `/spec-to-stories <KEY>-<n>`'
-hase "3b row" '^\| 3b \| `/spec-to-tickets <KEY>-<n>`'
+hase "3a row" '^\| 3a \| `/dev:spec-to-stories <KEY>-<n>`'
+hase "3b row" '^\| 3b \| `/dev:spec-to-tickets <KEY>-<n>`'
 hase "1-3b session model is fable" '^\| 1–3b \| fable'
 hasc "exploration notes path" '`<repo>/.spec-notes/<epic-id>/`'
 lacks "story-cut.md in the runbook (the notes are the story bead's design field)" 'story-cut\.md'
-for need in '/implement-story <story-id>' '/close-story' 'story bead' 'GLOSSARY.md'; do
+for need in '/dev:implement-story <story-id>' '/dev:close-story' 'story bead' 'GLOSSARY.md'; do
   hasc "runbook content" "$need"
 done
 # the story DAG's runbook text (ADR 0011): add mode, and the human stop's merge-then-close line
 # as the skills print it; the ticket cut's chain refusal is retired
 hasc "add mode in the runbook" 'add mode'
-hasc "human-stop merge line in the runbook" 'merge its PR, then run `/close-story <story-id>`'
-hasc "printed human-stop line in the runbook" 'the PR to merge and the /close-story <story-id> to run'
+hasc "human-stop merge line in the runbook" 'merge its PR, then run `/dev:close-story <story-id>`'
+hasc "printed human-stop line in the runbook" 'the PR to merge and the /dev:close-story <story-id> to run'
 lacks "chain refusal in the runbook" 'refus[a-z]*[^|]{0,60}dependency chain|dependency chain \(A depends'
-hase "/pr named (Variants)" '/pr([^a-z-]|$)'
+hase "/mattpocock-skills:pr named (Variants)" '/mattpocock-skills:pr([^a-z-]|$)'
 
 # /pr stays off the main line: the fenced flow block and stage 5
-awk '/^```/{fence=!fence; next} fence && /\/pr([^a-z-]|$)/ {n=1} END{exit n}' "$f" || bad "/pr in the fenced flow"
-grep -E '^\| 5 .*/pr([^a-z-]|$)' "$f" | grep -q . && bad "/pr in stage 5"
+awk '/^```/{fence=!fence; next} fence && /\/mattpocock-skills:pr([^a-z-]|$)/ {n=1} END{exit n}' "$f" || bad "/mattpocock-skills:pr in the fenced flow"
+grep -E '^\| 5 .*/mattpocock-skills:pr([^a-z-]|$)' "$f" | grep -q . && bad "/mattpocock-skills:pr in stage 5"
 
 # the stage table stays one table (rows 1..8 contiguous)
 awk '/^\| 1 \|/{on=1} on && !/^\|/{bad=1} /^\| 8 \|/{on=0} END{exit bad}' "$f" || bad "stage table broken by a non-row line"
@@ -272,7 +324,7 @@ has "preflight pointer" '"Working-directory preflight"'
 has "epic gather pointer" '"gather the epic bead"'
 # the argument is required; recovering the epic from the conversation or the open epic list
 # is retired (chezmoi-nz0)
-hasc "usage line" 'usage: /spec-to-stories <KEY>-<n>|<epic-id>'
+hasc "usage line" 'usage: /dev:spec-to-stories <KEY>-<n>|<epic-id>'
 lacks "no-argument epic recovery" 'bd list --type epic --json|open epic beads|reported in the conversation'
 # the orientation goes to the story bead's design field; the story cut writes nothing in an owner
 # repo but beads (chezmoi-cdf, ADR 0010)
@@ -346,9 +398,9 @@ hasc "add mode quizzes the additions only" 'quizzes the additions only'
 hasc "forge query, GitHub" 'gh pr view <url> --json state'
 hasc "forge query, Forgejo/Gitea" 'tea api --repo <owner> repos/{owner}/{repo}/pulls/<n>'
 lacks "Forgejo/Gitea forge query without --repo" 'tea api repos/'
-hasc "forge query runs sandbox-disabled" 'with the sandbox disabled, as `/close-story` step 4 does'
+hasc "forge query runs sandbox-disabled" 'with the sandbox disabled, as `/dev:close-story` step 4 does'
 hasc "MERGED forces a new story on the old one's closure" 'a new story blocked on its closure and on the new publish'
-hasc "MERGED reminds the close" 'run `/close-story <story-id>`'
+hasc "MERGED reminds the close" 'run `/dev:close-story <story-id>`'
 hasc "OPEN defaults to a re-cut" '`OPEN` defaults to a re-cut'
 hasc "no forge or a branch-form pr: asks the user" 'a branch-form `pr:` value asks the user'
 # OPEN's re-cut marks the finished dependent so the ticket cut may re-cut it past its pr: note;
@@ -370,11 +422,11 @@ echo "== $f"
 has "frontmatter" 'disable-model-invocation: true'
 has "no-stories refusal" 'refused: no stories'
 has "every-story-cut refusal" 'refused: every story already cut'
-has "every-story-cut remedy" 're-cut one with /story-to-tickets <story-id>'
+has "every-story-cut remedy" 're-cut one with /dev:story-to-tickets <story-id>'
 has "preflight pointer" '"Working-directory preflight"'
 has "epic gather pointer" '"gather the epic bead"'
 # the same argument rule as /spec-to-stories (chezmoi-nz0)
-hasc "usage line" 'usage: /spec-to-tickets <KEY>-<n>|<epic-id>'
+hasc "usage line" 'usage: /dev:spec-to-tickets <KEY>-<n>|<epic-id>'
 lacks "no-argument epic recovery" 'ended on in the conversation|ask the user for it'
 has "already cut line" '<repo> <story-id> already cut'
 hasc "waiting rule pointer" 'the "Waiting" rule of `orchestration.md`'
@@ -570,7 +622,7 @@ has "brief carries a Dependency line per publish blocker" 'one `Dependency:` lin
 has "brief carries a Dependent line per dependent" 'one `Dependent:` line per dependent'
 # the two refusals: two publish tickets in one story, and a finished story pointing at add mode
 has "two publish tickets refusal" 'refused: block carries two publish tickets; one PR publishes one version'
-has "finished-story refusal names add mode" 'add mode (/spec-to-stories <KEY>-<n>, or the epic bead id when the story has no key)'
+has "finished-story refusal names add mode" 'add mode (/dev:spec-to-stories <KEY>-<n>, or the epic bead id when the story has no key)'
 has "finished story marked by add mode is re-cut" 'unless its notes carry a `recut:` line'
 # a re-cut that gained a publish blocker adds a second bump and re-edges open tickets
 has "re-cut adds a bump per new publish blocker" 'gained a publish blocker'
@@ -624,20 +676,20 @@ hasc "integration branch is feat/<story-id> for keyed and keyless stories" 'name
 lacks "the keyed branch form feat/<key>-<n>" 'feat/<key>-<n>'
 hasc "merge guard names the delivered story with an open agent ticket" 'a delivered story with an open `ready-for-agent` ticket'
 hasc "merge guard covers a pr: line, a URL or the branch form" 'whose notes carry a `pr:` line'
-hasc "merge guard's MERGED refusal says add mode" 'in add mode (or /spec-to-stories'
+hasc "merge guard's MERGED refusal says add mode" 'in add mode (or /dev:spec-to-stories'
 hasc "merge guard's MERGED refusal closes the stray ticket" '; then close <ticket-id> (moved to the new story)'
 hasc "step 3 defers to the forge decision of the merge guard" '(already decided in step 1 when the merge guard ran)'
 hasc "merge guard decides the forge as step 3 does" 'the forge decided as step 3 says'
 hasc "merge guard's Forgejo query names the repo" 'tea api --repo <owner> repos/{owner}/{repo}/pulls/<n>'
 hasc "merge guard refuses a PR closed unmerged" 'CLOSED unmerged: refuse'
-hasc "merge guard's add-mode hint covers an epic with no external ref" '(or /spec-to-stories <epic-id> when the epic has no external ref)'
-hasc "merge guard runs the forge query sandbox-disabled" 'with the sandbox disabled, as `/close-story` step 4 does'
+hasc "merge guard's add-mode hint covers an epic with no external ref" '(or /dev:spec-to-stories <epic-id> when the epic has no external ref)'
+hasc "merge guard runs the forge query sandbox-disabled" 'with the sandbox disabled, as `/dev:close-story` step 4 does'
 hasc "merge guard refuses a MERGED PR" 'MERGED: refuse'
 hasc "merge guard: OPEN continues on the branch: note's branch" "OPEN: continue on the \`branch:\` note's branch"
 hasc "merge guard asks when the forge cannot tell" '(no forge, or a branch-form `pr:` note)'
 hasc "merge guard asks whether the PR or branch has merged" 'whether the PR, or for the branch form the branch, has merged into the default branch'
 hasc "merge guard leaves the stray ticket until add mode carries its work over" 'until add mode has carried its work into a new story, so close it there then'
-hasc "story-closure wait says to merge the PR and run /close-story" 'merge its PR and run /close-story <blocker-id>`'
+hasc "story-closure wait says to merge the PR and run /dev:close-story" 'merge its PR and run /dev:close-story <blocker-id>`'
 hasc "a keyless story's branch is still feat/<story-id>" 'its branch is `feat/<story-id>`, as every story'"'"'s is (step 3)'
 hasc "merge guard fires on a child that is not closed" 'while a child that is not closed (open, in_progress or blocked) is labelled `ready-for-agent`'
 hasc "merge guard decides the branch form locally first" '`git -C <owner> merge-base --is-ancestor <tip SHA> origin/<default branch>`'
@@ -725,7 +777,7 @@ done
 f=$agents/orchestration.md
 if [ -f "$f" ]; then
 echo "== $f"
-hasc "story-closure human stop" 'merge its PR, then run `/close-story <story-id>`'
+hasc "story-closure human stop" 'merge its PR, then run `/dev:close-story <story-id>`'
 has "publish ticket ready on its story's tickets" "as soon as its story's implementation tickets close"
 lacks "publish ticket ready on its repo's tickets" "its repo's implementation tickets close"
 fi
@@ -750,13 +802,32 @@ has "ticket cut in one topological pass" 'one topological pass'
 has "ticket cut ordered per story" 'one topological pass over the stories'
 lacks "ticket cut ordered per edge" 'one topological pass over the edges'
 lacks "middle story split across waves" 'opens its own wave'
-has "deploy split waits on the earlier story's closure" 'that `/close-story` requires closed'
+has "deploy split waits on the earlier story's closure" 'that `/dev:close-story` requires closed'
 # a re-cut blocks every open ticket but the bumps on every bump, so no bump blocks on itself
 # or on another bump and step 5 holds
 has "re-cut exempts the bumps" 'every open ticket of the story that is not a bump'
 lacks "re-cut blocks a bump on itself" 'every open ticket of the story is blocked'
 
 fi
+
+# ---- 11. namespace rule: only dev: and mattpocock-skills: ----
+# our skills are dev:<skill>, mattpocock's are mattpocock-skills:<skill>. A bare /<skill> or a
+# /<other>:<skill> in a skill doc, any doc under docs/ or the runbook fails, and so does a
+# namespaced one naming no skill; a path (/tmp/x) and a built-in command do not count as skills.
+# The driver passed as $1 is scanned too, wherever it lives. In docs/specs/ only the existence
+# check is skipped: a spec names the skills its stories have yet to build.
+echo "== namespace rule"
+while IFS= read -r f; do
+  [ -f "$f" ] || continue
+  toks=$(cmd_tokens "$f") || bad "token extractor failed on $f"
+  # shellcheck disable=SC2086
+  case "$f" in "$docs/specs/"*) ;; *) cmds $toks ;; esac
+  for tok in $toks; do
+    case "$tok" in dev:*|mattpocock-skills:*) continue;; esac
+    case "$builtin" in *" $tok "*) continue;; esac
+    bad "bare or unknown skill namespace in $f: /$tok (use dev:<skill> or mattpocock-skills:<skill>)"
+  done
+done < <({ find "$docs" "$agents" "$skills" -type f -name '*.md' 2>/dev/null; echo "$runbook"; echo "${1:-}"; } | grep . | sort -u)
 
 # version-bump rule: a diff under skills/ or docs/ needs a version change in the plugin manifest.
 # The diff runs from VERSION_BUMP_BASE (a CI job can set it to the PR base) or else the merge-base

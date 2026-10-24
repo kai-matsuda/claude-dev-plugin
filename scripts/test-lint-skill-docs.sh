@@ -3,7 +3,9 @@
 # agent docs, CLAUDE.md, WORKFLOW.md and the plugin skill names the runbook's commands resolve
 # to): the baseline passes, an explicitly passed missing path fails, and the retired-phrase scan
 # (section 5) covers every file under the skills and agent docs dirs and matches whole words
-# only. The last section drives the version-bump rule on a throwaway git repo (VERSION_BUMP_REPO,
+# only, and the namespace rule (section 11: only dev: and mattpocock-skills: pass, over every
+# doc under docs/, the skills and the runbook), and the version-bump rule.
+# The last section drives the version-bump rule on a throwaway git repo (VERSION_BUMP_REPO,
 # VERSION_BUMP_BASE; the other cases point the repo at a non-repo path and pin the base to HEAD).
 # The lint of the plugin's own tree is the Makefile's first step, not repeated here.
 # Usage: scripts/test-lint-skill-docs.sh
@@ -23,9 +25,14 @@ fresh() {
   cp -R "$fixtures/agents" "$scratch/agents"
   cp "$fixtures/project-CLAUDE.md" "$scratch/CLAUDE.md"
   cp "$fixtures/WORKFLOW.md" "$scratch/"
+  mkdir -p "$scratch/docs/adr"
   # the skill names the runbook's /commands resolve to, standing in for the installed plugin
-  for name in grill-with-docs to-spec spec-to-stories spec-to-tickets implement-spec close-epic implement-story close-story pr; do
+  for name in grill-with-docs to-spec to-tickets implement domain-modeling improve-codebase-architecture pr tdd; do
     mkdir -p "$scratch/plugin/$name"
+  done
+  # and the plugin's own (dev:) skills, which resolve against the skills dir
+  for name in workflow spec-to-stories spec-to-tickets implement-spec close-epic implement-story close-story; do
+    mkdir -p "$scratch/skills/$name"
   done
 }
 # run the lint against the scratch copy, sealed to the fixtures; prints its output, then the
@@ -38,7 +45,7 @@ lint_scratch() {
   if [ -n "${bump_base+x}" ]; then export VERSION_BUMP_BASE=$bump_base
   elif [ -n "${bump_derive:-}" ]; then unset VERSION_BUMP_BASE
   else export VERSION_BUMP_BASE=HEAD; fi
-  out=$(SKILLS_DIR=${skills_dir:-$scratch/skills} AGENT_DOCS=${agent_docs:-$scratch/agents} \
+  out=$(SKILLS_DIR=${skills_dir:-$scratch/skills} AGENT_DOCS=${agent_docs:-$scratch/agents} DOCS_DIR=$scratch/docs \
     USER_CLAUDE_MD=${claude_md:-$scratch/CLAUDE.md} \
     PLUGIN_SKILLS=$scratch/plugin VERSION_BUMP_REPO=${bump_repo_dir:-$scratch/no-repo} \
     "$lint" "$@" 2>&1)
@@ -96,6 +103,126 @@ expect "foreground spawn instruction in a skill fails" 1 "foreground spawn instr
 fresh
 printf 'a shortcut one exists\nthe cut ones stay\n' >> "$scratch/skills/sample/SKILL.md"
 expect "words containing the retired phrase do not false-fail" 0
+
+# namespace rule: our skills are dev:<skill>, mattpocock's are mattpocock-skills:<skill>; a bare
+# /<skill> or any other namespace fails in a skill doc, an agent doc or the runbook
+ns_msg="bare or unknown skill namespace"
+for target in skills/sample/SKILL.md agents/sample.md WORKFLOW.md; do
+  fresh
+  echo "run /story-to-tickets next" >> "$scratch/$target"
+  expect "a bare /<skill> in $target fails with the namespace message" 1 "$ns_msg in $scratch/$target"
+  fresh
+  echo "run /other:story-to-tickets next" >> "$scratch/$target"
+  expect "another namespace in $target fails with the namespace message" 1 "$ns_msg in $scratch/$target"
+  fresh
+  printf 'run dev:story-to-tickets, then mattpocock-skills:to-tickets\nor /mattpocock-skills:tdd and /dev:workflow\n' >> "$scratch/$target"
+  expect "namespaced references in $target pass" 0
+done
+fresh
+echo "the /tmp/x path and /plugin command are not skills" >> "$scratch/skills/sample/SKILL.md"
+expect "paths and built-in commands pass" 0
+
+fresh
+echo "then close it with /close-story." >> "$scratch/skills/sample/SKILL.md"
+expect "a sentence-final bare /<skill>. fails" 1 "$ns_msg in $scratch/skills/sample/SKILL.md: /close-story"
+
+fresh
+echo "run /dev:workflow /close-story now" >> "$scratch/skills/sample/SKILL.md"
+expect "the second of two adjacent commands is checked" 1 "$ns_msg in $scratch/skills/sample/SKILL.md: /close-story"
+fresh
+echo "pick (/dev:workflow|/close-story)" >> "$scratch/skills/sample/SKILL.md"
+expect "an alternation's second command is checked" 1 "$ns_msg in $scratch/skills/sample/SKILL.md: /close-story"
+
+fresh
+printf 'a template <issue-template>x</issue-template> and `/tmp`\nbuilt-ins /sandbox /clear /mcp /help /config.\n' >> "$scratch/skills/sample/SKILL.md"
+expect "closing tags, a bare /tmp and the built-ins pass" 0
+
+fresh
+echo "run /dev:nope" >> "$scratch/skills/sample/SKILL.md"
+expect "/dev:<missing> fails as naming no skill" 1 "/dev:nope names no skill"
+fresh
+echo "run /mattpocock-skills:nope" >> "$scratch/skills/sample/SKILL.md"
+expect "/mattpocock-skills:<missing> fails as naming no skill" 1 "/mattpocock-skills:nope names no skill"
+
+fresh
+echo "run /story-to-tickets" >> "$scratch/docs/adr/0001.md"
+expect "a bare /<skill> under docs/ outside docs/agents fails" 1 "$ns_msg in $scratch/docs/adr/0001.md"
+fresh
+echo "run dev:story-to-tickets and /dev:workflow" >> "$scratch/docs/adr/0001.md"
+expect "namespaced references under docs/adr pass" 0
+
+fresh
+echo "run /story-to-tickets" > "$scratch/driver.md"
+expect "a driver passed as \$1 outside the skills dir gets the namespace check" 1 "$ns_msg in $scratch/driver.md" "$scratch/driver.md" "$scratch/WORKFLOW.md"
+
+# paths after a placeholder, a substitution or a closing backtick are not commands
+fresh
+printf 'see <home>/repos.yaml and $(pwd)/x.sh and `package.json`/build-tool\nalso /usr/x.sh and /compact /init /permissions /hooks /resume\n' >> "$scratch/skills/sample/SKILL.md"
+expect "paths after a placeholder, substitution or closing backtick, and more built-ins, pass" 0
+
+# a command followed by a colon is still checked
+fresh
+echo "Run /close-story: it closes" >> "$scratch/skills/sample/SKILL.md"
+expect "a bare /<skill>: fails" 1 "$ns_msg in $scratch/skills/sample/SKILL.md: /close-story"
+fresh
+echo "Run /dev:nope: x" >> "$scratch/skills/sample/SKILL.md"
+expect "/dev:<missing>: fails as naming no skill" 1 "/dev:nope names no skill"
+fresh
+echo "write /dev:<skill> and /dev:workflow." >> "$scratch/skills/sample/SKILL.md"
+expect "a /dev:<placeholder> passes" 0
+
+# a multibyte char before a slash must not abort the tokenizer and hide the rest of the file
+fresh
+printf 'flow a →/dev:workflow and — /dev:workflow\nthen /close-story\n' >> "$scratch/skills/sample/SKILL.md"
+LC_ALL=en_US.UTF-8 expect "a multibyte char before a slash does not hide a later bare /<skill>" 1 "$ns_msg in $scratch/skills/sample/SKILL.md: /close-story"
+
+# markup that sits directly before a slash still lets the command be checked
+for pre in '**' '_' '>' '='; do
+  fresh
+  echo "run ${pre}/close-story now" >> "$scratch/skills/sample/SKILL.md"
+  expect "a bare /<skill> after '$pre' fails" 1 "$ns_msg in $scratch/skills/sample/SKILL.md: /close-story"
+done
+
+# a namespace written alone is not a bare command
+fresh
+printf 'the /dev: namespace and `/dev:` and /mattpocock-skills: too\n' >> "$scratch/skills/sample/SKILL.md"
+expect "a namespace alone passes" 0
+
+# only .md files are scanned
+fresh
+printf 'cd /opt and /story-to-tickets\n' > "$scratch/docs/helper.sh"
+expect "a non-md file under docs is not scanned" 0
+fresh
+printf 'cd /opt and /story-to-tickets\n' > "$scratch/skills/sample/helper.sh"
+expect "a non-md file under the skills dir is not scanned" 0
+
+# the plugin dir absent is said so; the skill dir is matched at the plugin's skills level only
+fresh
+rm -r "${scratch:?}/plugin"
+expect "an absent plugin dir says it cannot resolve /mattpocock-skills:<x>" 1 "plugin skills dir not found"
+fresh
+mkdir -p "$scratch/plugin/tdd/scripts"; touch "$scratch/plugin/tdd/SKILL.md"
+echo "run /mattpocock-skills:scripts" >> "$scratch/skills/sample/SKILL.md"
+expect "a directory inside a skill is not a skill" 1 "/mattpocock-skills:scripts names no skill"
+fresh
+mkdir -p "$scratch/plugin/engineering/tdd"
+echo "run /mattpocock-skills:tdd" >> "$scratch/skills/sample/SKILL.md"
+expect "a skill under a category directory resolves" 0
+
+# a DOCS_DIR override must exist
+fresh
+out=$(VERSION_BUMP_REPO=$scratch/no-repo VERSION_BUMP_BASE=HEAD DOCS_DIR=/typo-no-such-dir SKILLS_DIR=$scratch/skills AGENT_DOCS=$scratch/agents USER_CLAUDE_MD=$scratch/CLAUDE.md PLUGIN_SKILLS=$scratch/plugin "$lint" "" "$scratch/WORKFLOW.md" 2>&1; echo "rc=$?")
+check "a DOCS_DIR that does not exist fails" grep -qF "no such directory: /typo-no-such-dir" <<<"$out"
+
+# docs/specs: the namespace rule applies, the existence check does not
+fresh
+mkdir -p "$scratch/docs/specs"
+echo "run /story-to-tickets" > "$scratch/docs/specs/s.md"
+expect "a bare /<skill> in docs/specs fails the namespace rule" 1 "$ns_msg in $scratch/docs/specs/s.md"
+fresh
+mkdir -p "$scratch/docs/specs"
+echo "run /dev:not-built-yet" > "$scratch/docs/specs/s.md"
+expect "a /dev:<not yet built> in docs/specs passes" 0
 
 # --- the version-bump rule, on a throwaway git repo the lint reads via VERSION_BUMP_REPO ---
 # The other cases pin the diff base to HEAD (an empty diff) and point VERSION_BUMP_REPO at a
