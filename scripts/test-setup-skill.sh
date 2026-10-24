@@ -92,10 +92,10 @@ printf '{"version":2,"plugins":{"mattpocock-skills@m":[{"scope":"project","proje
 mkbin "$work/projmcp/bin" bd gh; plugin_installed projmcp
 printf '{"projects":{"%s":{"mcpServers":{"atlassian":{}}}}}\n' "$(cd "$work/projmcp/cwd" && pwd -P)" >"$work/projmcp/home/.claude.json"
 mkbin "$work/mcpjson/bin" bd gh; plugin_installed mcpjson
-printf '{"mcpServers":{"atlassian":{}}}\n' >"$work/mcpjson/cwd/.mcp.json"
+printf '{"mcpServers":{"atlassian":{}}}\n' >"$work/mcpjson/project-mcp.json"
 run() { # <machine> [subdir] [tools dir]: run the helper there; sets out and rc
   out=$(cd "$work/$1/cwd/${2:-}" && env -i PATH="$work/$1/bin:${3:-$work/tools}" HOME="$work/$1/home" \
-        SETUP_PLUGINS_DIR="$work/$1/plugins" "$(command -v bash)" "$prereqs" 2>&1)
+        SETUP_PLUGINS_DIR="$work/$1/plugins" SETUP_PROJECT_MCP_JSON="$work/$1/project-mcp.json" "$(command -v bash)" "$prereqs" 2>&1)
   rc=$?
 }
 # portable listing: names, contents, and anything newer than a marker (GNU and BSD alike)

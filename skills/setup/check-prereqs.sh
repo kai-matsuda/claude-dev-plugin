@@ -33,14 +33,14 @@ else absent mattpocock-skills "install it from the official marketplace"; fi
 # The claude.ai connector lives outside any file, so this is a line the owner confirms, kept out of
 # `missing` and the exit code. Upgraded to present only when a readable config lists an Atlassian
 # server under mcpServers: ~/.claude.json top level or .projects[<this dir or an ancestor>],
-# or this directory's .mcp.json (scoped with jq, not a whole-file grep).
+# or this directory's .mcp.json (SETUP_PROJECT_MCP_JSON overrides the path; scoped with jq, not a whole-file grep).
 atlassian=0
 if jq -e --arg pwd "$PWD" --arg phys "$phys" '
      def hit: (.mcpServers // {}) | keys | any(test("atlassian"; "i"));
      hit or ([.projects // {} | to_entries[]
        | select(.key == $pwd or .key == $phys or ($pwd | startswith(.key + "/")) or ($phys | startswith(.key + "/")))
        | .value | hit] | any)' "$HOME/.claude.json" >/dev/null 2>&1; then atlassian=1
-elif jq -e '(.mcpServers // {}) | keys | any(test("atlassian"; "i"))' "$PWD/.mcp.json" >/dev/null 2>&1; then atlassian=1; fi
+elif jq -e '(.mcpServers // {}) | keys | any(test("atlassian"; "i"))' "${SETUP_PROJECT_MCP_JSON:-$PWD/.mcp.json}" >/dev/null 2>&1; then atlassian=1; fi
 if [ "$atlassian" = 1 ]; then present "Atlassian MCP"
 else echo "confirm: Atlassian MCP (claude.ai connector or mcpServers entry; check /mcp)"; fi
 
