@@ -243,15 +243,16 @@ every repo and subagent that has `jq`, so a brief carries no ban of its own (che
 
 ## Shell commands
 
-These hold for every session and subagent, orchestrating or not. Never prefix a command
+For context around a match, or any `{m,n}` repeat, use `command grep`, not `grep`.
+
+This section binds every session and subagent, orchestrating or not. Never prefix a command
 with `cd <repo> && …`: the Bash tool already starts in the repo root, and permission rules
 are matched against each part of a compound command separately, so the redundant `cd` is
 the one part no allowlist covers and it costs a prompt on an otherwise allowed command. To
 act on another directory, use the flag the command gives (`git -C <dir>`, `bd -C <dir>`,
 `cargo --manifest-path`, `make -C <dir>`) or an absolute path, rather than moving the shell.
-In Claude Code's shell `grep` is a function running the bundled ugrep, which rejects a wide
-bounded repeat such as `grep -oE '.{0,200}phrase.{0,200}'` with "exceeds complexity
-limits"; for context around a match use `grep -n` with `cut`, or `command grep`.
+The shell's `grep` is Claude Code's bundled ugrep, which fails a wide bounded repeat with
+"exceeds complexity limits"; `grep -n` piped to `cut` also works.
 
 ## Complexity tier
 
