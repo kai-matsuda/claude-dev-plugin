@@ -22,8 +22,12 @@ fresh() {
   cp "$fixtures/project-CLAUDE.md" "$scratch/CLAUDE.md"
   cp "$fixtures/WORKFLOW.md" "$scratch/"
   # the skill names the runbook's /commands resolve to, standing in for the installed plugin
-  for name in grill-with-docs to-spec spec-to-stories spec-to-tickets implement-spec close-epic implement-story close-story pr; do
+  for name in grill-with-docs to-spec pr tdd; do
     mkdir -p "$scratch/plugin/$name"
+  done
+  # and the plugin's own (dev:) skills, which resolve against the skills dir
+  for name in workflow spec-to-stories spec-to-tickets implement-spec close-epic implement-story close-story; do
+    mkdir -p "$scratch/skills/$name"
   done
 }
 # run the lint against the scratch copy, sealed to the fixtures; prints its output, then the
@@ -88,5 +92,23 @@ expect "foreground spawn instruction in a skill fails" 1 "foreground spawn instr
 fresh
 printf 'a shortcut one exists\nthe cut ones stay\n' >> "$scratch/skills/sample/SKILL.md"
 expect "words containing the retired phrase do not false-fail" 0
+
+# namespace rule: our skills are dev:<skill>, mattpocock's are mattpocock-skills:<skill>; a bare
+# /<skill> or any other namespace fails in a skill doc, an agent doc or the runbook
+ns_msg="bare or unknown skill namespace"
+for target in skills/sample/SKILL.md agents/sample.md WORKFLOW.md; do
+  fresh
+  echo "run /story-to-tickets next" >> "$scratch/$target"
+  expect "a bare /<skill> in $target fails with the namespace message" 1 "$ns_msg in $scratch/$target"
+  fresh
+  echo "run /other:story-to-tickets next" >> "$scratch/$target"
+  expect "another namespace in $target fails with the namespace message" 1 "$ns_msg in $scratch/$target"
+  fresh
+  printf 'run dev:story-to-tickets, then mattpocock-skills:to-tickets\nor /mattpocock-skills:tdd and /dev:workflow\n' >> "$scratch/$target"
+  expect "namespaced references in $target pass" 0
+done
+fresh
+echo "the /tmp/x path and /plugin command are not skills" >> "$scratch/skills/sample/SKILL.md"
+expect "paths and built-in commands pass" 0
 
 report_fails
