@@ -6,57 +6,57 @@
 # Usage: scripts/test-setup-skill.sh
 set -uo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-source "$repo_root/scripts/fixture-test-lib.sh"   # check, front, scratch_dir, report_fails
+source "$repo_root/scripts/fixture-test-lib.sh"   # fx_check, fx_front, fx_scratch_dir, fx_report_fails
 skill=$repo_root/skills/setup
 snippet=$skill/baseline-settings.json
 stub=$skill/claude-md-stub.md
 prereqs=$skill/check-prereqs.sh
 
-fm=$(front "$skill/SKILL.md")
-check "frontmatter names the skill setup" grep -qx 'name: setup' <<<"$fm"
-check "frontmatter is user-invoked" grep -qx 'disable-model-invocation: true' <<<"$fm"
-check "frontmatter has a description" grep -q '^description: .' <<<"$fm"
+fm=$(fx_front "$skill/SKILL.md")
+fx_check "frontmatter names the skill setup" grep -qx 'name: setup' <<<"$fm"
+fx_check "frontmatter is user-invoked" grep -qx 'disable-model-invocation: true' <<<"$fm"
+fx_check "frontmatter has a description" grep -q '^description: .' <<<"$fm"
 
 # the snippet
-check "baseline snippet is valid JSON" jq -e . "$snippet"
-check "baseline denies reading secret files" jq -e '.permissions.deny | any(test("\\.env")) and any(test("\\.ssh"))' "$snippet"
-check "baseline asks on destructive git and bd dolt push" jq -e '
+fx_check "baseline snippet is valid JSON" jq -e . "$snippet"
+fx_check "baseline denies reading secret files" jq -e '.permissions.deny | any(test("\\.env")) and any(test("\\.ssh"))' "$snippet"
+fx_check "baseline asks on destructive git and bd dolt push" jq -e '
   .permissions.ask | any(test("git reset --hard")) and any(test("git clean")) and any(test("bd dolt push"))' "$snippet"
-check "baseline ask entries take any argument, bare commands included" jq -e '
+fx_check "baseline ask entries take any argument, bare commands included" jq -e '
   .permissions.ask | map(select(test("git reset --hard|git clean|bd dolt push"))) | all(endswith("*)") and (endswith(" *)") | not))' "$snippet"
-check "baseline excluded commands take any argument, bare commands included" jq -e '
+fx_check "baseline excluded commands take any argument, bare commands included" jq -e '
   .sandbox.excludedCommands | all(endswith("*") and (endswith(" *") | not))' "$snippet"
-check "baseline denies Read and Edit alike on every secret path" jq -e '
+fx_check "baseline denies Read and Edit alike on every secret path" jq -e '
   .permissions.deny | (map(select(startswith("Read("))|.[5:-1]) | sort) == (map(select(startswith("Edit("))|.[5:-1]) | sort)' "$snippet"
-check "every destructive-git ask and excluded git entry has a git -C form too" jq -e '
+fx_check "every destructive-git ask and excluded git entry has a git -C form too" jq -e '
   (.permissions.ask + .sandbox.excludedCommands) as $all
   | $all | map(select(test("git (reset --hard|clean|stash drop|stash clear|push|fetch|pull)")))
   | length >= 7 and all(. as $e | $all | index($e | sub("git "; "git -C * ")) != null)' "$snippet"
-check "baseline denies the forge and docker credential files" jq -e '
+fx_check "baseline denies the forge and docker credential files" jq -e '
   .permissions.deny | any(test("config/gh")) and any(test("config/tea")) and any(test("docker/config.json"))' "$snippet"
-check "baseline allows bd" jq -e '.permissions.allow | index("Bash(bd *)") != null' "$snippet"
-check "baseline enables the sandbox" jq -e '.sandbox.enabled == true' "$snippet"
-check "baseline makes the beads and Dolt directories writable" jq -e '
+fx_check "baseline allows bd" jq -e '.permissions.allow | index("Bash(bd *)") != null' "$snippet"
+fx_check "baseline enables the sandbox" jq -e '.sandbox.enabled == true' "$snippet"
+fx_check "baseline makes the beads and Dolt directories writable" jq -e '
   .sandbox.filesystem.allowWrite | index("~/.beads") != null and index("~/.dolt") != null' "$snippet"
-check "baseline excludes push and fetch from the sandbox" jq -e '
+fx_check "baseline excludes push and fetch from the sandbox" jq -e '
   .sandbox.excludedCommands | any(test("^git push")) and any(test("^git fetch"))' "$snippet"
 no_org() { ! jq -c '[.. | strings]' "$1" |
   grep -Eiq 'cargo|rustup|crates|npm|pip|gh |tea |github|gitea|mice'; }
-check "baseline carries no toolchain, registry or forge line" no_org "$snippet"
-check "baseline has no allowed network domains" jq -e '(.sandbox.network.allowedDomains // []) | length == 0' "$snippet"
-check "baseline sandbox holds only the enabled flag, the exclusions and the writable dirs" jq -e '
+fx_check "baseline carries no toolchain, registry or forge line" no_org "$snippet"
+fx_check "baseline has no allowed network domains" jq -e '(.sandbox.network.allowedDomains // []) | length == 0' "$snippet"
+fx_check "baseline sandbox holds only the enabled flag, the exclusions and the writable dirs" jq -e '
   .sandbox | keys == ["enabled", "excludedCommands", "filesystem"]' "$snippet"
-check "CLAUDE.md stub exists and is non-empty" test -s "$stub"
+fx_check "CLAUDE.md stub exists and is non-empty" test -s "$stub"
 stub_line() { grep -n "$1" "$stub" | head -1 | cut -d: -f1; }
 stub_leads_with_command_grep() { # before the cd rule, the stub's first shell line (dev-5o3)
   local g c; g=$(stub_line 'command grep'); c=$(stub_line 'cd <repo>')
   [ -n "$g" ] && [ -n "$c" ] && [ "$g" -lt "$c" ]
 }
-check "CLAUDE.md stub leads its shell lines with command grep" stub_leads_with_command_grep
+fx_check "CLAUDE.md stub leads its shell lines with command grep" stub_leads_with_command_grep
 
 # the prerequisite check, on throwaway machines. PATH is the machine's bin dir (stubs) plus a
 # tools dir of symlinks to only what the helper needs, so a host /usr/bin/gh never leaks in.
-scratch_dir setup; work=$scratch
+fx_scratch_dir setup; work=$scratch
 mkdir -p "$work/tools"
 for t in find grep cat jq dirname; do
   src=$(command -v "$t") && ln -s "$src" "$work/tools/$t"
@@ -110,51 +110,51 @@ snapshot() { { find "$work" | sort; find "$work" -type f -exec cksum {} + | sort
 touch "$work/.marker"; sleep 1
 before=$(snapshot)
 touch "$work/full/cwd/probe"
-check "the changes-nothing snapshot detects a new file" test "$(snapshot)" != "$before"
+fx_check "the changes-nothing snapshot detects a new file" test "$(snapshot)" != "$before"
 rm "$work/full/cwd/probe"; touch "$work/.marker"; sleep 1
 before=$(snapshot)
 run full
-check "full machine exits 0" test "$rc" = 0
-check "full machine says all prerequisites are present" grep -q '^all prerequisites present' <<<"$out"
-check "full machine prints the CLAUDE.md stub" bash -c '[[ $1 == *"$(cat "$2")"* ]]' _ "$out" "$stub"
-check "full machine prints the baseline snippet" bash -c '[[ $1 == *"$(cat "$2")"* ]]' _ "$out" "$snippet"
-check "full machine changes nothing" test "$(snapshot)" = "$before"
+fx_check "full machine exits 0" test "$rc" = 0
+fx_check "full machine says all prerequisites are present" grep -q '^all prerequisites present' <<<"$out"
+fx_check "full machine prints the CLAUDE.md stub" bash -c '[[ $1 == *"$(cat "$2")"* ]]' _ "$out" "$stub"
+fx_check "full machine prints the baseline snippet" bash -c '[[ $1 == *"$(cat "$2")"* ]]' _ "$out" "$snippet"
+fx_check "full machine changes nothing" test "$(snapshot)" = "$before"
 run tea
-check "tea satisfies the forge prerequisite" test "$rc" = 0
+fx_check "tea satisfies the forge prerequisite" test "$rc" = 0
 run stale
-check "a stale mattpocock-skills cache does not count" grep -q '^missing: mattpocock-skills' <<<"$out"
+fx_check "a stale mattpocock-skills cache does not count" grep -q '^missing: mattpocock-skills' <<<"$out"
 run emptyrec
-check "an empty mattpocock-skills record does not count" grep -q "^missing: mattpocock-skills" <<<"$out"
+fx_check "an empty mattpocock-skills record does not count" grep -q "^missing: mattpocock-skills" <<<"$out"
 run full
-check "a real .mcpServers Atlassian entry is present" grep -q '^present: Atlassian' <<<"$out"
+fx_check "a real .mcpServers Atlassian entry is present" grep -q '^present: Atlassian' <<<"$out"
 run noauth
-check "no config: Atlassian is a line to confirm, not present" grep -q '^confirm: Atlassian' <<<"$out"
-check "no config: Atlassian is not missing and the exit is 0" bash -c '! grep -q "^missing" <<<"$1" && [ "$2" = 0 ]' _ "$out" "$rc"
+fx_check "no config: Atlassian is a line to confirm, not present" grep -q '^confirm: Atlassian' <<<"$out"
+fx_check "no config: Atlassian is not missing and the exit is 0" bash -c '! grep -q "^missing" <<<"$1" && [ "$2" = 0 ]' _ "$out" "$rc"
 run unreadable
-check "unreadable config: Atlassian is a confirm line, never missing" grep -q '^confirm: Atlassian' <<<"$out"
-check "unreadable config: exit 0, summary says Atlassian is still to confirm" bash -c '[ "$2" = 0 ] && grep -q "^all checked prerequisites present; confirm Atlassian" <<<"$1" && ! grep -q "^all prerequisites present" <<<"$1"' _ "$out" "$rc"
+fx_check "unreadable config: Atlassian is a confirm line, never missing" grep -q '^confirm: Atlassian' <<<"$out"
+fx_check "unreadable config: exit 0, summary says Atlassian is still to confirm" bash -c '[ "$2" = 0 ] && grep -q "^all checked prerequisites present; confirm Atlassian" <<<"$1" && ! grep -q "^all prerequisites present" <<<"$1"' _ "$out" "$rc"
 run nojq "" "$work/toolsnojq"
-check "no jq: jq is reported missing, by name" grep -q '^missing: jq' <<<"$out"
-check "no jq: exit non-zero" test "$rc" != 0
+fx_check "no jq: jq is reported missing, by name" grep -q '^missing: jq' <<<"$out"
+fx_check "no jq: exit non-zero" test "$rc" != 0
 run subdir deep/er
-check "project-scoped install counts from a subdirectory" grep -q '^present: mattpocock-skills' <<<"$out"
+fx_check "project-scoped install counts from a subdirectory" grep -q '^present: mattpocock-skills' <<<"$out"
 ln -s "$work/subdir/cwd" "$work/subdir/link"
 out=$(cd "$work/subdir/link/deep" && env -i PATH="$work/subdir/bin:$work/tools" HOME="$work/subdir/home" SETUP_PLUGINS_DIR="$work/subdir/plugins" "$(command -v bash)" "$prereqs" 2>&1)
-check "project-scoped install counts through a symlinked path" grep -q '^present: mattpocock-skills' <<<"$out"
+fx_check "project-scoped install counts through a symlinked path" grep -q '^present: mattpocock-skills' <<<"$out"
 run projmcp
-check "Atlassian under .projects[<path>].mcpServers is present" grep -q '^present: Atlassian' <<<"$out"
+fx_check "Atlassian under .projects[<path>].mcpServers is present" grep -q '^present: Atlassian' <<<"$out"
 run mcpjson
-check "Atlassian in the project .mcp.json is present" grep -q '^present: Atlassian' <<<"$out"
+fx_check "Atlassian in the project .mcp.json is present" grep -q '^present: Atlassian' <<<"$out"
 run stray
-check "a stray atlassian string outside .mcpServers is not present" bash -c '! grep -q "^present: Atlassian" <<<"$1"' _ "$out"
-check "stray string: Atlassian is a confirm line" grep -q '^confirm: Atlassian' <<<"$out"
+fx_check "a stray atlassian string outside .mcpServers is not present" bash -c '! grep -q "^present: Atlassian" <<<"$1"' _ "$out"
+fx_check "stray string: Atlassian is a confirm line" grep -q '^confirm: Atlassian' <<<"$out"
 run empty
-check "empty machine exits non-zero" test "$rc" != 0
+fx_check "empty machine exits non-zero" test "$rc" != 0
 for p in bd "gh or tea" mattpocock-skills; do
-  check "empty machine reports $p missing" grep -q "^missing: $p" <<<"$out"
+  fx_check "empty machine reports $p missing" grep -q "^missing: $p" <<<"$out"
 done
-check "empty machine asks to confirm Atlassian, not missing" bash -c 'grep -q "^confirm: Atlassian" <<<"$1" && ! grep -q "^missing: Atlassian" <<<"$1"' _ "$out"
-check "empty machine still prints the CLAUDE.md stub" bash -c '[[ $1 == *"$(cat "$2")"* ]]' _ "$out" "$stub"
-check "empty machine still prints the baseline snippet" bash -c '[[ $1 == *"$(cat "$2")"* ]]' _ "$out" "$snippet"
+fx_check "empty machine asks to confirm Atlassian, not missing" bash -c 'grep -q "^confirm: Atlassian" <<<"$1" && ! grep -q "^missing: Atlassian" <<<"$1"' _ "$out"
+fx_check "empty machine still prints the CLAUDE.md stub" bash -c '[[ $1 == *"$(cat "$2")"* ]]' _ "$out" "$stub"
+fx_check "empty machine still prints the baseline snippet" bash -c '[[ $1 == *"$(cat "$2")"* ]]' _ "$out" "$snippet"
 
-report_fails
+fx_report_fails

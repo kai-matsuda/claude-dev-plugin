@@ -13,8 +13,8 @@ set -uo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 lint=$repo_root/scripts/lint-skill-docs.sh
 fixtures=$repo_root/scripts/fixtures/lint-skill-docs
-source "$repo_root/scripts/fixture-test-lib.sh"   # scratch_dir, check, fails, report_fails
-scratch_dir test-lint-skill-docs || exit 1
+source "$repo_root/scripts/fixture-test-lib.sh"   # fx_scratch_dir, fx_check, fails, fx_report_fails
+fx_scratch_dir test-lint-skill-docs || exit 1
 
 # fresh copy of the fixtures, so each case edits only its own file; empties the dir rather
 # than recreating it (see scratch_dir)
@@ -60,7 +60,7 @@ expect() {
   local d=$1 want=$2 msg=${3:-} out
   shift 3 2>/dev/null || shift $#
   out=$(lint_scratch "$@")
-  check "$d" result_is "$want" "$msg" "$out"
+  fx_check "$d" result_is "$want" "$msg" "$out"
 }
 
 fresh
@@ -261,7 +261,7 @@ done
 # a DOCS_DIR override must exist
 fresh
 out=$(VERSION_BUMP_REPO=$scratch/no-repo VERSION_BUMP_BASE=HEAD DOCS_DIR=/typo-no-such-dir SKILLS_DIR=$scratch/skills AGENT_DOCS=$scratch/agents USER_CLAUDE_MD=$scratch/CLAUDE.md PLUGIN_SKILLS=$scratch/plugin "$lint" "" "$scratch/WORKFLOW.md" 2>&1; echo "rc=$?")
-check "a DOCS_DIR that does not exist fails" grep -qF "no such directory: /typo-no-such-dir" <<<"$out"
+fx_check "a DOCS_DIR that does not exist fails" grep -qF "no such directory: /typo-no-such-dir" <<<"$out"
 
 # docs/specs: the namespace rule applies, the existence check does not
 fresh
@@ -287,7 +287,7 @@ make_bump_repo() {
   mkdir -p "$bump_repo_dir/.claude-plugin" "$bump_repo_dir/docs" "$bump_repo_dir/scripts"
   # separate git dir: the sandbox refuses writes to any .git/config, nested repos included
   git_t init -q --template= --separate-git-dir="$scratch/bump.gd" -b main "$bump_repo_dir" || return 1
-  is_repo_top "$bump_repo_dir" || return 1
+  fx_is_repo_top "$bump_repo_dir" || return 1
   echo '{"name":"dev","version":"0.1.0"}' > "$bump_repo_dir/.claude-plugin/plugin.json"
   echo one > "$bump_repo_dir/docs/a.md"; echo one > "$bump_repo_dir/scripts/a.sh"
   git_t -C "$bump_repo_dir" add -A && git_t -C "$bump_repo_dir" commit -q -m base || return 1
@@ -300,10 +300,10 @@ bump_commit() { git_t -C "$bump_repo_dir" add -A; git_t -C "$bump_repo_dir" comm
 fresh
 enclosing_head=$(git -C "$repo_root" rev-parse HEAD)
 touch "$scratch/bump.gd"   # a file where the git dir goes: init fails
-check "a throwaway repo whose init fails is refused" eval '! (make_bump_repo main)'
-check "a failed throwaway init commits nothing into the enclosing checkout" eq "$(git -C "$repo_root" rev-parse HEAD)" "$enclosing_head"
+fx_check "a throwaway repo whose init fails is refused" eval '! (make_bump_repo main)'
+fx_check "a failed throwaway init commits nothing into the enclosing checkout" fx_eq "$(git -C "$repo_root" rev-parse HEAD)" "$enclosing_head"
 mkdir -p "$scratch/plain"
-check "a dir inside the enclosing checkout is no throwaway repo's top level" eval '! is_repo_top "$scratch/plain"'
+fx_check "a dir inside the enclosing checkout is no throwaway repo's top level" eval '! fx_is_repo_top "$scratch/plain"'
 unset bump_repo_dir
 
 diff_base=derive   # from here the lint derives the merge-base itself unless a case names a ref
@@ -394,4 +394,4 @@ git_t -C "$bump_repo_dir" branch -q -D main 2>/dev/null || git_t -C "$bump_repo_
 expect "with no local main the merge-base falls back to origin/main" 0
 unset bump_repo_dir
 
-report_fails
+fx_report_fails

@@ -207,7 +207,7 @@ Darwin 27, whatever its manual says of `-t`) ignores `TMPDIR` altogether, with o
 `-t`, and uses the user temp directory under `/var/folders`, so `mktemp -d` always takes
 an explicit template under the directory, `mktemp -d <worktree>/.tmp/<name>.XXXXXX` (the
 bare form failed under the export, the template form passed;
-`scripts/fixture-test-lib.sh`'s `scratch_dir` is the same form).
+`scripts/fixture-test-lib.sh`'s `fx_scratch_dir` is the same form).
 
 **Diff two files.** To compare a file with a git object, write the other side under
 `<worktree>/.tmp` (`git show <rev>:<path> ><worktree>/.tmp/<name>`) and diff the two

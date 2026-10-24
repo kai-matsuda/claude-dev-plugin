@@ -25,17 +25,13 @@ home_of() { echo .; }
 
 # The pair the seed describes, read from the consumer story's text blocker line (the one
 # place the seed states the crate and the proposed version): prints "<crate> <version>".
-pair() { field consumer "$(one consumer '.issue_type=="story"')" .description | sed -n 's/^lib publish \(.*\) (not created yet)$/\1/p'; }
+pair() { fx_field consumer "$(fx_one consumer '.issue_type=="story"')" .description | sed -n 's/^lib publish \(.*\) (not created yet)$/\1/p'; }
 
-# The state the cutter must leave alone, per repo (`.` is the root). Beads: the listing plus
-# every bead's show, which under the bd this repo runs carries revision and updated_at (bumped
-# by any edit) and dependency_count (bumped by an edge); a bd that stops bumping them makes the
-# show diff blind to edits, though not to creates. Git: HEAD and the porcelain status, less
-# what the test itself writes at the root.
-beads_state() { # <repo>
-  local id; all "$1" | jq -S .
-  for id in $(all "$1" | jq -r '.[].id'); do bdj "$1" show "$id" --json | jq -S .; done
-}
+# The state the cutter must leave alone, per repo (`.` is the root). Beads: the listing, which
+# under the bd this repo runs carries each bead's text fields, labels, dependencies and
+# updated_at (bumped by an edit), so an edit, a label or an edge changes it as a create does;
+# it lacks bd show's revision, which this diff does not need. Git: HEAD and the porcelain status, less what the test itself writes at the root.
+beads_state() { fx_all "$1" | jq -S .; }   # <repo>
 git_state() { # <repo>
   git -C "$out/$1" rev-parse HEAD
   git -C "$out/$1" status --porcelain -- . ':!.beads' ':!report.txt' ':!seed'
@@ -44,20 +40,20 @@ seed_file() { echo "$out/seed/$1.$2"; }   # <repo> <beads|git>
 
 seed() { # <case>
   local r epic story dep crate version
-  build_fixture --stage-boundary
-  epic=$(one . '.issue_type=="epic"'); story=$(one "$1" '.issue_type=="story"'); read -r crate version <<<"$(pair)"
+  fx_build_fixture --stage-boundary
+  epic=$(fx_one . '.issue_type=="epic"'); story=$(fx_one "$1" '.issue_type=="story"'); read -r crate version <<<"$(pair)"
   [ -n "$epic" ] && [ -n "$story" ] && [ -n "$version" ] || { echo "FAIL find the epic bead, the $1 story and the pair"; exit 1; }
   mkdir -p "$out/seed"
   for r in lib consumer .; do beads_state "$r" > "$(seed_file "$r" beads)"; git_state "$r" > "$(seed_file "$r" git)"; done
   echo "seeded $out, epic bead $epic, story $story in $1"
   case "$1" in
-    lib) dep="Dependent: story $(one consumer '.issue_type=="story"') in consumer, crate $crate, version $version." ;;
-    consumer) dep="Dependency: story $(one lib '.issue_type=="story"') in lib, crate $crate, version $version. Its breakdown is the block after this brief." ;;
+    lib) dep="Dependent: story $(fx_one consumer '.issue_type=="story"') in consumer, crate $crate, version $version." ;;
+    consumer) dep="Dependency: story $(fx_one lib '.issue_type=="story"') in lib, crate $crate, version $version. Its breakdown is the block after this brief." ;;
   esac
   echo "brief: the session's repo is $out (a workspace session); you are a story cutter for epic bead $epic: story $story in the repo at $out/$1. The story bead's design field is the story cut's orientation for that repo; the skill reads it first. $dep Follow $skill (this repo's skills/ loaded as the plugin: claude --plugin-dir $repo_root, the skill typed dev:story-to-tickets) with the argument $story and the path $out/$1, and the branch's tracker doc $tracker; FIX-1 is not in Jira, so a getJiraIssue on it answers no such issue; plain bd only, pointed at the home with BEADS_DIR=$out/.beads bd <args>, and bd -C only where the skill says so; save the block the skill ends on, verbatim, to $out/report.txt"
   if [ "$1" = consumer ]; then cat <<T
 
-lib $(one lib '.issue_type=="story"') Story: fixture-lib multiply
+lib $(fx_one lib '.issue_type=="story"') Story: fixture-lib multiply
 1. Add multiply to fixture-lib. Tier: complexity:low. Blocked by: none. What it delivers: fixture_lib::multiply(left, right) returns the product, beside add.
 2. Test multiply in fixture-lib. Tier: complexity:low. Blocked by: 1. What it delivers: cargo test covers multiply at the story's test seam.
 3. publish $crate $version. Tier: complexity:low. Blocked by: 1, 2. What it delivers: the human stop that publishes $crate $version so the consumer can bump to it.
@@ -91,31 +87,31 @@ blockers_name_earlier_tickets() {
 
 assert() { # <case>
   local r story title crate version publish_re
-  check "the run saved its end block" test -s "$out/report.txt"
-  story=$(one "$1" '.issue_type=="story"'); title=$(field "$1" "$story" .title); read -r crate version <<<"$(pair)"
+  fx_check "the run saved its end block" test -s "$out/report.txt"
+  story=$(fx_one "$1" '.issue_type=="story"'); title=$(fx_field "$1" "$story" .title); read -r crate version <<<"$(pair)"
   publish_re="^[0-9]+[.)] \**publish $crate ${version//./\\.}"   # a ticket titled as the tracker doc's publish ticket
-  check "the block is headed '$1 $story $title'" grep -Fqx "$1 $story $title" <<<"$(block)"
-  check "the block lists two tickets or more" test "$(tickets | grep -c .)" -ge 2
-  check "the tickets are numbered 1..N with no gap" numbered_in_order
-  check "every ticket carries a complexity tier" every_ticket "$tier_re"
-  check "every ticket names its blockers" every_ticket '[Bb]locked[- ]by'
-  check "every numbered blocker is an earlier ticket of the block" blockers_name_earlier_tickets
+  fx_check "the block is headed '$1 $story $title'" grep -Fqx "$1 $story $title" <<<"$(block)"
+  fx_check "the block lists two tickets or more" test "$(tickets | grep -c .)" -ge 2
+  fx_check "the tickets are numbered 1..N with no gap" numbered_in_order
+  fx_check "every ticket carries a complexity tier" every_ticket "$tier_re"
+  fx_check "every ticket names its blockers" every_ticket '[Bb]locked[- ]by'
+  fx_check "every numbered blocker is an earlier ticket of the block" blockers_name_earlier_tickets
   case "$1" in
     lib)
-      check "the block carries the publish ticket 'publish $crate $version'" grep -qE "$publish_re" <<<"$(tickets)"
-      check "the publish ticket is the last ticket" grep -qE "$publish_re" <<<"$(tickets | tail -n 1)"
-      check "the publish ticket is complexity:low" grep -qE "$publish_re.*complexity:low" <<<"$(tickets | tail -n 1)"
-      check "the publish ticket is blocked, not free to start" no_match "$no_blocker_re" "$(tickets | tail -n 1)" ;;
+      fx_check "the block carries the publish ticket 'publish $crate $version'" grep -qE "$publish_re" <<<"$(tickets)"
+      fx_check "the publish ticket is the last ticket" grep -qE "$publish_re" <<<"$(tickets | tail -n 1)"
+      fx_check "the publish ticket is complexity:low" grep -qE "$publish_re.*complexity:low" <<<"$(tickets | tail -n 1)"
+      fx_check "the publish ticket is blocked, not free to start" no_match "$no_blocker_re" "$(tickets | tail -n 1)" ;;
     consumer)
-      check "the first ticket is the bump to $version" grep -qiE "bump.*${version//./\\.}|${version//./\\.}.*bump" <<<"$(tickets | head -n 1)"
-      check "the bump has no blocker inside the story" grep -qE "$no_blocker_re" <<<"$(tickets | head -n 1)"
-      check "no other ticket is free to start (each is blocked by the bump)" eq "$(tickets | tail -n +2 | grep -cE "$no_blocker_re")" 0
-      check "the block carries no publish ticket (the dependency's is lib's)" eq "$(tickets | grep -ciE "$publish_re")" 0 ;;
+      fx_check "the first ticket is the bump to $version" grep -qiE "bump.*${version//./\\.}|${version//./\\.}.*bump" <<<"$(tickets | head -n 1)"
+      fx_check "the bump has no blocker inside the story" grep -qE "$no_blocker_re" <<<"$(tickets | head -n 1)"
+      fx_check "no other ticket is free to start (each is blocked by the bump)" fx_eq "$(tickets | tail -n +2 | grep -cE "$no_blocker_re")" 0
+      fx_check "the block carries no publish ticket (the dependency's is lib's)" fx_eq "$(tickets | grep -ciE "$publish_re")" 0 ;;
   esac
   for r in lib consumer .; do
-    check "$r bead count unchanged: the cutter created nothing" eq "$(all "$r" | jq length)" "$(jq -s '.[0] | length' "$(seed_file "$r" beads)")"
-    check "$r beads unchanged since the seed: no create, no edit, no edge" eq "$(beads_state "$r")" "$(cat "$(seed_file "$r" beads)")"
-    check "$r HEAD and working tree unchanged since the seed" eq "$(git_state "$r")" "$(cat "$(seed_file "$r" git)")"
+    fx_check "$r bead count unchanged: the cutter created nothing" fx_eq "$(fx_all "$r" | jq length)" "$(jq -s '.[0] | length' "$(seed_file "$r" beads)")"
+    fx_check "$r beads unchanged since the seed: no create, no edit, no edge" fx_eq "$(beads_state "$r")" "$(cat "$(seed_file "$r" beads)")"
+    fx_check "$r HEAD and working tree unchanged since the seed" fx_eq "$(git_state "$r")" "$(cat "$(seed_file "$r" git)")"
   done
 }
 

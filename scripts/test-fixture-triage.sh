@@ -17,8 +17,8 @@ home_of() { echo consumer; }
 
 seed() { # <case>
   [ "$1" = triage ] || return 1
-  build_fixture
-  bd -C "$out/consumer" create "Reviewer misses unused imports" --type chore \
+  fx_build_fixture
+  fx_bdj consumer create "Reviewer misses unused imports" --type chore \
     -l retro,needs-triage,retro:foreign --silent --body-file - >/dev/null <<'T' || { echo "FAIL seed inbox bead"; exit 1; }
 ## Moment
 The review of the multiply ticket passed an unused import.
@@ -38,21 +38,21 @@ T
 }
 
 assert() {
-  inbox=$(one consumer '.title=="Reviewer misses unused imports" and (.labels|index("needs-triage"))')
-  routed=$(one consumer '(.labels // [] | index("retro")) and ((.labels // [] | index("needs-triage")) | not)')
-  check "one inbox bead and one routed bead in consumer" eq "$([ -n "$inbox" ] && [ -n "$routed" ] && echo yes)" yes
-  check "routed bead is a new bead, not the inbox bead" test "$routed" != "$inbox"
-  check "routed bead is ready-for-human" eq "$(field consumer "$routed" '.labels|index("ready-for-human") != null')" true
-  check "routed bead carries retro" eq "$(field consumer "$routed" '.labels|index("retro") != null')" true
-  check "routed bead has one complexity label" eq "$(field consumer "$routed" '[.labels[]|select(startswith("complexity:"))]|length')" 1
-  check "routed bead has acceptance criteria" eq "$(field consumer "$routed" '((.acceptance_criteria // "")|length) > 0')" true
-  check "routed bead is open" eq "$(field consumer "$routed" .status)" open
-  check "inbox bead is closed" eq "$(field consumer "$inbox" .status)" closed
-  check "inbox bead closed with 'routed: consumer <new id>'" eq "$(field consumer "$inbox" .close_reason)" "routed: consumer $routed"
-  check "inbox bead was not relabelled in place" eq "$(field consumer "$inbox" '.labels|index("ready-for-human") == null')" true
-  check "no other beads were created in consumer" eq "$(all consumer | jq length)" 2
-  check "the workspace's beads are untouched" eq "$(all . | jq length)" 0
-  check "lib's beads are untouched" eq "$(all lib | jq length)" 0
+  inbox=$(fx_one consumer '.title=="Reviewer misses unused imports" and (.labels|index("needs-triage"))')
+  routed=$(fx_one consumer '(.labels // [] | index("retro")) and ((.labels // [] | index("needs-triage")) | not)')
+  fx_check "one inbox bead and one routed bead in consumer" fx_eq "$([ -n "$inbox" ] && [ -n "$routed" ] && echo yes)" yes
+  fx_check "routed bead is a new bead, not the inbox bead" test "$routed" != "$inbox"
+  fx_check "routed bead is ready-for-human" fx_eq "$(fx_field consumer "$routed" '.labels|index("ready-for-human") != null')" true
+  fx_check "routed bead carries retro" fx_eq "$(fx_field consumer "$routed" '.labels|index("retro") != null')" true
+  fx_check "routed bead has one complexity label" fx_eq "$(fx_field consumer "$routed" '[.labels[]|select(startswith("complexity:"))]|length')" 1
+  fx_check "routed bead has acceptance criteria" fx_eq "$(fx_field consumer "$routed" '((.acceptance_criteria // "")|length) > 0')" true
+  fx_check "routed bead is open" fx_eq "$(fx_field consumer "$routed" .status)" open
+  fx_check "inbox bead is closed" fx_eq "$(fx_field consumer "$inbox" .status)" closed
+  fx_check "inbox bead closed with 'routed: consumer <new id>'" fx_eq "$(fx_field consumer "$inbox" .close_reason)" "routed: consumer $routed"
+  fx_check "inbox bead was not relabelled in place" fx_eq "$(fx_field consumer "$inbox" '.labels|index("ready-for-human") == null')" true
+  fx_check "no other beads were created in consumer" fx_eq "$(fx_all consumer | jq length)" 2
+  fx_check "the workspace's beads are untouched" fx_eq "$(fx_all . | jq length)" 0
+  fx_check "lib's beads are untouched" fx_eq "$(fx_all lib | jq length)" 0
 }
 
 source "$repo_root/scripts/fixture-phases.sh"

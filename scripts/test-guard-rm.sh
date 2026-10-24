@@ -9,7 +9,7 @@
 set -uo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 hook=$repo_root/hooks/guard-rm.sh
-source "$repo_root/scripts/fixture-test-lib.sh"   # fails, report_fails
+source "$repo_root/scripts/fixture-test-lib.sh"   # fails, fx_report_fails
 
 
 # hook_json <json>: run the hook on that stdin; prints the exit code
@@ -127,30 +127,30 @@ expect 0 $'bd update dev-1 --description="$(cat <<EOF\nthe guard refuses rm -rf 
 expect 0 $'# clean up with rm -rf $x later\necho ok'
 
 # passes: not the Bash tool, or no command to read
-check "another tool's input passes" eq "$(hook_rc Read 'rm -rf $x')" 0
-check "input without a command passes" eq "$(hook_json '{"tool_name":"Bash","tool_input":{}}')" 0
-check "input that is not JSON passes" eq "$(hook_json 'rm -rf $x')" 0
+fx_check "another tool's input passes" fx_eq "$(hook_rc Read 'rm -rf $x')" 0
+fx_check "input without a command passes" fx_eq "$(hook_json '{"tool_name":"Bash","tool_input":{}}')" 0
+fx_check "input that is not JSON passes" fx_eq "$(hook_json 'rm -rf $x')" 0
 
 # the refusal names the safe forms on stderr
 msg=$(jq -cn '{tool_name: "Bash", tool_input: {command: "rm -rf \"$s\"/*"}}' | "$hook" 2>&1 >/dev/null)
-check "the refusal names \${x:?}" grep -qF '${x:?}' <<<"$msg"
-check "the refusal names a literal path" grep -qi 'literal path' <<<"$msg"
-check "the refusal quotes the offending word" grep -qF '"$s"/*' <<<"$msg"
+fx_check "the refusal names \${x:?}" grep -qF '${x:?}' <<<"$msg"
+fx_check "the refusal names a literal path" grep -qi 'literal path' <<<"$msg"
+fx_check "the refusal quotes the offending word" grep -qF '"$s"/*' <<<"$msg"
 msg=$(jq -cn '{tool_name: "Bash", tool_input: {command: "rm -rf \"$(mktemp -d)\"/*"}}' | "$hook" 2>&1 >/dev/null)
-check "the refusal shows a lifted substitution as \$(...)" grep -qF '"$(...)"/*' <<<"$msg"
+fx_check "the refusal shows a lifted substitution as \$(...)" grep -qF '"$(...)"/*' <<<"$msg"
 
 # hooks/hooks.json registers the hooks in the harness's schema: event -> [{matcher, hooks: [{type, command}]}]
 hooks_json=$repo_root/hooks/hooks.json
-check "hooks.json is valid JSON" jq -e . "$hooks_json"
-check "hooks.json entries have the harness schema" jq -e '
+fx_check "hooks.json is valid JSON" jq -e . "$hooks_json"
+fx_check "hooks.json entries have the harness schema" jq -e '
   .hooks | type == "object" and length > 0 and
   all(.[]; type == "array" and length > 0 and
     all(.[]; (.matcher | type == "string") and (.hooks | type == "array" and length > 0 and
       all(.[]; .type == "command" and (.command | type == "string" and length > 0)))))' "$hooks_json"
-check "hooks.json runs guard-rm on Bash before tool use, through the plugin root" jq -e '
+fx_check "hooks.json runs guard-rm on Bash before tool use, through the plugin root" jq -e '
   .hooks.PreToolUse | any(.matcher == "Bash" and any(.hooks[]; .command == "\"${CLAUDE_PLUGIN_ROOT}/hooks/guard-rm.sh\""))' "$hooks_json"
-check "hooks.json runs bd prime --hook-json on session start" jq -e '
+fx_check "hooks.json runs bd prime --hook-json on session start" jq -e '
   .hooks.SessionStart | any(.[]; any(.hooks[]; .command == "command -v bd >/dev/null 2>&1 && bd prime --hook-json || true"))' "$hooks_json"
-check "the guard-rm script is executable" test -x "$hook"
+fx_check "the guard-rm script is executable" test -x "$hook"
 
-report_fails
+fx_report_fails

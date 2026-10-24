@@ -26,7 +26,7 @@ con_fix="Main prints without a label. layer: code. file: \$FIX/consumer/src/main
 
 seed() { # <case>
   local home home_dir survivors
-  build_fixture
+  fx_build_fixture
   home=$(home_of "$1"); home_dir=$(home_path "$1")
   if [ "$1" = bare ]; then
     mkdir -p "$out/bare" && git -C "$out/bare" init -q -b main --separate-git-dir "$out/.git-dirs/bare" || { echo "FAIL init bare"; exit 1; }
@@ -39,32 +39,32 @@ seed() { # <case>
   echo "brief: the session's repo is $home_dir$( [ "$home" != . ] && echo ' alone (a repo session: the workspace above is ignored)'); follow step 5 of $skill and the branch's tracker doc $tracker (this repo's skills/ loaded as the plugin: claude --plugin-dir $repo_root, the skill typed dev:retro); steps 1-4 are done and their survivors, all six fields known (category: coding standards; session: $(basename "$home_dir"), today), are: $survivors; plain bd only, pointed at the home with BEADS_DIR=$home_dir/.beads bd <args>, never bd -C; save the skill's final report, verbatim, to $out/report.txt"
 }
 
-labels() { field "$1" "$2" '.labels // [] | sort | join(",")'; }
+labels() { fx_field "$1" "$2" '.labels // [] | sort | join(",")'; }
 
 assert() { # <case>
   local a b
-  check "the run saved its end block" test -s "$out/report.txt"
+  fx_check "the run saved its end block" test -s "$out/report.txt"
   case "$1" in
     root)
-      a=$(one . '.title != null')
-      check "one inbox bead in the root" test -n "$a"
-      check "labelled retro, needs-triage, target:lib (from the manifest)" eq "$(labels . "$a")" "needs-triage,retro,target:lib"
-      check "nothing in lib" eq "$(all lib | jq length)" 0
-      check "nothing in consumer" eq "$(all consumer | jq length)" 0 ;;
+      a=$(fx_one . '.title != null')
+      fx_check "one inbox bead in the root" test -n "$a"
+      fx_check "labelled retro, needs-triage, target:lib (from the manifest)" fx_eq "$(labels . "$a")" "needs-triage,retro,target:lib"
+      fx_check "nothing in lib" fx_eq "$(fx_all lib | jq length)" 0
+      fx_check "nothing in consumer" fx_eq "$(fx_all consumer | jq length)" 0 ;;
     consumer)
-      a=$(one consumer '(.labels // []) | index("target:consumer")')
-      b=$(one consumer '(.labels // []) | index("retro:foreign")')
-      check "two inbox beads in consumer" eq "$(all consumer | jq length)" 2
-      check "the fix inside consumer is target:consumer" eq "$(labels consumer "$a")" "needs-triage,retro,target:consumer"
-      check "the fix under lib is retro:foreign, no target: label" eq "$(labels consumer "$b")" "needs-triage,retro,retro:foreign"
-      check "the foreign bead's body names the lib path" grep -qF "lib/src/lib.rs" <<<"$(field consumer "$b" .description)"
-      check "nothing in the root (no manifest read)" eq "$(all . | jq length)" 0
-      check "nothing in lib (no bd -C)" eq "$(all lib | jq length)" 0 ;;
+      a=$(fx_one consumer '(.labels // []) | index("target:consumer")')
+      b=$(fx_one consumer '(.labels // []) | index("retro:foreign")')
+      fx_check "two inbox beads in consumer" fx_eq "$(fx_all consumer | jq length)" 2
+      fx_check "the fix inside consumer is target:consumer" fx_eq "$(labels consumer "$a")" "needs-triage,retro,target:consumer"
+      fx_check "the fix under lib is retro:foreign, no target: label" fx_eq "$(labels consumer "$b")" "needs-triage,retro,retro:foreign"
+      fx_check "the foreign bead's body names the lib path" grep -qF "lib/src/lib.rs" <<<"$(fx_field consumer "$b" .description)"
+      fx_check "nothing in the root (no manifest read)" fx_eq "$(fx_all . | jq length)" 0
+      fx_check "nothing in lib (no bd -C)" fx_eq "$(fx_all lib | jq length)" 0 ;;
     bare)
-      check "no database was initialised in bare" test ! -e "$out/bare/.beads"
-      check "plain bd did not climb to the root's database" eq "$(all . | jq length)" 0
-      check "nothing in lib or consumer" eq "$(all lib | jq length)$(all consumer | jq length)" 00
-      check "the end block keeps the candidate list" grep -qF "unused imports" "$out/report.txt" ;;
+      fx_check "no database was initialised in bare" test ! -e "$out/bare/.beads"
+      fx_check "plain bd did not climb to the root's database" fx_eq "$(fx_all . | jq length)" 0
+      fx_check "nothing in lib or consumer" fx_eq "$(fx_all lib | jq length)$(fx_all consumer | jq length)" 00
+      fx_check "the end block keeps the candidate list" grep -qF "unused imports" "$out/report.txt" ;;
   esac
 }
 
