@@ -5,7 +5,7 @@ disable-model-invocation: true
 ---
 
 Works the **inbox**: the `needs-triage` beads in the home's beads database (**the one
-test** in the tracker doc's opening: the workspace's in a workspace session, the repo's in
+test** in the tracker doc's (`${CLAUDE_PLUGIN_ROOT}/docs/agents/issue-tracker.md`) opening: the workspace's in a workspace session, the repo's in
 a repo session), filed by `/dev:retro` or by hand. A human accepts or rejects each one; you
 make the accepted ones implementable the way `/mattpocock-skills:to-tickets` makes a spec implementable:
 acceptance criteria, a complexity tier, and a bead in the repo that owns the change. The
