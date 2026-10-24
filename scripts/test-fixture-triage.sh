@@ -1,20 +1,22 @@
 #!/usr/bin/env bash
 # Test /triage in a repo session (chezmoi-gfu.1.5, INFRA-28) against the fixture workspace.
 # The seam is a subagent run, which a script cannot spawn, so the test has phases:
-#   scripts/test-fixture-triage.sh seed      build the fixture, seed a retro:foreign inbox bead in
+#   scripts/test-fixture-triage.sh seed triage   build the fixture, seed a retro:foreign inbox bead in
 #                                            consumer, print the brief: run /triage per the skill
 #                                            file in consumer alone (no manifest in that session),
 #                                            answer "accept", plain bd only
-#   scripts/test-fixture-triage.sh assert    check the bead state the run must leave behind
+#   scripts/test-fixture-triage.sh assert triage check the bead state the run must leave behind
 #   scripts/test-fixture-triage.sh           assert when a seeded fixture exists, else print a note
 set -uo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-out=$repo_root/.fixtures/test-triage
+cases="triage"
 skill=$repo_root/skills/triage/SKILL.md
-phase=${1:-all}
-source "$repo_root/scripts/fixture-test-lib.sh"
 
-seed() {
+fixture() { echo "$repo_root/.fixtures/test-triage"; }
+home_of() { echo consumer; }
+
+seed() { # <case>
+  [ "$1" = triage ] || return 1
   "$repo_root/scripts/fixture-workspace.sh" "$out" >/dev/null || { echo "FAIL build fixture"; exit 1; }
   bd -C "$out/consumer" create "Reviewer misses unused imports" --type chore \
     -l retro,needs-triage,retro:foreign --silent --body-file - >/dev/null <<'T' || { echo "FAIL seed inbox bead"; exit 1; }
@@ -53,10 +55,5 @@ assert() {
   check "lib's beads are untouched" eq "$(all lib | jq length)" 0
 }
 
-case "$phase" in
-  seed) seed; exit 0 ;;
-  assert) assert ;;
-  all) if [ -d "$out/consumer/.beads" ]; then assert; else echo "no seeded fixture: run seed, the briefed skill run, then assert"; fi ;;
-  *) echo "usage: $0 [seed|assert]" >&2; exit 2 ;;
-esac
-report_fails
+source "$repo_root/scripts/fixture-phases.sh"
+run_phases "$@"

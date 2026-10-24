@@ -72,7 +72,7 @@ T
 block() { sed -E 's/^[[:space:]]*[#>*-]*[[:space:]]*//; s/[[:space:]*]+$//' "$out/report.txt" 2>/dev/null; }
 tickets() { block | awk '/^[0-9]+[.)] /{if (t) print t; t=$0; next} /^$/{if (t) print t; t=""; next} t{t=t " " $0} END{if (t) print t}'; }
 tier_re='complexity:(low|medium|high)'
-no_blocker_re='[Bb]locked[- ]by\**:?\**[[:space:]]*(none|nothing|n/a|—|–|-)'
+no_blocker_re='[Bb]locked[- ]by\**:?\**[[:space:]]*(none|nothing|n/a|—|–)\**([.;,]|$|[[:space:]]+[A-Z])'
 every_ticket() { # <regex>   every ticket line matches, and there is at least one
   local t; t=$(tickets); [ -n "$t" ] && [ "$(grep -cE "$1" <<<"$t")" = "$(grep -c . <<<"$t")" ]
 }
@@ -83,7 +83,7 @@ numbered_in_order() { [ "$(tickets | sed -E 's/^([0-9]+).*/\1/')" = "$(seq 1 "$(
 blockers_name_earlier_tickets() {
   local n ref
   while read -r n; do
-    for ref in $(tickets | sed -n "${n}p" | sed -E 's/.*[Bb]locked[- ]by\**:?\**[[:space:]]*//; s/\. .*//' | sed -E 's/[0-9]+(\.[0-9]+)+//g' | grep -oE '[0-9]+'); do
+    for ref in $(tickets | sed -n "${n}p" | sed -E 's/.*[Bb]locked[- ]by\**:?\**[[:space:]]*//; s/\. .*//' | tr -s ' ,;' '\n' | sed -E 's/[.)]+$//' | grep -E '^[0-9]+$'); do
       [ "$ref" -lt "$n" ] || return 1
     done
   done < <(tickets | sed -E 's/^([0-9]+).*/\1/')
