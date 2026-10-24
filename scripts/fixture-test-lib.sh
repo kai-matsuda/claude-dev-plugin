@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Helpers shared by the fixture tests (scripts/test-fixture-*.sh, test-lint-skill-docs.sh, test-guard-rm.sh,
-# test-setup-skill.sh, test-setup-repo-skill.sh).
+# test-setup-skill.sh, test-setup-repo-skill.sh, test-ci-workflow.sh).
 # The bead helpers read $out, the fixture workspace, when called; sets fails=0, which check
 # counts up and report_fails ends the run on.
 fails=0
