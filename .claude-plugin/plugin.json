@@ -1,0 +1,12 @@
+{
+  "name": "dev",
+  "version": "0.1.0",
+  "description": "A Jira + beads feature workflow for Claude Code: spec, story cut, ticket cut, AFK implementation through story orchestrators and ticket runners, review, PR, retro and triage.",
+  "author": {
+    "name": "Kai Matsuda",
+    "url": "https://github.com/vangogh500"
+  },
+  "repository": "https://github.com/vangogh500/claude-dev-plugin",
+  "license": "MIT",
+  "keywords": ["workflow", "beads", "jira", "orchestration", "tdd", "code-review"]
+}

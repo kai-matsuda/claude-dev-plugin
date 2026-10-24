@@ -1,0 +1,14 @@
+{
+  "name": "claude-dev-plugin",
+  "owner": {
+    "name": "Kai Matsuda",
+    "url": "https://github.com/vangogh500"
+  },
+  "plugins": [
+    {
+      "name": "dev",
+      "source": "./",
+      "description": "A Jira + beads feature workflow for Claude Code."
+    }
+  ]
+}
