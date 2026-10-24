@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 # Regression tests for scripts/lint-skill-docs.sh against a scratch copy of the fixtures (skills,
-# agent docs, CLAUDE.md, WORKFLOW.md and the plugin skill names the runbook's commands resolve
-# to): the baseline passes, an explicitly passed missing path fails, and the retired-phrase scan
-# (section 5) covers every file under the skills and agent docs dirs and matches whole words
-# only, and the namespace rule (section 11: only dev: and mattpocock-skills: pass, over every
-# doc under docs/, the skills and the runbook), and the version-bump rule.
+# agent docs, CLAUDE.md, GLOSSARY.md, WORKFLOW.md and the plugin skill names the runbook's
+# commands resolve to): the baseline passes, an explicitly passed missing path fails, and the
+# retired-phrase scan (section 5) covers every file under the skills and agent docs dirs and
+# matches whole words only, and the namespace rule (section 11: only dev: and
+# mattpocock-skills: pass, over every doc under docs/, the skills, the runbook, the project
+# CLAUDE.md and the root glossary), and the version-bump rule.
 # The last section drives the version-bump rule on a throwaway git repo (VERSION_BUMP_REPO,
 # VERSION_BUMP_BASE; the other cases point the repo at a non-repo path and pin the base to HEAD).
 # The lint of the plugin's own tree is the Makefile's first step, not repeated here.
@@ -24,6 +25,7 @@ fresh() {
   cp -R "$fixtures/skills" "$scratch/skills"
   cp -R "$fixtures/agents" "$scratch/agents"
   cp "$fixtures/project-CLAUDE.md" "$scratch/CLAUDE.md"
+  cp "$fixtures/project-GLOSSARY.md" "$scratch/GLOSSARY.md"
   cp "$fixtures/WORKFLOW.md" "$scratch/"
   mkdir -p "$scratch/docs/adr"
   # the skill names the runbook's /commands resolve to, standing in for the installed plugin
@@ -45,7 +47,7 @@ lint_scratch() {
   if [ "${diff_base:-HEAD}" = derive ]; then unset VERSION_BUMP_BASE
   else export VERSION_BUMP_BASE=${diff_base:-HEAD}; fi
   out=$(SKILLS_DIR=${skills_dir:-$scratch/skills} AGENT_DOCS=${agent_docs:-$scratch/agents} DOCS_DIR=$scratch/docs \
-    USER_CLAUDE_MD=${claude_md:-$scratch/CLAUDE.md} \
+    USER_CLAUDE_MD=${claude_md:-$scratch/CLAUDE.md} GLOSSARY_MD=${glossary_md:-$scratch/GLOSSARY.md} \
     PLUGIN_SKILLS=$scratch/plugin VERSION_BUMP_REPO=${bump_repo_dir:-$scratch/no-repo} \
     "$lint" "$@" 2>&1)
   rc=$?
@@ -72,7 +74,7 @@ expect "an explicit driver path that does not exist fails" 1 "no such file" "$sc
 fresh
 expect "an explicit runbook path that does not exist fails" 1 "no such file" "" "$scratch/nope.md"
 
-for var in skills_dir agent_docs claude_md; do
+for var in skills_dir agent_docs claude_md glossary_md; do
   fresh
   eval "$var=$scratch/nope"
   expect "a set override ($var) naming a missing path fails" 1 "no such"
@@ -104,9 +106,10 @@ printf 'a shortcut one exists\nthe cut ones stay\n' >> "$scratch/skills/sample/S
 expect "words containing the retired phrase do not false-fail" 0
 
 # namespace rule: our skills are dev:<skill>, mattpocock's are mattpocock-skills:<skill>; a bare
-# /<skill> or any other namespace fails in a skill doc, an agent doc or the runbook
+# /<skill> or any other namespace fails in a skill doc, an agent doc, the runbook, the project
+# CLAUDE.md or the root glossary (dev-9np)
 ns_msg="bare or unknown skill namespace"
-for target in skills/sample/SKILL.md agents/sample.md WORKFLOW.md; do
+for target in skills/sample/SKILL.md agents/sample.md WORKFLOW.md CLAUDE.md GLOSSARY.md; do
   fresh
   echo "run /story-to-tickets next" >> "$scratch/$target"
   expect "a bare /<skill> in $target fails with the namespace message" 1 "$ns_msg in $scratch/$target"
@@ -117,6 +120,11 @@ for target in skills/sample/SKILL.md agents/sample.md WORKFLOW.md; do
   printf 'run dev:story-to-tickets, then mattpocock-skills:to-tickets\nor /mattpocock-skills:tdd and /dev:workflow\n' >> "$scratch/$target"
   expect "namespaced references in $target pass" 0
 done
+# the loop above seeds /story-to-tickets; dev-9np's acceptance criterion names /implement-spec
+# in the glossary, so that token is pinned on its own
+fresh
+echo "the spec runs through /implement-spec" >> "$scratch/GLOSSARY.md"
+expect "a bare /implement-spec in the root glossary fails with the namespace message" 1 "$ns_msg in $scratch/GLOSSARY.md: /implement-spec"
 fresh
 echo "the /tmp/x path and /plugin command are not skills" >> "$scratch/skills/sample/SKILL.md"
 expect "paths and built-in commands pass" 0

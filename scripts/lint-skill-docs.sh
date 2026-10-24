@@ -102,10 +102,11 @@
 #      repo-session story under the epic bead, and makes a deploy split wait on the
 #      earlier story's closure (ADR 0011).
 #  11. the namespace rule: in every .md file under the skills dir, docs/ (the agent docs, ADRs, specs),
-#      the runbook and the driver passed as $1, a /<command> is dev:<skill> or
-#      mattpocock-skills:<skill> naming a skill that exists, or a built-in or a path; a bare
-#      /<skill> or another namespace fails. The /command extraction (cmd_tokens) and the
-#      existence check (cmds) moved here from section 2, which no longer calls them.
+#      the runbook, the project CLAUDE.md, the root GLOSSARY.md and the driver passed as $1, a
+#      /<command> is dev:<skill> or mattpocock-skills:<skill> naming a skill that exists, or a
+#      built-in or a path; a bare /<skill> or another namespace fails. The /command extraction
+#      (cmd_tokens) and the existence check (cmds) moved here from section 2, which no longer
+#      calls them. The root docs joined the scan in dev-9np: a bare name there passed before.
 #  12. /retro: step 2 names the transcript shape (one JSON object per line with its own type
 #      and timestamp, tool_use and tool_result objects in message.content) and two recipes, a
 #      jq per-agent call timeline and a grep tally across agents, each run with
@@ -117,6 +118,7 @@
 # SKILLS_DIR and AGENT_DOCS override the skills and agent docs directories (scratch copies).
 # DOCS_DIR overrides the docs directory the namespace rule scans (default: docs under the repo root).
 # USER_CLAUDE_MD overrides the project CLAUDE.md (default: CLAUDE.md under the repo root).
+# GLOSSARY_MD overrides the root glossary (default: GLOSSARY.md under the repo root).
 # PLUGIN_SKILLS overrides the plugin skills directory (default: newest installed mattpocock-skills).
 # The last section is the version-bump rule (INFRA-30): a diff under skills/ or docs/ needs a
 # changed version in .claude-plugin/plugin.json. VERSION_BUMP_REPO overrides the repo it reads
@@ -136,6 +138,7 @@ agents=${AGENT_DOCS:-$root/docs/agents}
 docs=${DOCS_DIR:-$root/docs}
 docs=${docs%/}
 user_claude_md=${USER_CLAUDE_MD:-$root/CLAUDE.md}
+glossary_md=${GLOSSARY_MD:-$root/GLOSSARY.md}
 # an explicitly passed path ($1, $2) or a set override must exist; only the defaults are guarded
 # by [ -f ] below
 for given in "${1:-}" "${2:-}"; do
@@ -144,7 +147,9 @@ done
 for given in "${SKILLS_DIR:-}" "${AGENT_DOCS:-}" "${DOCS_DIR:-}"; do
   [ -z "$given" ] || [ -d "$given" ] || bad "no such directory: $given"
 done
-[ -z "${USER_CLAUDE_MD:-}" ] || [ -f "$USER_CLAUDE_MD" ] || bad "no such file: $USER_CLAUDE_MD"
+for given in "${USER_CLAUDE_MD:-}" "${GLOSSARY_MD:-}"; do
+  [ -z "$given" ] || [ -f "$given" ] || bad "no such file: $given"
+done
 
 # ---- 1. /implement-spec driver ----
 f=${1:-$skills/implement-spec/SKILL.md}
@@ -847,10 +852,11 @@ fi
 
 # ---- 11. namespace rule: only dev: and mattpocock-skills: ----
 # our skills are dev:<skill>, mattpocock's are mattpocock-skills:<skill>. A bare /<skill> or a
-# /<other>:<skill> in a skill doc, any doc under docs/ or the runbook fails, and so does a
-# namespaced one naming no skill; a path (/tmp/x) and a built-in command do not count as skills.
-# The driver passed as $1 is scanned too, wherever it lives. In docs/specs/ only the existence
-# check is skipped: a spec names the skills its stories have yet to build.
+# /<other>:<skill> in a skill doc, any doc under docs/, the runbook, the project CLAUDE.md or
+# the root glossary fails, and so does a namespaced one naming no skill; a path (/tmp/x) and a
+# built-in command do not count as skills. The driver passed as $1 is scanned too, wherever it
+# lives. In docs/specs/ only the existence check is skipped: a spec names the skills its
+# stories have yet to build.
 echo "== namespace rule"
 while IFS= read -r f; do
   [ -f "$f" ] || continue
@@ -862,7 +868,8 @@ while IFS= read -r f; do
     case "$builtin" in *" $tok "*) continue;; esac
     bad "bare or unknown skill namespace in $f: /$tok (use dev:<skill> or mattpocock-skills:<skill>)"
   done
-done < <({ find "$docs" "$agents" "$skills" -type f -name '*.md' 2>/dev/null; echo "$runbook"; echo "${1:-}"; } | grep . | sort -u)
+done < <({ find "$docs" "$agents" "$skills" -type f -name '*.md' 2>/dev/null
+  echo "$runbook"; echo "$user_claude_md"; echo "$glossary_md"; echo "${1:-}"; } | grep . | sort -u)
 
 # ---- 12. /retro: step 2 names the transcript shape and the two mining recipes ----
 # the pins are fragments, so a recipe can be reworded without a lint edit
