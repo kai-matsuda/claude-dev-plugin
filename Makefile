@@ -10,3 +10,4 @@ lint: ## Lint the skill docs, then run the lint and guard-rm regression tests
 	scripts/test-lint-skill-docs.sh
 	scripts/test-guard-rm.sh
 	scripts/test-setup-skill.sh
+	scripts/test-setup-repo-skill.sh
