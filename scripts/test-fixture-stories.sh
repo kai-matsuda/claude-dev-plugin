@@ -67,7 +67,6 @@ check "consumer story body: Blocked by line 'lib <publish id>'" grep -qx "lib $p
 check "consumer story body: ## Blocked by" grep -q '^## Blocked by' <<<"$body"
 
 # 4. native edges
-blockers() { field "$1" "$2" '[.dependencies // [] | .[] | select(.dependency_type=="blocks") | .id] | sort | join(",")'; }
 check "publish ticket blocked by both lib tickets" eq "$(blockers lib "$pub")" "$(printf '%s\n' "$lt1" "$lt2" | sort | paste -sd, -)"
 check "lib ticket 2 blocked by lib ticket 1 (gap 1)" eq "$(blockers lib "$lt2")" "$lt1"
 check "lib ticket 1 has no blockers" eq "$(blockers lib "$lt1")" ""

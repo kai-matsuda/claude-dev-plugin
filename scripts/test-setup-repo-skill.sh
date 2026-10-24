@@ -7,7 +7,6 @@ repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 source "$repo_root/scripts/fixture-test-lib.sh"   # check, report_fails
 doc=$repo_root/skills/setup-repo/SKILL.md
 
-front() { awk 'NR==1 && $0!="---"{exit} NR>1 && $0=="---"{exit} NR>1{print}' "$1"; }
 fm=$(front "$doc")
 check "skill file exists" test -s "$doc"
 check "frontmatter names the skill setup-repo" grep -qx 'name: setup-repo' <<<"$fm"

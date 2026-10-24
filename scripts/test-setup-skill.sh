@@ -13,7 +13,6 @@ stub=$skill/claude-md-stub.md
 prereqs=$skill/check-prereqs.sh
 
 # front <file>: the frontmatter lines, between the first two --- lines
-front() { awk 'NR==1 && $0!="---"{exit} NR>1 && $0=="---"{exit} NR>1{print}' "$1"; }
 fm=$(front "$skill/SKILL.md")
 check "frontmatter names the skill setup" grep -qx 'name: setup' <<<"$fm"
 check "frontmatter is user-invoked" grep -qx 'disable-model-invocation: true' <<<"$fm"

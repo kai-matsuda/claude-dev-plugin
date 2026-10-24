@@ -81,7 +81,6 @@ check "consumer-migrate has exactly two children (bump 0.2.0, switch)" eq \
 check "lib tickets 1,2 children of lib-expand; 3 of lib-contract" eq "$(field lib "$lt1" .parent),$(field lib "$lt2" .parent),$(field lib "$lt3" .parent)" "$expand,$expand,$contract"
 
 # 5. native edges
-blockers() { field "$1" "$2" '[.dependencies // [] | .[] | select(.dependency_type=="blocks") | .id] | sort | join(",")'; }
 check "publish 0.2.0 blocked by both lib-expand implementation tickets" eq "$(blockers lib "$pub2")" "$(printf '%s\n' "$lt1" "$lt2" | sort | paste -sd, -)"
 check "publish 0.3.0 blocked by the lib-contract implementation ticket" eq "$(blockers lib "$pub3")" "$lt3"
 check "lib ticket 2 blocked by lib ticket 1" eq "$(blockers lib "$lt2")" "$lt1"
