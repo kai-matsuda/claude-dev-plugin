@@ -4,7 +4,10 @@
 # to): the baseline passes, an explicitly passed missing path fails, and the retired-phrase scan
 # (section 5) covers every file under the skills and agent docs dirs and matches whole words
 # only, and the namespace rule (section 11: only dev: and mattpocock-skills: pass, over every
-# doc under docs/, the skills and the runbook). The lint of the plugin's own tree is the Makefile's first step, not repeated here.
+# doc under docs/, the skills and the runbook), and the version-bump rule.
+# The last section drives the version-bump rule on a throwaway git repo (VERSION_BUMP_REPO,
+# VERSION_BUMP_BASE; the other cases point the repo at a non-repo path and pin the base to HEAD).
+# The lint of the plugin's own tree is the Makefile's first step, not repeated here.
 # Usage: scripts/test-lint-skill-docs.sh
 set -uo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
@@ -37,9 +40,15 @@ fresh() {
 lint_scratch() {
   local out rc
   [ $# -gt 0 ] || set -- "" "$scratch/WORKFLOW.md"
+  # bump_base set pins the diff base; unset pins HEAD (an empty diff) unless bump_derive is set,
+  # when the lint derives the merge-base itself
+  if [ -n "${bump_base+x}" ]; then export VERSION_BUMP_BASE=$bump_base
+  elif [ -n "${bump_derive:-}" ]; then unset VERSION_BUMP_BASE
+  else export VERSION_BUMP_BASE=HEAD; fi
   out=$(SKILLS_DIR=${skills_dir:-$scratch/skills} AGENT_DOCS=${agent_docs:-$scratch/agents} DOCS_DIR=$scratch/docs \
     USER_CLAUDE_MD=${claude_md:-$scratch/CLAUDE.md} \
-    PLUGIN_SKILLS=$scratch/plugin "$lint" "$@" 2>&1)
+    PLUGIN_SKILLS=$scratch/plugin VERSION_BUMP_REPO=${bump_repo_dir:-$scratch/no-repo} \
+    "$lint" "$@" 2>&1)
   rc=$?
   printf '%s\n%s\n' "$out" "$rc"
 }
@@ -176,5 +185,111 @@ fresh
 mkdir -p "$scratch/docs/specs"
 echo "run /dev:not-built-yet" > "$scratch/docs/specs/s.md"
 expect "a /dev:<not yet built> in docs/specs passes" 0
+
+# --- the version-bump rule, on a throwaway git repo the lint reads via VERSION_BUMP_REPO ---
+# The other cases pin the diff base to HEAD (an empty diff) and point VERSION_BUMP_REPO at a
+# path that is no repo, so the checkout the test runs in never decides them; these cases let the
+# lint derive the merge-base itself (bump_derive) in a throwaway repo.
+git_t() { git -c core.hooksPath=/dev/null -c hook.commitlint.enabled=false -c user.name=t -c user.email=t@t -c commit.gpgsign=false "$@"; }
+# bump_repo <branch>: a repo on main with a manifest at 0.1.0, <branch> checked out from it
+bump_repo() {
+  fresh
+  bump_repo_dir=$scratch/bump
+  mkdir -p "$bump_repo_dir/.claude-plugin" "$bump_repo_dir/docs" "$bump_repo_dir/scripts"
+  # separate git dir: the sandbox refuses writes to any .git/config, nested repos included
+  git_t init -q --template= --separate-git-dir="$scratch/bump.gd" -b main "$bump_repo_dir"
+  echo '{"name":"dev","version":"0.1.0"}' > "$bump_repo_dir/.claude-plugin/plugin.json"
+  echo one > "$bump_repo_dir/docs/a.md"; echo one > "$bump_repo_dir/scripts/a.sh"
+  git_t -C "$bump_repo_dir" add -A; git_t -C "$bump_repo_dir" commit -q -m base
+  [ "$1" = main ] || git_t -C "$bump_repo_dir" checkout -q -b "$1"
+}
+bump_commit() { git_t -C "$bump_repo_dir" add -A; git_t -C "$bump_repo_dir" commit -q -m "$1"; }
+bump_derive=1   # from here the lint derives the merge-base itself unless a case sets bump_base
+
+bump_repo feat
+echo two > "$bump_repo_dir/docs/a.md"; bump_commit "docs change"
+expect "a docs change without a version bump fails" 1 "version bump"
+
+bump_repo feat
+echo two > "$bump_repo_dir/docs/a.md"
+echo '{"name":"dev","version":"0.2.0"}' > "$bump_repo_dir/.claude-plugin/plugin.json"; bump_commit "docs change and bump"
+expect "a docs change with a version bump passes" 0
+
+bump_repo feat
+mkdir -p "$bump_repo_dir/skills/x"; echo s > "$bump_repo_dir/skills/x/SKILL.md"; bump_commit "skill change"
+expect "a skills change without a version bump fails" 1 "version bump"
+
+bump_repo feat
+echo two > "$bump_repo_dir/scripts/a.sh"; bump_commit "scripts change"
+expect "a scripts-only change passes" 0
+
+bump_repo feat
+echo two > "$bump_repo_dir/docs/a.md"; bump_commit "docs change"
+bump_base=HEAD
+expect "the base variable overrides the merge-base" 0
+bump_base=HEAD~1
+expect "a base variable naming the PR base diffs against it" 1 "version bump"
+unset bump_base
+
+bump_repo feat
+echo two > "$bump_repo_dir/docs/a.md"; bump_commit "docs change"
+bump_base=no-such-ref
+expect "an unresolvable base variable fails with its own message" 1 "does not resolve"
+unset bump_base
+
+bump_repo feat
+git_t -C "$bump_repo_dir" branch -q -m main trunk
+expect "a repo with no main branch fails with no diff base" 1 "no diff base"
+
+bump_repo main
+echo two > "$bump_repo_dir/docs/a.md"; bump_commit "docs change on main"
+bump_base=HEAD~1   # a real, non-empty diff: only the main guard makes this pass
+expect "the rule is a no-op on main" 0
+unset bump_base
+
+# a main that moved on after the branch point: base...HEAD sees only the branch's own changes
+bump_repo feat
+echo two > "$bump_repo_dir/scripts/a.sh"; bump_commit "scripts change"
+git_t -C "$bump_repo_dir" checkout -q main
+echo two > "$bump_repo_dir/docs/a.md"; bump_commit "docs change on main"
+git_t -C "$bump_repo_dir" checkout -q feat
+bump_base=main
+expect "the base variable is diffed three-dot, so a moved-on base does not count" 0
+unset bump_base
+
+bump_repo feat
+echo two > "$bump_repo_dir/docs/a.md"
+printf '{\n  "name": "dev",\n  "version": "0.1.0"\n}\n' > "$bump_repo_dir/.claude-plugin/plugin.json"; bump_commit "docs change and reformat"
+expect "a reformatted manifest with the same version is not a bump" 1 "version bump"
+
+bump_repo feat
+echo two > "$bump_repo_dir/docs/a.md"
+git_t -C "$bump_repo_dir" rm -q .claude-plugin/plugin.json; bump_commit "docs change, manifest removed"
+expect "a manifest missing at HEAD is not a bump" 1 "version bump"
+
+bump_repo feat
+git_t -C "$bump_repo_dir" rm -q .claude-plugin/plugin.json; bump_commit "manifest removed"
+echo two > "$bump_repo_dir/docs/a.md"; bump_commit "docs change"
+bump_base=HEAD~1
+expect "a manifest missing at both ends is not a bump" 1 "version bump"
+unset bump_base
+
+bump_repo feat
+git_t -C "$bump_repo_dir" rm -q .claude-plugin/plugin.json; bump_commit "manifest removed"
+git_t -C "$bump_repo_dir" tag nomanifest
+mkdir -p "$bump_repo_dir/.claude-plugin"
+echo two > "$bump_repo_dir/docs/a.md"
+echo '{"name":"dev","version":"0.2.0"}' > "$bump_repo_dir/.claude-plugin/plugin.json"; bump_commit "docs change, manifest added"
+bump_base=nomanifest
+expect "a manifest unreadable at base is not a bump" 1 "version bump"
+unset bump_base
+
+bump_repo feat
+echo two > "$bump_repo_dir/docs/a.md"
+echo '{"name":"dev","version":"0.2.0"}' > "$bump_repo_dir/.claude-plugin/plugin.json"; bump_commit "docs change and bump"
+git_t -C "$bump_repo_dir" update-ref refs/remotes/origin/main main
+git_t -C "$bump_repo_dir" branch -q -D main 2>/dev/null || git_t -C "$bump_repo_dir" branch -q -m main trunk
+expect "with no local main the merge-base falls back to origin/main" 0
+unset bump_repo_dir
 
 report_fails

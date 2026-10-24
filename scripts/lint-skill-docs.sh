@@ -112,6 +112,10 @@
 # DOCS_DIR overrides the docs directory the namespace rule scans (default: docs under the repo root).
 # USER_CLAUDE_MD overrides the project CLAUDE.md (default: CLAUDE.md under the repo root).
 # PLUGIN_SKILLS overrides the plugin skills directory (default: newest installed mattpocock-skills).
+# The last section is the version-bump rule (INFRA-30): a diff under skills/ or docs/ needs a
+# changed version in .claude-plugin/plugin.json. VERSION_BUMP_REPO overrides the repo it reads
+# (default: the repo root); VERSION_BUMP_BASE overrides the diff base (default: the merge-base
+# with main, else origin/main).
 set -u
 root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 fail=0
@@ -806,6 +810,35 @@ while IFS= read -r f; do
     bad "bare or unknown skill namespace in $f: /$tok (use dev:<skill> or mattpocock-skills:<skill>)"
   done
 done < <({ find "$docs" "$agents" "$skills" -type f 2>/dev/null; echo "$runbook"; echo "${1:-}"; } | grep . | sort -u)
+
+# version-bump rule: a diff under skills/ or docs/ needs a version change in the plugin manifest.
+# The diff runs from VERSION_BUMP_BASE (a CI job can set it to the PR base) or else the merge-base
+# with main (origin/main when there is no local main), to HEAD, three-dot; VERSION_BUMP_REPO
+# overrides the repo (the regression test's throwaway repo). The manifest's parsed version value
+# is compared at base and HEAD: unreadable at base, or a reformat with the same value, is no bump.
+# A no-op on main itself, and in a tree that is not a git repo.
+bump_repo=${VERSION_BUMP_REPO:-$root}
+if git -C "$bump_repo" rev-parse --git-dir >/dev/null 2>&1 \
+  && [ "$(git -C "$bump_repo" rev-parse --abbrev-ref HEAD 2>/dev/null)" != main ]; then
+  echo "== version bump"
+  base=${VERSION_BUMP_BASE:-$(git -C "$bump_repo" merge-base main HEAD 2>/dev/null \
+    || git -C "$bump_repo" merge-base origin/main HEAD 2>/dev/null)}
+  if [ -z "$base" ]; then
+    bad "version bump: no diff base (no main branch to merge-base with; set VERSION_BUMP_BASE)"
+  elif ! git -C "$bump_repo" rev-parse --verify --quiet "$base^{commit}" >/dev/null; then
+    bad "version bump: diff base '$base' does not resolve to a commit (a shallow checkout may not have fetched it)"
+  elif [ -n "$(git -C "$bump_repo" diff --name-only "$base...HEAD" -- skills docs)" ]; then
+    manifest=.claude-plugin/plugin.json
+    manifest_version() { # <rev>: the manifest's "version" value at <rev>, empty if unreadable
+      git -C "$bump_repo" show "$1:$manifest" 2>/dev/null \
+        | sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1
+    }
+    old=$(manifest_version "$base")
+    new=$(manifest_version HEAD)
+    { [ -n "$old" ] && [ -n "$new" ] && [ "$old" != "$new" ]; } \
+      || bad "version bump: skills/ or docs/ changed since ${base:0:9} but $manifest has no version change"
+  fi
+fi
 
 [ "$fail" = 0 ] && echo "PASS"
 exit "$fail"
