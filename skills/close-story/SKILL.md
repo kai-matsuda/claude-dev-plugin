@@ -62,9 +62,11 @@ leaves several: the last `pr:` line wins, and only its value is used below. None
 ## 4. The forge shows MERGED
 
 Detect the forge from the repo's `origin` remote. `github.com` → `gh pr view <url> --json
-state`, require `MERGED`. A Forgejo/Gitea host → `tea api repos/{owner}/{repo}/pulls/<n>`,
-require `"merged": true` (its `state` reads `closed` for merged and unmerged alike). Open or
-closed unmerged → `<id> refused: PR is <state>`.
+state`, require `MERGED`. A Forgejo/Gitea host →
+`tea api --repo <path> repos/{owner}/{repo}/pulls/<n>` (`--repo` names the story's repo, as
+the intro says every forge command does, `.` when no path was given; without it `tea` reads
+whichever repo the shell sits in), require `"merged": true` (its `state` reads `closed` for
+merged and unmerged alike). Open or closed unmerged → `<id> refused: PR is <state>`.
 
 Forge CLIs keep their tokens outside the sandbox and fail inside it with a config error
 that is not a missing login, so run the one forge command with the sandbox disabled. A

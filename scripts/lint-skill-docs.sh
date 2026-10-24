@@ -90,9 +90,10 @@
 #      checks in orchestration.md (chezmoi-3eg), and its reviewer brief tags every finding
 #      blocking or minor and ends on the verdict line, its runner step 3 and story review step 7
 #      pointing at the rules doc's Review verdict, whose rule section 6 checks (chezmoi-49k);
-#   9. /close-story: its ticket check skips a child carrying needs-triage or wontfix, as the
-#      finished story does, and its refusal names each open child's status and label
-#      (chezmoi-afn);
+#   9. /close-story: its Forgejo/Gitea query carries --repo <path> as the intro and
+#      /implement-story's merge guard do (dev-hac); its ticket check skips a child carrying
+#      needs-triage or wontfix, as the finished story does, and its refusal names each open
+#      child's status and label (chezmoi-afn);
 #  10. the tracker and orchestration docs: both name the story DAG and the human gate ticket,
 #      and neither says "only text blocker" nor puts chains out of scope; the orchestration
 #      doc ends a story-closure wait as a human stop and readies a publish ticket on its
@@ -783,6 +784,11 @@ echo "== $f"
 hasc "ticket check skips untriaged children" 'carries `needs-triage` or `wontfix`'
 hasc "refusal names status and label" 'open tickets <child> <status> <label>'
 lacks "refusal without the label" 'open tickets <child> <status>, \.\.\.'
+# the Forgejo/Gitea query names the story's repo, as the intro promises for every forge
+# command and as /implement-story's merge guard does; without --repo, a workspace session
+# reads whichever repo the shell sits in (dev-hac)
+hasc "Forgejo/Gitea query names the repo" 'tea api --repo <path> repos/{owner}/{repo}/pulls/<n>'
+lacks "Forgejo/Gitea query without --repo" 'tea api repos/'
 
 fi
 
