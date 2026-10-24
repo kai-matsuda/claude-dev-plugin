@@ -7,3 +7,8 @@
 .beads-credential-key
 .beads/proxieddb/
 *.gate.lock*
+/.claude/worktrees/
+/.worktrees/
+/.spec-notes/
+/.tmp/
+/.fixtures/

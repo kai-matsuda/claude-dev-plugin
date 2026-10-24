@@ -9,12 +9,17 @@ Skills are addressed as `/dev:<skill>`. Start with `/dev:workflow` for the runbo
 
 ## Install
 
+Two forms. Pick one.
+
+**Marketplace install**, from inside Claude Code:
+
 ```
 /plugin marketplace add vangogh500/claude-dev-plugin
 /plugin install dev@claude-dev-plugin
 ```
 
-or in `~/.claude/settings.json`:
+or declare the marketplace and plugin in `~/.claude/settings.json` (example: the
+registration below is an example only, merge it with your own entries):
 
 ```json
 {
@@ -25,12 +30,22 @@ or in `~/.claude/settings.json`:
 }
 ```
 
+**Plugin-directory install**, from a checkout of this repo, for development or to run an
+unreleased version:
+
+```
+claude --plugin-dir .
+```
+
+Run it from the repo root; the flag loads that checkout in place of the installed copy.
+
 ## Prerequisites
 
 - [`bd`](https://github.com/gastownhall/beads), the beads issue tracker
 - `gh` (GitHub) or `tea` (Gitea) for pull requests
 - the `mattpocock-skills` plugin from the official marketplace (`code-review`, `pr`, `tdd`)
 - the Atlassian MCP connector, for the Jira Epic
+- `jq`, which `/dev:setup` reads the plugin and MCP config with
 
 ## Setup
 
@@ -39,8 +54,26 @@ or in `~/.claude/settings.json`:
 - `/dev:setup-repo` once per repo: records the Jira project key in the repo's
   `CLAUDE.md`, initialises beads, and lays out `GLOSSARY.md` and `docs/adr/`.
 
+The baseline settings are org-neutral. Toolchain, registry and forge entries are yours to
+add; the lines below are examples only, not part of the plugin, so replace them with the
+ones your machine uses:
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "Bash(cargo *)",
+      "Bash(npm *)",
+      "Bash(gh *)"
+    ]
+  }
+}
+```
+
 ## Developing
 
 Run Claude Code in this repo with `claude --plugin-dir .` to load the checkout next to
-the installed copy. Bump the version in `.claude-plugin/plugin.json` on every merge to
-main. Decisions are in `docs/adr/`, vocabulary in `GLOSSARY.md`.
+the installed copy. Check your changes with `make lint`, which runs the skill-doc lint and
+its tests (it needs `bd` and `cargo` for the fixture tests). Bump the version in
+`.claude-plugin/plugin.json` on every merge to main. Decisions are in `docs/adr/`,
+vocabulary in `GLOSSARY.md`.
