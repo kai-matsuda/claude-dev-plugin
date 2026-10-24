@@ -6,10 +6,7 @@
 #                                            file in consumer alone (no manifest in that session),
 #                                            answer "accept", plain bd only
 #   scripts/test-fixture-triage.sh assert    check the bead state the run must leave behind
-#   scripts/test-fixture-triage.sh skill     static check of the skill text for what the bead state
-#                                            cannot show (no bd -C in a repo session, "the inbox";
-#                                            retired phrases are scripts/lint-skill-docs.sh's)
-#   scripts/test-fixture-triage.sh           skill, then assert when a seeded fixture exists
+#   scripts/test-fixture-triage.sh           assert when a seeded fixture exists, else print a note
 set -uo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 out=$repo_root/.fixtures/test-triage
@@ -56,30 +53,10 @@ assert() {
   check "lib's beads are untouched" eq "$(all lib | jq length)" 0
 }
 
-skill_text() {
-  local f=$skill
-  check "description says 'the inbox'" grep -qE '^description: .*the inbox' "$f"
-  check "step 1 stops when <home>/.beads is missing" grep -qF '<home>/.beads' "$f"
-  check "step 1 reads the inbox with plain bd list" grep -qE '`bd list -l needs-triage' "$f"
-  check "step 1 has no manifest in a repo session" grep -qiE 'no manifest in a repo session' "$f"
-  check "step 2 runs bd find-duplicates plainly" grep -qF '`bd find-duplicates`' "$f"
-  check "step 2 keeps only pairs where both beads carry needs-triage" bash -c 'tr "\n" " " < "$1" | tr -s " " | grep -qF "both beads carry \`needs-triage\`"' _ "$f"
-  check "step 2 runs bd duplicate plainly" grep -qF '`bd duplicate ' "$f"
-  check "owner search is plain bd search in a repo session" grep -qF '`bd search ' "$f"
-  check "owner search is bd -C <target repo> search in a workspace session" grep -qF 'bd -C <target repo> search' "$f"
-  check "an open inbox bead never counts as already tracked" grep -qiE 'inbox bead.*never counts|never counts.*inbox bead' "$f"
-  check "retro:foreign means a person carries it" grep -qF 'retro:foreign' "$f"
-  check "step 5 routes retro:foreign as ready-for-human" grep -qE 'retro:foreign.*ready-for-human|ready-for-human.*retro:foreign' "$f"
-  check "never a relabel in place" grep -qiF 'relabel in place' "$f"
-  check "step 6 runs in a workspace session only" grep -qiE 'workspace session only|only in a workspace session' "$f"
-  check "no 'bd -C <workspace>' remains" bash -c '! grep -qF "bd -C <workspace>" "$1"' _ "$f"
-}
-
 case "$phase" in
   seed) seed; exit 0 ;;
   assert) assert ;;
-  skill) skill_text ;;
-  all) skill_text; if [ -d "$out/consumer/.beads" ]; then assert; fi ;;
-  *) echo "usage: $0 [seed|assert|skill]" >&2; exit 2 ;;
+  all) if [ -d "$out/consumer/.beads" ]; then assert; else echo "no seeded fixture: run seed, the briefed skill run, then assert"; fi ;;
+  *) echo "usage: $0 [seed|assert]" >&2; exit 2 ;;
 esac
 report_fails

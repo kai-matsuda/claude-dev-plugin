@@ -64,6 +64,6 @@ snapshot() { # <repo>
         description: ((.description // "") | gsub("\\b(lib|consumer|workspace)-[a-z0-9]+(\\.[0-9]+)*"; "ID")),
         parent: (.parent // null | if . then $t[.] else null end),
         dependencies: ((.dependencies // []) | map({type: .dependency_type, on: .title}) | sort_by(.on, .type))})
-    | sort_by(.title)' < <(printf '%s\n' "${shown[@]}")
+    | sort_by(.title)' < <([ "${#shown[@]}" -eq 0 ] || printf '%s\n' "${shown[@]}")
 }
 

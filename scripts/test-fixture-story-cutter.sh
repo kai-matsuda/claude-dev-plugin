@@ -83,7 +83,7 @@ numbered_in_order() { [ "$(tickets | sed -E 's/^([0-9]+).*/\1/')" = "$(seq 1 "$(
 blockers_name_earlier_tickets() {
   local n ref
   while read -r n; do
-    for ref in $(tickets | sed -n "${n}p" | sed -E 's/.*[Bb]locked[- ]by\**:?\**[[:space:]]*//; s/\. .*//' | grep -oE '[0-9]+'); do
+    for ref in $(tickets | sed -n "${n}p" | sed -E 's/.*[Bb]locked[- ]by\**:?\**[[:space:]]*//; s/\. .*//' | sed -E 's/[0-9]+(\.[0-9]+)+//g' | grep -oE '[0-9]+'); do
       [ "$ref" -lt "$n" ] || return 1
     done
   done < <(tickets | sed -E 's/^([0-9]+).*/\1/')

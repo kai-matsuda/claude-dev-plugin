@@ -8,7 +8,7 @@ help: ## Show this help
 lint: ci ## Everything: ci, then the fixture tests last (needs bd and cargo)
 	$(MAKE) fixtures
 
-ci: ## Lint the skill docs and run the lint, guard-rm and setup tests (what GitHub Actions calls: no fixtures)
+ci: ## Lint the skill docs and run the lint, guard-rm and setup tests (the target CI calls: no fixtures)
 	scripts/lint-skill-docs.sh
 	scripts/test-lint-skill-docs.sh
 	scripts/test-guard-rm.sh
@@ -22,3 +22,4 @@ fixtures: ## Run the scripted fixture tests against throwaway beads databases (n
 	scripts/test-fixture-retro.sh
 	scripts/test-fixture-story-cut.sh
 	scripts/test-fixture-story-cutter.sh
+	scripts/test-fixture-triage.sh
