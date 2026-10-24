@@ -4,10 +4,10 @@ status: accepted
 
 # The feature workflow ships as a Claude Code plugin, not as dotfiles
 
-The feature workflow lived in this chezmoi source and reached a machine with `make apply`.
+The feature workflow lived in the chezmoi source of `vangogh500/dotfiles` and reached a machine with `make apply`.
 That reaches a second personal machine in one command, but not a work machine, where a
 personal dotfiles repo (shell, ssh, git identity) has no business, and not a coworker. The
-unit that should travel is the workflow alone: ten skills, the rules docs and runbook, the
+unit that should travel is the workflow alone: its skills (13 today), the rules docs and runbook, the
 glossary and ADRs, and the `guard-rm` and `bd prime` hooks. A Claude Code plugin carries
 exactly that set and nothing a machine owner would need to review, so the workflow moves
 to its own public, MIT-licensed repo, `claude-dev-plugin`, which is both the plugin and
@@ -17,7 +17,7 @@ Skills become `/dev:<skill>`; the rules docs are addressed as
 
 A plugin cannot carry a user-level `CLAUDE.md`, permission or sandbox settings, or a git
 hook under `~/.config/git`. Those three stay per machine as the machine setup: `/dev:setup`
-checks the prerequisites (`bd`, `gh` or `tea`, mattpocock-skills, the Atlassian MCP) and
+checks the prerequisites (`bd`, `gh` or `tea`, `jq`, mattpocock-skills, the Atlassian MCP) and
 hands over the stub and the baseline settings snippet to paste; chezmoi keeps applying
 them on Kai's machines. The baseline carries nothing org-specific. Per-repo configuration
 stays where it was: the Jira project key in the repo's `CLAUDE.md`, written by
@@ -51,13 +51,13 @@ differ in one line and no Jira instance is named anywhere.
   plugin repo with `--plugin-dir .`.
 - The cutover is hard: the dotfiles PR that enables the plugin also deletes the skills,
   docs, hook and their tests, and lands only after a fresh marketplace install works on
-  this machine, so the bare and `dev:` forms never coexist.
-- The move is a fresh first commit citing this repo and the commit it came from, not a
-  history rewrite. ADRs 0001 to 0012 move with the workflow; this repo's `docs/adr/` keeps
-  a one-line pointer. The `repos.yaml` rename bead moves to the plugin repo's beads; the
-  Atlassian MCP settings bead stays here.
+  Kai's machine, so the bare and `dev:` forms never coexist.
+- The move is a fresh first commit citing the dotfiles repo and the commit it came from,
+  not a history rewrite. ADRs 0001 to 0012 move with the workflow; the dotfiles repo's
+  `docs/adr/` keeps a one-line pointer to this ADR. The `repos.yaml` rename bead moves to
+  this repo's beads; the Atlassian MCP settings bead stays in dotfiles.
 - The work runs as two features: the content move as a one-story feature in the plugin
   repo once it is bootstrapped by hand, and the dotfiles cutover as a second feature in its
   own repo session, since a repo session refuses a two-repo spec (ADR 0008).
-- The lint and the guard-rm test run in the plugin repo's pre-commit hook and in GitHub
-  Actions; the fixture tests stay local until the rest is stable.
+- The lint and the guard-rm test run in `make ci`, the target GitHub Actions calls; the
+  fixture tests stay local (`make lint`) until the rest is stable.
