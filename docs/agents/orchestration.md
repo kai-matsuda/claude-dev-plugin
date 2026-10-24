@@ -209,6 +209,16 @@ an explicit template under the directory, `mktemp -d <worktree>/.tmp/<name>.XXXX
 bare form failed under the export, the template form passed;
 `scripts/fixture-test-lib.sh`'s `scratch_dir` is the same form).
 
+**Diff two files.** To compare a file with a git object, write the other side under
+`<worktree>/.tmp` (`git show <rev>:<path> ><worktree>/.tmp/<name>`) and diff the two
+paths. Under the sandbox `diff <(...)` fails with `diff: /dev/fd/N: Operation not
+permitted` while `cat <(...)` passes, and INFRA-30's run lost 38 comparisons that way.
+
+**Python's cache line.** Under the sandbox a `python3` call prints
+`python3: error: couldn't create cache file '/var/folders/.../xcrun_db-...'
+(errno=Operation not permitted)` on stderr and still runs. Read stdout past that line
+rather than treating the call as failed, or reach for `jq` when the input is JSON.
+
 **Plugin root.** These rules docs, the runbook (`docs/WORKFLOW.md`) and the hooks ship in
 the dev plugin, so every skill reaches them through the plugin root, `<plugin root>`, the
 directory the harness names in its plugin-root variable `CLAUDE_PLUGIN_ROOT`. A skill
