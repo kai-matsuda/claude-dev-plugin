@@ -100,7 +100,7 @@
 #      and orders a middle story of a chain in one topological pass, creates every
 #      repo-session story under the epic bead, and makes a deploy split wait on the
 #      earlier story's closure (ADR 0011).
-#  11. the namespace rule: in every file under the skills dir, docs/ (the agent docs, ADRs, specs),
+#  11. the namespace rule: in every .md file under the skills dir, docs/ (the agent docs, ADRs, specs),
 #      the runbook and the driver passed as $1, a /<command> is dev:<skill> or
 #      mattpocock-skills:<skill> naming a skill that exists, or a built-in or a path; a bare
 #      /<skill> or another namespace fails. The /command extraction (cmd_tokens) and the
@@ -201,25 +201,32 @@ builtin=" model add-dir code-review plugin sandbox clear mcp help config tmp com
 # (/dev:<x>): a command ends at a space, the end of line or punctuation, and a ":" or "." that
 # ends a sentence still counts, so adjacent commands and "/skill." or "/skill: x" are checked.
 cmd_tokens() { # <file>
-  awk -v q="'" '{
+  local out
+  # LC_ALL=C: a multibyte char (arrow, em dash) next to a slash must not abort awk; an extractor
+  # failure is the caller's to report, never swallowed by the sort
+  out=$(LC_ALL=C awk -v q="'" '{
     line = $0; n = length(line); inc = 0
     for (i = 1; i <= n; i++) {
       ch = substr(line, i, 1)
       if (ch == "`") { inc = !inc; continue }
       if (ch != "/") continue
       p = (i > 1) ? substr(line, i - 1, 1) : ""
-      ok = (p == "" || p ~ /[ \t(\[{|,;"]/ || p == q || (p == "`" && inc))
+      ok = (p == "" || p ~ /[ \t(\[{|,;"*_=]/ || p == q || (p == "`" && inc))
+      # a ">" opens a command only when it is not the end of a <placeholder>: <home>/x is a path
+      if (p == ">" && substr(line, 1, i - 1) !~ /<[^ \t<>]*>$/) ok = 1
       if (!ok) continue
       rest = substr(line, i + 1)
       if (!match(rest, /^[a-z][a-z-]*(:[a-z-]+)?/)) continue
       tok = substr(rest, 1, RLENGTH); c = substr(rest, RLENGTH + 1, 1); d = substr(rest, RLENGTH + 2, 1)
       if (c ~ /[\/_A-Z0-9<]/) continue
+      if (c == ":" && (tok == "dev" || tok == "mattpocock-skills")) continue   # a namespace alone
       if (c == "." && d ~ /[A-Za-z0-9_]/) continue
       if (c == ":" && d != "" && d !~ /[ \t,;.)`]/) continue
       sub(/-+$/, "", tok)
       print tok
     }
-  }' "$1" | sort -u
+  }' "$1") || return 1
+  [ -z "$out" ] || printf '%s\n' "$out" | sort -u
 }
 # every namespaced /command token in $@ maps to a skill directory: dev: ones under the
 # skills dir, mattpocock-skills: ones under the plugin skills dir. Bare and unknown-namespace
@@ -230,7 +237,18 @@ cmds() { # <token>...
     name=${tok##*:}
     case "$tok" in
       dev:*) [ -d "$skills/$name" ] || bad "/$tok names no skill" ;;
-      mattpocock-skills:*) find "$plugin" -type d -name "$name" 2>/dev/null | grep -q . || bad "/$tok names no skill" ;;
+      mattpocock-skills:*)
+        if [ ! -d "$plugin" ]; then
+          bad "/$tok cannot be resolved: plugin skills dir not found (${plugin:-unset}; install mattpocock-skills or set PLUGIN_SKILLS)"
+        else
+          # a skill dir sits at the plugin's skills level, directly or under one category dir
+          # (engineering/tdd), and is not a subdirectory of another skill (tdd/scripts)
+          local m found=
+          while IFS= read -r m; do
+            [ -f "$(dirname "$m")/SKILL.md" ] || { found=1; break; }
+          done < <(find "$plugin" -mindepth 1 -maxdepth 2 -type d -name "$name" 2>/dev/null)
+          [ -n "$found" ] || bad "/$tok names no skill"
+        fi ;;
     esac
   done
 }
@@ -801,7 +819,7 @@ fi
 echo "== namespace rule"
 while IFS= read -r f; do
   [ -f "$f" ] || continue
-  toks=$(cmd_tokens "$f")
+  toks=$(cmd_tokens "$f") || bad "token extractor failed on $f"
   # shellcheck disable=SC2086
   case "$f" in "$docs/specs/"*) ;; *) cmds $toks ;; esac
   for tok in $toks; do
@@ -809,7 +827,7 @@ while IFS= read -r f; do
     case "$builtin" in *" $tok "*) continue;; esac
     bad "bare or unknown skill namespace in $f: /$tok (use dev:<skill> or mattpocock-skills:<skill>)"
   done
-done < <({ find "$docs" "$agents" "$skills" -type f 2>/dev/null; echo "$runbook"; echo "${1:-}"; } | grep . | sort -u)
+done < <({ find "$docs" "$agents" "$skills" -type f -name '*.md' 2>/dev/null; echo "$runbook"; echo "${1:-}"; } | grep . | sort -u)
 
 # version-bump rule: a diff under skills/ or docs/ needs a version change in the plugin manifest.
 # The diff runs from VERSION_BUMP_BASE (a CI job can set it to the PR base) or else the merge-base

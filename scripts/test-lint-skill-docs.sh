@@ -171,9 +171,47 @@ fresh
 echo "write /dev:<skill> and /dev:workflow." >> "$scratch/skills/sample/SKILL.md"
 expect "a /dev:<placeholder> passes" 0
 
+# a multibyte char before a slash must not abort the tokenizer and hide the rest of the file
+fresh
+printf 'flow a →/dev:workflow and — /dev:workflow\nthen /close-story\n' >> "$scratch/skills/sample/SKILL.md"
+LC_ALL=en_US.UTF-8 expect "a multibyte char before a slash does not hide a later bare /<skill>" 1 "$ns_msg in $scratch/skills/sample/SKILL.md: /close-story"
+
+# markup that sits directly before a slash still lets the command be checked
+for pre in '**' '_' '>' '='; do
+  fresh
+  echo "run ${pre}/close-story now" >> "$scratch/skills/sample/SKILL.md"
+  expect "a bare /<skill> after '$pre' fails" 1 "$ns_msg in $scratch/skills/sample/SKILL.md: /close-story"
+done
+
+# a namespace written alone is not a bare command
+fresh
+printf 'the /dev: namespace and `/dev:` and /mattpocock-skills: too\n' >> "$scratch/skills/sample/SKILL.md"
+expect "a namespace alone passes" 0
+
+# only .md files are scanned
+fresh
+printf 'cd /opt and /story-to-tickets\n' > "$scratch/docs/helper.sh"
+expect "a non-md file under docs is not scanned" 0
+fresh
+printf 'cd /opt and /story-to-tickets\n' > "$scratch/skills/sample/helper.sh"
+expect "a non-md file under the skills dir is not scanned" 0
+
+# the plugin dir absent is said so; the skill dir is matched at the plugin's skills level only
+fresh
+rm -r "${scratch:?}/plugin"
+expect "an absent plugin dir says it cannot resolve /mattpocock-skills:<x>" 1 "plugin skills dir not found"
+fresh
+mkdir -p "$scratch/plugin/tdd/scripts"; touch "$scratch/plugin/tdd/SKILL.md"
+echo "run /mattpocock-skills:scripts" >> "$scratch/skills/sample/SKILL.md"
+expect "a directory inside a skill is not a skill" 1 "/mattpocock-skills:scripts names no skill"
+fresh
+mkdir -p "$scratch/plugin/engineering/tdd"
+echo "run /mattpocock-skills:tdd" >> "$scratch/skills/sample/SKILL.md"
+expect "a skill under a category directory resolves" 0
+
 # a DOCS_DIR override must exist
 fresh
-out=$(DOCS_DIR=/typo-no-such-dir SKILLS_DIR=$scratch/skills AGENT_DOCS=$scratch/agents USER_CLAUDE_MD=$scratch/CLAUDE.md PLUGIN_SKILLS=$scratch/plugin "$lint" "" "$scratch/WORKFLOW.md" 2>&1; echo "rc=$?")
+out=$(VERSION_BUMP_REPO=$scratch/no-repo VERSION_BUMP_BASE=HEAD DOCS_DIR=/typo-no-such-dir SKILLS_DIR=$scratch/skills AGENT_DOCS=$scratch/agents USER_CLAUDE_MD=$scratch/CLAUDE.md PLUGIN_SKILLS=$scratch/plugin "$lint" "" "$scratch/WORKFLOW.md" 2>&1; echo "rc=$?")
 check "a DOCS_DIR that does not exist fails" grep -qF "no such directory: /typo-no-such-dir" <<<"$out"
 
 # docs/specs: the namespace rule applies, the existence check does not
