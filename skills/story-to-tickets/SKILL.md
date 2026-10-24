@@ -16,7 +16,7 @@ description: "Break one story bead into tracer-bullet tickets for its owner repo
 
 # Story To Tickets
 
-Break one **story** (`GLOSSARY.md`: the part of a feature that lands in one repo) into a set of **tickets**: tracer-bullet vertical slices in that repo, each declaring the tickets that **block** it.
+Break one **story** (`${CLAUDE_PLUGIN_ROOT}/GLOSSARY.md`: the part of a feature that lands in one repo) into a set of **tickets**: tracer-bullet vertical slices in that repo, each declaring the tickets that **block** it.
 
 The issue tracker rules are in `${CLAUDE_PLUGIN_ROOT}/docs/agents/issue-tracker.md`. This skill performs its "When a skill says 'fetch the spec'" operation in step 1, its "When a skill says 'publish a story's tickets'" operation, and its "When the breakdown touches a dependency repo" section when the story is one side of a dependency pair. Read "fetch the spec" before step 1 and the other two before step 3.
 

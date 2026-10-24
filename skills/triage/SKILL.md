@@ -12,7 +12,7 @@ acceptance criteria, a complexity tier, and a bead in the repo that owns the cha
 accept question in step 4 is the point of this skill, so it runs only with the user
 present.
 
-Vocabulary (dotfiles `GLOSSARY.md`): **inbox**, **retro item**, **repo manifest**,
+Vocabulary (`${CLAUDE_PLUGIN_ROOT}/GLOSSARY.md`): **inbox**, **retro item**, **repo manifest**,
 **workspace**, **home**. In a workspace session a `bd -C <owner>` write lands outside the
 session's repo; the tracker doc's "bd writes outside the session's repo" says what the
 sandbox allows. A repo session runs plain `bd` only.

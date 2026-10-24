@@ -42,7 +42,7 @@ printed for it, since that repo's unfinished story would otherwise drop out.
 A story's **tickets** are its children, read in its owner repo `<owner>` (the absolute
 path of the repo it was found in; `<owner repo>` is its manifest entry name):
 `bd -C <owner> list --parent <story-id> --all --json`. A story is **finished** (the
-GLOSSARY.md term) when every child is `closed` or carries `ready-for-human`,
+`${CLAUDE_PLUGIN_ROOT}/GLOSSARY.md` term) when every child is `closed` or carries `ready-for-human`,
 `needs-triage` or `wontfix`, and its notes (`bd -C <owner> show <story-id> --json`,
 `.[0].notes`) hold a `pr:` line.
 

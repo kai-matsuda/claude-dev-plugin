@@ -45,5 +45,8 @@ glossary:
 	else echo "glossary-lint not installed; skipping"; fi
 ```
 
+The plugin-root path is versioned, so it goes stale when the plugin upgrades; the `[ -f ]`
+guard then skips the check silently until the path is updated.
+
 The guard keeps the gate passing on machines without this skill. Commit the target with
 the step 2 fixes, so the gate starts green.

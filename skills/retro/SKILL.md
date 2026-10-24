@@ -7,7 +7,7 @@ disable-model-invocation: true
 <!-- Fork of mattpocock-skills 1.3.1 engineering/retro. Local changes: step 4 keeps only
      candidates that trace to a moment in the session; step 5 files the survivors in the
      inbox instead of presenting them for an answer, because acceptance happens
-     later in /dev:triage. Re-sync against the plugin copy when it updates; keep those two
+     later in /dev:triage. Re-sync against the upstream mattpocock-skills 1.3.1 copy when it updates; keep those two
      edits. -->
 
 The user has asked for a **retrospective**. You are suggesting improvements to the coding
@@ -29,7 +29,7 @@ watching, straight after an unattended `/dev:implement-spec`.
    in `subagents/` and `tool-results/` under a directory of the same id beside it, so grep
    the whole slug directory with Bash rather than opening agents one at a time with the
    Read tool. If Bash is refused there, the deployed user settings lack the config directory's `projects`
-   in `sandbox.filesystem.allowRead`; `make apply` in the dotfiles repo adds it.
+   in `sandbox.filesystem.allowRead`; add it there in your user settings.
 
 3. Look for candidates for improvement in these categories.
 
@@ -102,4 +102,4 @@ You have access to several files in the repo:
 - `CLAUDE.md`/`AGENTS.md`: these files are pushed to the context window of any agent working in this repo. They should be used incredibly sparingly, usually only for **navigation pointers** to other files.
 - `CODING_STANDARDS.md`: this file is read during review, not implementation. Add **navigation pointers** to docs folders if the standards file gets more than 1,000 lines long.
 - Docs: use docs as references files, pointed to by other files. Look for existing docs before writing new ones.
-- Skills: use skills for docs (since their description goes into the agent's context window), or for user-invoked commands. Follow the advice in the `writing-for-agents` skill.
+- Skills: use skills for docs (since their description goes into the agent's context window), or for user-invoked commands. Follow the advice in the `mattpocock-skills:writing-for-agents` skill.
