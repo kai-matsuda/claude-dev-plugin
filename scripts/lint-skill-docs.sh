@@ -197,6 +197,15 @@ fi
 f=${2:-$root/docs/WORKFLOW.md}
 runbook=$f
 plugin=${PLUGIN_SKILLS:-$(ls -d "$HOME"/.claude/plugins/cache/claude-plugins-official/mattpocock-skills/*/skills 2>/dev/null | sort -V | tail -1)}
+# the plugin's skill names, listed once per run: a skill dir sits at the plugin's skills level,
+# directly or under one category dir (engineering/tdd), and is not a subdirectory of another
+# skill (tdd/scripts)
+plugin_skills=
+if [ -d "$plugin" ]; then
+  plugin_skills=$(find "$plugin" -mindepth 1 -maxdepth 2 -type d 2>/dev/null | while IFS= read -r m; do
+    [ -f "$(dirname "$m")/SKILL.md" ] || basename "$m"
+  done | sort -u)
+fi
 builtin=" model add-dir code-review plugin sandbox clear mcp help config tmp compact init permissions hooks resume agents bug context cost doctor exit login logout memory pr-comments review status statusline terminal-setup vim ide install-github-app release-notes rewind export usage theme output-style loop schedule security-review simplify run fewer-permission-prompts keybindings-help update-config claude-api "
 
 # the /command tokens of file $1, one per line. A slash starts a command only at the start of a
@@ -247,13 +256,10 @@ cmds() { # <token>...
         if [ ! -d "$plugin" ]; then
           bad "/$tok cannot be resolved: plugin skills dir not found (${plugin:-unset}; install mattpocock-skills or set PLUGIN_SKILLS)"
         else
-          # a skill dir sits at the plugin's skills level, directly or under one category dir
-          # (engineering/tdd), and is not a subdirectory of another skill (tdd/scripts)
-          local m found=
-          while IFS= read -r m; do
-            [ -f "$(dirname "$m")/SKILL.md" ] || { found=1; break; }
-          done < <(find "$plugin" -mindepth 1 -maxdepth 2 -type d -name "$name" 2>/dev/null)
-          [ -n "$found" ] || bad "/$tok names no skill"
+          case $'\n'"$plugin_skills"$'\n' in
+            *$'\n'"$name"$'\n'*) ;;
+            *) bad "/$tok names no skill" ;;
+          esac
         fi ;;
     esac
   done
