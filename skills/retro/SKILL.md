@@ -32,18 +32,18 @@ watching, straight after an unattended `/dev:implement-spec`.
    settings lack the config directory's `projects` in `sandbox.filesystem.allowRead`; add it
    there in your user settings.
 
-   **Transcript shape.** A transcript is JSONL: one JSON object per line, each with its own
-   `.type` (`user`, `assistant`, `attachment`, `api-request`, …) and `.timestamp`; a subagent
-   line also carries `.agentId`. A tool call is an object in an `assistant` line's
-   `.message.content[]` with `.type == "tool_use"` (`.name`, `.input`); its result is the
-   `tool_result` object (`.tool_use_id`, `.is_error`, `.content`) in the next `user` line's
-   `.message.content[]`. Every transcript also embeds the tool schemas as text, so
-   `grep -o '"name":"…"'` matches the schemas hundreds of times, each stamped with the
-   agent's start time; select the call objects with jq instead.
+   **Transcript shape.** A transcript is JSONL: one JSON object per line with a `.type`; the
+   `user` and `assistant` lines the recipes read each carry their own `.timestamp`, and a
+   subagent line also carries `.agentId`. A tool call is an object in an `assistant` line's
+   `.message.content[]` with `.type == "tool_use"` (`.id`, `.name`, `.input`); its result is
+   the `tool_result` object (`.tool_use_id`, `.is_error`, `.content`) in a later `user`
+   line's `.message.content[]`, matched by `.tool_use_id`. A transcript also embeds the tool
+   schemas as text, so a `"name":"…"` grep matches the tool schemas far more often than the
+   calls, each match stamped with the agent's start time; select the call objects with jq.
 
-   **Recipes.** A scan of the whole directory outruns the Bash tool's 120-second default, and
-   a call moved to the background ends the step with no result: pass `timeout: 600000` on
-   every call that reads `<dir>/subagents/*.jsonl`.
+   **Recipes.** On a large session a scan of the whole directory outruns the Bash tool's
+   120-second default, and a call moved to the background returns no result to the step: pass
+   `timeout: 600000` on every call that reads `<dir>/subagents/*.jsonl`.
 
    - One agent's call timeline, one line per call:
 

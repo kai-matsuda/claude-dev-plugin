@@ -107,9 +107,9 @@
 #      existence check (cmds) moved here from section 2, which no longer calls them.
 #  12. /retro: step 2 names the transcript shape (one JSON object per line with its own type
 #      and timestamp, tool_use and tool_result objects in message.content) and two recipes, a
-#      jq per-agent call timeline and a grep tally across agents, each under the 600000 ms
-#      timeout a directory-wide scan needs; the bare "grep the whole slug directory" is gone
-#      (dev-qfz, INFRA-30).
+#      jq per-agent call timeline and a grep tally across agents, each run with
+#      `timeout: 600000` on a directory-wide scan; the bare "grep the whole slug directory" is
+#      gone (dev-qfz, INFRA-30).
 # Usage: scripts/lint-skill-docs.sh [implement-spec SKILL.md [WORKFLOW.md]]
 # Each section guards on its doc existing, so the lint passes on a tree without that doc yet;
 # the plugin layout is skills/, docs/agents/, docs/WORKFLOW.md and CLAUDE.md under the repo root.
@@ -853,21 +853,19 @@ while IFS= read -r f; do
 done < <({ find "$docs" "$agents" "$skills" -type f -name '*.md' 2>/dev/null; echo "$runbook"; echo "${1:-}"; } | grep . | sort -u)
 
 # ---- 12. /retro: step 2 names the transcript shape and the two mining recipes ----
-# a retro over a large session reads 60 MB of subagent transcripts; naming the JSONL shape
-# keeps it from grepping the tool schemas embedded in every transcript instead of the calls,
-# and the 600000 ms timeout keeps a directory-wide scan in the foreground, since a call moved
-# to the background ends the step with no result (dev-qfz, INFRA-30)
+# the pins are fragments, so a recipe can be reworded without a lint edit
 f=$skills/retro/SKILL.md
 if [ -f "$f" ]; then
 echo "== $f"
 hasc "one JSON object per line" 'one JSON object per line'
-hasc "every line has its own timestamp" '`.timestamp`'
+hasc "the timestamp field named" '`.timestamp`'
 hasc "the tool call object" '`.type == "tool_use"`'
 hasc "the tool result object" '`tool_result`'
 hasc "calls live in message.content" '`.message.content[]`'
 hasc "the schema-text trap" 'tool schemas'
-hasc "the jq timeline recipe" 'select(.type=="assistant") | .timestamp as $t | .message.content[] | select(.type=="tool_use")'
-hasc "the grep tally recipe" 'command grep -oh '"'"'<error text>'"'"' <dir>/subagents/*.jsonl | sort | uniq -c'
+hasc "the jq timeline recipe selects the call objects" 'select(.type=="tool_use")'
+hasc "the jq timeline recipe stamps each call" '.timestamp as $t'
+hasc "the grep tally recipe" 'sort | uniq -c'
 hasc "the directory-wide timeout" 'timeout: 600000'
 hasc "the 120-second default named" '120-second default'
 lacks "the bare grep instruction" 'grep the whole slug directory'
