@@ -765,6 +765,8 @@ if git -C "$bump_repo" rev-parse --git-dir >/dev/null 2>&1 \
   base=${VERSION_BUMP_BASE:-$(git -C "$bump_repo" merge-base main HEAD 2>/dev/null)}
   if [ -z "$base" ]; then
     bad "version bump: no diff base (no main branch to merge-base with; set VERSION_BUMP_BASE)"
+  elif ! git -C "$bump_repo" rev-parse --verify --quiet "$base^{commit}" >/dev/null; then
+    bad "version bump: diff base '$base' does not resolve to a commit (a shallow checkout may not have fetched it)"
   elif [ -n "$(git -C "$bump_repo" diff --name-only "$base" HEAD -- skills docs)" ]; then
     manifest=.claude-plugin/plugin.json
     old=$(git -C "$bump_repo" show "$base:$manifest" 2>/dev/null | grep -F '"version"')

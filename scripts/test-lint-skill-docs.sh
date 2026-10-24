@@ -134,6 +134,16 @@ bump_base=HEAD~1
 expect "a base variable naming the PR base diffs against it" 1 "version bump"
 bump_base=
 
+bump_repo feat
+echo two > "$bump_repo_dir/docs/a.md"; bump_commit "docs change"
+bump_base=no-such-ref
+expect "an unresolvable base variable fails with its own message" 1 "does not resolve"
+bump_base=
+
+bump_repo feat
+git_t -C "$bump_repo_dir" branch -q -m main trunk
+expect "a repo with no main branch fails with no diff base" 1 "no diff base"
+
 bump_repo main
 echo two > "$bump_repo_dir/docs/a.md"; bump_commit "docs change on main"
 expect "the rule is a no-op on main" 0
