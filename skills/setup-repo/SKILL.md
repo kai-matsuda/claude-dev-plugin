@@ -23,8 +23,11 @@ in step 4.
    owner's staged or modified files. Ask the owner for the Jira project key when the repo
    has none (a short uppercase key, such as `INFRA`).
 3. **Present.** List what each write below would do and what is already in place and left
-   alone. If `bd init` will run, say it makes a commit and that the pruning amends it. A
-   repo that already has everything gets a report and no writes.
+   alone. If `bd init` will run, say it makes a commit and that the pruning amends it, and
+   name any staged or modified files from the explore step: stop, or ask the owner to
+   commit or stash them, before `bd init`. If the repo already has a `Jira project key:`
+   line that would change, name the old and new value. A repo that already has everything
+   gets a report and no writes.
 4. **Confirm.** Wait for the owner's explicit yes. On a no, change nothing.
 5. **Write**, in this order, skipping what exists:
    - `.beads/`: if missing, run `bd init --non-interactive --agents-file CLAUDE.md`. It
@@ -36,14 +39,16 @@ in step 4.
      already set, chain the old hook from the new one in `.beads/hooks/` (outside the
      beads markers) and check the old hook is executable. It runs first so the init
      commit never holds the Jira key edit below.
-   - `CLAUDE.md`: create it if absent, and add or fix the `## Agent skills` block with the
-     line `Jira project key: <KEY>.` Keep every other line of the file.
+   - `CLAUDE.md`: create it if absent, and add the `## Agent skills` block or its key
+     line, as the line `Jira project key: <KEY>.` Change an existing key line only if the owner confirmed
+     that change in step 4. Keep every other line of the file.
    - `GLOSSARY.md`: if absent, a heading and a one-line note that terms are added as they
      are resolved (`/mattpocock-skills:domain-modeling`). Never overwrite one. In a
      multi-context repo (`GLOSSARY-MAP.md` exists) leave it alone: each context owns its
      own glossary.
    - `docs/adr/`: if absent, create it with a `.gitkeep`. ADRs are numbered
      `NNNN-<slug>.md`.
-6. **Report** what was written and what was left alone. Do not commit the CLAUDE.md,
+6. **Report** what was written and what was left alone, and, if `core.hooksPath` was
+   already set, whether the old hook was chained. Do not commit the CLAUDE.md,
    GLOSSARY.md or `docs/adr/` changes unless the owner asks; the `bd init` commit is the
    one exception.

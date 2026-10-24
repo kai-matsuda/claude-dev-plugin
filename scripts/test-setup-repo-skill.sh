@@ -19,12 +19,14 @@ line() { grep -n -m1 -- "$1" <<<"$body" | cut -d: -f1; }
 has() { check "$1" grep -q -- "$2" <<<"$body"; }
 before() { check "$1" bash -c '[ -n "$1" ] && [ -n "$2" ] && [ "$1" -lt "$2" ]' _ "$2" "$3"; }
 has "it points at /dev:setup when the machine setup is missing" '/dev:setup'
-machine=$(line 'machine setup')
-explore=$(line '^[0-9]*\. \*\*Explore')
-confirm=$(line '^[0-9]*\. \*\*Confirm')
-write=$(line '^[0-9]*\. \*\*Write')
+machine=$(line '^1\. \*\*Check the machine setup')
+explore=$(line '^2\. \*\*Explore')
+present=$(line '^3\. \*\*Present')
+confirm=$(line '^4\. \*\*Confirm')
+write=$(line '^5\. \*\*Write')
 before "the machine-setup check precedes the write step" "$machine" "$write"
-before "explore precedes confirm" "$explore" "$confirm"
+before "explore precedes present" "$explore" "$present"
+before "present precedes confirm" "$present" "$confirm"
 before "confirm precedes the write step" "$confirm" "$write"
 has "it follows explore, present, confirm, write" 'explore, present, confirm, write'
 has "it records the Jira key in the ## Agent skills block" '## Agent skills'
