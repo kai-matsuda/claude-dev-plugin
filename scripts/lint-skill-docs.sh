@@ -112,6 +112,13 @@
 #      jq per-agent call timeline and a grep tally across agents, each run with
 #      `timeout: 600000` on a directory-wide scan; the bare "grep the whole slug directory" is
 #      gone (dev-qfz, INFRA-30).
+#  13. the brief rule: in every .md file under the skills dir, a brief block (a markdown quote,
+#      from a line starting with `>`, indented or not, to the next blank line: the blocks the
+#      orchestration skills send to runners, cutters, implementers, reviewers and mergers) never
+#      names the plugin-root variable CLAUDE_PLUGIN_ROOT, which Bash never has and the harness
+#      fills in only in the skill text it loads (the rules doc's Plugin root rule); the skill's
+#      path and the line are named. Outside a brief, where the skill itself resolves the
+#      variable, it passes (dev-rc9, INFRA-30).
 # Usage: scripts/lint-skill-docs.sh [implement-spec SKILL.md [WORKFLOW.md]]
 # Each section guards on its doc existing, so the lint passes on a tree without that doc yet;
 # the plugin layout is skills/, docs/agents/, docs/WORKFLOW.md and CLAUDE.md under the repo root.
@@ -889,6 +896,21 @@ hasc "the directory-wide timeout" 'timeout: 600000'
 hasc "the 120-second default named" '120-second default'
 lacks "the bare grep instruction" 'grep the whole slug directory'
 fi
+
+# ---- 13. the brief rule: no plugin-root variable inside a brief block ----
+# a brief spells the plugin root literally (the rules doc's Plugin root rule): Bash never has
+# CLAUDE_PLUGIN_ROOT, in the main session or a subagent; the harness fills it in only in the
+# skill text it loads, which a brief's subagent never sees, so a brief naming the variable sends
+# it to a doc it cannot open. A brief block is a markdown quote: it opens on a line starting with
+# `>`, indented or not (implement-spec's sits inside a list item), and runs to the next blank
+# line, so a wrapped line that drops the `>` is still inside it. The variable outside one is the
+# skill's own to resolve and passes.
+echo "== brief rule"
+while IFS= read -r f; do
+  while IFS=: read -r n line; do
+    bad "plugin-root variable in a brief in $f:$n (spell the plugin root literally; the rules doc's Plugin root rule): $line"
+  done < <(awk '/^[[:space:]]*>/ {inq=1} /^[[:space:]]*$/ {inq=0} inq && /CLAUDE_PLUGIN_ROOT/ {print NR":"$0}' "$f")
+done < <(find "$skills" -type f -name '*.md' 2>/dev/null | sort)
 
 # version-bump rule: a diff under skills/ or docs/ needs a version change in the plugin manifest.
 # The diff runs from VERSION_BUMP_BASE (a CI job can set it to the PR base) or else the merge-base

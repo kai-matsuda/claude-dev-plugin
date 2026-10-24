@@ -5,7 +5,8 @@
 # retired-phrase scan (section 5) covers every file under the skills and agent docs dirs and
 # matches whole words only, and the namespace rule (section 11: only dev: and
 # mattpocock-skills: pass, over every doc under docs/, the skills, the runbook, the project
-# CLAUDE.md and the root glossary), and the version-bump rule.
+# CLAUDE.md and the root glossary), the brief rule (section 13: the plugin-root variable fails
+# inside a brief block and passes outside one), and the version-bump rule.
 # The last section drives the version-bump rule on a throwaway git repo (VERSION_BUMP_REPO,
 # VERSION_BUMP_BASE; the other cases point the repo at a non-repo path and pin the base to HEAD).
 # The lint of the plugin's own tree is the Makefile's first step, not repeated here.
@@ -265,6 +266,26 @@ for path in '$HOME/.claude/docs/agents/orchestration.md' '${HOME}/.claude/hooks/
   echo "see \`$path\`" >> "$scratch/WORKFLOW.md"
   expect "a dotfiles deployment path in the \$HOME spelling ($path) fails" 1 "dotfiles deployment path in $scratch/WORKFLOW.md"
 done
+
+# the brief rule (dev-rc9): a brief block (a markdown quote, indented or not) that names the
+# plugin-root variable fails with the skill and line named; the variable in a step outside a
+# brief, where the skill itself resolves it, passes
+brief_msg="plugin-root variable in a brief in"
+fresh
+echo '> Read the rules doc, `${CLAUDE_PLUGIN_ROOT}/docs/agents/orchestration.md`, before step 1.' >> "$scratch/skills/sample/SKILL.md"
+n=$(grep -n CLAUDE_PLUGIN_ROOT "$scratch/skills/sample/SKILL.md" | cut -d: -f1)
+expect "the plugin-root variable in a brief block fails with the skill and line named" 1 "$brief_msg $scratch/skills/sample/SKILL.md:$n"
+fresh
+printf '1. Spawn the runner:\n   > You are the runner. Read $CLAUDE_PLUGIN_ROOT/docs/agents/orchestration.md first.\n' >> "$scratch/skills/sample/SKILL.md"
+n=$(grep -n CLAUDE_PLUGIN_ROOT "$scratch/skills/sample/SKILL.md" | cut -d: -f1)
+expect "the bare variable in an indented brief block fails with the skill and line named" 1 "$brief_msg $scratch/skills/sample/SKILL.md:$n"
+fresh
+printf '> You are the runner. Read the rules doc,\n${CLAUDE_PLUGIN_ROOT}/docs/agents/orchestration.md, before step 1.\n' >> "$scratch/skills/sample/SKILL.md"
+n=$(grep -n CLAUDE_PLUGIN_ROOT "$scratch/skills/sample/SKILL.md" | cut -d: -f1)
+expect "the variable on a wrapped brief line that drops the > still fails" 1 "$brief_msg $scratch/skills/sample/SKILL.md:$n"
+fresh
+printf '> Read the rules doc at the absolute path above.\n\n1. Read `${CLAUDE_PLUGIN_ROOT}/docs/agents/issue-tracker.md` before step 2.\n' >> "$scratch/skills/sample/SKILL.md"
+expect "the plugin-root variable in a step outside a brief passes" 0
 
 # a DOCS_DIR override must exist
 fresh
