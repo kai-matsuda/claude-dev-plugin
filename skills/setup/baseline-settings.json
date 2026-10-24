@@ -5,9 +5,13 @@
     ],
     "ask": [
       "Bash(git reset --hard*)",
+      "Bash(git -C * reset --hard*)",
       "Bash(git clean*)",
+      "Bash(git -C * clean*)",
       "Bash(git stash drop*)",
+      "Bash(git -C * stash drop*)",
       "Bash(git stash clear*)",
+      "Bash(git -C * stash clear*)",
       "Bash(bd dolt push*)"
     ],
     "deny": [
@@ -26,7 +30,13 @@
       "Read(**/.env.*)",
       "Edit(**/.env.*)",
       "Read(**/.beads-credential-key)",
-      "Edit(**/.beads-credential-key)"
+      "Edit(**/.beads-credential-key)",
+      "Read(~/.config/gh/**)",
+      "Edit(~/.config/gh/**)",
+      "Read(~/.config/tea/**)",
+      "Edit(~/.config/tea/**)",
+      "Read(~/.docker/config.json)",
+      "Edit(~/.docker/config.json)"
     ]
   },
   "sandbox": {
@@ -34,8 +44,11 @@
     "autoAllowBashIfSandboxed": true,
     "excludedCommands": [
       "git push*",
+      "git -C * push*",
       "git fetch*",
+      "git -C * fetch*",
       "git pull*",
+      "git -C * pull*",
       "bd dolt push*",
       "bd dolt pull*"
     ],

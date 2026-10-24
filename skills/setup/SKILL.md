@@ -7,14 +7,14 @@ disable-model-invocation: true
 # Setup
 
 Machine setup, run once per machine from any directory. It reports and prints; it never
-edits `~/.claude` or any file outside the repo it runs in. The owner pastes what it prints.
+edits `~/.claude` or any file outside the repo it runs in, and the check itself writes no file. The owner pastes what it prints.
 
 1. Run `bash <skill dir>/check-prereqs.sh`, where `<skill dir>` is this skill's base
    directory (the Skill tool prints it). It lists `bd`, `gh` or `tea`, the
    `mattpocock-skills` plugin and the Atlassian MCP as `present:` or `missing:`, then prints
    the `CLAUDE.md` stub and the baseline settings snippet, on every machine. The Atlassian
-   line is read from config; it cannot tell whether the connector is authenticated, so ask
-   the owner to confirm that.
+   MCP is a `confirm:` line unless `~/.claude.json` lists it under `mcpServers`; a claude.ai
+   connector is in no file, so ask the owner to confirm it in `/mcp`. It is never `missing:`.
 2. Show the owner the output. Tell them the stub goes into `~/.claude/CLAUDE.md` and the
    snippet is merged into `~/.claude/settings.json` (merge the arrays; do not replace
    existing entries). When it ends with `all prerequisites present`, say so; the owner may

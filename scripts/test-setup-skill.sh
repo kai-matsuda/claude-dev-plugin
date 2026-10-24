@@ -30,6 +30,12 @@ check "baseline excluded commands take any argument, bare commands included" jq 
   .sandbox.excludedCommands | all(endswith("*") and (endswith(" *") | not))' "$snippet"
 check "baseline denies Read and Edit alike on every secret path" jq -e '
   .permissions.deny | (map(select(startswith("Read("))|.[5:-1]) | sort) == (map(select(startswith("Edit("))|.[5:-1]) | sort)' "$snippet"
+check "every destructive-git ask and excluded git entry has a git -C form too" jq -e '
+  (.permissions.ask + .sandbox.excludedCommands) as $all
+  | $all | map(select(test("git (reset --hard|clean|stash drop|stash clear|push|fetch|pull)")))
+  | length >= 7 and all(. as $e | $all | index($e | sub("git "; "git -C * ")) != null)' "$snippet"
+check "baseline denies the forge and docker credential files" jq -e '
+  .permissions.deny | any(test("config/gh")) and any(test("config/tea")) and any(test("docker/config.json"))' "$snippet"
 check "baseline allows bd" jq -e '.permissions.allow | index("Bash(bd *)") != null' "$snippet"
 check "baseline enables the sandbox" jq -e '.sandbox.enabled == true' "$snippet"
 check "baseline makes the beads and Dolt directories writable" jq -e '
@@ -46,7 +52,7 @@ check "CLAUDE.md stub exists and is non-empty" test -s "$stub"
 # tools dir of symlinks to only what the helper needs, so a host /usr/bin/gh never leaks in.
 scratch_dir setup; work=$scratch
 mkdir -p "$work/tools"
-for t in find grep cat; do
+for t in find grep cat jq dirname; do
   for d in /usr/bin /bin; do [ -x "$d/$t" ] && { ln -s "$d/$t" "$work/tools/$t"; break; }; done
 done
 mkbin() { # <bin dir> <names...>: stub executables
@@ -56,7 +62,7 @@ mkbin() { # <bin dir> <names...>: stub executables
 machine() { mkdir -p "$work/$1/bin" "$work/$1/home" "$work/$1/cwd" "$work/$1/plugins"; }
 mcp_config() { printf '{"mcpServers":{"claude_ai_Atlassian_Rovo":{"type":"http"}}}\n' >"$work/$1/home/.claude.json"; }
 plugin_installed() { printf '{"version":2,"plugins":{"mattpocock-skills@claude-plugins-official":[{}]}}\n' >"$work/$1/plugins/installed_plugins.json"; }
-for m in full tea empty stale noauth; do machine "$m"; done
+for m in full tea empty stale noauth unreadable stray emptyrec; do machine "$m"; done
 # a claude that fails (as it does inside the sandbox): the helper must not depend on it
 printf '#!/bin/sh\necho "sandbox: operation not permitted" >&2\nexit 1\n' >"$work/full/bin/claude"; chmod +x "$work/full/bin/claude"
 mkbin "$work/full/bin" bd gh;  mcp_config full; plugin_installed full
@@ -67,6 +73,14 @@ mkdir -p "$work/stale/plugins/cache/mkt/mattpocock-skills"
 # a claude that reports the server as unauthenticated, with no config: not present
 mkbin "$work/noauth/bin" bd gh; plugin_installed noauth
 printf '#!/bin/sh\necho "claude.ai Atlassian: Needs authentication"\n' >"$work/noauth/bin/claude"; chmod +x "$work/noauth/bin/claude"
+# an installed_plugins.json record with no installs
+mkbin "$work/emptyrec/bin" bd gh
+printf '{"version":2,"plugins":{"mattpocock-skills@claude-plugins-official":[]}}\n' >"$work/emptyrec/plugins/installed_plugins.json"
+# an unreadable config (a directory stands in for a file the sandbox refuses to read)
+mkbin "$work/unreadable/bin" bd gh; plugin_installed unreadable; mkdir "$work/unreadable/home/.claude.json"
+# a stray 'atlassian' string outside .mcpServers
+mkbin "$work/stray/bin" bd gh; plugin_installed stray
+printf '{"projects":{"/src/atlassian-tools":{"allowedTools":["atlassian"]}},"mcpServers":{"other":{}}}\n' >"$work/stray/home/.claude.json"
 run() { # <machine>: run the helper there; sets out and rc
   out=$(cd "$work/$1/cwd" && env -i PATH="$work/$1/bin:$work/tools" HOME="$work/$1/home" \
         SETUP_PLUGINS_DIR="$work/$1/plugins" "$(command -v bash)" "$prereqs" 2>&1)
@@ -91,13 +105,26 @@ run tea
 check "tea satisfies the forge prerequisite" test "$rc" = 0
 run stale
 check "a stale mattpocock-skills cache does not count" grep -q '^missing: mattpocock-skills' <<<"$out"
+run emptyrec
+check "an empty mattpocock-skills record does not count" grep -q "^missing: mattpocock-skills" <<<"$out"
+run full
+check "a real .mcpServers Atlassian entry is present" grep -q '^present: Atlassian' <<<"$out"
 run noauth
-check "an unauthenticated Atlassian connector does not count" grep -q '^missing: Atlassian' <<<"$out"
+check "no config: Atlassian is a line to confirm, not present" grep -q '^confirm: Atlassian' <<<"$out"
+check "no config: Atlassian is not missing and the exit is 0" bash -c '! grep -q "^missing" <<<"$1" && [ "$2" = 0 ]' _ "$out" "$rc"
+run unreadable
+check "unreadable config: Atlassian is a confirm line, never missing" grep -q '^confirm: Atlassian' <<<"$out"
+check "unreadable config: exit 0 and all prerequisites present" bash -c '[ "$2" = 0 ] && grep -q "^all prerequisites present" <<<"$1"' _ "$out" "$rc"
+run stray
+check "a stray atlassian string outside .mcpServers is not present" bash -c '! grep -q "^present: Atlassian" <<<"$1"' _ "$out"
+check "stray string: Atlassian is a confirm line" grep -q '^confirm: Atlassian' <<<"$out"
 run empty
 check "empty machine exits non-zero" test "$rc" != 0
-for p in bd "gh or tea" mattpocock-skills Atlassian; do
+for p in bd "gh or tea" mattpocock-skills; do
   check "empty machine reports $p missing" grep -q "^missing: $p" <<<"$out"
 done
+check "empty machine asks to confirm Atlassian, not missing" bash -c 'grep -q "^confirm: Atlassian" <<<"$1" && ! grep -q "^missing: Atlassian" <<<"$1"' _ "$out"
+check "empty machine still prints the CLAUDE.md stub" bash -c '[[ $1 == *"$(cat "$2")"* ]]' _ "$out" "$stub"
 check "empty machine still prints the baseline snippet" bash -c '[[ $1 == *"$(cat "$2")"* ]]' _ "$out" "$snippet"
 
 report_fails

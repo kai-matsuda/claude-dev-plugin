@@ -14,18 +14,22 @@ if command -v gh >/dev/null 2>&1 || command -v tea >/dev/null 2>&1; then present
 else absent "gh or tea" "the forge CLI for pull requests"; fi
 
 # installed means listed in installed_plugins.json, not merely left in the cache
-if grep -qs '"mattpocock-skills@' "$plugins_dir/installed_plugins.json"; then present mattpocock-skills
+# with a non-empty record, user-scoped or project-scoped to this directory
+if jq -e --arg pwd "$PWD" '[.plugins // {} | to_entries[] | select(.key | startswith("mattpocock-skills@"))
+     | .value[]? | select((.scope // "user") != "project" or .projectPath == $pwd)] | length > 0' \
+   "$plugins_dir/installed_plugins.json" >/dev/null 2>&1; then present mattpocock-skills
 else absent mattpocock-skills "install it from the official marketplace"; fi
 
-# Atlassian MCP: read from config, never by running `claude mcp list` (that health-checks every
-# server, needs the network, and fails inside the sandbox). A server name in ~/.claude.json or an
-# installed plugin named for it counts; whether it is authenticated is the owner's to confirm.
-if grep -Eiqs '"[^"]*atlassian[^"]*"' "$HOME/.claude.json" \
-   || grep -Eiqs '"[^"]*atlassian[^"@]*@' "$plugins_dir/installed_plugins.json"; then present "Atlassian MCP"
-else absent "Atlassian MCP" "connect the Atlassian connector, for the Jira Epic"; fi
+# Atlassian MCP: never `claude mcp list` (it health-checks every server and fails in the sandbox).
+# The claude.ai connector lives outside any file, so this is a line the owner confirms, kept out of
+# `missing` and the exit code. Upgraded to present only when a readable ~/.claude.json lists an
+# Atlassian server under .mcpServers (scoped with jq, not a whole-file grep).
+if jq -e '(.mcpServers // {}) | keys | any(test("atlassian"; "i"))' "$HOME/.claude.json" >/dev/null 2>&1
+then present "Atlassian MCP"
+else echo "confirm: Atlassian MCP (claude.ai connector or mcpServers entry; check /mcp)"; fi
 
 # the stub and the baseline are always printed, for the owner to paste
-here=$(cd "${BASH_SOURCE[0]%/*}" && pwd)
+here=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 echo; echo "=== paste into ~/.claude/CLAUDE.md ==="; cat "$here/claude-md-stub.md"
 echo; echo "=== merge into ~/.claude/settings.json (merge the arrays; do not replace) ==="; cat "$here/baseline-settings.json"
 echo
