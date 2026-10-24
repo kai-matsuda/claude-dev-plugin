@@ -9,9 +9,9 @@ scratch_dir test-stage-boundary || exit 1
 out=$scratch/workspace
 
 # 1. build twice: identical listings
-"$script" --stage-boundary "$out" >/dev/null || { echo "FAIL build with flag"; exit 1; }
+traced_build "with flag" --stage-boundary "$out"
 l1=$(snapshot lib); c1=$(snapshot consumer); r1=$(snapshot .)
-"$script" --stage-boundary "$out" >/dev/null || { echo "FAIL rebuild with flag"; exit 1; }
+traced_build "rebuild with flag" --stage-boundary "$out"
 l2=$(snapshot lib); c2=$(snapshot consumer); r2=$(snapshot .)
 check "rerun: lib listing identical" eq "$l1" "$l2"
 check "rerun: consumer listing identical" eq "$c1" "$c2"
@@ -22,10 +22,10 @@ check "root has exactly 1 bead (the epic)" eq "$(jq length <<<"$r2")" 1
 # the sandbox denies writes to config and hooks/ inside any .git directory (chezmoi-chk)
 check "no .git directory in the fixture: git dirs live under OUT/.git-dirs" eq "$(find "$out" -type d -name .git | wc -l | tr -d ' ')" 0
 check "the root is still a git repo (its .git file resolves)" eq "$(git -C "$out" rev-parse --is-inside-work-tree 2>/dev/null)" true
-# bd init looks upward for a .git directory and would adopt the dotfiles origin as the Dolt remote
+# bd init looks upward for a .git directory and would adopt the enclosing origin as the Dolt remote
 check "lib has no Dolt remote configured" eq "$(grep -cE '^ *(sync\.)?remote:' "$out/lib/.beads/config.yaml")" 0
 # read the YAML: bd config get reports the env-effective value, and BD_EXPORT_AUTO=true is in the shell env
-check "lib has auto-export off (its repair line would name the dotfiles origin)" eq "$(grep -A1 '^export:' "$out/lib/.beads/config.yaml" | grep -c 'auto: false')" 1
+check "lib has auto-export off (its repair line would name the enclosing origin)" eq "$(grep -A1 '^export:' "$out/lib/.beads/config.yaml" | grep -c 'auto: false')" 1
 
 # 2. shape: one epic, one story per repo, no tickets
 epic=$(one . '.issue_type=="epic"')

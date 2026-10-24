@@ -85,9 +85,9 @@ commit() { # <dir> <message>   (--no-verify: the global commit-lint hook wants a
 }
 bd_init() { # <dir> <prefix>   bd -C cannot init: it needs an existing .beads, so cd in a subshell
   # --remote '': bd init looks upward for a .git directory, which the fixture's .git file does
-  # not stop, so it would reach the dotfiles checkout and adopt its origin as the Dolt remote.
+  # not stop, so it would reach the enclosing checkout and adopt its origin as the Dolt remote.
   # export.auto false: the same walk makes every bd write under BD_EXPORT_AUTO print a "repair"
-  # line that adds the dotfiles origin to the fixture; this config beats the env var.
+  # line that adds the enclosing origin to the fixture; this config beats the env var.
   ( cd "$1" && bd init --non-interactive --skip-agents --skip-hooks --prefix "$2" --remote '' >/dev/null )
   bd -C "$1" config set export.auto false >/dev/null
 }

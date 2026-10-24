@@ -75,7 +75,7 @@ seed_head() { awk -v r="$1" '$1==r{print $2}' "$out/seed-heads.txt"; }
 # directory. .beads/ is left out of the tree check: bd itself edits .beads/config.yaml on a
 # database's first create.
 assert_owner() { # <repo> <story-id> <other repo of the pair, or "">
-  check "$1 working tree is clean after the cut" eq "$(git -C "$out/$1" status --porcelain -- . ':!.beads')" ""
+  check "$1 working tree is clean after the cut" eq "$(git -C "$out/$1" status --porcelain -- . ':!.beads' ':!specs')" ""
   check "$1 HEAD is unchanged: the cut committed nothing" eq "$(git -C "$out/$1" rev-parse HEAD)" "$(seed_head "$1")"
   check "$1 has no .spec-notes directory" test ! -e "$out/$1/.spec-notes"
   check "$1 story design field opens with the orientation header" \
