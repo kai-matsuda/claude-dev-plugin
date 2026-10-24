@@ -100,10 +100,16 @@
 #      and orders a middle story of a chain in one topological pass, creates every
 #      repo-session story under the epic bead, and makes a deploy split wait on the
 #      earlier story's closure (ADR 0011).
+#  11. the namespace rule: in every file under the skills dir, docs/ (the agent docs, ADRs, specs),
+#      the runbook and the driver passed as $1, a /<command> is dev:<skill> or
+#      mattpocock-skills:<skill> naming a skill that exists, or a built-in or a path; a bare
+#      /<skill> or another namespace fails. The /command extraction (cmd_tokens) and the
+#      existence check (cmds) moved here from section 2, which no longer calls them.
 # Usage: scripts/lint-skill-docs.sh [implement-spec SKILL.md [WORKFLOW.md]]
 # Each section guards on its doc existing, so the lint passes on a tree without that doc yet;
 # the plugin layout is skills/, docs/agents/, docs/WORKFLOW.md and CLAUDE.md under the repo root.
 # SKILLS_DIR and AGENT_DOCS override the skills and agent docs directories (scratch copies).
+# DOCS_DIR overrides the docs directory the namespace rule scans (default: docs under the repo root).
 # USER_CLAUDE_MD overrides the project CLAUDE.md (default: CLAUDE.md under the repo root).
 # PLUGIN_SKILLS overrides the plugin skills directory (default: newest installed mattpocock-skills).
 set -u
@@ -117,6 +123,7 @@ lacks() { [ -f "$f" ] || return 0; if grep -qiE -- "$2" "$f"; then bad "present:
 
 skills=${SKILLS_DIR:-$root/skills}
 agents=${AGENT_DOCS:-$root/docs/agents}
+docs=${DOCS_DIR:-$root/docs}
 user_claude_md=${USER_CLAUDE_MD:-$root/CLAUDE.md}
 # an explicitly passed path ($1, $2) or a set override must exist; only the defaults are guarded
 # by [ -f ] below
@@ -154,7 +161,7 @@ lacks "glossary's avoided term human ticket" '(^|[^-])human ticket'
 lacks "review steps" 'review'
 lacks "PR steps" 'gh pr|tea pr|draft PR|mark ready'
 has "frontmatter" 'disable-model-invocation: true'
-has "legacy line" 'refused: flat epic (tickets directly under the epic bead); the story skills do not handle it — the small-bug path does: /implement <ticket-id> per ticket, then bd close <epic-id>'
+has "legacy line" 'refused: flat epic (tickets directly under the epic bead); the story skills do not handle it — the small-bug path does: /mattpocock-skills:implement <ticket-id> per ticket, then bd close <epic-id>'
 has "add-dir refusal" '/add-dir <'
 hasc "Human stop" '**Human stop**'
 hasc "Stall" '**Stall**'
@@ -180,14 +187,22 @@ fi
 f=${2:-$root/docs/WORKFLOW.md}
 runbook=$f
 plugin=${PLUGIN_SKILLS:-$(ls -d "$HOME"/.claude/plugins/cache/claude-plugins-official/mattpocock-skills/*/skills 2>/dev/null | sort -V | tail -1)}
-builtin=" model add-dir code-review plugin "
+builtin=" model add-dir code-review plugin sandbox clear mcp help config tmp "
 
+# the /command tokens of file $1, one per line: a slash after a non-word, non-path character
+# (so not a/b, ~/x, a closing tag or a URL), the name with an optional :skill, and one trailing
+# character kept only to tell a path (/tmp/x) or a placeholder (/dev:<x>) from a command. The
+# trailing character is not a delimiter, so adjacent commands and a sentence-final "." match.
+cmd_tokens() { # <file>
+  grep -oE '(^|[^A-Za-z0-9~._/:<-])/[a-z][a-z-]*(:[a-z-]+)?[/:_A-Z0-9]?' "$1" \
+    | sed -E 's/^[^/]*\///' | grep -E '[a-z-]$' | sed -E 's/-+$//' | sort -u
+}
 # every namespaced /command token in file $1 maps to a skill directory: dev: ones under the
-# skills dir, mattpocock-skills: ones under the plugin skills dir (built-ins allowlisted). Bare
-# and unknown-namespace tokens are the namespace rule's (section 11).
+# skills dir, mattpocock-skills: ones under the plugin skills dir. Bare and unknown-namespace
+# tokens are the namespace rule's (section 11), which calls this for every doc it scans.
 cmds() { # <file>
   local tok name
-  for tok in $(grep -oE '(^|[^A-Za-z0-9~._/-])/[a-z][a-z-]*(:[a-z-]+)?' "$1" | sed -E 's/^[^/]*\///' | sort -u); do
+  for tok in $(cmd_tokens "$1"); do
     name=${tok##*:}
     case "$tok" in
       dev:*) [ -d "$skills/$name" ] || bad "/$tok names no skill" ;;
@@ -197,14 +212,12 @@ cmds() { # <file>
 }
 if [ -f "$f" ]; then
 echo "== $f"
-cmds "$f"
 # the cut skills take the feature as their one argument; the runbook has a paragraph on it and
 # writes it in the 3a and 3b rows below (chezmoi-nz0)
 hasc "argument paragraph" '**The argument.**'
 fi
 if [ -f "$skills/workflow/SKILL.md" ]; then
 echo "== $skills/workflow/SKILL.md"
-cmds "$skills/workflow/SKILL.md"
 # /workflow prints each next command with the argument filled in, so a fresh session types it as-is
 f=$skills/workflow/SKILL.md
 hasc "workflow prints the story cut's argument" 'next: `/dev:spec-to-stories <arg>`'
@@ -367,7 +380,7 @@ echo "== $f"
 has "frontmatter" 'disable-model-invocation: true'
 has "no-stories refusal" 'refused: no stories'
 has "every-story-cut refusal" 'refused: every story already cut'
-has "every-story-cut remedy" 're-cut one with /story-to-tickets <story-id>'
+has "every-story-cut remedy" 're-cut one with /dev:story-to-tickets <story-id>'
 has "preflight pointer" '"Working-directory preflight"'
 has "epic gather pointer" '"gather the epic bead"'
 # the same argument rule as /spec-to-stories (chezmoi-nz0)
@@ -757,17 +770,20 @@ fi
 
 # ---- 11. namespace rule: only dev: and mattpocock-skills: ----
 # our skills are dev:<skill>, mattpocock's are mattpocock-skills:<skill>. A bare /<skill> or a
-# /<other>:<skill> in a skill doc, an agent doc or the runbook fails; a path (/tmp/x, followed
-# by a slash) and a built-in command do not count as skills.
+# /<other>:<skill> in a skill doc, any doc under docs/ or the runbook fails, and so does a
+# namespaced one naming no skill; a path (/tmp/x) and a built-in command do not count as skills.
+# The driver passed as $1 is scanned too, wherever it lives. docs/specs/ is skipped: a spec
+# names the skills its stories have yet to build.
 echo "== namespace rule"
 while IFS= read -r f; do
   [ -f "$f" ] || continue
-  for tok in $(grep -oE '(^|[^A-Za-z0-9~._/:-])/[a-z][a-z-]*(:[a-z-]+)?([^A-Za-z0-9_:/.-]|$)' "$f" | sed -E 's/^[^/]*\///; s/[^a-z:-]+$//' | sort -u); do
+  cmds "$f"
+  for tok in $(cmd_tokens "$f"); do
     case "$tok" in dev:*|mattpocock-skills:*) continue;; esac
     case "$builtin" in *" $tok "*) continue;; esac
     bad "bare or unknown skill namespace in $f: /$tok (use dev:<skill> or mattpocock-skills:<skill>)"
   done
-done < <({ find "$agents" "$skills" -type f 2>/dev/null; echo "$runbook"; } | sort -u)
+done < <({ find "$docs" "$agents" "$skills" -type f -not -path "$docs/specs/*" 2>/dev/null; echo "$runbook"; echo "${1:-}"; } | grep . | sort -u)
 
 [ "$fail" = 0 ] && echo "PASS"
 exit "$fail"

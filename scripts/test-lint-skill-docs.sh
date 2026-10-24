@@ -3,7 +3,8 @@
 # agent docs, CLAUDE.md, WORKFLOW.md and the plugin skill names the runbook's commands resolve
 # to): the baseline passes, an explicitly passed missing path fails, and the retired-phrase scan
 # (section 5) covers every file under the skills and agent docs dirs and matches whole words
-# only. The lint of the plugin's own tree is the Makefile's first step, not repeated here.
+# only, and the namespace rule (section 11: only dev: and mattpocock-skills: pass, over every
+# doc under docs/, the skills and the runbook). The lint of the plugin's own tree is the Makefile's first step, not repeated here.
 # Usage: scripts/test-lint-skill-docs.sh
 set -uo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
@@ -21,8 +22,9 @@ fresh() {
   cp -R "$fixtures/agents" "$scratch/agents"
   cp "$fixtures/project-CLAUDE.md" "$scratch/CLAUDE.md"
   cp "$fixtures/WORKFLOW.md" "$scratch/"
+  mkdir -p "$scratch/docs/adr"
   # the skill names the runbook's /commands resolve to, standing in for the installed plugin
-  for name in grill-with-docs to-spec pr tdd; do
+  for name in grill-with-docs to-spec to-tickets implement domain-modeling improve-codebase-architecture pr tdd; do
     mkdir -p "$scratch/plugin/$name"
   done
   # and the plugin's own (dev:) skills, which resolve against the skills dir
@@ -35,7 +37,7 @@ fresh() {
 lint_scratch() {
   local out rc
   [ $# -gt 0 ] || set -- "" "$scratch/WORKFLOW.md"
-  out=$(SKILLS_DIR=${skills_dir:-$scratch/skills} AGENT_DOCS=${agent_docs:-$scratch/agents} \
+  out=$(SKILLS_DIR=${skills_dir:-$scratch/skills} AGENT_DOCS=${agent_docs:-$scratch/agents} DOCS_DIR=$scratch/docs \
     USER_CLAUDE_MD=${claude_md:-$scratch/CLAUDE.md} \
     PLUGIN_SKILLS=$scratch/plugin "$lint" "$@" 2>&1)
   rc=$?
@@ -110,5 +112,38 @@ done
 fresh
 echo "the /tmp/x path and /plugin command are not skills" >> "$scratch/skills/sample/SKILL.md"
 expect "paths and built-in commands pass" 0
+
+fresh
+echo "then close it with /close-story." >> "$scratch/skills/sample/SKILL.md"
+expect "a sentence-final bare /<skill>. fails" 1 "$ns_msg in $scratch/skills/sample/SKILL.md: /close-story"
+
+fresh
+echo "run /dev:workflow /close-story now" >> "$scratch/skills/sample/SKILL.md"
+expect "the second of two adjacent commands is checked" 1 "$ns_msg in $scratch/skills/sample/SKILL.md: /close-story"
+fresh
+echo "pick (/dev:workflow|/close-story)" >> "$scratch/skills/sample/SKILL.md"
+expect "an alternation's second command is checked" 1 "$ns_msg in $scratch/skills/sample/SKILL.md: /close-story"
+
+fresh
+printf 'a template <issue-template>x</issue-template> and `/tmp`\nbuilt-ins /sandbox /clear /mcp /help /config.\n' >> "$scratch/skills/sample/SKILL.md"
+expect "closing tags, a bare /tmp and the built-ins pass" 0
+
+fresh
+echo "run /dev:nope" >> "$scratch/skills/sample/SKILL.md"
+expect "/dev:<missing> fails as naming no skill" 1 "/dev:nope names no skill"
+fresh
+echo "run /mattpocock-skills:nope" >> "$scratch/skills/sample/SKILL.md"
+expect "/mattpocock-skills:<missing> fails as naming no skill" 1 "/mattpocock-skills:nope names no skill"
+
+fresh
+echo "run /story-to-tickets" >> "$scratch/docs/adr/0001.md"
+expect "a bare /<skill> under docs/ outside docs/agents fails" 1 "$ns_msg in $scratch/docs/adr/0001.md"
+fresh
+echo "run dev:story-to-tickets and /dev:workflow" >> "$scratch/docs/adr/0001.md"
+expect "namespaced references under docs/adr pass" 0
+
+fresh
+echo "run /story-to-tickets" > "$scratch/driver.md"
+expect "a driver passed as \$1 outside the skills dir gets the namespace check" 1 "$ns_msg in $scratch/driver.md" "$scratch/driver.md" "$scratch/WORKFLOW.md"
 
 report_fails
