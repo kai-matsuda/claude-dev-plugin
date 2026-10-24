@@ -18,7 +18,9 @@ Before any `bd` call, check `test -d <home>/.beads` (`<home>` and the session mo
 climbs to an ancestor's database (another home's inbox). Missing →
 `refused: no beads database in <home>`, and stop.
 
-With an argument: a bead id → `bd show <id>`; a `<KEY>-<n>` → `bd list --type epic
+With an argument: a bead id → `bd show <id> --json` (an array; `.[0]`); an `issue_type`
+other than `epic` → `<id> refused: <id> is <type>, not an epic`, and stop, so a story or
+ticket id never reaches the flat-epic check in step 2. A `<KEY>-<n>` → `bd list --type epic
 --external-ref <KEY>-<n>`. Without one: `bd list -t epic -s open,in_progress --json`, drop
 beads labelled `wayfinder:map`, and in a repo session keep those with at least one child (a
 workspace session's epic has no children by design, so keep every one). Exactly one → use
