@@ -516,11 +516,13 @@ while IFS= read -r f; do
 done < <({ find "$agents" "$skills" -type f 2>/dev/null; echo "$user_claude_md"; echo "$runbook"; } | sort)
 
 # the docs ship in the plugin: no path into the old dotfiles deployment (~/.claude/docs,
-# ~/.claude/hooks) or the chezmoi source remains in any doc under docs/ or the runbook (INFRA-30)
-deployed='~/\.claude/docs|~/\.claude/hooks|~/\.local/share/chezmoi'
+# ~/.claude/hooks) or the chezmoi source remains in any doc under docs/, the skills, the agent
+# docs, the project CLAUDE.md or the runbook, spelled ~/, $HOME/ or ${HOME}/ (INFRA-30)
+deployed='(~|\$HOME|\$\{HOME\})/(\.claude/docs|\.claude/hooks|\.local/share/chezmoi)'
 while IFS= read -r f; do
   lacks "dotfiles deployment path in $f" "$deployed"
-done < <({ find "$docs" -type f -name '*.md' 2>/dev/null; echo "$runbook"; } | grep . | sort -u)
+done < <({ find "$docs" -type f -name '*.md' 2>/dev/null; find "$agents" "$skills" -type f 2>/dev/null
+  echo "$user_claude_md"; echo "$runbook"; } | grep . | sort -u)
 
 # ---- 6. shared rules the skills point at ----
 f=$agents/orchestration.md

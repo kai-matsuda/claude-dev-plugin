@@ -7,8 +7,9 @@ own. `/dev:implement-story` and `/dev:close-story` are also invoked by the drive
 The agent-side rules these commands rely on live in the dev plugin's `docs/agents/`. Bold
 terms (story orchestrator, ticket runner, text blocker, human stop, finished story) are
 defined in the plugin's `GLOSSARY.md`, and the ADRs this runbook cites for the why are the
-plugin's `docs/adr/`. Both sit beside this file in the plugin repo
-(`vangogh500/claude-dev-plugin`); a feature's own glossary and ADRs live in its repo.
+plugin's `docs/adr/`. Both live in the plugin repo (`vangogh500/claude-dev-plugin`):
+`GLOSSARY.md` at its root, `docs/adr/` beside this file; a feature's own glossary and ADRs
+live in its repo.
 
 In a session, `/dev:workflow` prints this file, then one line per open epic bead saying
 where it is in the flow and what to type next.
@@ -45,10 +46,12 @@ more than one repo is typed at the workspace root from `/mattpocock-skills:to-sp
 - `.beads/` exists at the workspace root (same `bd init` as per repo). It is the
   home of a workspace session: the **inbox** is the home's beads, and the workspace's own
   beads live there too.
-- `~/src` is in the sandbox read and write allowlists (user settings), so
-  a workspace session can `bd -C` into any manifest repo's `.beads/` without a prompt.
-- `git config --global beads.role maintainer`. `bd` reads this from the shell's current
-  directory, so without the global value every `bd -C <other repo>` prints a warning.
+- Per machine (`/dev:setup`'s baseline sets it): `~/src` is in the sandbox read and write
+  allowlists (user settings), so a workspace session can `bd -C` into any manifest repo's
+  `.beads/` without a prompt.
+- Per machine (also `/dev:setup`'s baseline): `git config --global beads.role maintainer`.
+  `bd` reads this from the shell's current directory, so without the global value every
+  `bd -C <other repo>` prints a warning.
 - Optional: `triage.jira-epic: <KEY>-<n>` in `repos.yaml` names a standing Jira epic that
   `/dev:triage` comments on once per run. Absent, it skips the comment.
 
@@ -89,8 +92,9 @@ Cross-repo notes:
   mode, adds the story that crate's repo needs.
 - One `bd ready` across every repo needs `bd repo sync` at the workspace root, which
   reads each repo's JSONL export under `.beads/`. That export is on everywhere through
-  `BD_EXPORT_AUTO=true` in the shell profile (bd has no
-  user-level config file for it), and the file is hidden by the global git ignore. Each
+  `BD_EXPORT_AUTO=true` in the shell profile, a per-machine setting `/dev:setup`'s baseline
+  covers (bd has no user-level config file for it), and the file is hidden by the global
+  git ignore. Each
   repo still needs one `bd repo add ./<name>` at the workspace root the first time it
   gets a `.beads/`. Without the sync, the closed inbox beads are the cross-repo record:
   `bd list -l retro --all` from the workspace root.
@@ -226,7 +230,7 @@ The tier table above sets *subagent* models; this sets what your own session run
 | Exploration notes | `<repo>/.spec-notes/<epic-id>/` |
 | A worktree agent's temp files | `<worktree>/.tmp/`, where the TMPDIR line points `TMPDIR` (gitignored as `/.tmp/`) |
 | Human status and discussion | the Jira epic |
-| Agent-side rules | `<plugin root>/docs/agents/*.md` (the dev plugin's, every repo), repo `CLAUDE.md` (overrides) |
+| Agent-side rules | `docs/agents/*.md` in the dev plugin repo (`vangogh500/claude-dev-plugin`; the installed copy serves every repo), repo `CLAUDE.md` (overrides) |
 | Which repo owns a file or crate | `repos.yaml` at the workspace root (the repo manifest) |
 | Decisions that span repos | `docs/adr/` at the workspace root |
 | Retro inbox | the home's beads, label `needs-triage`; closed ones record where each item went |

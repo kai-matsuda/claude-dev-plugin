@@ -214,14 +214,17 @@ the dev plugin, so every skill reaches them through the plugin root, `<plugin ro
 directory the harness names in its plugin-root variable `CLAUDE_PLUGIN_ROOT`. A skill
 resolves it once per session: its text writes `${CLAUDE_PLUGIN_ROOT}/docs/agents/<doc>.md`,
 which the harness fills in with the absolute path when it loads the skill (as it fills in
-`hooks/hooks.json`'s `guard-rm.sh` command); only if the text still shows the variable does
-the session run `echo "${CLAUDE_PLUGIN_ROOT:?}"` once, and if that fails too it ends with
-`failed: plugin root unresolved` rather than guessing a path (under `claude --plugin-dir .`
-the root is that checkout). From then on the session spells the absolute rules-doc path
-literally in every brief, `<plugin root>/docs/agents/orchestration.md` with `<plugin root>`
-replaced by the path it resolved, as the TMPDIR line spells `<worktree>`: never
-`$CLAUDE_PLUGIN_ROOT`, never a `~/` path. A subagent's Bash does not inherit the variable
-(unset in this rule's own ticket run, 2026-10-24) and the worktree guard refuses a path
+`hooks/hooks.json`'s `guard-rm.sh` command). Bash never has the variable, in the main
+session or a subagent, so only if the text still shows it does the session fall back to the
+`Base directory for this skill: <path>` line the Skill tool prints on loading a plugin skill:
+that path is `<plugin root>/skills/<skill>`, so the root is two levels up (under
+`claude --plugin-dir .` it is that checkout). With neither, it ends with
+`failed: plugin root unresolved` rather than guessing a path. From then on the session
+spells the absolute rules-doc path literally in every brief,
+`<plugin root>/docs/agents/orchestration.md` with `<plugin root>` replaced by the path it
+resolved, as the TMPDIR line spells `<worktree>`: never `$CLAUDE_PLUGIN_ROOT`, never a `~/`
+path. A subagent's Bash has no such variable (unset in this rule's own ticket run,
+2026-10-24) and the worktree guard refuses a path
 built from one (Literal paths), so a brief that names a variable sends its subagent to a
 doc it cannot open. Every pointer a brief carries, "the rules doc's TMPDIR rule" or "the
 rules doc's Idle rule", names that doc by the same absolute path.

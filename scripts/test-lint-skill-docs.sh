@@ -247,6 +247,21 @@ done
 fresh
 echo 'see `~/.claude/docs/agents/*.md`' >> "$scratch/WORKFLOW.md"
 expect "a dotfiles deployment path in the runbook fails" 1 "dotfiles deployment path in $scratch/WORKFLOW.md"
+# and in the skills, the agent docs and the project CLAUDE.md, in the $HOME/ spelling too
+fresh
+echo 'read `~/.claude/docs/agents/orchestration.md`' >> "$scratch/skills/sample/SKILL.md"
+expect "a dotfiles deployment path in a skill fails" 1 "dotfiles deployment path in $scratch/skills/sample/SKILL.md"
+fresh
+echo 'read `~/.claude/docs/agents/orchestration.md`' >> "$scratch/agents/sample.md"
+expect "a dotfiles deployment path in an agent doc fails" 1 "dotfiles deployment path in $scratch/agents/sample.md"
+fresh
+echo 'rules: `~/.claude/docs/agents/`' >> "$scratch/CLAUDE.md"
+expect "a dotfiles deployment path in the project CLAUDE.md fails" 1 "dotfiles deployment path in $scratch/CLAUDE.md"
+for path in '$HOME/.claude/docs/agents/orchestration.md' '${HOME}/.claude/hooks/guard-rm.sh' '$HOME/.local/share/chezmoi/GLOSSARY.md'; do
+  fresh
+  echo "see \`$path\`" >> "$scratch/WORKFLOW.md"
+  expect "a dotfiles deployment path in the \$HOME spelling ($path) fails" 1 "dotfiles deployment path in $scratch/WORKFLOW.md"
+done
 
 # a DOCS_DIR override must exist
 fresh
