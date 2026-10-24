@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Helpers shared by the fixture tests (scripts/test-fixture-*.sh, test-lint-skill-docs.sh, test-guard-rm.sh,
-# test-setup-skill.sh, test-setup-repo-skill.sh, test-ci-workflow.sh).
+# Helpers shared by the fixture tests (scripts/test-fixture-*.sh, test-lint-skill-docs.sh,
+# test-guard-rm.sh, test-glossary-lint.sh, test-setup-skill.sh, test-setup-repo-skill.sh,
+# test-ci-workflow.sh).
 # The bead helpers read $out, the fixture workspace, when called; sets fails=0, which check
 # counts up and report_fails ends the run on.
 fails=0
@@ -15,6 +16,22 @@ report_fails() {
   if [ "$fails" = 0 ]; then echo "all passed"; else echo "$fails failed"; exit 1; fi
 }
 eq() { [ "$1" = "$2" ]; }
+# True when <dir> is a git repo's own top level. A throwaway repo checks this after init and
+# before any add or commit: git discovers upward, so after a failed init an add -A and commit
+# would land in the enclosing checkout.
+is_repo_top() { # <dir>
+  local top
+  top=$(git -C "$1" rev-parse --show-toplevel 2>/dev/null) && [ "$top" = "$(cd "$1" && pwd -P)" ]
+}
+# Front matter of a SKILL.md: the lines between the opening and closing ---.
+front() { awk 'NR==1 && $0!="---"{exit} NR>1 && $0=="---"{exit} NR>1{print}' "$1"; }
+# Native blockers of bead <id> in <repo>: the ids it depends on with type blocks, sorted, comma-joined.
+blockers() { # <repo> <id>
+  field "$1" "$2" '[.dependencies // [] | .[] | select(.dependency_type=="blocks") | .id] | sort | join(",")'
+}
+# Build the fixture workspace at $out with fixture-workspace.sh <seed flag> (the phased tests'
+# seed step); exits on a failed build.
+build_fixture() { "${repo_root:?}/scripts/fixture-workspace.sh" "$@" "${out:?}" >/dev/null || { echo "FAIL build fixture"; exit 1; }; }
 # Scratch dir for one self-contained run, $repo_root/.fixtures/<name>.XXXXXX in $scratch, removed
 # by the EXIT trap this installs (replacing any the caller set): one per run, so concurrent runs
 # (parallel review subagents) do not race on the same fixture; under .fixtures/, never $TMPDIR,
