@@ -10,6 +10,7 @@ in the plugin and its skills read them, so none is restated here.
   repo that lacks one.
 - Commit messages are Conventional Commits, `type(scope): subject`, imperative, lowercase,
   at most 72 characters, with `Bead:` and `Refs:` trailers when the work came from a bead.
+- For context around a match, or any `{m,n}` repeat, use `command grep`, not `grep`.
 - Never prefix a command with `cd <repo> && ...`; use the command's own flag
   (`git -C <dir>`, `make -C <dir>`) or an absolute path.
 - Agent scratch space goes in repo-relative, gitignored paths, never under `/tmp`.

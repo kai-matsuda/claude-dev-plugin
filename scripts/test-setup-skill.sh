@@ -47,6 +47,12 @@ check "baseline has no allowed network domains" jq -e '(.sandbox.network.allowed
 check "baseline sandbox holds only the enabled flag, the exclusions and the writable dirs" jq -e '
   .sandbox | keys == ["enabled", "excludedCommands", "filesystem"]' "$snippet"
 check "CLAUDE.md stub exists and is non-empty" test -s "$stub"
+stub_line() { grep -n "$1" "$stub" | head -1 | cut -d: -f1; }
+stub_leads_with_command_grep() { # before the cd rule, the stub's first shell line (dev-5o3)
+  local g c; g=$(stub_line 'command grep'); c=$(stub_line 'cd <repo>')
+  [ -n "$g" ] && [ -n "$c" ] && [ "$g" -lt "$c" ]
+}
+check "CLAUDE.md stub leads its shell lines with command grep" stub_leads_with_command_grep
 
 # the prerequisite check, on throwaway machines. PATH is the machine's bin dir (stubs) plus a
 # tools dir of symlinks to only what the helper needs, so a host /usr/bin/gh never leaks in.
