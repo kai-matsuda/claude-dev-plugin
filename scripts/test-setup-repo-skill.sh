@@ -14,18 +14,26 @@ check "frontmatter names the skill setup-repo" grep -qx 'name: setup-repo' <<<"$
 check "frontmatter is user-invoked" grep -qx 'disable-model-invocation: true' <<<"$fm"
 check "frontmatter has a description" grep -q '^description: .' <<<"$fm"
 
-line() { grep -n -m1 -- "$1" "$doc" | cut -d: -f1; }
-has() { check "$1" grep -q -- "$2" "$doc"; }
+body=$(awk 'NR==1{next} f{print} $0=="---"{f=1}' "$doc")   # everything after the frontmatter
+line() { grep -n -m1 -- "$1" <<<"$body" | cut -d: -f1; }
+has() { check "$1" grep -q -- "$2" <<<"$body"; }
+before() { check "$1" bash -c '[ -n "$1" ] && [ -n "$2" ] && [ "$1" -lt "$2" ]' _ "$2" "$3"; }
 has "it points at /dev:setup when the machine setup is missing" '/dev:setup'
 machine=$(line 'machine setup')
+explore=$(line '^[0-9]*\. \*\*Explore')
+confirm=$(line '^[0-9]*\. \*\*Confirm')
 write=$(line '^[0-9]*\. \*\*Write')
-check "the machine-setup check precedes the write step" bash -c '[ -n "$1" ] && [ -n "$2" ] && [ "$1" -lt "$2" ]' _ "$machine" "$write"
+before "the machine-setup check precedes the write step" "$machine" "$write"
+before "explore precedes confirm" "$explore" "$confirm"
+before "confirm precedes the write step" "$confirm" "$write"
 has "it follows explore, present, confirm, write" 'explore, present, confirm, write'
 has "it records the Jira key in the ## Agent skills block" '## Agent skills'
 has "it runs bd init non-interactively with CLAUDE.md as agents file" 'bd init --non-interactive --agents-file CLAUDE.md'
+before "bd init runs before the CLAUDE.md edit, so the key is not swept into the init commit" "$(line '^   - `\.beads/`')" "$(line '^   - `CLAUDE.md`')"
 has "it prunes the bd init extras per the tracker doc" 'AGENTS.md'
 has "it skips bd init when .beads/ exists" '\.beads/'
 has "it lays out GLOSSARY.md" 'GLOSSARY.md'
+has "it handles a multi-context layout" 'GLOSSARY-MAP.md'
 has "it lays out docs/adr/" 'docs/adr/'
 
 report_fails
