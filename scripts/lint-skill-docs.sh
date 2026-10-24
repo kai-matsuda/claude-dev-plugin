@@ -118,10 +118,15 @@ lacks() { [ -f "$f" ] || return 0; if grep -qiE -- "$2" "$f"; then bad "present:
 skills=${SKILLS_DIR:-$root/skills}
 agents=${AGENT_DOCS:-$root/docs/agents}
 user_claude_md=${USER_CLAUDE_MD:-$root/CLAUDE.md}
-# an explicitly passed path must exist; only the defaults are guarded by [ -f ] below
+# an explicitly passed path ($1, $2) or a set override must exist; only the defaults are guarded
+# by [ -f ] below
 for given in "${1:-}" "${2:-}"; do
   [ -z "$given" ] || [ -f "$given" ] || bad "no such file: $given"
 done
+for given in "${SKILLS_DIR:-}" "${AGENT_DOCS:-}"; do
+  [ -z "$given" ] || [ -d "$given" ] || bad "no such directory: $given"
+done
+[ -z "${USER_CLAUDE_MD:-}" ] || [ -f "$USER_CLAUDE_MD" ] || bad "no such file: $USER_CLAUDE_MD"
 
 # ---- 1. /implement-spec driver ----
 f=${1:-$skills/implement-spec/SKILL.md}
@@ -174,7 +179,6 @@ fi
 # ---- 2. WORKFLOW.md runbook ----
 f=${2:-$root/docs/WORKFLOW.md}
 runbook=$f
-echo "== $f"
 plugin=${PLUGIN_SKILLS:-$(ls -d "$HOME"/.claude/plugins/cache/claude-plugins-official/mattpocock-skills/*/skills 2>/dev/null | sort -V | tail -1)}
 builtin=" model add-dir code-review "
 
@@ -191,6 +195,7 @@ cmds() { # <file>
   done
 }
 if [ -f "$f" ]; then
+echo "== $f"
 cmds "$f"
 # the cut skills take the feature as their one argument; the runbook has a paragraph on it and
 # writes it in the 3a and 3b rows below (chezmoi-nz0)

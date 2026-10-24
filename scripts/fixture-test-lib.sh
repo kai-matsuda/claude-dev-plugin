@@ -16,7 +16,8 @@ report_fails() {
 # by the EXIT trap this installs: one per run, so concurrent runs do not race on the same fixture;
 # under .fixtures/, never $TMPDIR, because the sandbox scopes a subagent's file edits to the
 # session's working directories. A caller that rebuilds its fixture builds it inside $scratch,
-# so the mktemp name is never free for another run to draw.
+# so the mktemp name is never free for another run to draw. The EXIT trap it installs replaces
+# any EXIT trap the caller set, so a caller needing its own cleanup chains it after this call.
 scratch_dir() { # <name>
   mkdir -p "${repo_root:?}/.fixtures" && scratch=$(mktemp -d "$repo_root/.fixtures/$1.XXXXXX") || return 1
   trap 'rm -rf "$scratch"' EXIT

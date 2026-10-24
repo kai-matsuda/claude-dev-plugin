@@ -19,7 +19,8 @@ fresh() {
   find "$scratch" -mindepth 1 -delete
   cp -R "$fixtures/skills" "$scratch/skills"
   cp -R "$fixtures/agents" "$scratch/agents"
-  cp "$fixtures/CLAUDE.md" "$fixtures/WORKFLOW.md" "$scratch/"
+  cp "$fixtures/project-CLAUDE.md" "$scratch/CLAUDE.md"
+  cp "$fixtures/WORKFLOW.md" "$scratch/"
   # the skill names the runbook's /commands resolve to, standing in for the installed plugin
   for name in grill-with-docs to-spec spec-to-stories spec-to-tickets implement-spec close-epic implement-story close-story pr; do
     mkdir -p "$scratch/plugin/$name"
@@ -30,20 +31,22 @@ fresh() {
 lint_scratch() {
   local out rc
   [ $# -gt 0 ] || set -- "" "$scratch/WORKFLOW.md"
-  out=$(SKILLS_DIR=$scratch/skills AGENT_DOCS=$scratch/agents USER_CLAUDE_MD=$scratch/CLAUDE.md \
+  out=$(SKILLS_DIR=${skills_dir:-$scratch/skills} AGENT_DOCS=${agent_docs:-$scratch/agents} \
+    USER_CLAUDE_MD=${claude_md:-$scratch/CLAUDE.md} \
     PLUGIN_SKILLS=$scratch/plugin "$lint" "$@" 2>&1)
   rc=$?
   printf '%s\n%s\n' "$out" "$rc"
 }
+# true when the lint output $3 (last line: exit code) ends in exit code $1 and contains $2
+result_is() { # <exit code> <message> <output>
+  [ "${3##*$'\n'}" = "$1" ] && { [ -z "$2" ] || grep -qF -- "$2" <<<"$3"; }
+}
 # expect <description> <expected exit code> [message the output must contain] [lint args...]
 expect() {
-  local d=$1 want=$2 msg=${3:-} out rc
+  local d=$1 want=$2 msg=${3:-} out
   shift 3 2>/dev/null || shift $#
   out=$(lint_scratch "$@")
-  rc=${out##*$'\n'}
-  if [ "$rc" != "$want" ]; then echo "FAIL $d (exit $rc, want $want)"; fails=$((fails+1))
-  elif [ -n "$msg" ] && ! grep -qF -- "$msg" <<<"$out"; then echo "FAIL $d (no \"$msg\" in the output)"; fails=$((fails+1))
-  else echo "ok   $d"; fi
+  check "$d" result_is "$want" "$msg" "$out"
 }
 
 fresh
@@ -54,6 +57,13 @@ expect "an explicit driver path that does not exist fails" 1 "no such file" "$sc
 
 fresh
 expect "an explicit runbook path that does not exist fails" 1 "no such file" "" "$scratch/nope.md"
+
+for var in skills_dir agent_docs claude_md; do
+  fresh
+  eval "$var=$scratch/nope"
+  expect "a set override ($var) naming a missing path fails" 1 "no such"
+  unset "$var"
+done
 
 fresh
 echo "retired wording: cut one" > "$scratch/skills/sample/notes.txt"
