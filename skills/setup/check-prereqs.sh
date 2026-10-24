@@ -13,19 +13,35 @@ if command -v bd >/dev/null 2>&1; then present bd; else absent bd "the beads iss
 if command -v gh >/dev/null 2>&1 || command -v tea >/dev/null 2>&1; then present "gh or tea"
 else absent "gh or tea" "the forge CLI for pull requests"; fi
 
-# installed means listed in installed_plugins.json, not merely left in the cache
-# with a non-empty record, user-scoped or project-scoped to this directory
-if jq -e --arg pwd "$PWD" '[.plugins // {} | to_entries[] | select(.key | startswith("mattpocock-skills@"))
-     | .value[]? | select((.scope // "user") != "project" or .projectPath == $pwd)] | length > 0' \
+# jq reads the two config files below; without it those checks cannot tell, so name it
+if command -v jq >/dev/null 2>&1; then present jq
+else absent jq "needed to read the plugin and MCP config; install it"; fi
+
+# installed means listed in installed_plugins.json, not merely left in the cache,
+# with a non-empty record, user-scoped or project-scoped to this directory or an ancestor
+# (matched on the logical and the physical path, so a symlinked checkout counts)
+phys=$(pwd -P)
+if jq -e --arg pwd "$PWD" --arg phys "$phys" '
+     def within($p): $p != null and ($p == $pwd or $p == $phys
+       or ($pwd | startswith($p + "/")) or ($phys | startswith($p + "/")));
+     [.plugins // {} | to_entries[] | select(.key | startswith("mattpocock-skills@"))
+     | .value[]? | select((.scope // "user") != "project" or within(.projectPath))] | length > 0' \
    "$plugins_dir/installed_plugins.json" >/dev/null 2>&1; then present mattpocock-skills
 else absent mattpocock-skills "install it from the official marketplace"; fi
 
 # Atlassian MCP: never `claude mcp list` (it health-checks every server and fails in the sandbox).
 # The claude.ai connector lives outside any file, so this is a line the owner confirms, kept out of
-# `missing` and the exit code. Upgraded to present only when a readable ~/.claude.json lists an
-# Atlassian server under .mcpServers (scoped with jq, not a whole-file grep).
-if jq -e '(.mcpServers // {}) | keys | any(test("atlassian"; "i"))' "$HOME/.claude.json" >/dev/null 2>&1
-then present "Atlassian MCP"
+# `missing` and the exit code. Upgraded to present only when a readable config lists an Atlassian
+# server under mcpServers: ~/.claude.json top level or .projects[<this dir or an ancestor>],
+# or this directory's .mcp.json (scoped with jq, not a whole-file grep).
+atlassian=0
+if jq -e --arg pwd "$PWD" --arg phys "$phys" '
+     def hit: (.mcpServers // {}) | keys | any(test("atlassian"; "i"));
+     hit or ([.projects // {} | to_entries[]
+       | select(.key == $pwd or .key == $phys or ($pwd | startswith(.key + "/")) or ($phys | startswith(.key + "/")))
+       | .value | hit] | any)' "$HOME/.claude.json" >/dev/null 2>&1; then atlassian=1
+elif jq -e '(.mcpServers // {}) | keys | any(test("atlassian"; "i"))' "$PWD/.mcp.json" >/dev/null 2>&1; then atlassian=1; fi
+if [ "$atlassian" = 1 ]; then present "Atlassian MCP"
 else echo "confirm: Atlassian MCP (claude.ai connector or mcpServers entry; check /mcp)"; fi
 
 # the stub and the baseline are always printed, for the owner to paste
@@ -34,4 +50,6 @@ echo; echo "=== paste into ~/.claude/CLAUDE.md ==="; cat "$here/claude-md-stub.m
 echo; echo "=== merge into ~/.claude/settings.json (merge the arrays; do not replace) ==="; cat "$here/baseline-settings.json"
 echo
 
-if [ "$missing" = 0 ]; then echo "all prerequisites present"; else exit 1; fi
+if [ "$missing" != 0 ]; then exit 1
+elif [ "$atlassian" = 1 ]; then echo "all prerequisites present"
+else echo "all checked prerequisites present; confirm Atlassian in /mcp"; fi

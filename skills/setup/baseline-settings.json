@@ -53,11 +53,6 @@
       "bd dolt pull*"
     ],
     "filesystem": {
-      "allowRead": [
-        "~/.beads",
-        "~/.dolt",
-        "~/.config/bd"
-      ],
       "allowWrite": [
         "~/.beads",
         "~/.dolt",

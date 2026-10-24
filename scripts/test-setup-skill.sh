@@ -53,8 +53,10 @@ check "CLAUDE.md stub exists and is non-empty" test -s "$stub"
 scratch_dir setup; work=$scratch
 mkdir -p "$work/tools"
 for t in find grep cat jq dirname; do
-  for d in /usr/bin /bin; do [ -x "$d/$t" ] && { ln -s "$d/$t" "$work/tools/$t"; break; }; done
+  src=$(command -v "$t") && ln -s "$src" "$work/tools/$t"
 done
+mkdir -p "$work/toolsnojq"
+for t in find grep cat dirname; do ln -s "$work/tools/$t" "$work/toolsnojq/$t"; done
 mkbin() { # <bin dir> <names...>: stub executables
   local d=$1; shift; mkdir -p "$d"
   for n in "$@"; do printf '#!/bin/sh\nexit 0\n' >"$d/$n"; chmod +x "$d/$n"; done
@@ -62,7 +64,7 @@ mkbin() { # <bin dir> <names...>: stub executables
 machine() { mkdir -p "$work/$1/bin" "$work/$1/home" "$work/$1/cwd" "$work/$1/plugins"; }
 mcp_config() { printf '{"mcpServers":{"claude_ai_Atlassian_Rovo":{"type":"http"}}}\n' >"$work/$1/home/.claude.json"; }
 plugin_installed() { printf '{"version":2,"plugins":{"mattpocock-skills@claude-plugins-official":[{}]}}\n' >"$work/$1/plugins/installed_plugins.json"; }
-for m in full tea empty stale noauth unreadable stray emptyrec; do machine "$m"; done
+for m in full tea empty stale noauth unreadable stray emptyrec nojq subdir projmcp mcpjson; do machine "$m"; done
 # a claude that fails (as it does inside the sandbox): the helper must not depend on it
 printf '#!/bin/sh\necho "sandbox: operation not permitted" >&2\nexit 1\n' >"$work/full/bin/claude"; chmod +x "$work/full/bin/claude"
 mkbin "$work/full/bin" bd gh;  mcp_config full; plugin_installed full
@@ -81,8 +83,18 @@ mkbin "$work/unreadable/bin" bd gh; plugin_installed unreadable; mkdir "$work/un
 # a stray 'atlassian' string outside .mcpServers
 mkbin "$work/stray/bin" bd gh; plugin_installed stray
 printf '{"projects":{"/src/atlassian-tools":{"allowedTools":["atlassian"]}},"mcpServers":{"other":{}}}\n' >"$work/stray/home/.claude.json"
-run() { # <machine>: run the helper there; sets out and rc
-  out=$(cd "$work/$1/cwd" && env -i PATH="$work/$1/bin:$work/tools" HOME="$work/$1/home" \
+# nojq: a machine whose tools dir has no jq; subdir: project-scoped install, run from below it
+mkbin "$work/nojq/bin" bd gh; plugin_installed nojq; mcp_config nojq
+mkbin "$work/subdir/bin" bd gh; mkdir -p "$work/subdir/cwd/deep/er"
+printf '{"version":2,"plugins":{"mattpocock-skills@m":[{"scope":"project","projectPath":"%s"}]}}\n' \
+  "$(cd "$work/subdir/cwd" && pwd -P)" >"$work/subdir/plugins/installed_plugins.json"
+# Atlassian under .projects[<path>].mcpServers, and in the project's .mcp.json
+mkbin "$work/projmcp/bin" bd gh; plugin_installed projmcp
+printf '{"projects":{"%s":{"mcpServers":{"atlassian":{}}}}}\n' "$(cd "$work/projmcp/cwd" && pwd -P)" >"$work/projmcp/home/.claude.json"
+mkbin "$work/mcpjson/bin" bd gh; plugin_installed mcpjson
+printf '{"mcpServers":{"atlassian":{}}}\n' >"$work/mcpjson/cwd/.mcp.json"
+run() { # <machine> [subdir] [tools dir]: run the helper there; sets out and rc
+  out=$(cd "$work/$1/cwd/${2:-}" && env -i PATH="$work/$1/bin:${3:-$work/tools}" HOME="$work/$1/home" \
         SETUP_PLUGINS_DIR="$work/$1/plugins" "$(command -v bash)" "$prereqs" 2>&1)
   rc=$?
 }
@@ -114,7 +126,19 @@ check "no config: Atlassian is a line to confirm, not present" grep -q '^confirm
 check "no config: Atlassian is not missing and the exit is 0" bash -c '! grep -q "^missing" <<<"$1" && [ "$2" = 0 ]' _ "$out" "$rc"
 run unreadable
 check "unreadable config: Atlassian is a confirm line, never missing" grep -q '^confirm: Atlassian' <<<"$out"
-check "unreadable config: exit 0 and all prerequisites present" bash -c '[ "$2" = 0 ] && grep -q "^all prerequisites present" <<<"$1"' _ "$out" "$rc"
+check "unreadable config: exit 0, summary says Atlassian is still to confirm" bash -c '[ "$2" = 0 ] && grep -q "^all checked prerequisites present; confirm Atlassian" <<<"$1" && ! grep -q "^all prerequisites present" <<<"$1"' _ "$out" "$rc"
+run nojq "" "$work/toolsnojq"
+check "no jq: jq is reported missing, by name" grep -q '^missing: jq' <<<"$out"
+check "no jq: exit non-zero" test "$rc" != 0
+run subdir deep/er
+check "project-scoped install counts from a subdirectory" grep -q '^present: mattpocock-skills' <<<"$out"
+ln -s "$work/subdir/cwd" "$work/subdir/link"
+out=$(cd "$work/subdir/link/deep" && env -i PATH="$work/subdir/bin:$work/tools" HOME="$work/subdir/home" SETUP_PLUGINS_DIR="$work/subdir/plugins" "$(command -v bash)" "$prereqs" 2>&1)
+check "project-scoped install counts through a symlinked path" grep -q '^present: mattpocock-skills' <<<"$out"
+run projmcp
+check "Atlassian under .projects[<path>].mcpServers is present" grep -q '^present: Atlassian' <<<"$out"
+run mcpjson
+check "Atlassian in the project .mcp.json is present" grep -q '^present: Atlassian' <<<"$out"
 run stray
 check "a stray atlassian string outside .mcpServers is not present" bash -c '! grep -q "^present: Atlassian" <<<"$1"' _ "$out"
 check "stray string: Atlassian is a confirm line" grep -q '^confirm: Atlassian' <<<"$out"
