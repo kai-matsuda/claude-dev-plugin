@@ -1,0 +1,27 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    env:
+      PLUGIN_SKILLS: ${{ github.workspace }}/.mattpocock-skills/skills
+      # a PR diffs against its base; a push falls back to the merge-base with origin/main
+      VERSION_BUMP_BASE: ${{ github.event.pull_request.base.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/checkout@v4
+        with:
+          repository: mattpocock/skills
+          ref: v1.3.1
+          path: .mattpocock-skills
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install -g @beads/bd
+      - run: make ci
