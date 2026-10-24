@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 <!-- Fork of mattpocock-skills 1.3.1 engineering/implement-spec, rewritten as the thin
      feature-level driver (INFRA-26, ADR 0006). The plugin's single-repo procedure moved to
-     /dev:implement-story, and its shared rules to ${CLAUDE_PLUGIN_ROOT}/docs/agents/orchestration.md; this
+     /dev:implement-story, and its shared rules to docs/agents/orchestration.md in this plugin; this
      file keeps only the story gather, the flat-epic refusal, the working-directory preflight,
      the story orchestrator spawn, the three end states and the once-only Jira step. It no
      longer tracks the plugin copy line by line: re-sync the intent, not the text. -->
