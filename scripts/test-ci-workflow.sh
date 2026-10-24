@@ -29,7 +29,20 @@ ci_block=$(awk '/^ci:/{f=1;print;next} f&&!/^\t/{exit} f{print}' "$mk")
 check "the Makefile lint target reuses ci" grep -Eq '^lint:[[:space:]]*ci' "$mk"
 check "the ci target runs the workflow test" bash -c 'grep -Fq scripts/test-ci-workflow.sh <<<"$1"' _ "$ci_block"
 check "the ci target runs no fixtures, direct or via make" bash -c '! tail -n +2 <<<"$1" | grep -Eq "fixture|MAKE"' _ "$ci_block"
-check "the ci help text mentions the workflow test" bash -c 'head -1 <<<"$1" | grep -Eqi "workflow"' _ "$ci_block"
+# Help text that enumerates scripts goes stale when one joins or leaves a target, so no help
+# line names a script its recipe runs (by stem, test- and fixture- dropped) or lists names in
+# the "a, b and c tests" shape the old ci text had.
+help_names_scripts() { # <makefile>
+  awk '
+    /^[a-z]+:.*##/ { t = $1; sub(/:.*/, "", t); h = tolower($0); sub(/.*## /, "", h)
+                     if (h ~ /\.sh|, [a-z-]+ and [a-z-]+ (tests|fixtures)/) { print t ": lists scripts"; bad = 1 }
+                     next }
+    !/^\t/ { t = ""; next }
+    t && match($0, /[^\/[:space:]]+\.sh/) { s = substr($0, RSTART, RLENGTH - 3); sub(/^test-/, "", s); sub(/^fixture-/, "", s)
+                     if (length(s) >= 4 && index(h, s)) { print t ": " s; bad = 1 } }
+    END { exit bad }' "$1"
+}
+check "no Makefile help line names a script its recipe runs" help_names_scripts "$mk"
 check "the fixture lib header lists this test" grep -Fq test-ci-workflow.sh "$repo_root/scripts/fixture-test-lib.sh"
 
 report_fails

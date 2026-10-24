@@ -26,10 +26,42 @@ watching, straight after an unattended `/dev:implement-spec`.
    The logs sit under `projects/<slug>/` under the Claude config directory (`CLAUDE_CONFIG_DIR`, by default `.claude` in the home directory), the slug being the working directory's
    absolute path with `/` and `.` turned into `-`; the current session is the newest
    `.jsonl` there. Its subagent transcripts and long tool results are not in that file but
-   in `subagents/` and `tool-results/` under a directory of the same id beside it, so grep
-   the whole slug directory with Bash rather than opening agents one at a time with the
-   Read tool. If Bash is refused there, the deployed user settings lack the config directory's `projects`
-   in `sandbox.filesystem.allowRead`; add it there in your user settings.
+   in `subagents/` and `tool-results/` under a directory of the same id beside it, so mine
+   the whole slug directory with Bash, by the shape and recipes below, rather than opening
+   agents one at a time with the Read tool. If Bash is refused there, the deployed user
+   settings lack the config directory's `projects` in `sandbox.filesystem.allowRead`; add it
+   there in your user settings.
+
+   **Transcript shape.** A transcript is JSONL: one JSON object per line with a `.type`; the
+   `user` and `assistant` lines the recipes read each carry their own `.timestamp`, and a
+   subagent line also carries `.agentId`. A tool call is an object in an `assistant` line's
+   `.message.content[]` with `.type == "tool_use"` (`.id`, `.name`, `.input`); its result is
+   the `tool_result` object (`.tool_use_id`, `.is_error`, `.content`) in a later `user`
+   line's `.message.content[]`, matched by `.tool_use_id`. A transcript also embeds the tool
+   schemas as text, so a `"name":"…"` grep matches the tool schemas far more often than the
+   calls, each match stamped with the agent's start time; select the call objects with jq.
+
+   **Recipes.** On a large session a scan of the whole directory outruns the Bash tool's
+   120-second default, and a call moved to the background returns no result to the step: pass
+   `timeout: 600000` on every call that reads `<dir>/subagents/*.jsonl`.
+
+   - One agent's call timeline, one line per call:
+
+     ```
+     jq -r 'select(.type=="assistant") | .timestamp as $t | .message.content[] | select(.type=="tool_use") | "\($t) \(.name) \(.input | tostring | .[0:120])"' <dir>/subagents/agent-<id>.jsonl
+     ```
+
+     For every agent at once, bind `.agentId as $a` beside `$t`, print `\($a)` first and
+     glob `<dir>/subagents/*.jsonl`.
+
+   - A failure tallied across agents:
+
+     ```
+     command grep -oh '<error text>' <dir>/subagents/*.jsonl | sort | uniq -c
+     ```
+
+     `command grep -c '<error text>' <dir>/subagents/*.jsonl | command grep -v ':0$'` names
+     the agents it hit.
 
 3. Look for candidates for improvement in these categories.
 

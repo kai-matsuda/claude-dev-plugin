@@ -8,7 +8,7 @@ help: ## Show this help
 lint: ci ## Everything: ci, then the fixture tests last (needs bd and cargo)
 	$(MAKE) fixtures
 
-ci: ## Lint the skill docs and run the lint, guard-rm, glossary-lint, setup, README and workflow tests (the target CI calls: no fixtures)
+ci: ## Lint the skill docs and run every script test that needs no beads database (the target CI calls)
 	scripts/lint-skill-docs.sh
 	scripts/test-lint-skill-docs.sh
 	scripts/test-guard-rm.sh

@@ -105,6 +105,11 @@
 #      mattpocock-skills:<skill> naming a skill that exists, or a built-in or a path; a bare
 #      /<skill> or another namespace fails. The /command extraction (cmd_tokens) and the
 #      existence check (cmds) moved here from section 2, which no longer calls them.
+#  12. /retro: step 2 names the transcript shape (one JSON object per line with its own type
+#      and timestamp, tool_use and tool_result objects in message.content) and two recipes, a
+#      jq per-agent call timeline and a grep tally across agents, each run with
+#      `timeout: 600000` on a directory-wide scan; the bare "grep the whole slug directory" is
+#      gone (dev-qfz, INFRA-30).
 # Usage: scripts/lint-skill-docs.sh [implement-spec SKILL.md [WORKFLOW.md]]
 # Each section guards on its doc existing, so the lint passes on a tree without that doc yet;
 # the plugin layout is skills/, docs/agents/, docs/WORKFLOW.md and CLAUDE.md under the repo root.
@@ -192,6 +197,15 @@ fi
 f=${2:-$root/docs/WORKFLOW.md}
 runbook=$f
 plugin=${PLUGIN_SKILLS:-$(ls -d "$HOME"/.claude/plugins/cache/claude-plugins-official/mattpocock-skills/*/skills 2>/dev/null | sort -V | tail -1)}
+# the plugin's skill names, listed once per run: a skill dir sits at the plugin's skills level,
+# directly or under one category dir (engineering/tdd), and is not a subdirectory of another
+# skill (tdd/scripts)
+plugin_skills=
+if [ -d "$plugin" ]; then
+  plugin_skills=$(find "$plugin" -mindepth 1 -maxdepth 2 -type d 2>/dev/null | while IFS= read -r m; do
+    [ -f "$(dirname "$m")/SKILL.md" ] || basename "$m"
+  done | sort -u)
+fi
 builtin=" model add-dir code-review plugin sandbox clear mcp help config tmp compact init permissions hooks resume agents bug context cost doctor exit login logout memory pr-comments review status statusline terminal-setup vim ide install-github-app release-notes rewind export usage theme output-style loop schedule security-review simplify run fewer-permission-prompts keybindings-help update-config claude-api "
 
 # the /command tokens of file $1, one per line. A slash starts a command only at the start of a
@@ -242,13 +256,10 @@ cmds() { # <token>...
         if [ ! -d "$plugin" ]; then
           bad "/$tok cannot be resolved: plugin skills dir not found (${plugin:-unset}; install mattpocock-skills or set PLUGIN_SKILLS)"
         else
-          # a skill dir sits at the plugin's skills level, directly or under one category dir
-          # (engineering/tdd), and is not a subdirectory of another skill (tdd/scripts)
-          local m found=
-          while IFS= read -r m; do
-            [ -f "$(dirname "$m")/SKILL.md" ] || { found=1; break; }
-          done < <(find "$plugin" -mindepth 1 -maxdepth 2 -type d -name "$name" 2>/dev/null)
-          [ -n "$found" ] || bad "/$tok names no skill"
+          case $'\n'"$plugin_skills"$'\n' in
+            *$'\n'"$name"$'\n'*) ;;
+            *) bad "/$tok names no skill" ;;
+          esac
         fi ;;
     esac
   done
@@ -846,6 +857,25 @@ while IFS= read -r f; do
     bad "bare or unknown skill namespace in $f: /$tok (use dev:<skill> or mattpocock-skills:<skill>)"
   done
 done < <({ find "$docs" "$agents" "$skills" -type f -name '*.md' 2>/dev/null; echo "$runbook"; echo "${1:-}"; } | grep . | sort -u)
+
+# ---- 12. /retro: step 2 names the transcript shape and the two mining recipes ----
+# the pins are fragments, so a recipe can be reworded without a lint edit
+f=$skills/retro/SKILL.md
+if [ -f "$f" ]; then
+echo "== $f"
+hasc "one JSON object per line" 'one JSON object per line'
+hasc "the timestamp field named" '`.timestamp`'
+hasc "the tool call object" '`.type == "tool_use"`'
+hasc "the tool result object" '`tool_result`'
+hasc "calls live in message.content" '`.message.content[]`'
+hasc "the schema-text trap" 'tool schemas'
+hasc "the jq timeline recipe selects the call objects" 'select(.type=="tool_use")'
+hasc "the jq timeline recipe stamps each call" '.timestamp as $t'
+hasc "the grep tally recipe" 'sort | uniq -c'
+hasc "the directory-wide timeout" 'timeout: 600000'
+hasc "the 120-second default named" '120-second default'
+lacks "the bare grep instruction" 'grep the whole slug directory'
+fi
 
 # version-bump rule: a diff under skills/ or docs/ needs a version change in the plugin manifest.
 # The diff runs from VERSION_BUMP_BASE (a CI job can set it to the PR base) or else the merge-base
