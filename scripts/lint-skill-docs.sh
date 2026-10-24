@@ -231,12 +231,16 @@ cmd_tokens() { # <file>
 # every namespaced /command token in $@ maps to a skill directory: dev: ones under the
 # skills dir, mattpocock-skills: ones under the plugin skills dir. Bare and unknown-namespace
 # tokens are the namespace rule's (section 11), which calls this for every doc it scans.
+# A dev: name passes when its skill dir exists or it is one of the plugin's planned skills
+# below: the rules docs land before the skill tickets build what they name, and each skill
+# batch lands on its own (INFRA-30). An unknown or typo'd dev: name fails either way.
+planned_skills=" spec-to-stories spec-to-tickets story-to-tickets workflow glossary-lint triage retro implement-spec implement-story close-epic close-story setup setup-repo "
 cmds() { # <token>...
   local tok name
   for tok in "$@"; do
     name=${tok##*:}
     case "$tok" in
-      dev:*) [ -d "$skills/$name" ] || bad "/$tok names no skill" ;;
+      dev:*) [ -d "$skills/$name" ] || [[ "$planned_skills" == *" $name "* ]] || bad "/$tok names no skill" ;;
       mattpocock-skills:*)
         if [ ! -d "$plugin" ]; then
           bad "/$tok cannot be resolved: plugin skills dir not found (${plugin:-unset}; install mattpocock-skills or set PLUGIN_SKILLS)"
@@ -511,6 +515,15 @@ while IFS= read -r f; do
   lacks "retired story-DAG wording in $f" "$retired_dag"
 done < <({ find "$agents" "$skills" -type f 2>/dev/null; echo "$user_claude_md"; echo "$runbook"; } | sort)
 
+# the docs ship in the plugin: no path into the old dotfiles deployment (~/.claude/docs,
+# ~/.claude/hooks) or the chezmoi source remains in any doc under docs/, the skills, the agent
+# docs, the project CLAUDE.md or the runbook, spelled ~/, $HOME/ or ${HOME}/ (INFRA-30)
+deployed='(~|\$HOME|\$\{HOME\})/(\.claude/docs|\.claude/hooks|\.local/share/chezmoi)'
+while IFS= read -r f; do
+  lacks "dotfiles deployment path in $f" "$deployed"
+done < <({ find "$docs" -type f -name '*.md' 2>/dev/null; find "$agents" "$skills" -type f 2>/dev/null
+  echo "$user_claude_md"; echo "$runbook"; } | grep . | sort -u)
+
 # ---- 6. shared rules the skills point at ----
 f=$agents/orchestration.md
 if [ -f "$f" ]; then
@@ -565,6 +578,14 @@ para_has '**TMPDIR.**' "the directory is gitignored" '`.tmp/` is gitignored'
 para_has '**TMPDIR.**' "export repeated per Bash call" 'export TMPDIR=<worktree>/.tmp; <command>'
 para_has '**TMPDIR.**' "mktemp -d takes a template under .tmp" 'mktemp -d <worktree>/.tmp/<name>.XXXXXX'
 para_has '**Gitignore.**' "/.tmp/ among the Gitignore rule's entries" '`/.tmp/`'
+# the rules docs ship in the plugin, so a brief reaches them through the plugin root: resolved
+# once per session from the harness's variable and spelled as an absolute path in every brief,
+# the TMPDIR rule's pattern (INFRA-30)
+hasc "Plugin root rule" '**Plugin root.**'
+para_has '**Plugin root.**' "the harness's plugin-root variable" 'CLAUDE_PLUGIN_ROOT'
+para_has '**Plugin root.**' "resolved once per session" 'once per session'
+para_has '**Plugin root.**' "the rules-doc path spelled literally in every brief" '<plugin root>/docs/agents/'
+para_has '**Plugin root.**' "spelled out in every brief" 'every brief'
 # a reviewer tags every finding blocking or minor and ends on a verdict line; a round with no
 # blocking findings is clean and only blocking rounds count toward the three-round limit. The
 # rule is stated once here; the runner brief and the story review point at it (chezmoi-49k)
