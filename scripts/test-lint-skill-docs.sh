@@ -99,7 +99,8 @@ bump_repo() {
   fresh
   bump_repo_dir=$scratch/bump
   mkdir -p "$bump_repo_dir/.claude-plugin" "$bump_repo_dir/docs" "$bump_repo_dir/scripts"
-  git_t -C "$bump_repo_dir" init -q --template= -b main
+  # separate git dir: the sandbox refuses writes to any .git/config, nested repos included
+  git_t init -q --template= --separate-git-dir="$scratch/bump.gd" -b main "$bump_repo_dir"
   echo '{"name":"dev","version":"0.1.0"}' > "$bump_repo_dir/.claude-plugin/plugin.json"
   echo one > "$bump_repo_dir/docs/a.md"; echo one > "$bump_repo_dir/scripts/a.sh"
   git_t -C "$bump_repo_dir" add -A; git_t -C "$bump_repo_dir" commit -q -m base

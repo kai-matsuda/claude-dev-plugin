@@ -754,5 +754,24 @@ lacks "re-cut blocks a bump on itself" 'every open ticket of the story is blocke
 
 fi
 
+# version-bump rule: a diff under skills/ or docs/ needs a version change in the plugin manifest.
+# The diff runs from VERSION_BUMP_BASE (CI sets it to the PR base) or else the merge-base with
+# main, to HEAD; VERSION_BUMP_REPO overrides the repo (the regression test's throwaway repo).
+# A no-op on main itself, and in a tree that is not a git repo.
+bump_repo=${VERSION_BUMP_REPO:-$root}
+if git -C "$bump_repo" rev-parse --git-dir >/dev/null 2>&1 \
+  && [ "$(git -C "$bump_repo" rev-parse --abbrev-ref HEAD 2>/dev/null)" != main ]; then
+  echo "== version bump"
+  base=${VERSION_BUMP_BASE:-$(git -C "$bump_repo" merge-base main HEAD 2>/dev/null)}
+  if [ -z "$base" ]; then
+    bad "version bump: no diff base (no main branch to merge-base with; set VERSION_BUMP_BASE)"
+  elif [ -n "$(git -C "$bump_repo" diff --name-only "$base" HEAD -- skills docs)" ]; then
+    manifest=.claude-plugin/plugin.json
+    old=$(git -C "$bump_repo" show "$base:$manifest" 2>/dev/null | grep -F '"version"')
+    new=$(git -C "$bump_repo" show "HEAD:$manifest" 2>/dev/null | grep -F '"version"')
+    [ "$old" != "$new" ] || bad "version bump: skills/ or docs/ changed since ${base:0:9} but $manifest has no version change"
+  fi
+fi
+
 [ "$fail" = 0 ] && echo "PASS"
 exit "$fail"
