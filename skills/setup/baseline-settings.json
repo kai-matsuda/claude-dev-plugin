@@ -4,8 +4,8 @@
       "Bash(bd *)"
     ],
     "ask": [
-      "Bash(git reset --hard *)",
-      "Bash(git clean *)",
+      "Bash(git reset --hard*)",
+      "Bash(git clean*)",
       "Bash(git stash drop*)",
       "Bash(git stash clear*)",
       "Bash(bd dolt push*)"
@@ -16,24 +16,28 @@
       "Read(~/.aws/**)",
       "Edit(~/.aws/**)",
       "Read(~/.gnupg/**)",
+      "Edit(~/.gnupg/**)",
       "Read(~/.kube/**)",
+      "Edit(~/.kube/**)",
       "Read(~/.netrc)",
+      "Edit(~/.netrc)",
       "Read(**/.env)",
-      "Read(**/.env.*)",
       "Edit(**/.env)",
+      "Read(**/.env.*)",
       "Edit(**/.env.*)",
-      "Read(**/.beads-credential-key)"
+      "Read(**/.beads-credential-key)",
+      "Edit(**/.beads-credential-key)"
     ]
   },
   "sandbox": {
     "enabled": true,
     "autoAllowBashIfSandboxed": true,
     "excludedCommands": [
-      "git push *",
-      "git fetch *",
-      "git pull *",
-      "bd dolt push *",
-      "bd dolt pull *"
+      "git push*",
+      "git fetch*",
+      "git pull*",
+      "bd dolt push*",
+      "bd dolt pull*"
     ],
     "filesystem": {
       "allowRead": [

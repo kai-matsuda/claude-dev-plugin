@@ -13,10 +13,21 @@ if command -v bd >/dev/null 2>&1; then present bd; else absent bd "the beads iss
 if command -v gh >/dev/null 2>&1 || command -v tea >/dev/null 2>&1; then present "gh or tea"
 else absent "gh or tea" "the forge CLI for pull requests"; fi
 
-if [ -n "$(find "$plugins_dir" -type d -name mattpocock-skills -print -quit 2>/dev/null)" ]; then present mattpocock-skills
+# installed means listed in installed_plugins.json, not merely left in the cache
+if grep -qs '"mattpocock-skills@' "$plugins_dir/installed_plugins.json"; then present mattpocock-skills
 else absent mattpocock-skills "install it from the official marketplace"; fi
 
-if command -v claude >/dev/null 2>&1 && claude mcp list 2>/dev/null | grep -qi atlassian; then present "Atlassian MCP"
+# Atlassian MCP: read from config, never by running `claude mcp list` (that health-checks every
+# server, needs the network, and fails inside the sandbox). A server name in ~/.claude.json or an
+# installed plugin named for it counts; whether it is authenticated is the owner's to confirm.
+if grep -Eiqs '"[^"]*atlassian[^"]*"' "$HOME/.claude.json" \
+   || grep -Eiqs '"[^"]*atlassian[^"@]*@' "$plugins_dir/installed_plugins.json"; then present "Atlassian MCP"
 else absent "Atlassian MCP" "connect the Atlassian connector, for the Jira Epic"; fi
+
+# the stub and the baseline are always printed, for the owner to paste
+here=$(cd "${BASH_SOURCE[0]%/*}" && pwd)
+echo; echo "=== paste into ~/.claude/CLAUDE.md ==="; cat "$here/claude-md-stub.md"
+echo; echo "=== merge into ~/.claude/settings.json (merge the arrays; do not replace) ==="; cat "$here/baseline-settings.json"
+echo
 
 if [ "$missing" = 0 ]; then echo "all prerequisites present"; else exit 1; fi
