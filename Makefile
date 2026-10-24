@@ -13,6 +13,7 @@ ci: ## Lint the skill docs and run the lint, guard-rm and setup tests (what GitH
 	scripts/test-lint-skill-docs.sh
 	scripts/test-guard-rm.sh
 	scripts/test-setup-skill.sh
+	scripts/test-setup-repo-skill.sh
 
 fixtures: ## Run the scripted fixture tests against throwaway beads databases (needs bd and cargo)
 	scripts/test-fixture-stage-boundary.sh
