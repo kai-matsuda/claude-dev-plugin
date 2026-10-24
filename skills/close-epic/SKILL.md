@@ -5,7 +5,7 @@ disable-model-invocation: true
 ---
 
 Closes out one feature whose PRs have merged. A driver: `/dev:close-story` verifies and closes
-each **story** (GLOSSARY.md), this skill closes the **epic bead** after them and updates the
+each **story** (${CLAUDE_PLUGIN_ROOT}/GLOSSARY.md), this skill closes the **epic bead** after them and updates the
 Jira Epic. The rules it enforces are in `${CLAUDE_PLUGIN_ROOT}/docs/agents/issue-tracker.md`, under
 "When a skill says 'close the epic'". Every precondition refuses rather than proceeds, with
 no override flag: the remedy is a visible action the user takes first. Jira never sees
@@ -14,7 +14,7 @@ individual tickets or stories.
 ## 1. Pick the epic bead
 
 Before any `bd` call, check `test -d <home>/.beads` (`<home>` and the session mode are as
-**the one test** in `issue-tracker.md`'s opening defines them): without it, plain `bd`
+**the one test** in `${CLAUDE_PLUGIN_ROOT}/docs/agents/issue-tracker.md`'s opening defines them): without it, plain `bd`
 climbs to an ancestor's database (another home's inbox). Missing →
 `refused: no beads database in <home>`, and stop.
 
@@ -26,10 +26,10 @@ it. Several → list them and ask which. None → say so and stop.
 
 ## 2. Gather the stories
 
-Run the "Stories" gather of "fetch the relevant ticket" in `issue-tracker.md`, its fallback
+Run the "Stories" gather of "fetch the relevant ticket" in `${CLAUDE_PLUGIN_ROOT}/docs/agents/issue-tracker.md`, its fallback
 and failure rules included. Keep each story's `<owner>`, its owner repo's absolute path; in
 a repo session the only story is the home story and its owner is `<home>`. Skip
-`retro`-labelled beads (issue-tracker.md).
+`retro`-labelled beads (${CLAUDE_PLUGIN_ROOT}/docs/agents/issue-tracker.md).
 
 Check for a **flat epic** separately: `bd list --parent <epic-id> --all --json` is the
 epic's direct children (none in a workspace session); the `--all` is load-bearing, since

@@ -3,7 +3,7 @@ name: close-story
 description: "Close one repo's story bead after its PR merges. Use when a story's PR has merged, or when /dev:close-epic checks each story."
 ---
 
-Closes one **story** (GLOSSARY.md): the part of a feature that lands in one repo, whose children are
+Closes one **story** (${CLAUDE_PLUGIN_ROOT}/GLOSSARY.md): the part of a feature that lands in one repo, whose children are
 **tickets**. Takes a story bead id, and optionally the path of the repo that owns it. With
 a path, every `bd` call below is `bd -C <path> ...` and every forge command names that
 repo (`git -C <path> remote get-url origin`, `gh -R <owner/repo>`, `tea` run with
@@ -47,7 +47,7 @@ The publish ticket is a ticket like any other. A child that is not `closed` but
 carries `needs-triage` or `wontfix` is not a ticket: it is a note an earlier run left
 under the story (a review deferral filed before deferrals went to the inbox), with nothing
 to implement, and it holds back neither the PR nor this close, as **finished story**
-(GLOSSARY.md) counts it; it stays open for `/dev:triage` in the repo session, where
+(${CLAUDE_PLUGIN_ROOT}/GLOSSARY.md) counts it; it stays open for `/dev:triage` in the repo session, where
 `bd list -l needs-triage -s open` finds it whatever its parent's status. Any other child
 not `closed` → `<id> refused: open tickets <child> <status> <label>, ...`, each as the
 line above prints it. No children → `<id> refused: no tickets to verify`.
