@@ -33,7 +33,8 @@ lint_scratch() {
   [ $# -gt 0 ] || set -- "" "$scratch/WORKFLOW.md"
   out=$(SKILLS_DIR=${skills_dir:-$scratch/skills} AGENT_DOCS=${agent_docs:-$scratch/agents} \
     USER_CLAUDE_MD=${claude_md:-$scratch/CLAUDE.md} \
-    PLUGIN_SKILLS=$scratch/plugin "$lint" "$@" 2>&1)
+    PLUGIN_SKILLS=$scratch/plugin VERSION_BUMP_REPO=${bump_repo_dir:-$repo_root} \
+    VERSION_BUMP_BASE=${bump_base-HEAD} "$lint" "$@" 2>&1)
   rc=$?
   printf '%s\n%s\n' "$out" "$rc"
 }
@@ -88,5 +89,53 @@ expect "foreground spawn instruction in a skill fails" 1 "foreground spawn instr
 fresh
 printf 'a shortcut one exists\nthe cut ones stay\n' >> "$scratch/skills/sample/SKILL.md"
 expect "words containing the retired phrase do not false-fail" 0
+
+# --- the version-bump rule, on a throwaway git repo the lint reads via VERSION_BUMP_REPO ---
+# The other cases pin the diff base to HEAD (an empty diff), so the checkout the test runs in
+# never decides them; these cases unset the base and let the lint derive the merge-base itself.
+git_t() { git -c core.hooksPath=/dev/null -c hook.commitlint.enabled=false -c user.name=t -c user.email=t@t -c commit.gpgsign=false "$@"; }
+# bump_repo <branch>: a repo on main with a manifest at 0.1.0, <branch> checked out from it
+bump_repo() {
+  fresh
+  bump_repo_dir=$scratch/bump
+  mkdir -p "$bump_repo_dir/.claude-plugin" "$bump_repo_dir/docs" "$bump_repo_dir/scripts"
+  git_t -C "$bump_repo_dir" init -q --template= -b main
+  echo '{"name":"dev","version":"0.1.0"}' > "$bump_repo_dir/.claude-plugin/plugin.json"
+  echo one > "$bump_repo_dir/docs/a.md"; echo one > "$bump_repo_dir/scripts/a.sh"
+  git_t -C "$bump_repo_dir" add -A; git_t -C "$bump_repo_dir" commit -q -m base
+  [ "$1" = main ] || git_t -C "$bump_repo_dir" checkout -q -b "$1"
+}
+bump_commit() { git_t -C "$bump_repo_dir" add -A; git_t -C "$bump_repo_dir" commit -q -m "$1"; }
+bump_base=   # empty: the lint derives the merge-base itself
+
+bump_repo feat
+echo two > "$bump_repo_dir/docs/a.md"; bump_commit "docs change"
+expect "a docs change without a version bump fails" 1 "version bump"
+
+bump_repo feat
+echo two > "$bump_repo_dir/docs/a.md"
+echo '{"name":"dev","version":"0.2.0"}' > "$bump_repo_dir/.claude-plugin/plugin.json"; bump_commit "docs change and bump"
+expect "a docs change with a version bump passes" 0
+
+bump_repo feat
+mkdir -p "$bump_repo_dir/skills/x"; echo s > "$bump_repo_dir/skills/x/SKILL.md"; bump_commit "skill change"
+expect "a skills change without a version bump fails" 1 "version bump"
+
+bump_repo feat
+echo two > "$bump_repo_dir/scripts/a.sh"; bump_commit "scripts change"
+expect "a scripts-only change passes" 0
+
+bump_repo feat
+echo two > "$bump_repo_dir/docs/a.md"; bump_commit "docs change"
+bump_base=HEAD
+expect "the base variable overrides the merge-base" 0
+bump_base=HEAD~1
+expect "a base variable naming the PR base diffs against it" 1 "version bump"
+bump_base=
+
+bump_repo main
+echo two > "$bump_repo_dir/docs/a.md"; bump_commit "docs change on main"
+expect "the rule is a no-op on main" 0
+unset bump_repo_dir
 
 report_fails
