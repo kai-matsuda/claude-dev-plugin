@@ -1,0 +1,51 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bd *)"
+    ],
+    "ask": [
+      "Bash(git reset --hard *)",
+      "Bash(git clean *)",
+      "Bash(git stash drop*)",
+      "Bash(git stash clear*)",
+      "Bash(bd dolt push*)"
+    ],
+    "deny": [
+      "Read(~/.ssh/**)",
+      "Edit(~/.ssh/**)",
+      "Read(~/.aws/**)",
+      "Edit(~/.aws/**)",
+      "Read(~/.gnupg/**)",
+      "Read(~/.kube/**)",
+      "Read(~/.netrc)",
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Edit(**/.env)",
+      "Edit(**/.env.*)",
+      "Read(**/.beads-credential-key)"
+    ]
+  },
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true,
+    "excludedCommands": [
+      "git push *",
+      "git fetch *",
+      "git pull *",
+      "bd dolt push *",
+      "bd dolt pull *"
+    ],
+    "filesystem": {
+      "allowRead": [
+        "~/.beads",
+        "~/.dolt",
+        "~/.config/bd"
+      ],
+      "allowWrite": [
+        "~/.beads",
+        "~/.dolt",
+        "~/.config/bd"
+      ]
+    }
+  }
+}
