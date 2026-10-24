@@ -208,25 +208,21 @@ mkdir -p "$scratch/plugin/engineering/tdd"
 echo "run /mattpocock-skills:tdd" >> "$scratch/skills/sample/SKILL.md"
 expect "a skill under a category directory resolves" 0
 
-# the docs may name a planned dev: skill (the lint's declared list) before its skill ticket
-# builds it, whether or not other skills have shipped, so each batch lands on its own; an
-# unknown dev: name fails either way, a bare /<skill> still fails, and so does a missing
-# mattpocock-skills: one
+# a /dev:<x> resolves only to a skill dir that exists: a dropped or renamed skill fails,
+# whichever skill it was, and so do a bare /<skill> and a missing mattpocock-skills: one
+# when no skill has shipped
 fresh
 mkdir -p "$scratch/noskills"
 echo "run /dev:nope" >> "$scratch/agents/sample.md"
 skills_dir=$scratch/noskills expect "an unknown /dev:<x> fails while no skill has shipped" 1 "/dev:nope names no skill"
 fresh
 mkdir -p "$scratch/noskills"
-echo "run /dev:setup-repo and /dev:triage" >> "$scratch/agents/sample.md"
-skills_dir=$scratch/noskills expect "a planned /dev:<x> passes while no skill has shipped" 0
+echo "run /dev:setup-repo" >> "$scratch/agents/sample.md"
+skills_dir=$scratch/noskills expect "a /dev:<x> for one of the plugin's skills fails when its dir is gone" 1 "/dev:setup-repo names no skill"
 fresh
-echo "run /dev:setup-repo and /dev:triage" >> "$scratch/agents/sample.md"
-expect "a planned /dev:<x> passes while other skills have shipped" 0
-fresh
-mkdir -p "$scratch/skills/not-planned"; touch "$scratch/skills/not-planned/SKILL.md"
-echo "run /dev:not-planned" >> "$scratch/agents/sample.md"
-expect "a shipped /dev:<x> passes though it is not planned" 0
+mkdir -p "$scratch/skills/new-skill"; touch "$scratch/skills/new-skill/SKILL.md"
+echo "run /dev:new-skill" >> "$scratch/agents/sample.md"
+expect "a shipped /dev:<x> passes" 0
 fresh
 mkdir -p "$scratch/noskills"
 echo "run /close-story" >> "$scratch/agents/sample.md"
