@@ -195,7 +195,7 @@ the session's repo or under `~/src`. It prevents two failures from INFRA-29's ru
 worktree agents inherited the macOS default temp directory, which the sandbox denies:
 `mktemp -d` failing with `mkdtemp failed on /var/folders/.../T/...: Operation not
 permitted` (the root of the `rm -rf` incident, chezmoi-cyc), and a heredoc or here-string
-failing with `cannot create temp file for here document`, which kills any script that uses
+failing with `cannot create temp file for here document`, which breaks any script that uses
 one (`scripts/lint-skill-docs.sh` did, twice), since bash 3.2 writes a heredoc to a file
 under `TMPDIR`. What a worktree agent inherits varies: the worktree probe of 2026-10-23
 saw the sandbox's `/tmp/claude-502` there, and its heredocs passed with and without the
@@ -304,7 +304,7 @@ restarts and a fourth driver run, and `chezmoi-9v4.1.1` took seven Fable rounds.
 The **frontier** is the set of tickets an orchestrator may start now. Work only the frontier.
 A ticket is on it when all of these hold:
 
-- it is open and unclaimed, and `bd ready` in its owner repo lists it (`bd -C <owner> ready
+- it is open and unclaimed, and `bd ready` lists it in its owner repo (`bd -C <owner> ready
   -n 0 --json`, since the default limit is 100). Native edges stay inside one database, so
   `bd ready` honours them;
 - it is labelled `ready-for-agent`. `bd ready` does not treat labels specially, so the

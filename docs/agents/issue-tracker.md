@@ -581,8 +581,8 @@ Rules:
   that tier's review model, as `orchestration.md` "Complexity tier" says.
 
 Applying it: when a skill spawns an implementation or review subagent, pass the mapped
-model via the Agent tool's `model` parameter. When working in the main session, state the
-bead's tier so the user can `/model` accordingly.
+model via the Agent tool's `model` parameter. When the session does the work itself, with
+no subagent, state the bead's tier so the user can `/model` accordingly.
 
 Queries: `bd list -l complexity:high` for work that needs the big model;
 `bd ready -l complexity:low` for cheap, grabbable work.
