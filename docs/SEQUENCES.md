@@ -38,20 +38,30 @@ sequenceDiagram
     I-->>R: "ready for review" (branch, worktree path)
     Note over I: done, never messaged again
 
-    loop up to three blocking rounds
-        R->>V: spawn, call the built-in code-review (effort = tier), standards sources spelled out
-        V-->>R: findings tagged blocking or minor, last line verdict clean or blocking (n)
-        R->>BD: note ticket "review n" with the findings and the verdict line
-        alt verdict blocking
-            R->>F: spawn a fresh fix-up pointed at that note, no isolation
+    loop up to three rounds, red checks and blocking verdicts counted together
+        R->>R: check gate in the worktree, lint then the test seams, first red stops
+        alt gate red
+            R->>BD: note ticket "checks n: red" with the failing command
+            R->>F: spawn a fresh fix-up pointed at the failing command and its log path, same worktree
             F->>F: fix, test, commit, merge the branch tip
-            F-->>R: report
-        else verdict clean (minors or none)
-            Note over R: no reviewer runs again
+            F-->>R: report, the next round's gate runs first
+        else gate green, tier low
+            Note over R: no reviewer for low, the loop ends
+        else gate green, tier medium or high
+            R->>V: spawn, call the built-in code-review (effort = tier), standards sources spelled out
+            V-->>R: findings tagged blocking or minor, last line verdict clean or blocking (n)
+            R->>BD: note ticket "review n" with the findings and the verdict line
+            alt verdict blocking
+                R->>F: spawn a fresh fix-up pointed at that note, no isolation
+                F->>F: fix, test, commit, merge the branch tip
+                F-->>R: report, the next round's gate runs first
+            else verdict clean (minors or none)
+                Note over R: no reviewer runs again, the loop ends
+            end
         end
     end
 
-    alt third verdict blocking
+    alt third round red, or third verdict blocking
         R-->>R: report "ticket failed" with the reason
     else clean
         opt minors in scope
@@ -105,7 +115,7 @@ sequenceDiagram
         O->>BD: unclaim cut-off tickets, then bd ready --parent story (ready-for-agent only, minus twice-failed)
         loop every frontier ticket, spawned in one message, all running at once
             O->>TR: spawn with the runner brief
-            Note over TR: stage 1 (claim, implementer, reviewer, fix-ups, merger, close)
+            Note over TR: stage 1 (claim, implementer, check gate, reviewer, fix-ups, merger, close)
             TR-->>O: one line, closed or needs split or failed
         end
         opt first closed ticket
@@ -122,6 +132,14 @@ sequenceDiagram
 
     O->>O: git rev-parse the integration branch tip
     opt no review marker, or the tip has moved since
+        O->>O: check gate on the tip, lint then the test seams, read-only, first red stops
+        opt gate red
+            O->>F: fix-up with the failing command and its log path
+            F-->>O: report
+            O->>M: merger, its two runs (lint and seams in the worktree, then in owner)
+            M-->>O: merged
+            O->>O: check gate again, a second red fails the story, no review and no delivery
+        end
         O->>CR: Skill call on the owner repo (diff and log against the default branch, standards paths, spec = story + tickets + Jira epic)
         par two axes at the story tier's review model
             CR->>S: repo standards plus the plugin's coding-standards.md
@@ -144,13 +162,14 @@ sequenceDiagram
         O->>BD: note story "review" with the new tip SHA
     end
 
-    O->>O: run the test seams on the tip (read-only, timeout 600000)
-    opt seams red
+    O->>O: Evidence run, the checks on the tip, lint then the test seams (read-only, timeout 600000)
+    Note over O: each check's command, exit and last twenty lines are the PR's Evidence
+    opt red
         O->>F: fix-up (spawned here if the marker skipped the review)
         F-->>O: report
-        O->>M: merger
+        O->>M: merger, its two runs (lint and seams in the worktree, then in owner)
         M-->>O: merged
-        O->>O: rerun the seams, marker unchanged (a seam fix is unreviewed), a second red run fails the story
+        O->>O: rerun the checks, marker unchanged (a fix here is unreviewed), a second red run fails the story
     end
 
     O->>O: stray-commit check on default branch..integration branch
