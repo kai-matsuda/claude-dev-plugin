@@ -18,8 +18,9 @@ four skills answer to that name.
 
 ## Stage 1: per-ticket review
 
-Runner brief steps 2 to 5, for `medium` and `high` tickets. A `low` ticket has no
-reviewer: its implementer reports, and the **ticket runner** goes straight to the merger.
+Runner brief steps 2 to 5, every tier. The check gate runs for `low` too; only `medium` and
+`high` get a reviewer. A `low` ticket goes from a green gate straight to the merger, and the
+**ticket runner** does not spawn a reviewer for it.
 
 ```mermaid
 sequenceDiagram
@@ -72,9 +73,9 @@ sequenceDiagram
             R->>IN: capture a retro item (needs-triage), never a bead of the story
         end
         R->>M: spawn the merger
-        M->>M: merge the branch tip into the ticket branch, test
+        M->>M: merge the branch tip into the ticket branch, run the checks there, lint included
         M->>M: wait on the owner's index.lock, stray-commit check
-        M->>M: merge into the integration branch, retest
+        M->>M: merge into the integration branch, rerun the checks in owner, lint included
         alt passing needs code changes
             M-->>R: report the changes needed
             R->>F: fresh fix-up, then merge again
