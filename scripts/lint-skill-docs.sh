@@ -144,8 +144,8 @@ set -u
 root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 fail=0
 bad() { echo "FAIL: $*"; fail=1; }
-# has (grep -iF), hasc (-F), hase (-E), lacks (-iE) and lacksf (-iF) check <pattern> against $f
-# line by line, as those greps would; line_has (-F), line_hase (-E) and line_lacks (-F) check it
+# has (grep -iF), hasc (-F), hase (-E), lacks (-iE), lacksf (-iF) and lackse (-E) check <pattern>
+# against $f line by line, as those greps would; line_has (-F), line_hase (-E) and line_lacks (-F) check it
 # on the lines matching <anchor> (-E), as a grep -E <anchor> | grep -q pipeline would; para_has
 # (-iF) on the first paragraph opening with <heading> (that line to the next empty one), and
 # opening_has (-F) on the lines before the first "## ". Each only queues its check: a section's
@@ -159,13 +159,15 @@ hasc() { queue+="c	$f	$1	$2"$'\n'; }
 hase() { queue+="e	$f	$1	$2"$'\n'; }
 lacks() { [ -f "$f" ] || return 0; queue+="x	$f	$1	$2"$'\n'; }
 lacksf() { [ -f "$f" ] || return 0; queue+="f	$f	$1	$2"$'\n'; }
+lackse() { [ -f "$f" ] || return 0; queue+="y	$f	$1	$2"$'\n'; }
 line_has() { queue+="a	$f	$2	$3	$1"$'\n'; }   # <anchor> <description> <phrase>
 line_hase() { queue+="A	$f	$2	$3	$1"$'\n'; }   # <anchor> <description> <pattern>
 line_lacks() { [ -f "$f" ] || return 0; queue+="X	$f	$2	$3	$1"$'\n'; }   # <anchor> <description> <phrase>
 para_has() { queue+="p	$f	$2	$3	$1"$'\n'; }   # <heading> <description> <phrase>
 opening_has() { queue+="o	$f	$1	$2"$'\n'; }
-# run the queued checks: a missing has/hasc/hase pattern or a present lacks one is a FAIL line,
-# a lacks one followed by its first three matching lines, numbered as grep -n numbers them
+# run the queued checks: a missing pattern or a present lacks one is a FAIL line; a lacks, lacksf
+# or lackse one is followed by its first three matching lines, numbered as grep -n numbers them,
+# an anchored one names its anchor, a paragraph or opening one the scope it searched
 checks_run() {
   local out
   [ -n "$queue" ] || return 0
@@ -185,6 +187,7 @@ checks_run() {
             else if (t == "e") { if (line ~ p[i]) hit[i] = 1 }
             else if (t == "x") { if (low ~ lp[i] && ++hit[i] <= 3) shown[i] = shown[i] ln ":" line "\n" }
             else if (t == "f") { if (index(low, lp[i]) && ++hit[i] <= 3) shown[i] = shown[i] ln ":" line "\n" }
+            else if (t == "y") { if (line ~ p[i] && ++hit[i] <= 3) shown[i] = shown[i] ln ":" line "\n" }
             else if (t == "a" || t == "X") { if (line ~ a[i] && index(line, p[i])) hit[i] = 1 }
             else if (t == "A") { if (line ~ a[i] && line ~ p[i]) hit[i] = 1 }
             else if (t == "p") {
@@ -201,7 +204,7 @@ checks_run() {
       }
       for (i = 1; i <= NR; i++) {
         t = k[i]
-        if (t == "x" || t == "f") { if (hit[i]) printf "FAIL: present: %s (%s)\n%s", d[i], p[i], shown[i] }
+        if (t == "x" || t == "f" || t == "y") { if (hit[i]) printf "FAIL: present: %s (%s)\n%s", d[i], p[i], shown[i] }
         else if (t == "X") { if (hit[i]) printf "FAIL: present: %s (%s on a line matching %s)\n", d[i], p[i], a[i] }
         else if (hit[i]) continue
         else if (t == "a" || t == "A") printf "FAIL: missing: %s (%s on a line matching %s)\n", d[i], p[i], a[i]
@@ -338,7 +341,7 @@ hase "/mattpocock-skills:pr named (Variants)" '/mattpocock-skills:pr([^a-z-]|$)'
 
 # /pr stays off the main line: the fenced flow block and stage 5
 awk '/^```/{fence=!fence; next} fence && /\/mattpocock-skills:pr([^a-z-]|$)/ {n=1} END{exit n}' "$f" || bad "/mattpocock-skills:pr in the fenced flow"
-lacks "/mattpocock-skills:pr in stage 5" '^\| 5 .*/mattpocock-skills:pr([^a-z-]|$)'
+lackse "/mattpocock-skills:pr in stage 5" '^\| 5 .*/mattpocock-skills:pr([^a-z-]|$)'
 
 # the stage table stays one table (rows 1..8 contiguous)
 awk '/^\| 1 \|/{on=1} on && !/^\|/{bad=1} /^\| 8 \|/{on=0} END{exit bad}' "$f" || bad "stage table broken by a non-row line"

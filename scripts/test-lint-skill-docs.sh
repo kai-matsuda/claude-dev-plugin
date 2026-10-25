@@ -44,13 +44,24 @@ cp -R "$repo_root/skills" "$repo_root/docs" "$repo_root/CLAUDE.md" "$repo_root/G
 cp -R "$fixtures/skills/sample" "$pristine/skills/"
 cp "$fixtures/agents/sample.md" "$pristine/docs/agents/"
 (cd "$pristine" && sort -u <<<"$plugin_names" | sed 's|^|plugin/|' | xargs mkdir -p)
+# the scratch dir's top-level entries in $entries, dotfiles included and .jobs left out, with
+# no process: the sweep below and expect's move both start from it, so a dotfile a case writes
+# at the top level moves with the tree and never leaks into a later case
+scratch_entries() {
+  local e
+  entries=()
+  for e in "$scratch"/* "$scratch"/.[!.]* "$scratch"/..?*; do
+    { [ -e "$e" ] || [ -L "$e" ]; } && [ "$e" != "$jobs" ] || continue
+    entries+=("$e")
+  done
+}
 # fresh copy of the tree, so each case edits only its own file; empties the dir (but .jobs)
 # rather than recreating it (see fx_scratch_dir). After an expect the dir is already empty
 # (expect moved the tree away), so the sweep runs only when a case left something behind
 handed=0   # 1 once expect has taken the current tree; fresh resets it
 fresh() {
-  local left=("$scratch"/*)
-  [ ! -e "${left[0]}" ] || find "$scratch" -mindepth 1 -maxdepth 1 ! -name .jobs -exec rm -rf {} +
+  scratch_entries
+  [ "${#entries[@]}" -eq 0 ] || find "$scratch" -mindepth 1 -maxdepth 1 ! -name .jobs -exec rm -rf {} +
   cp -R "$pristine/." "$scratch/"
   handed=0
 }
@@ -135,7 +146,8 @@ expect() {
   fi
   handed=1
   mkdir "$dir"
-  mv "$scratch"/* "$dir/"   # the glob skips .jobs; the tree moves, nothing is copied
+  scratch_entries
+  mv ${entries[@]+"${entries[@]}"} "$dir/"   # the tree moves, nothing is copied
   for a in "$@"; do a=${a//"$scratch"/"$dir"}; args+=("$a"); done
   read -r -n 1 -u 3 _   # wait for a free slot
   (
