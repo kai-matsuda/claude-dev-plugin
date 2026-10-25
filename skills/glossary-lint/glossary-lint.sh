@@ -5,9 +5,10 @@
 # files under its own directory, so a root glossary covers the repo and a
 # context glossary (src/<context>/GLOSSARY.md) covers its context.
 #
-# Prose is tracked Markdown, minus glossaries and docs/specs/ (past plans),
-# plus doc comments in the languages listed in DOC_COMMENT below. Fenced blocks
-# and `code spans` are skipped: identifiers are not prose.
+# Prose is tracked Markdown, minus glossaries, docs/specs/ (past plans) and any
+# .beads/ (tool-generated), plus doc comments in the languages listed in
+# doc_prefix below. Fenced blocks and `code spans` are skipped: identifiers are
+# not prose. Avoid terms match literally, as whole words with an optional s/es.
 #
 # Senses a glossary permits go in .glossary-allow at the repo root, one per
 # line as "<path> <term>  # reason"; each allows the term everywhere in <path>.
@@ -17,7 +18,7 @@
 # Avoid also parse. A note may wrap onto the next lines, up to a blank line or the
 # next entry. A glossary that yields no entries gets a warning on stderr.
 #
-# Exit status: 0 clean (or no glossary), 1 violations found.
+# Exit status: 0 clean (or no glossary, or no file to scan), 1 violations found.
 set -eu
 cd "$(git rev-parse --show-toplevel)"
 
@@ -28,7 +29,10 @@ if [ -z "$glossaries" ]; then
 fi
 
 files=$(git ls-files -- '*.md' '*.rs' \
-  ':!GLOSSARY.md' ':!**/GLOSSARY.md' ':!GLOSSARY-MAP.md' ':!docs/specs/')
+  ':!GLOSSARY.md' ':!**/GLOSSARY.md' ':!GLOSSARY-MAP.md' ':!docs/specs/' \
+  ':!.beads/' ':!**/.beads/**')
+# No files would leave awk reading stdin.
+[ -n "$files" ] || exit 0
 
 # The glossary list goes through the environment: BSD awk rejects newlines in -v.
 export GLOSSARY_LINT_GLOSSARIES="$glossaries"
@@ -50,8 +54,22 @@ function add_avoid(note, d, h,    n, i, t, k, parts) {
     t = tolower(parts[i]); gsub(/^ +| +$/, "", t)
     if (t == "") continue
     k = d SUBSEP t
-    use[k] = (k in use) ? use[k] " or " tolower(h) : tolower(h)
+    # Tested before the assignment: mawk creates use[k] before evaluating the right side.
+    if (k in use) use[k] = use[k] " or " tolower(h)
+    else use[k] = tolower(h)
   }
+}
+# True when term t appears in s as a whole word, optionally plural (s/es). Matched with
+# index(), not a regex: a term may hold metacharacters (a.b, c++) that must match literally.
+function has_word(s, t,    i, at, rest) {
+  at = 0
+  while ((i = index(substr(s, at + 1), t)) > 0) {
+    at += i
+    rest = substr(s, at + length(t))
+    if (at > 1 && substr(s, at - 1, 1) ~ /[a-z0-9_]/) continue
+    if (rest ~ /^(es|s)?([^a-z0-9_]|$)/) return 1
+  }
+  return 0
 }
 BEGIN {
   ng = split(ENVIRON["GLOSSARY_LINT_GLOSSARIES"], gs, "\n")
@@ -102,9 +120,10 @@ FNR == 1 { fence = 0; prefix = doc_prefix(FILENAME); md = FILENAME ~ /\.md$/ }
   lower = tolower(text)
   for (k in use) {
     split(k, p, SUBSEP)
-    if (index(FILENAME, p[1]) != 1) continue
+    # A prefix test, not index(FILENAME, p[1]) == 1: awks disagree on index(s, "") for the root glossary.
+    if (substr(FILENAME, 1, length(p[1])) != p[1]) continue
     if ((FILENAME, p[2]) in allow) continue
-    if (lower ~ ("(^|[^a-z0-9_])" p[2] "(s|es)?([^a-z0-9_]|$)")) {
+    if (has_word(lower, p[2])) {
       printf "%s:%d: \"%s\" is on the glossary avoid list; use %s\n", FILENAME, FNR, p[2], use[k]
       hits++
     }

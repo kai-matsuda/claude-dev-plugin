@@ -9,3 +9,7 @@ story waits on), manual step
 The repo that holds a story.
 _Avoid_: primary repo,
 home base
+
+**Dotted term**:
+A term whose avoid list holds regex metacharacters, matched literally.
+_Avoid_: a.b, c++
