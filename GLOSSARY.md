@@ -189,11 +189,18 @@ sees it: a red sends the tip to a fix-up implementer, never to review. A ticket 
 it on each implementer's branch, the story orchestrator on the integration branch.
 _Avoid_: test gate, lint gate, seam gate
 
+**Evidence run**:
+The story orchestrator's last run of a story's checks on the integration branch tip, after
+the review marker is written (or straight from a marker that matches the tip): each check's
+command, its exit and the last twenty lines of its log are the PR's Evidence. A red there
+gets one fix-up round and a rerun; the marker stays put, so a later run reviews the fix.
+_Avoid_: final checks, evidence check
+
 **Review marker**:
 The `review: <tip SHA>` note the story orchestrator writes on the story bead once the
 story review's findings are merged, or it found none. A rerun whose integration branch tip is that SHA skips
-the review and its fix-up and goes straight to the test seams; a tip that has moved
-since is reviewed again. Without it, whether a rerun re-reviewed an already reviewed
+the check gate, the review and its fix-up and goes straight to the Evidence run; a tip that
+has moved since is gated and reviewed again. Without it, whether a rerun re-reviewed an already reviewed
 tip was the orchestrator's guess.
 _Avoid_: review note, reviewed flag, review stamp
 
@@ -315,9 +322,9 @@ _Avoid_: pause, handoff, blocked run
 **Stall**:
 The end of a run of `/dev:implement-spec` or `/dev:implement-story` whose frontier is empty, with
 nothing in flight and no `ready-for-human` ticket open, while some ticket the story still
-waits for is open (Finished story above), a test seam is still red, or the push was
-refused. The run reports each stuck
-ticket with its open blocker, or the failed seam or push with its command.
+waits for is open (Finished story above), a check is still red after its fix-up round, or
+the push was refused. The run reports each stuck ticket with its open blocker, a red check
+as `failed: <check> <command>`, or the refused push with its command.
 _Avoid_: deadlock, hang
 
 **Repo manifest**:

@@ -89,7 +89,13 @@
 #      fix-up implementer and merger briefs start with the TMPDIR line, whose rule section 6
 #      checks in orchestration.md (chezmoi-3eg), and its reviewer brief tags every finding
 #      blocking or minor and ends on the verdict line, its runner step 3 and story review step 7
-#      pointing at the rules doc's Review verdict, whose rule section 6 checks (chezmoi-49k);
+#      pointing at the rules doc's Review verdict, whose rule section 6 checks (chezmoi-49k),
+#      and its step 3 resolves the owner's lint command once, which the runner brief's header
+#      and every brief it sends carry, runner step 2 taking it from the brief (dev-cq0.1.2),
+#      and its story review runs the check gate before the two-axis review, a matching marker
+#      jumping to the Evidence run, a second red stalling with failed: <check> <command>, the
+#      Evidence each check's command, exit and tail cited in step 8, and the retired "the
+#      command and its output" gone (dev-cq0.1.5); section 6 checks the rules doc's Check gate;
 #   9. /close-story: its Forgejo/Gitea query carries --repo <path> as the intro and
 #      /implement-story's merge guard do (dev-hac); its ticket check skips a child carrying
 #      needs-triage or wontfix, as the finished story does, and its refusal names each open
