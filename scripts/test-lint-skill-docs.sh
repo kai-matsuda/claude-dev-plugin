@@ -918,8 +918,8 @@ drop_phrase skills/implement-story/SKILL.md 'TMPDIR line'
 expect "implement-story whose briefs lose the TMPDIR line fails" 1
 
 # each brief is checked on its own: the line dropped from one step alone still fails (every
-# occurrence on that step's line: step 3 names it for the gate's fix-up and the reviewer's; swap_phrase takes one per pass, so
-# four bounded passes)
+# occurrence on that step's line: step 3 names it for the gate's fix-up and the blocking
+# fix-up; swap_phrase takes one per pass, so four bounded passes)
 for step in 2 3 4; do
   fresh
   for _ in 1 2 3 4; do
