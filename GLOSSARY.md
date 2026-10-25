@@ -37,6 +37,11 @@ A bead holding one implementation slice of a feature, a child of the story for t
 it changes. Tickets exist only in beads, never in Jira.
 _Avoid_: sub-task
 
+**Test seam**:
+The highest public boundary of a repo through which a feature can be tested, one of the
+few a story names under its `## Test seams`; every ticket of the story verifies at them.
+_Avoid_: test boundary, test surface, test entry point
+
 **Story cut**:
 The first of the two cuts a spec goes through: the spec resolved into its stories, one
 per repo it changes unless the spec or the user splits a repo's into several, each with
@@ -172,6 +177,17 @@ add mode, a PR closed unmerged refuses, an open one continues on the story's bra
 a branch-form note or no forge is decided locally, else asked. It is how a sealed story
 stays sealed.
 _Avoid_: merge check, PR check, seal check
+
+**Check**:
+One deterministic command whose exit code decides, the owner repo's lint or a test seam;
+a story's checks are that lint and its test seams together.
+_Avoid_: pre-flight, verification step
+
+**Check gate**:
+The read-only run of a story's checks on a branch tip, cheapest first, before any reviewer
+sees it: a red sends the tip to a fix-up implementer, never to review. A ticket runner runs
+it on each implementer's branch, the story orchestrator on the integration branch.
+_Avoid_: test gate, lint gate, seam gate
 
 **Review marker**:
 The `review: <tip SHA>` note the story orchestrator writes on the story bead once the
