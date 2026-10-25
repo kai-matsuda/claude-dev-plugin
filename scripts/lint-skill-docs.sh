@@ -794,6 +794,23 @@ grep -E "$L3" "$f" | grep -qF -- 'a command `CLAUDE.md` names runs in that same 
 grep -E '^> 2\. ' "$f" | grep -qF -- 'leaving out any the lint command already runs' || bad "missing: runner step 2 leaves out the tests the lint command already runs"
 grep -E '^> 2\. ' "$f" | grep -qF -- "the brief's lint command" || bad "missing: runner step 2 takes the lint command from the brief"
 grep -E '^> 2\. ' "$f" | grep -qF -- '`make lint`' && bad "present: runner step 2 offers a list of lint commands to choose from"
+# the ticket runner's check gate sits between the implementer (step 2) and the reviewer or
+# merger: it opens step 3 for every tier, ahead of the reviewer; each check is one logged Bash
+# call under the worktree's .tmp/; a red is noted on the ticket and counts toward the three
+# rounds the blocking reviews count toward; the implementer runs no gate (dev-cq0.1.4)
+G3='^> 3\. \*\*Check gate\*\*, every tier'
+grep -qE "$G3" "$f" || bad "missing: ticket runner step 3 opens with the check gate, every tier"
+grep -E "$G3" "$f" | grep -qE '\*\*Check gate\*\*.*Green: .*for `medium` and `high`, spawn a \*\*reviewer\*\*' || bad "missing: the check gate runs before step 3's reviewer"
+grep -E "$G3" "$f" | sed 's/Green: .*//' | grep -qF -- 'spawn a **reviewer**' && bad "present: ticket runner step 3 spawns a reviewer ahead of the check gate's green"
+grep -E "$G3" "$f" | grep -qF -- 'Green: for `low`, go to step 4' || bad "missing: a green gate sends low straight to the merger"
+grep -E '^> 2\. ' "$f" | grep -qF -- 'The implementer runs no gate and spawns no one' || bad "missing: runner step 2's implementer runs no gate and spawns no one"
+grep -E "$G3" "$f" | grep -qF -- 'mkdir -p <worktree path>/.tmp; export TMPDIR=<worktree path>/.tmp; <check> > <worktree path>/.tmp/checks-<round>-<k>.log 2>&1; echo exit=$?' || bad "missing: the check gate logs both streams under the worktree's .tmp/ and echoes the exit"
+grep -E "$G3" "$f" | grep -qF -- 'tail -n 40 <log>' || bad "missing: a red gate reads a forty-line tail of the log, never the whole output"
+grep -E "$G3" "$f" | grep -qF -- '`bd -C <owner> note <ticket-id> "checks <round>: red <command>"`' || bad "missing: a red gate's note form (checks <round>: red <command>)"
+grep -E "$G3" "$f" | grep -qF -- 'a green writes no note' || bad "missing: a green gate writes no note"
+grep -E "$G3" "$f" | grep -qF -- 'the log path, and no pasted output' || bad "missing: the gate's fix-up brief points at the log path"
+grep -E "$G3" "$f" | grep -qF -- 'a third round of either kind is `failed`' || bad "missing: red gates and blocking reviews share the three-round budget"
+grep -E "$G3" "$f" | grep -qF -- 'run the check gate again, and on green spawn a reviewer again' || bad "missing: a blocking round's fix-up passes the gate before the next reviewer"
 # the story review (step 7) runs the check gate on the integration branch tip before the
 # two-axis review, a matching marker jumping to the Evidence run; a second pre-review red stalls
 # with failed: <check> <command>; the Evidence is each check's command, exit and tail, cited so
