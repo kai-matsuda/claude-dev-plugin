@@ -230,6 +230,20 @@ mkdir -p "$scratch/noskills"
 echo "run /dev:setup-repo" >> "$scratch/agents/sample.md"
 skills_dir=$scratch/noskills expect "a /dev:<x> for one of the plugin's skills fails when its dir is gone" 1 "/dev:setup-repo names no skill"
 fresh
+echo "run /dev:no-such-skill" >> "$scratch/agents/sample.md"
+expect "a /dev:<x> naming no skill dir fails while other skills have shipped" 1 "/dev:no-such-skill names no skill"
+
+# a renamed skill turns every reference to its old name red, and its new name resolves (dev-89o)
+fresh
+mv "$scratch/skills/workflow" "$scratch/skills/guide"
+echo "run /dev:workflow" >> "$scratch/agents/sample.md"
+expect "a /dev:<x> for a renamed skill's old name fails" 1 "/dev:workflow names no skill"
+fresh
+mv "$scratch/skills/workflow" "$scratch/skills/guide"
+echo "run /dev:guide" >> "$scratch/agents/sample.md"
+expect "a /dev:<x> for a renamed skill's new name passes" 0
+
+fresh
 mkdir -p "$scratch/skills/new-skill"; touch "$scratch/skills/new-skill/SKILL.md"
 echo "run /dev:new-skill" >> "$scratch/agents/sample.md"
 expect "a shipped /dev:<x> passes" 0
