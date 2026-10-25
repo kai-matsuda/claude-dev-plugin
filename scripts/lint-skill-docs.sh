@@ -795,9 +795,10 @@ grep -E '^> 2\. ' "$f" | grep -qF -- '`make lint`' && bad "present: runner step 
 G3='^> 3\. \*\*Check gate\*\*, every tier'
 grep -qE "$G3" "$f" || bad "missing: ticket runner step 3 opens with the check gate, every tier"
 grep -E "$G3" "$f" | grep -qE '\*\*Check gate\*\*.*Green: .*for `medium` and `high`, spawn a \*\*reviewer\*\*' || bad "missing: the check gate runs before step 3's reviewer"
+grep -E "$G3" "$f" | sed 's/Green: .*//' | grep -qF -- 'spawn a **reviewer**' && bad "present: ticket runner step 3 spawns a reviewer ahead of the check gate's green"
 grep -E "$G3" "$f" | grep -qF -- 'Green: for `low`, go to step 4' || bad "missing: a green gate sends low straight to the merger"
 grep -E '^> 2\. ' "$f" | grep -qF -- 'The implementer runs no gate and spawns no one' || bad "missing: runner step 2's implementer runs no gate and spawns no one"
-grep -E "$G3" "$f" | grep -qF -- '> <worktree path>/.tmp/checks-<round>-<k>.log 2>&1; echo exit=$?' || bad "missing: the check gate logs both streams under the worktree's .tmp/ and echoes the exit"
+grep -E "$G3" "$f" | grep -qF -- 'mkdir -p <worktree path>/.tmp; export TMPDIR=<worktree path>/.tmp; <check> > <worktree path>/.tmp/checks-<round>-<k>.log 2>&1; echo exit=$?' || bad "missing: the check gate logs both streams under the worktree's .tmp/ and echoes the exit"
 grep -E "$G3" "$f" | grep -qF -- 'tail -n 40 <log>' || bad "missing: a red gate reads a forty-line tail of the log, never the whole output"
 grep -E "$G3" "$f" | grep -qF -- '`bd -C <owner> note <ticket-id> "checks <round>: red <command>"`' || bad "missing: a red gate's note form (checks <round>: red <command>)"
 grep -E "$G3" "$f" | grep -qF -- 'a green writes no note' || bad "missing: a green gate writes no note"
