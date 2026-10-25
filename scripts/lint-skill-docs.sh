@@ -580,6 +580,16 @@ para_has '**Review verdict.**' "the blocking verdict line" 'verdict: blocking (<
 para_has '**Review verdict.**' "the blocking-or-minor tags" '**blocking** or **minor**'
 para_has '**Review verdict.**' "a round with no blocking findings is clean" 'no blocking findings is **clean**'
 para_has '**Review verdict.**' "only blocking rounds count toward the limit" 'Only blocking rounds count'
+# the check gate: no reviewer sees a branch tip until the story's checks are green on it, at both
+# levels; lint first, then the test seams, the first red stops; a red goes to a fix-up
+# implementer, never a reviewer. The Idle rule's command list names the checks
+hasc "Check gate rule" '**Check gate.**'
+para_has '**Check gate.**' "no reviewer sees a red tip" 'No reviewer sees a branch tip'
+para_has '**Check gate.**' "both levels" 'ticket level and the story level'
+para_has '**Check gate.**' "lint first, then the test seams" 'lint first, then the test seams'
+para_has '**Check gate.**' "the first red stops" 'the first red stops'
+para_has '**Check gate.**' "a red goes to a fix-up implementer, never a reviewer" 'fix-up implementer, never to a reviewer'
+para_has '**Idle rule.**' "the Idle rule names the checks" "own: the story's checks"
 fi
 if doc 6 "tracker rules" "$agents/issue-tracker.md"; then
 # the one test of the session mode (ADR 0008), stated once, in the opening before any section

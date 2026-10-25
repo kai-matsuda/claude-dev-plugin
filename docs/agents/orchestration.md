@@ -86,7 +86,8 @@ finished, and the child's final line went to the top-level session). A `Monitor`
 same background call behind a filter, so it is no better. Nor is a call left at the Bash
 tool's 120-second default: the harness moves one that runs longer to the background, the
 same idle state, so every lint or test run (`make lint`, `make ci`, `make fixtures`,
-`scripts/test-*.sh`, or the owner repo's own) passes `timeout: 600000` on its Bash call
+`scripts/test-*.sh`, or the owner repo's own: the story's checks, see the check gate under
+Review) passes `timeout: 600000` on its Bash call
 (INFRA-30's run: two `make lint` calls were backgrounded that way, and one agent went
 looking for its own process with `ps`). This is the mechanism behind
 the no-polling rule above, and why INFRA-29's until-loops and Monitors woke agents with
@@ -287,6 +288,12 @@ story's tickets for a story, the epic's for an epic): review at that tier's revi
 fix-up at its implementation model.
 
 ## Review
+
+**Check gate.** No reviewer sees a branch tip until the story's checks, the owner repo's
+lint and its test seams (GLOSSARY.md: Test seam, Check, Check gate), are green on it, at
+the ticket level and the story level alike. The checks run cheapest first:
+lint first, then the test seams, and the first red stops the run. A red goes to a
+fix-up implementer, never to a reviewer, and then the checks run again.
 
 **Review verdict.** Every reviewer, the ticket runner's per-ticket reviewer (the runner
 brief's step 3 in `/dev:implement-story`) and the story review's two sub-agents (its step 7)

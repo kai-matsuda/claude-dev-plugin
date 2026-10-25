@@ -1378,6 +1378,20 @@ fresh
 drop_phrase docs/agents/orchestration.md 'no blocking findings is **clean**'
 expect "orchestration doc without the clean-round definition fails" 1
 
+# the check gate rule: its paragraph, each of its phrases, and the Idle rule's mention of the checks
+fresh
+drop_line docs/agents/orchestration.md '**Check gate.**'
+expect "orchestration doc without the Check gate rule fails" 1
+for phrase in 'No reviewer sees a branch tip' 'ticket level and the story level' 'lint first, then the test seams' \
+  'the first red stops' 'fix-up implementer, never to a reviewer'; do
+  fresh
+  drop_phrase docs/agents/orchestration.md "$phrase"
+  expect "orchestration doc's Check gate rule without '$phrase' fails" 1
+done
+fresh
+drop_phrase docs/agents/orchestration.md "own: the story's checks"
+expect "orchestration doc's Idle rule without the checks fails" 1
+
 # the brief's phrases are read on the runner's step 3 line alone: dropped there while step 7
 # keeps them, the lint still fails (each phrase sits once on that line, so the swap hits it)
 for phrase in 'verdict: clean' 'verdict: blocking \(<n>\)' '\*\*blocking\*\* or \*\*minor\*\*' 'at most three blocking rounds'; do
