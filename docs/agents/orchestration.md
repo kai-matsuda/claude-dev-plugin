@@ -288,11 +288,14 @@ fix-up at its implementation model.
 
 ## Review
 
-**Check gate.** No reviewer sees a branch tip until the story's checks, the owner repo's
-lint and its test seams (GLOSSARY.md: Test seam, Check, Check gate), are green on it, at
-the ticket level and the story level alike. The checks run cheapest first:
-lint first, then the test seams, and the first red stops the run. A red goes to a
-fix-up implementer, never to a reviewer, and then the checks run again.
+**Check gate.** The check gate is one loop, at the ticket level and the story level alike
+(GLOSSARY.md: Test seam, Check, Check gate). Run the story's checks, the owner repo's lint
+and its test seams: lint first, then the test seams, and the first red stops the run.
+A red goes to a fresh fix-up implementer, never to a reviewer, and the loop starts over.
+With the checks green, run the review:
+a blocking verdict goes to a fresh fix-up implementer and the loop starts over;
+a clean verdict exits. The budget is three fix-ups per loop, of either cause;
+a fourth failure is `failed`.
 
 **Review verdict.** Every reviewer, the ticket runner's per-ticket reviewer (the runner
 brief's step 3 in `/dev:implement-story`) and the story review's two sub-agents (its step 7)
@@ -306,8 +309,7 @@ implementer before the merger, or to the inbox as a deferral when the orchestrat
 them out of the ticket's or the story's scope (the tracker doc's "capture a retro item";
 Frontier, Deferrals, below), never to a bead of the story; then the ticket closes, or the
 story proceeds to delivery, and no reviewer runs over that last fix-up.
-Blocking rounds and red check rounds count toward a ticket's three-round limit (the Check
-gate rule above); a clean round does not: a round that reports every
+Blocking rounds spend the loop's budget (the Check gate rule above); a clean round does not: a round that reports every
 acceptance criterion met plus three wording nits is clean, and the ticket goes to the
 merger after one fix-up. Before this rule a round was clean only with no finding of either
 kind (INFRA-29's runs, 2026-10-22 to 2026-10-23): `chezmoi-9v4.1.5` failed twice on rounds

@@ -1411,7 +1411,7 @@ echo 'Two waves suffice for any feature.' >> "$scratch/skills/close-story/SKILL.
 expect "skill saying 'two waves suffice' fails" 1
 
 # a reviewer tags every finding blocking or minor and ends on a verdict line; a round with no
-# blocking findings is clean; blocking rounds and red check rounds count toward the three-round limit
+# blocking findings is clean; blocking rounds spend the check gate loop's budget
 # (chezmoi-49k): the rule lives in the orchestration doc, the runner brief and the story
 # review point at it
 fresh
@@ -1419,7 +1419,7 @@ drop_line docs/agents/orchestration.md '**Review verdict.**'
 expect "orchestration doc without the Review verdict rule fails" 1
 
 # the checks read the rule's own paragraph, so a phrase kept elsewhere in the doc does not pass
-for phrase in 'verdict: clean' 'verdict: blocking (<n>)' '**blocking** or **minor**' 'Blocking rounds and red check rounds count'; do
+for phrase in 'verdict: clean' 'verdict: blocking (<n>)' '**blocking** or **minor**' "the loop's budget"; do
   fresh
   drop_phrase docs/agents/orchestration.md "$phrase"
   expect "orchestration doc without '$phrase' fails" 1
@@ -1429,15 +1429,18 @@ fresh
 drop_phrase docs/agents/orchestration.md 'no blocking findings is **clean**'
 expect "orchestration doc without the clean-round definition fails" 1
 
-# the check gate rule: its paragraph, each of its phrases, and the Idle rule's mention of the checks
+# the check gate rule, stated once as the loop: its paragraph, each of its phrases (the lint-then-seams
+# order, the start-over on either failure, the exit, the budget), and the Idle rule's mention of the checks
 fresh
 drop_line docs/agents/orchestration.md '**Check gate.**'
 expect "orchestration doc without the Check gate rule fails" 1
-for phrase in 'No reviewer sees a branch tip' 'ticket level and the story level' 'lint first, then the test seams' \
-  'the first red stops' 'fix-up implementer, never to a reviewer'; do
+for phrase in 'ticket level and the story level' 'lint first, then the test seams' 'the first red stops' \
+  'A red goes to a fresh fix-up implementer, never to a reviewer, and the loop starts over' \
+  'a blocking verdict goes to a fresh fix-up implementer and the loop starts over' \
+  'a clean verdict exits' 'three fix-ups per loop, of either cause' 'a fourth failure is `failed`'; do
   fresh
   drop_phrase docs/agents/orchestration.md "$phrase"
-  expect "orchestration doc's Check gate rule without '$phrase' fails" 1
+  expect "orchestration doc's Check gate loop without '$phrase' fails" 1
 done
 fresh
 drop_phrase docs/agents/orchestration.md "these are the story's checks"

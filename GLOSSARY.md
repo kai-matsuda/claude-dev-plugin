@@ -184,9 +184,10 @@ a story's checks are that lint and its test seams together.
 _Avoid_: pre-flight, verification step
 
 **Check gate**:
-The read-only run of a story's checks on a branch tip, cheapest first, before any reviewer
-sees it: a red sends the tip to a fix-up implementer, never to review. A ticket runner runs
-it on each implementer's branch, the story orchestrator on the integration branch.
+The loop both levels run on a branch tip: the story's checks, cheapest first, then the
+review, restarting after every fix-up. A red check or a blocking verdict sends the tip to a
+fresh fix-up implementer and the loop starts over; a clean verdict exits. A ticket runner
+runs it on each implementer's branch, the story orchestrator on the integration branch.
 _Avoid_: test gate, lint gate, seam gate
 
 **Evidence run**:
@@ -209,8 +210,8 @@ The line a reviewer's report ends on: `verdict: clean` when no finding is blocki
 `verdict: blocking (<n>)`. Every finding is tagged **blocking** (an acceptance criterion
 unmet, a behaviour wrong, a test missing) or **minor** (wording, naming, a nit that changes
 no behaviour an acceptance criterion names). A clean round sends its minors to one last
-fix-up implementer or to the inbox and moves on; only blocking rounds and red check rounds
-count toward a ticket's three (`docs/agents/orchestration.md`, "Review").
+fix-up implementer or to the inbox and moves on; only blocking rounds spend the check gate loop's
+budget (`docs/agents/orchestration.md`, "Review").
 _Avoid_: zero findings, nit-free, pass/fail
 
 **Story orchestrator**:
