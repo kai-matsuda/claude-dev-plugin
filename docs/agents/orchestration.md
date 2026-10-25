@@ -137,7 +137,10 @@ turn was cut off is owned by no one else and stays listed as running however qui
 (that run's implementer, "quiet for over 30 minutes"). Then one line to the same agent id,
 `resume: re-read the story and its tickets from the beads and carry on`. The beads and notes
 are the truth: a hand-written state summary (what that run sent) and a respawn both lose
-what the agent still holds.
+what the agent still holds. A story orchestrator missing from `ListAgents` with no
+notification is probed with that same line, and one whose reply says the user stopped it
+is the replaced case: its work is cancelled, and the `/dev:implement-spec` the user types
+spawns a fresh orchestrator that re-reads the beads (INFRA-30's run, 2026-10-24).
 
 Every other agent is replaced, never resumed: to its orchestrator a cut-off child is a
 `failed: cut off by <error>` report, and the next pass gives the work a fresh subagent,

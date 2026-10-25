@@ -215,7 +215,8 @@ An Agent call that returns an API error (a session or rate limit) in place of it
 The child and everything below it stop where they are, state intact: a story orchestrator
 is resumed by the driver, every other agent is replaced by a fresh one in the same
 worktree, and a cut-off ticket rejoins the frontier with its failure count unchanged. A
-runner's `failed` line is its own verdict on its ticket, not a cut-off.
+runner's `failed` line is its own verdict on its ticket, not a cut-off, and neither is a
+story orchestrator the user stopped: that one is replaced on the next typed command.
 _Avoid_: crash, timeout
 
 **Stop sweep**:
