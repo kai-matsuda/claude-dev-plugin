@@ -1418,7 +1418,8 @@ for phrase in 'Resolve the owner repo'"'"'s **lint command** once' \
 done
 
 for phrase in 'spells it out in every implementer, fix-up implementer and merger brief it sends' 'make -C <dir> lint' \
-  'the lint command `<lint>` (or none)' "the brief's lint command"; do
+  'the lint command `<lint>` (or none)' "the brief's lint command" \
+  'a command `CLAUDE.md` names runs in that same checkout or worktree' 'leaving out any the lint command already runs'; do
   fresh
   drop_phrase skills/implement-story/SKILL.md "$phrase"
   expect "implement-story without '$phrase' fails" 1
@@ -1430,7 +1431,7 @@ swap_phrase skills/implement-story/SKILL.md '^(> You are the ticket runner.*)the
 expect "runner brief header without the lint command in its every-brief list fails" 1
 
 fresh
-swap_phrase skills/implement-story/SKILL.md "^(> 2\. .*)the brief's lint command" '\1`make lint`, `make ci`'
+swap_phrase skills/implement-story/SKILL.md "^(> 2\. .*)the brief's lint command" '\1the brief'"'"'s lint command, `make ci`, `make lint`'
 expect "runner step 2 offering a list of lint commands fails" 1
 
 # the brief's phrases are read on the runner's step 3 line alone: dropped there while step 7

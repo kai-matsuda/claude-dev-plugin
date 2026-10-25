@@ -774,17 +774,20 @@ grep -qE "^7\. .*the rules doc's Review verdict" "$f" || bad "missing: the story
 lacks "the zero-findings bar" 'not clean after three rounds|no findings at all|clean means zero findings'
 # the story orchestrator resolves the owner repo's lint command once, in the forge step, with a
 # three-way precedence, and the runner brief's header carries it so no agent guesses it (dev-cq0.1.2)
-hasc "step 3 resolves the lint command once" 'Resolve the owner repo'"'"'s **lint command** once'
-hasc "lint precedence: make lint first" '`make lint` when `<owner>`'"'"'s Makefile has a `lint` target'
-hasc "lint precedence: CLAUDE.md second, then none" 'else the command `<owner>`'"'"'s `CLAUDE.md` names, else none'
-hasc "runner brief header carries the lint command" 'lint command `<lint>` or none'
+L3='^   Resolve the owner repo'"'"'s \*\*lint command\*\*'
+grep -E "$L3" "$f" | grep -qF -- 'Resolve the owner repo'"'"'s **lint command** once' || bad "missing: step 3 resolves the lint command once"
+grep -E "$L3" "$f" | grep -qF -- '`make lint` when `<owner>`'"'"'s Makefile has a `lint` target' || bad "missing: lint precedence: make lint first"
+grep -E "$L3" "$f" | grep -qF -- 'else the command `<owner>`'"'"'s `CLAUDE.md` names, else none' || bad "missing: lint precedence: CLAUDE.md second, then none"
+grep -E '^> You are the ticket runner' "$f" | grep -qF -- 'lint command `<lint>` or none' || bad "missing: runner brief header carries the lint command"
 # anchored: step 3's lint paragraph says who spells it out and where it runs; the runner brief's
 # opening paragraph lists it among what every brief carries; its step 2 offers no list to choose from
 grep -E "^   Resolve the owner repo's \*\*lint command\*\*" "$f" | grep -qF -- 'spells it out in every implementer, fix-up implementer and merger brief it sends' || bad "missing: step 3's lint paragraph names the implementer, fix-up implementer and merger briefs"
 grep -E "^   Resolve the owner repo's \*\*lint command\*\*" "$f" | grep -qF -- 'make -C <dir> lint' || bad "missing: step 3's lint paragraph runs the lint as make -C <dir> lint"
 grep -E '^> You are the ticket runner' "$f" | grep -qF -- 'the lint command `<lint>` (or none)' || bad "missing: the runner brief's every-brief list carries the lint command"
+grep -E "$L3" "$f" | grep -qF -- 'a command `CLAUDE.md` names runs in that same checkout or worktree' || bad "missing: step 3's lint paragraph says where a CLAUDE.md-named command runs"
+grep -E '^> 2\. ' "$f" | grep -qF -- 'leaving out any the lint command already runs' || bad "missing: runner step 2 leaves out the tests the lint command already runs"
 grep -E '^> 2\. ' "$f" | grep -qF -- "the brief's lint command" || bad "missing: runner step 2 takes the lint command from the brief"
-grep -E '^> 2\. ' "$f" | grep -qF -- '`make lint`, `make ci`' && bad "present: runner step 2 offers a list of lint commands to choose from"
+grep -E '^> 2\. ' "$f" | grep -qF -- '`make lint`' && bad "present: runner step 2 offers a list of lint commands to choose from"
 
 fi
 
