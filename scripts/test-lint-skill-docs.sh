@@ -1438,8 +1438,9 @@ for phrase in 'ticket level and the story level' 'lint first, then the test seam
   'A red goes to a fresh fix-up implementer, never to a reviewer, and the loop starts over' \
   'a blocking verdict goes to a fresh fix-up implementer and the loop starts over' \
   'With the checks green, run the review:' 'a clean verdict exits' \
-  'three fix-ups per ticket, of either cause' \
-  'run at the story level' 'a fourth failure is `failed`'; do
+  'three fix-ups per ticket at the ticket level' \
+  'three per story at the story level, of either cause' 'no reset when a run resumes' \
+  'a fourth failure is `failed`'; do
   fresh
   drop_phrase docs/agents/orchestration.md "$phrase"
   expect "orchestration doc's Check gate loop without '$phrase' fails" 1
