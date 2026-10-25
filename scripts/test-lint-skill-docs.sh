@@ -1397,12 +1397,27 @@ expect "orchestration doc's Idle rule without the checks fails" 1
 for phrase in 'Resolve the owner repo'"'"'s **lint command** once' \
   '`make lint` when `<owner>`'"'"'s Makefile has a `lint` target' \
   'else the command `<owner>`'"'"'s `CLAUDE.md` names, else none' \
-  'lint command `<lint>` or none' \
-  'spells it out in every runner, fix-up implementer and merger brief'; do
+  'lint command `<lint>` or none'; do
   fresh
   drop_phrase skills/implement-story/SKILL.md "$phrase"
   expect "implement-story without '$phrase' fails" 1
 done
+
+for phrase in 'spells it out in every implementer, fix-up implementer and merger brief it sends' 'make -C <dir> lint' \
+  'the lint command `<lint>` (or none)' "the brief's lint command"; do
+  fresh
+  drop_phrase skills/implement-story/SKILL.md "$phrase"
+  expect "implement-story without '$phrase' fails" 1
+done
+
+# a phrase kept elsewhere in the file does not satisfy an anchored pin: dropped on its own line only
+fresh
+swap_phrase skills/implement-story/SKILL.md '^(> You are the ticket runner.*)the lint command `<lint>` \(or none\)' '\1the lint'
+expect "runner brief header without the lint command in its every-brief list fails" 1
+
+fresh
+swap_phrase skills/implement-story/SKILL.md "^(> 2\. .*)the brief's lint command" '\1`make lint`, `make ci`'
+expect "runner step 2 offering a list of lint commands fails" 1
 
 # the brief's phrases are read on the runner's step 3 line alone: dropped there while step 7
 # keeps them, the lint still fails (each phrase sits once on that line, so the swap hits it)

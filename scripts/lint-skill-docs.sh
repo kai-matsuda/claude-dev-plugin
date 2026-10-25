@@ -773,7 +773,13 @@ hasc "step 3 resolves the lint command once" 'Resolve the owner repo'"'"'s **lin
 hasc "lint precedence: make lint first" '`make lint` when `<owner>`'"'"'s Makefile has a `lint` target'
 hasc "lint precedence: CLAUDE.md second, then none" 'else the command `<owner>`'"'"'s `CLAUDE.md` names, else none'
 hasc "runner brief header carries the lint command" 'lint command `<lint>` or none'
-hasc "every runner, fix-up and merger brief spells out the lint command" 'spells it out in every runner, fix-up implementer and merger brief'
+# anchored: step 3's lint paragraph says who spells it out and where it runs; the runner brief's
+# opening paragraph lists it among what every brief carries; its step 2 offers no list to choose from
+grep -E "^   Resolve the owner repo's \*\*lint command\*\*" "$f" | grep -qF -- 'spells it out in every implementer, fix-up implementer and merger brief it sends' || bad "missing: step 3's lint paragraph names the implementer, fix-up implementer and merger briefs"
+grep -E "^   Resolve the owner repo's \*\*lint command\*\*" "$f" | grep -qF -- 'make -C <dir> lint' || bad "missing: step 3's lint paragraph runs the lint as make -C <dir> lint"
+grep -E '^> You are the ticket runner' "$f" | grep -qF -- 'the lint command `<lint>` (or none)' || bad "missing: the runner brief's every-brief list carries the lint command"
+grep -E '^> 2\. ' "$f" | grep -qF -- "the brief's lint command" || bad "missing: runner step 2 takes the lint command from the brief"
+grep -E '^> 2\. ' "$f" | grep -qF -- '`make lint`, `make ci`' && bad "present: runner step 2 offers a list of lint commands to choose from"
 
 fi
 
