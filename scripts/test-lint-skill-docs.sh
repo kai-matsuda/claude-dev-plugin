@@ -1411,7 +1411,7 @@ echo 'Two waves suffice for any feature.' >> "$scratch/skills/close-story/SKILL.
 expect "skill saying 'two waves suffice' fails" 1
 
 # a reviewer tags every finding blocking or minor and ends on a verdict line; a round with no
-# blocking findings is clean; blocking rounds spend the check gate loop's budget
+# blocking findings is clean; every fix-up, red or blocking, spends the check gate loop's budget
 # (chezmoi-49k): the rule lives in the orchestration doc, the runner brief and the story
 # review point at it
 fresh
@@ -1419,7 +1419,7 @@ drop_line docs/agents/orchestration.md '**Review verdict.**'
 expect "orchestration doc without the Review verdict rule fails" 1
 
 # the checks read the rule's own paragraph, so a phrase kept elsewhere in the doc does not pass
-for phrase in 'verdict: clean' 'verdict: blocking (<n>)' '**blocking** or **minor**' "the loop's budget"; do
+for phrase in 'verdict: clean' 'verdict: blocking (<n>)' '**blocking** or **minor**' "Every fix-up, red or blocking, spends the loop's budget"; do
   fresh
   drop_phrase docs/agents/orchestration.md "$phrase"
   expect "orchestration doc without '$phrase' fails" 1
@@ -1437,7 +1437,9 @@ expect "orchestration doc without the Check gate rule fails" 1
 for phrase in 'ticket level and the story level' 'lint first, then the test seams' 'the first red stops' \
   'A red goes to a fresh fix-up implementer, never to a reviewer, and the loop starts over' \
   'a blocking verdict goes to a fresh fix-up implementer and the loop starts over' \
-  'a clean verdict exits' 'three fix-ups per loop, of either cause' 'a fourth failure is `failed`'; do
+  'With the checks green, run the review:' 'a clean verdict exits' \
+  'three fix-ups per ticket, of either cause' \
+  'run at the story level' 'a fourth failure is `failed`'; do
   fresh
   drop_phrase docs/agents/orchestration.md "$phrase"
   expect "orchestration doc's Check gate loop without '$phrase' fails" 1

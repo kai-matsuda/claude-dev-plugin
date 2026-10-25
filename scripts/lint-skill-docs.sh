@@ -612,14 +612,14 @@ para_has '**Plugin root.**' "resolved once per session" 'once per session'
 para_has '**Plugin root.**' "the rules-doc path spelled literally in every brief" '<plugin root>/docs/agents/'
 para_has '**Plugin root.**' "spelled out in every brief" 'every brief'
 # a reviewer tags every finding blocking or minor and ends on a verdict line; a round with no
-# blocking findings is clean; blocking rounds spend the check gate loop's budget. The
+# blocking findings is clean; every fix-up, red or blocking, spends the check gate loop's budget. The
 # rule is stated once here; the runner brief and the story review point at it (chezmoi-49k)
 hasc "Review verdict rule" '**Review verdict.**'
 para_has '**Review verdict.**' "the clean verdict line" 'verdict: clean'
 para_has '**Review verdict.**' "the blocking verdict line" 'verdict: blocking (<n>)'
 para_has '**Review verdict.**' "the blocking-or-minor tags" '**blocking** or **minor**'
 para_has '**Review verdict.**' "a round with no blocking findings is clean" 'no blocking findings is **clean**'
-para_has '**Review verdict.**' "blocking rounds point at the loop's budget" "the loop's budget"
+para_has '**Review verdict.**' "every fix-up, red or blocking, spends the loop's budget" "Every fix-up, red or blocking, spends the loop's budget"
 # the check gate, stated once as the loop (INFRA-32): at both levels; checks (lint first, then the test
 # seams, the first red stops); a red goes to a fresh fix-up implementer and the loop starts over; the
 # review; a blocking verdict likewise; a clean verdict exits; three fix-ups of either cause, a fourth
@@ -630,8 +630,10 @@ para_has '**Check gate.**' "lint first, then the test seams" 'lint first, then t
 para_has '**Check gate.**' "the first red stops" 'the first red stops'
 para_has '**Check gate.**' "a red goes to a fresh fix-up implementer and the loop starts over" 'A red goes to a fresh fix-up implementer, never to a reviewer, and the loop starts over'
 para_has '**Check gate.**' "a blocking verdict goes to a fresh fix-up implementer and the loop starts over" 'a blocking verdict goes to a fresh fix-up implementer and the loop starts over'
+para_has '**Check gate.**' "with the checks green, run the review" 'With the checks green, run the review:'
 para_has '**Check gate.**' "a clean verdict exits" 'a clean verdict exits'
-para_has '**Check gate.**' "three fix-ups per loop of either cause" 'three fix-ups per loop, of either cause'
+para_has '**Check gate.**' "three fix-ups per ticket, of either cause" 'three fix-ups per ticket, of either cause'
+para_has '**Check gate.**' "the story level runs the budget per story" 'run at the story level'
 para_has '**Check gate.**' "a fourth failure is failed" 'a fourth failure is `failed`'
 para_has '**Idle rule.**' "the Idle rule names the checks" "these are the story's checks"
 fi
