@@ -86,12 +86,11 @@ finished, and the child's final line went to the top-level session). A `Monitor`
 same background call behind a filter, so it is no better. Nor is a call left at the Bash
 tool's 120-second default: the harness moves one that runs longer to the background, the
 same idle state, so every lint or test run (`make lint`, `make ci`, `make fixtures`,
-`scripts/test-*.sh`, or the owner repo's own: the story's checks, see the check gate under
-Review) passes `timeout: 600000` on its Bash call
-(INFRA-30's run: two `make lint` calls were backgrounded that way, and one agent went
-looking for its own process with `ps`). This is the mechanism behind
-the no-polling rule above, and why INFRA-29's until-loops and Monitors woke agents with
-stale state. The one shell wait is a merger's wait on the owner checkout's lock (the
+`scripts/test-*.sh`, or the owner repo's own, which are the story's checks (Review: Check
+gate)) passes `timeout: 600000` on its Bash call (INFRA-30's run: two `make lint` calls
+were backgrounded that way, and one agent went looking for its own process with `ps`).
+This is the mechanism behind the no-polling rule above, and why INFRA-29's until-loops
+and Monitors woke agents with stale state. The one shell wait is a merger's wait on the owner checkout's lock (the
 ticket runner brief's step 4): a single foreground Bash call running an `until` loop over
 `<owner>/.git/index.lock` and `MERGE_HEAD`, with the call's `timeout` as the five-minute
 bound, so it returns when the lock clears and is killed when it does not (chezmoi-sn1's

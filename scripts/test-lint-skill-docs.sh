@@ -1389,7 +1389,7 @@ for phrase in 'No reviewer sees a branch tip' 'ticket level and the story level'
   expect "orchestration doc's Check gate rule without '$phrase' fails" 1
 done
 fresh
-drop_phrase docs/agents/orchestration.md "own: the story's checks"
+drop_phrase docs/agents/orchestration.md "which are the story's checks"
 expect "orchestration doc's Idle rule without the checks fails" 1
 
 # the brief's phrases are read on the runner's step 3 line alone: dropped there while step 7

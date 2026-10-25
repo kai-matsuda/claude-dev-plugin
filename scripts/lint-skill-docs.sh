@@ -589,7 +589,7 @@ para_has '**Check gate.**' "both levels" 'ticket level and the story level'
 para_has '**Check gate.**' "lint first, then the test seams" 'lint first, then the test seams'
 para_has '**Check gate.**' "the first red stops" 'the first red stops'
 para_has '**Check gate.**' "a red goes to a fix-up implementer, never a reviewer" 'fix-up implementer, never to a reviewer'
-para_has '**Idle rule.**' "the Idle rule names the checks" "own: the story's checks"
+para_has '**Idle rule.**' "the Idle rule names the checks" "which are the story's checks"
 fi
 if doc 6 "tracker rules" "$agents/issue-tracker.md"; then
 # the one test of the session mode (ADR 0008), stated once, in the opening before any section
