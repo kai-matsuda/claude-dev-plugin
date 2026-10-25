@@ -788,6 +788,24 @@ grep -E "$L3" "$f" | grep -qF -- 'a command `CLAUDE.md` names runs in that same 
 grep -E '^> 2\. ' "$f" | grep -qF -- 'leaving out any the lint command already runs' || bad "missing: runner step 2 leaves out the tests the lint command already runs"
 grep -E '^> 2\. ' "$f" | grep -qF -- "the brief's lint command" || bad "missing: runner step 2 takes the lint command from the brief"
 grep -E '^> 2\. ' "$f" | grep -qF -- '`make lint`' && bad "present: runner step 2 offers a list of lint commands to choose from"
+# the story review (step 7) runs the check gate on the integration branch tip before the
+# two-axis review, a matching marker jumping to the Evidence run; a second pre-review red stalls
+# with failed: <check> <command>; the Evidence is each check's command, exit and tail, cited so
+# in step 8, and the retired "the command and its output" is gone (dev-cq0.1.5)
+S7=$(grep -E '^7\. ' "$f")
+for need in 'skip the gate and the review and go to the Evidence run' 'the **check gate** on the integration branch tip' \
+  'a second red skips the review' '`failed: <check> <command>`'; do
+  grep -qF -- "$need" <<<"$S7" || bad "missing in the story review (step 7): $need"
+done
+awk -v g='the **check gate** on the integration branch tip' -v r='mattpocock-skills:code-review' \
+  '{ i = index($0, g); j = index($0, r); exit !(i && j && i < j) }' <<<"$S7" \
+  || bad "missing: the story review (step 7) runs the check gate before the two-axis review"
+awk 'index($0, "   **Evidence run.**") == 1' "$f" | grep -qF -- "each check's command, its exit and the last twenty lines of its log" \
+  || bad "missing: the Evidence run paragraph cites each check's command, exit and tail"
+grep -E '^8\. ' "$f" | grep -qF -- "each check's command, exit and twenty-line tail" \
+  || bad "missing: the deliver step (8) writes each check's command, exit and tail as Evidence"
+hasc "report template's failed: line names the check" 'or <check> <command>'
+lacks "the retired Evidence phrase" 'the command and its output'
 
 fi
 
