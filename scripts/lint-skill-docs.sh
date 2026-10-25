@@ -807,7 +807,7 @@ lacks "Gitignore step counts three entries" "the rule's three entries"
 # step 7 point at the rules doc's Review verdict for what a clean round does; the retired bar,
 # clean as no finding at all, is gone (chezmoi-49k). The brief's phrases are read on the step 3
 # line alone, since step 7 carries the same ones
-for phrase in 'verdict: clean' 'verdict: blocking (<n>)' '**blocking** or **minor**' 'within the three rounds above'; do
+for phrase in 'verdict: clean' 'verdict: blocking (<n>)' '**blocking** or **minor**' 'within the budget above'; do
   line_has '^> 3\. ' "ticket runner step 3's reviewer brief" "$phrase"
 done
 hase "ticket runner step 3 points at the rules doc's Review verdict" "^> 3\. .*the rules doc's Review verdict"
@@ -829,23 +829,29 @@ line_has "$L3" "step 3's lint paragraph says where a CLAUDE.md-named command run
 line_has '^> 2\. ' "runner step 2 leaves out the tests the lint command already runs" 'leaving out any the lint command already runs'
 line_has '^> 2\. ' "runner step 2 takes the lint command from the brief" "the brief's lint command"
 line_lacks '^> 2\. ' "runner step 2 offers a list of lint commands to choose from" '`make lint`'
-# the ticket runner's check gate sits between the implementer (step 2) and the reviewer or
-# merger: it opens step 3 for every tier, ahead of the reviewer; each check is one logged Bash
-# call under the worktree's .tmp/; a red is noted on the ticket and counts toward the three
-# rounds the blocking reviews count toward; the implementer runs no gate (dev-cq0.1.4)
-G3='^> 3\. \*\*Check gate\*\*, every tier'
-hase "ticket runner step 3 opens with the check gate, every tier" "$G3"
-line_hase "$G3" "the check gate runs before step 3's reviewer" '\*\*Check gate\*\*.*Green: .*for `medium` and `high`, spawn a \*\*reviewer\*\*'
+# the ticket runner's check and review loop sits between the implementer (step 2) and the merger
+# (step 4) as one step: it opens step 3 for every tier, checks ahead of the reviewer; each check
+# is one logged Bash call under the worktree's .tmp/; a red is noted on the ticket; a red and a
+# blocking verdict both spawn a fresh fix-up implementer and start the loop over from the checks,
+# on one budget of three fix-ups; a low ticket exits on green; the implementer runs no checks
+# (dev-cq0.1.4, dev-1xf.1.2)
+G3='^> 3\. \*\*Check and review loop\*\*, every tier'
+hase "ticket runner step 3 opens with the check and review loop, every tier" "$G3"
+line_has "$G3" "the loop step cites the rules doc's loop" "as the rules doc's Check gate loop says"
+line_has "$G3" "a red starts the loop over from the checks" 'a red spawns a fresh fix-up implementer and the loop starts over from the checks'
+line_has "$G3" "a blocking verdict starts the loop over from the checks, never straight to the reviewer" 'a blocking verdict spawns a fresh fix-up implementer and the loop starts over from the checks, never straight to the reviewer'
+line_has "$G3" "a clean verdict exits the loop" '**Clean** exits the loop'
+line_hase "$G3" "the check gate runs before step 3's reviewer" '\*\*Check and review loop\*\*.*Green:.*for `medium` and `high`, spawn a \*\*reviewer\*\*'
 grep -E "$G3" "$f" | sed 's/Green: .*//' | grep -qF -- 'spawn a **reviewer**' && bad "present: ticket runner step 3 spawns a reviewer ahead of the check gate's green"
-line_has "$G3" "a green gate sends low straight to the merger" 'Green: for `low`, go to step 4'
+line_has "$G3" "a low ticket exits the loop on green checks" 'Green: a `low` ticket exits the loop, go to step 4'
 line_has '^> 2\. ' "runner step 2's implementer runs no gate and spawns no one" 'The implementer runs no gate and spawns no one'
 line_has "$G3" "the check gate logs both streams under the worktree's .tmp/ and echoes the exit" 'mkdir -p <worktree path>/.tmp; export TMPDIR=<worktree path>/.tmp; <check> > <worktree path>/.tmp/checks-<round>-<k>.log 2>&1; echo exit=$?'
 line_has "$G3" "a red gate reads a forty-line tail of the log, never the whole output" 'tail -n 40 <log>'
 line_has "$G3" "a red gate's note form (checks <round>: red <command>)" '`bd -C <owner> note <ticket-id> "checks <round>: red <command>"`'
 line_has "$G3" "a green gate writes no note" 'a green writes no note'
 line_has "$G3" "the gate's fix-up brief points at the log path" 'the log path, and no pasted output'
-line_has "$G3" "red gates and blocking reviews share the three-round budget" 'a third round of either kind is `failed`'
-line_has "$G3" "a blocking round's fix-up passes the gate before the next reviewer" 'run the check gate again, and on green spawn a reviewer again'
+line_has "$G3" "red and blocking fix-ups share one budget of three, the fourth failure is failed" 'The budget is three fix-ups of either cause; the fourth red or blocking verdict is `failed`'
+lacks "the retired third-round wording" 'a third round of either kind'
 # the merger's two runs (step 4, dev-cq0.1.6): the implementer's worktree after the tip merge and
 # the owner checkout after the integration merge are runs of the story's checks, the lint command
 # included, in place of the tests
