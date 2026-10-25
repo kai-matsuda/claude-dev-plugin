@@ -71,7 +71,7 @@ Break the story into **tracer bullet** tickets, every one landing in the owner r
 
 </vertical-slice-rules>
 
-Give each ticket its **blocking edges**: the other tickets of this story that must complete before it can start. A ticket with no blockers can start immediately. Each ticket's verification runs at the story's `## Test seams`.
+Give each ticket its **blocking edges**: the other tickets of this story that must complete before it can start. A ticket with no blockers can start immediately. This includes a check: a ticket adding a lint rule, a test or a CI step that asserts files other tickets of this story create is blocked natively on every one of those tickets, directly or transitively (as the story's last implementation ticket, say); landed earlier, the check fails each of them. Each ticket's verification runs at the story's `## Test seams`.
 
 Give each ticket one tier from the tracker doc's "Complexity labels" table.
 
@@ -97,7 +97,7 @@ In a re-cut, also each kept or dropped existing ticket by id and status, each dr
 **Alone**: present it and ask the user:
 
 - Does the granularity feel right? (too coarse / too fine)
-- Are the blocking edges correct: does each ticket only depend on tickets that genuinely gate it?
+- Are the blocking edges correct: does each ticket only depend on tickets that genuinely gate it, and is each check asserting files other tickets create blocked, directly or transitively, on all of them?
 - Should any tickets be merged or split further?
 
 Iterate until the user approves the breakdown, then go to step 5.

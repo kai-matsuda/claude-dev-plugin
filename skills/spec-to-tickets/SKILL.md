@@ -87,7 +87,7 @@ A cutter that returns no block headed `<owner repo> <story-id> <story title>` (a
 Present every returned block in one merged quiz, in the story DAG's topological order (each story after every story it waits on, by any edge; the rest in gather order), each ticket with its title, tier, blockers inside its story, and what it delivers. A re-cut block also shows its kept and dropped tickets, its new bump and its moved edges, as `/dev:story-to-tickets` returns them. Put each block's cross-repo gaps beside the story they belong to. Ask the user:
 
 - Does the granularity feel right? (too coarse / too fine)
-- Are the blocking edges correct: does each ticket only depend on tickets of its story that genuinely gate it?
+- Are the blocking edges correct: does each ticket only depend on tickets of its story that genuinely gate it, and is each check asserting files other tickets of its story create blocked, directly or transitively, on all of them?
 - Does the dependent's work match the API the dependency's tickets define?
 - Should any tickets be merged, split, or moved to another story?
 
