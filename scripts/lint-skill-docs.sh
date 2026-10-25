@@ -258,6 +258,11 @@ if doc 2 "runbook" "$runbook"; then
 # the cut skills take the feature as their one argument; the runbook has a paragraph on it and
 # writes it in the 3a and 3b rows below (chezmoi-nz0)
 hasc "argument paragraph" '**The argument.**'
+# the flat path (row 4b) runs the checks before the built-in code-review, and its review is the
+# ticket review; "ticket gate" is retired so "gate" means the checks in every doc (dev-cq0.1.3)
+hasc "flat path runs the checks before the built-in code-review" "then the checks (the owner repo's lint, then the agreed test seams), then the built-in \`code-review\`"
+hasc "flat path's review is the ticket review" 'the ticket review (switch'
+lacks "retired ticket gate name in the runbook" 'ticket gate'
 
 # flat /to-tickets appears only in the Variants section
 awk '/^## /{sec=$0} /\/mattpocock-skills:to-tickets/ && sec !~ /Variants/ {print NR": "$0; n=1} END{exit n}' "$f" >/dev/null \

@@ -543,6 +543,20 @@ fresh
 drop_line docs/WORKFLOW.md '**The argument.**'
 expect "runbook copy without the argument paragraph fails" 1
 
+# the flat path's checks-first wording and its ticket review name (dev-cq0.1.3): each phrase
+# dropped alone, the rest of its row kept, so each case fires its own pin
+fresh
+drop_phrase docs/WORKFLOW.md "then the checks (the owner repo's lint, then the agreed test seams), then the built-in \`code-review\`"
+expect "runbook copy without the checks-first flat path fails" 1 "flat path runs the checks before the built-in code-review"
+
+fresh
+drop_phrase docs/WORKFLOW.md 'the ticket review (switch'
+expect "runbook copy without the ticket review name fails" 1 "flat path's review is the ticket review"
+
+fresh
+echo 'Then the ticket gate (switch `/model` to the tier'"'"'s review model) runs.' >> "$scratch/docs/WORKFLOW.md"
+expect "runbook copy with the seeded phrase ticket gate fails" 1 "retired ticket gate name in the runbook"
+
 fresh
 echo 'read `<owner>/.spec-notes/<epic-id>/story-cut.md` first' >> "$scratch/skills/spec-to-tickets/SKILL.md"
 sec="4 5" expect "story-cut.md in a skill fails" 1
