@@ -1392,6 +1392,18 @@ fresh
 drop_phrase docs/agents/orchestration.md "which are the story's checks"
 expect "orchestration doc's Idle rule without the checks fails" 1
 
+# the lint command's resolution in /implement-story step 3 and the runner brief's header: each
+# pin is proven by dropping its phrase (dev-cq0.1.2)
+for phrase in 'Resolve the owner repo'"'"'s **lint command** once' \
+  '`make lint` when `<owner>`'"'"'s Makefile has a `lint` target' \
+  'else the command `<owner>`'"'"'s `CLAUDE.md` names, else none' \
+  'lint command `<lint>` or none' \
+  'spells it out in every runner, fix-up implementer and merger brief'; do
+  fresh
+  drop_phrase skills/implement-story/SKILL.md "$phrase"
+  expect "implement-story without '$phrase' fails" 1
+done
+
 # the brief's phrases are read on the runner's step 3 line alone: dropped there while step 7
 # keeps them, the lint still fails (each phrase sits once on that line, so the swap hits it)
 for phrase in 'verdict: clean' 'verdict: blocking \(<n>\)' '\*\*blocking\*\* or \*\*minor\*\*' 'at most three blocking rounds'; do

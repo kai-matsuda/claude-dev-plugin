@@ -767,6 +767,13 @@ done
 grep -qE "^> 3\. .*the rules doc's Review verdict" "$f" || bad "missing: ticket runner step 3 points at the rules doc's Review verdict"
 grep -qE "^7\. .*the rules doc's Review verdict" "$f" || bad "missing: the story review (step 7) points at the rules doc's Review verdict"
 lacks "the zero-findings bar" 'not clean after three rounds|no findings at all|clean means zero findings'
+# the story orchestrator resolves the owner repo's lint command once, in the forge step, with a
+# three-way precedence, and the runner brief's header carries it so no agent guesses it (dev-cq0.1.2)
+hasc "step 3 resolves the lint command once" 'Resolve the owner repo'"'"'s **lint command** once'
+hasc "lint precedence: make lint first" '`make lint` when `<owner>`'"'"'s Makefile has a `lint` target'
+hasc "lint precedence: CLAUDE.md second, then none" 'else the command `<owner>`'"'"'s `CLAUDE.md` names, else none'
+hasc "runner brief header carries the lint command" 'lint command `<lint>` or none'
+hasc "every runner, fix-up and merger brief spells out the lint command" 'spells it out in every runner, fix-up implementer and merger brief'
 
 fi
 
