@@ -170,7 +170,7 @@ Two review tools, two stages: per ticket, the built-in `code-review` (bug hunt, 
 `medium`/`high` matching the tier) run by a reviewer at the tier's review model; per
 story, `/mattpocock-skills:code-review` (repo standards + fidelity to the spec). Why:
 the plugin's `docs/adr/0001-two-stage-review.md`. Both stages are drawn as
-sequence diagrams in the plugin's `docs/REVIEW.md`. Never write bare
+sequence diagrams in the plugin's `docs/SEQUENCES.md`. Never write bare
 `/code-review` in a doc — four skills answer to that name.
 
 ## Session model per stage

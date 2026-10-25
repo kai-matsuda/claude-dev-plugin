@@ -6,7 +6,7 @@ status: accepted, amended
 > first implementer by `SendMessage` but to a fresh fix-up implementer in the same
 > worktree. The why is in `docs/agents/orchestration.md`, Orchestrator role.
 >
-> The flow both stages follow is drawn in `docs/REVIEW.md`.
+> The flow both stages follow is drawn in `docs/SEQUENCES.md`.
 
 # Two review tools, one tier up, at two stages
 
