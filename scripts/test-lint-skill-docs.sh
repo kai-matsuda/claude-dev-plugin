@@ -1523,6 +1523,12 @@ fresh
 drop_phrase skills/implement-story/SKILL.md 'The implementer runs no gate and spawns no one'
 expect "ticket runner step 2 without the implementer running no gate fails" 1 "missing: runner step 2's implementer runs no gate and spawns no one"
 
+# the merger's step 4 line dropped whole: the story's checks, the lint command included, are
+# the merger's two runs (dev-cq0.1.6)
+fresh
+drop_line skills/implement-story/SKILL.md '> 4. Spawn a **merger**'
+expect "ticket runner step 4 without the merger's check runs fails" 1 "missing: the merger runs the story's checks, the lint command included, in the implementer's worktree"
+
 fresh
 echo 'Anything you cannot finish (reviewer still not clean after three rounds) is `failed`.' >> "$scratch/skills/implement-story/SKILL.md"
 expect "implement-story regaining the zero-findings three-round bar fails" 1
