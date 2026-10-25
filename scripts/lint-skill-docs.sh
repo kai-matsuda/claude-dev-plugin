@@ -965,11 +965,14 @@ cmd_tokens() { # <file>...
   # LC_ALL=C: a multibyte char (arrow, em dash) next to a slash must not abort awk; an extractor
   # failure is the caller's to report, never swallowed by the sort
   out=$(LC_ALL=C awk -v q="'" '{
-    line = $0; n = length(line); inc = 0
-    for (i = 1; i <= n; i++) {
-      ch = substr(line, i, 1)
-      if (ch == "`") { inc = !inc; continue }
-      if (ch != "/") continue
+    line = $0; inc = 0; i = 0
+    # visit the slashes and backticks in order rather than every character: the regression
+    # test runs this over every doc a few hundred times
+    while (1) {
+      s = index(substr(line, i + 1), "/"); b = index(substr(line, i + 1), "`")
+      if (!s && !b) break
+      if (!s || (b && b < s)) { i += b; inc = !inc; continue }
+      i += s
       p = (i > 1) ? substr(line, i - 1, 1) : ""
       ok = (p == "" || p ~ /[ \t(\[{|,;"*_=]/ || p == q || (p == "`" && inc))
       # a ">" opens a command only when it is not the end of a <placeholder>: <home>/x is a path
