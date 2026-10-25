@@ -1,0 +1,25 @@
+# Senses the glossary permits, one per line: "<path> <term>  # reason". The lint
+# (skills/glossary-lint/glossary-lint.sh) allows the term everywhere in that file, so
+# a line goes here only for prose that is not reworded: an ADR, which is a record and
+# keeps the words of its day (a name it rejected, a name replaced since, a sense the
+# glossary has narrowed since), and the Beads block bd writes into CLAUDE.md.
+CLAUDE.md todo  # bd's managed Beads block
+CLAUDE.md handoff  # bd's managed Beads block
+docs/adr/0002-single-repo-manifest.md current repo  # written before the session repo was named
+docs/adr/0002-single-repo-manifest.md bootstrap  # the manifest as a machine's bootstrap list, pre machine setup
+docs/adr/0003-cross-repo-feature-publishes-before-dependents-migrate.md cross-repo ticket  # the concept ADR 0006 replaced with the story
+docs/adr/0003-cross-repo-feature-publishes-before-dependents-migrate.md target repo  # written before the owner repo was named
+docs/adr/0003-cross-repo-feature-publishes-before-dependents-migrate.md human ticket  # any ready-for-human ticket, the broad sense
+docs/adr/0004-manifest-at-workspace-root.md repo list  # written before the repo manifest was named
+docs/adr/0004-manifest-at-workspace-root.md current repo  # written before the session repo was named
+docs/adr/0006-one-story-per-repo.md cross-repo ticket  # the concept this ADR replaced with the story
+docs/adr/0006-one-story-per-repo.md feature-level skill  # the name ADR 0010 replaced with epic-level stage
+docs/adr/0006-one-story-per-repo.md lane  # a rejected name for the story
+docs/adr/0006-one-story-per-repo.md leg  # a rejected name for the story
+docs/adr/0007-ticket-cut-runs-story-cutters-in-waves.md feature-level skill  # the name ADR 0010 replaced with epic-level stage
+docs/adr/0007-ticket-cut-runs-story-cutters-in-waves.md cut one  # the name this ADR retired for the story cut
+docs/adr/0007-ticket-cut-runs-story-cutters-in-waves.md cut two  # the name this ADR retired for the ticket cut
+docs/adr/0008-session-mode-declared-by-where-it-starts.md walk-up  # the mechanism this ADR replaced with the session mode
+docs/adr/0008-session-mode-declared-by-where-it-starts.md discovered mode  # the mechanism this ADR replaced with the session mode
+docs/adr/0011-a-story-is-one-pr-and-stories-form-a-dag.md publish gate  # "non-publish gate": a gate that is not a publish
+docs/adr/0011-a-story-is-one-pr-and-stories-form-a-dag.md delivery round  # a rejected shape for the story

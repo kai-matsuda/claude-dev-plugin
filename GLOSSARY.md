@@ -8,13 +8,15 @@ here name more than one thing in the tools; this file fixes which is which.
 
 **Jira Epic**:
 The one Jira issue a feature has. It holds the spec, triage labels, and stakeholder
-discussion; it is the human-facing layer and never sees individual tickets.
-_Avoid_: epic (unqualified), issue, story
+discussion; it is the human-facing layer and never sees individual tickets. Never a bare
+"epic", which could as well mean the epic bead.
+_Avoid_: Jira ticket
 
 **Epic bead**:
 The beads issue that anchors a feature on the agent side, linked to its Jira Epic by
-`--external-ref`. An open epic bead means the feature is in flight.
-_Avoid_: epic (unqualified), parent, root bead
+`--external-ref`. An open epic bead means the feature is in flight. Never a bare "epic"
+either.
+_Avoid_: root bead
 
 **Story**:
 The part of one feature that lands in one repo as one PR: what that PR must deliver, and
@@ -23,7 +25,7 @@ the parent of the feature's tickets there. A story is one PR, with one integrati
 feature has one story per PR, usually one per repo, each tied to the feature by its Jira
 key. A story exists only in beads; Jira never sees it. It is a partition by delivery, not
 a user story; Jira Stories are a different thing this workflow never creates.
-_Avoid_: user story, lane, leg, part, repo slice, cross-repo ticket, delivery round
+_Avoid_: user story, lane, leg, repo slice, cross-repo ticket, delivery round
 
 **Map**:
 A beads issue of epic type that holds a wayfinding effort's decision tickets. It is
@@ -33,7 +35,7 @@ _Avoid_: wayfinder epic, planning epic
 **Ticket**:
 A bead holding one implementation slice of a feature, a child of the story for the repo
 it changes. Tickets exist only in beads, never in Jira.
-_Avoid_: issue, task, story, sub-task
+_Avoid_: sub-task
 
 **Story cut**:
 The first of the two cuts a spec goes through: the spec resolved into its stories, one
@@ -43,8 +45,8 @@ its owner repo, what that PR delivers, its test seams, and its edges to the othe
 story quiz and leaves the stories in beads with no tickets. On a feature whose stories
 exist it runs in **add mode**: the same quiz over additions only. Its one refusal there is
 a feature whose every story is closed: that feature is delivered, and more work on it is a
-new feature, not an addition.
-_Avoid_: cut one, story split, repo split, re-cut (that is the ticket cut's word)
+new feature, not an addition. A re-cut is the ticket cut's word, never this one's.
+_Avoid_: cut one, story split, repo split
 
 **Story DAG**:
 A feature's stories and the edges between them, each edge a text blocker on the story
@@ -62,7 +64,7 @@ _Avoid_: cut two, ticket breakdown, task cut
 **Session repo**:
 The git repo the session is typed in, `git rev-parse --show-toplevel` of its working
 directory. It fixes the session's mode and is the home of everything the session starts.
-_Avoid_: current repo, cwd, the repo
+_Avoid_: current repo, cwd
 
 **Session mode**:
 Whether a session is a workspace session or a repo session, decided by **the one test**:
@@ -90,7 +92,6 @@ The database the session started in: the workspace in a workspace session, the h
 in a repo session. It holds the feature's epic bead, the spec, and the inbox. Stories and
 tickets live there only in a repo session, whose home repo is their owner repo; a
 workspace owns no story.
-_Avoid_: root, origin, parent
 
 **Home repo**:
 The home of a repo session: the one repo whose beads database holds the feature's epic
@@ -99,21 +100,21 @@ start in a library and need a change in a consumer, or the other way round. Buil
 merge rules name repos by cargo's words instead, **dependency** and **dependent**, and
 either may be the home repo. A workspace session has no home repo; its home is the
 workspace.
-_Avoid_: primary repo, main repo, parent repo; consumer or dependency as a name for it
+_Avoid_: primary repo, main repo, parent repo (and consumer or dependency as a name for it)
 
 **Human gate ticket**:
 A `ready-for-human` ticket whose closure by a person releases a story blocked on it in
 text: a publish, a deploy, a flag flip. It is blocked natively on its own story's
 implementation tickets and sits last in it; one story has at most one publish ticket,
 since one PR publishes one version.
-_Avoid_: gate, human ticket (any `ready-for-human` ticket is one; a gate ticket is one a
+_Avoid_: human ticket (any `ready-for-human` ticket is one; a gate ticket is one a
 story waits on), manual step
 
 **Publish ticket**:
 The human gate ticket in a dependency repo's story that stands for publishing its crate
 to the registry. It is closed by a person with the published version as the reason, which
 the dependent's bump ticket reads.
-_Avoid_: release ticket, publish gate, bump ticket (that is the dependent's first ticket)
+_Avoid_: release ticket, publish gate
 
 **Owner repo**:
 The repo whose beads database holds a story and its tickets. The story cut fixes it
@@ -194,7 +195,7 @@ The agent that implements one story: it works that story's frontier in its owner
 spawning a ticket runner per ticket, and delivers the story's integration branch, review
 and PR. Spawned per story by `/dev:implement-spec`, or the session itself when `/dev:implement-story`
 is typed in the story's repo.
-_Avoid_: sub-orchestrator, repo agent, driver (that is the feature-level session)
+_Avoid_: sub-orchestrator, repo agent
 
 **Ticket runner**:
 The agent that owns one ticket from claim to close: its implementer, reviewer and merger,
@@ -213,8 +214,9 @@ _Avoid_: feature orchestrator, top-level orchestrator, main session
 An Agent call that returns an API error (a session or rate limit) in place of its report.
 The child and everything below it stop where they are, state intact: a story orchestrator
 is resumed by the driver, every other agent is replaced by a fresh one in the same
-worktree, and a cut-off ticket rejoins the frontier with its failure count unchanged.
-_Avoid_: crash, timeout, failed (that is a runner's own verdict on its ticket)
+worktree, and a cut-off ticket rejoins the frontier with its failure count unchanged. A
+runner's `failed` line is its own verdict on its ticket, not a cut-off.
+_Avoid_: crash, timeout
 
 **Stop sweep**:
 What the driver does before resuming a cut-off story orchestrator: `ListAgents`, then
@@ -257,13 +259,13 @@ _Avoid_: dry run, preview mode
 What `/dev:story-to-tickets` does when called by a brief that opens `Publish this block` and
 carries an approved block: it publishes that block as given, drafting nothing of its own.
 The ticket cut sends one per story after the ticket quiz.
-_Avoid_: publish mode, the bare word "publish" as a trigger
+_Avoid_: publish mode (and the bare word "publish" as a trigger)
 
 **Dependency wave**:
 One batch of story cutters the ticket cut spawns together and waits for as a whole: one wave
 per level of the stories' DAG, in topological order, so each cutter gets the breakdown of
-every story its own waits on. A cycle is refused before the first wave.
-_Avoid_: batch, round, stage (that is a runbook row)
+every story its own waits on. A cycle is refused before the first wave. The word is the
+ticket cut's: a batch of ticket runners is not a wave.
 
 **Frontier**:
 Per story: the tickets of one story that `bd ready --parent <story-id>` lists and that
@@ -290,15 +292,16 @@ nothing in flight and no `ready-for-human` ticket open, while some ticket the st
 waits for is open (Finished story above), a test seam is still red, or the push was
 refused. The run reports each stuck
 ticket with its open blocker, or the failed seam or push with its command.
-_Avoid_: deadlock, hang, human stop (that has a human ticket open)
+_Avoid_: deadlock, hang
 
 **Repo manifest**:
 The file `repos.yaml` at a workspace root, listing every repo in that workspace, its
 checkout path, and the crate or module names it publishes. Its presence in the session
 repo is what makes a session a workspace session. Skills use it to route a ticket or retro
 item to the repo, and so the beads database, that owns the file it would change. It holds
-nodes only; dependency edges stay in each repo's own `Cargo.toml` or `go.mod`.
-_Avoid_: registry (that is the cargo `lynx` registry), repo list, workspace config
+nodes only; dependency edges stay in each repo's own `Cargo.toml` or `go.mod`. The cargo
+`lynx` registry is a different thing.
+_Avoid_: repo list, workspace config
 
 **Workspace**:
 A git repo whose working tree is the directory holding one organisation's repo
@@ -336,7 +339,7 @@ One candidate improvement to the agent's environment, traceable to a moment in a
 An inbox bead until triaged; after acceptance, a `retro`-labelled bead in the owning repo.
 In a repo session an item whose fix lives outside the home is still filed there, labelled
 `retro:foreign` with the intended location in its body, and accepted as `ready-for-human`.
-_Avoid_: finding, action item, suggestion
+_Avoid_: action item, suggestion
 
 **Deferred finding**:
 A story-review finding the story orchestrator puts off rather than sends to the fix-up
@@ -350,22 +353,21 @@ _Avoid_: deferral ticket, follow-up ticket, needs-triage child
 **Stage**:
 One numbered row of the runbook's Stages table, named by the command you type to run it.
 A feature's position in the flow is the stage its epic bead is between or in.
-_Avoid_: step, phase
+_Avoid_: phase
 
 **Epic-level stage**:
 A stage that works the whole feature across its owner repos: the story cut, the ticket cut
 and the `/dev:implement-spec` driver. It writes to an owner repo only through that repo's beads
 database; files, `.gitignore` entries and commits there are the story orchestrator's (ADR 0010).
-_Avoid_: cut stage (the driver is one too), feature-level skill
+_Avoid_: feature-level skill
 
 **Dev plugin**:
 The feature workflow as the unit that is installed: the skills, the rules docs, the
 runbook, this glossary, the ADRs and the hooks, packaged as the Claude Code plugin `dev`
 and served from its own marketplace repo, `claude-dev-plugin`. Its skills are addressed
 as `/dev:<skill>`. Whatever a machine needs that a plugin cannot carry is the machine
-setup, not the plugin (ADR 0013).
-_Avoid_: the orchestration (that is one rules doc), the skills, dotfiles, the workflow
-(that is the runbook skill)
+setup, not the plugin (ADR 0013). No one part stands for the whole: not the
+orchestration rules doc, not the runbook skill, not the skills.
 
 **Machine setup**:
 The per-machine part of running the dev plugin, which a plugin cannot carry: the
@@ -374,13 +376,13 @@ the lines the runbook has the owner add by hand (the `~/src` sandbox allowlist,
 `beads.role`, `BD_EXPORT_AUTO`). `/dev:setup` checks the prerequisites and hands the owner
 the stub and the baseline to paste, nothing more; on Kai's own machines chezmoi applies
 all of it, the commit-lint git hook too, and the skill finds nothing missing.
-_Avoid_: install, bootstrap, onboarding
+_Avoid_: bootstrap, onboarding
 
 **Repo setup**:
 The per-repo part: the Jira project key in the repo's `CLAUDE.md`, a beads database, and
 the glossary and ADR layout, written by `/dev:setup-repo`. The project key is the one
 configuration point the feature skills read; a repo without it is refused.
-_Avoid_: project config, init
+_Avoid_: project config
 
 **Baseline settings**:
 The settings snippet the dev plugin ships for the machine setup: the denies on secret
