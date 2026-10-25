@@ -120,8 +120,11 @@
 #      path and the line are named. Outside a brief, where the skill itself resolves the
 #      variable, it passes (dev-rc9, INFRA-30).
 # Usage: scripts/lint-skill-docs.sh [implement-spec SKILL.md [WORKFLOW.md]]
-# Each section guards on its doc existing, so the lint passes on a tree without that doc yet;
-# the plugin layout is skills/, docs/agents/, docs/WORKFLOW.md and CLAUDE.md under the repo root.
+# A section whose doc is missing fails naming it ("missing document: <path>") rather than being
+# skipped, so a renamed skill or rules doc cannot turn its checks off (dev-dov); each section
+# opens with a "== <n>. " header, under which its FAIL lines print (the regression test reads
+# them to tell which section failed). The plugin layout is skills/, docs/agents/,
+# docs/WORKFLOW.md, CLAUDE.md and GLOSSARY.md under the repo root.
 # SKILLS_DIR and AGENT_DOCS override the skills and agent docs directories (scratch copies).
 # DOCS_DIR overrides the docs directory the namespace rule scans (default: docs under the repo root).
 # USER_CLAUDE_MD overrides the project CLAUDE.md (default: CLAUDE.md under the repo root).
@@ -139,6 +142,9 @@ has() { grep -qiF -- "$2" "$f" || bad "missing: $1 ($2)"; }
 hasc() { grep -qF -- "$2" "$f" || bad "missing (case-sensitive): $1 ($2)"; }
 hase() { grep -qE -- "$2" "$f" || bad "missing: $1 ($2)"; }
 lacks() { [ -f "$f" ] || return 0; if grep -qiE -- "$2" "$f"; then bad "present: $1 ($2)"; grep -niE -- "$2" "$f" | head -3; fi; }
+# doc <n> <title> <file>: opens section n on <file> (sets f), true when it exists; a missing one
+# is a failure naming it, never a skipped section
+doc() { f=$3; echo "== $1. $2: $f"; [ -f "$f" ] || { bad "missing document: $f"; return 1; }; }
 
 skills=${SKILLS_DIR:-$root/skills}
 agents=${AGENT_DOCS:-$root/docs/agents}
@@ -146,22 +152,19 @@ docs=${DOCS_DIR:-$root/docs}
 docs=${docs%/}
 user_claude_md=${USER_CLAUDE_MD:-$root/CLAUDE.md}
 glossary_md=${GLOSSARY_MD:-$root/GLOSSARY.md}
-# an explicitly passed path ($1, $2) or a set override must exist; only the defaults are guarded
-# by [ -f ] below
-for given in "${1:-}" "${2:-}"; do
-  [ -z "$given" ] || [ -f "$given" ] || bad "no such file: $given"
+runbook=${2:-$root/docs/WORKFLOW.md}
+# the dirs and the docs no section owns must exist, a default as much as an override; the
+# driver ($1) and the runbook ($2) are their sections' documents
+echo "== 0. paths"
+for given in "$skills" "$agents" "$docs"; do
+  [ -d "$given" ] || bad "no such directory: $given"
 done
-for given in "${SKILLS_DIR:-}" "${AGENT_DOCS:-}" "${DOCS_DIR:-}"; do
-  [ -z "$given" ] || [ -d "$given" ] || bad "no such directory: $given"
-done
-for given in "${USER_CLAUDE_MD:-}" "${GLOSSARY_MD:-}"; do
-  [ -z "$given" ] || [ -f "$given" ] || bad "no such file: $given"
+for given in "$user_claude_md" "$glossary_md"; do
+  [ -f "$given" ] || bad "no such file: $given"
 done
 
 # ---- 1. /implement-spec driver ----
-f=${1:-$skills/implement-spec/SKILL.md}
-if [ -f "$f" ]; then
-echo "== $f"
+if doc 1 "/implement-spec driver" "${1:-$skills/implement-spec/SKILL.md}"; then
 lacks "worktree steps" 'worktree'
 # no merge steps; the one allowed use is the human stop naming "the PR to merge" for the user
 # (chezmoi-9v4.1.6), so that phrase is blanked before the scan
@@ -206,92 +209,16 @@ has "preflight pointer" '"Working-directory preflight"'
 
 fi
 
-# ---- 2. WORKFLOW.md runbook ----
-f=${2:-$root/docs/WORKFLOW.md}
-runbook=$f
-plugin=${PLUGIN_SKILLS:-$(ls -d "$HOME"/.claude/plugins/cache/claude-plugins-official/mattpocock-skills/*/skills 2>/dev/null | sort -V | tail -1)}
-# the plugin's skill names, listed once per run: a skill dir sits at the plugin's skills level,
-# directly or under one category dir (engineering/tdd), and is not a subdirectory of another
-# skill (tdd/scripts)
-plugin_skills=
-if [ -d "$plugin" ]; then
-  plugin_skills=$(find "$plugin" -mindepth 1 -maxdepth 2 -type d 2>/dev/null | while IFS= read -r m; do
-    [ -f "$(dirname "$m")/SKILL.md" ] || basename "$m"
-  done | sort -u)
-fi
-builtin=" model add-dir code-review plugin sandbox clear mcp help config tmp compact init permissions hooks resume agents bug context cost doctor exit login logout memory pr-comments review status statusline terminal-setup vim ide install-github-app release-notes rewind export usage theme output-style loop schedule security-review simplify run fewer-permission-prompts keybindings-help update-config claude-api "
-
-# the /command tokens of file $1, one per line. A slash starts a command only at the start of a
-# line or after whitespace, an opening delimiter or an opening backtick (so not a/b, ~/x, a URL,
-# a closing tag, <home>/x, $(pwd)/x or a closing `x`/y). The name is [a-z-]+ with an optional
-# :skill; what follows it tells a command from a path (/tmp/x, /x.sh) or a placeholder
-# (/dev:<x>): a command ends at a space, the end of line or punctuation, and a ":" or "." that
-# ends a sentence still counts, so adjacent commands and "/skill." or "/skill: x" are checked.
-cmd_tokens() { # <file>
-  local out
-  # LC_ALL=C: a multibyte char (arrow, em dash) next to a slash must not abort awk; an extractor
-  # failure is the caller's to report, never swallowed by the sort
-  out=$(LC_ALL=C awk -v q="'" '{
-    line = $0; n = length(line); inc = 0
-    for (i = 1; i <= n; i++) {
-      ch = substr(line, i, 1)
-      if (ch == "`") { inc = !inc; continue }
-      if (ch != "/") continue
-      p = (i > 1) ? substr(line, i - 1, 1) : ""
-      ok = (p == "" || p ~ /[ \t(\[{|,;"*_=]/ || p == q || (p == "`" && inc))
-      # a ">" opens a command only when it is not the end of a <placeholder>: <home>/x is a path
-      if (p == ">" && substr(line, 1, i - 1) !~ /<[^ \t<>]*>$/) ok = 1
-      if (!ok) continue
-      rest = substr(line, i + 1)
-      if (!match(rest, /^[a-z][a-z-]*(:[a-z-]+)?/)) continue
-      tok = substr(rest, 1, RLENGTH); c = substr(rest, RLENGTH + 1, 1); d = substr(rest, RLENGTH + 2, 1)
-      if (c ~ /[\/_A-Z0-9<]/) continue
-      if (c == ":" && (tok == "dev" || tok == "mattpocock-skills")) continue   # a namespace alone
-      if (c == "." && d ~ /[A-Za-z0-9_]/) continue
-      if (c == ":" && d != "" && d !~ /[ \t,;.)`]/) continue
-      sub(/-+$/, "", tok)
-      print tok
-    }
-  }' "$1") || return 1
-  [ -z "$out" ] || printf '%s\n' "$out" | sort -u
-}
-# every namespaced /command token in $@ maps to a skill directory: dev: ones under the
-# skills dir, mattpocock-skills: ones under the plugin skills dir. Bare and unknown-namespace
-# tokens are the namespace rule's (section 11), which calls this for every doc it scans.
-# A dev: name passes only when its skill dir exists, so a dropped, renamed or typo'd skill fails.
-cmds() { # <token>...
-  local tok name
-  for tok in "$@"; do
-    name=${tok##*:}
-    case "$tok" in
-      dev:*) [ -d "$skills/$name" ] || bad "/$tok names no skill" ;;
-      mattpocock-skills:*)
-        if [ ! -d "$plugin" ]; then
-          bad "/$tok cannot be resolved: plugin skills dir not found (${plugin:-unset}; install mattpocock-skills or set PLUGIN_SKILLS)"
-        else
-          case $'\n'"$plugin_skills"$'\n' in
-            *$'\n'"$name"$'\n'*) ;;
-            *) bad "/$tok names no skill" ;;
-          esac
-        fi ;;
-    esac
-  done
-}
-if [ -f "$f" ]; then
-echo "== $f"
-# the cut skills take the feature as their one argument; the runbook has a paragraph on it and
-# writes it in the 3a and 3b rows below (chezmoi-nz0)
-hasc "argument paragraph" '**The argument.**'
-fi
-if [ -f "$skills/workflow/SKILL.md" ]; then
-echo "== $skills/workflow/SKILL.md"
+# ---- 2. WORKFLOW.md runbook and /workflow ----
 # /workflow prints each next command with the argument filled in, so a fresh session types it as-is
-f=$skills/workflow/SKILL.md
+if doc 2 "/workflow" "$skills/workflow/SKILL.md"; then
 hasc "workflow prints the story cut's argument" 'next: `/dev:spec-to-stories <arg>`'
 hasc "workflow prints the ticket cut's argument" 'next: `/dev:spec-to-tickets <arg>`'
 fi
-f=$runbook
-if [ -f "$f" ]; then
+if doc 2 "runbook" "$runbook"; then
+# the cut skills take the feature as their one argument; the runbook has a paragraph on it and
+# writes it in the 3a and 3b rows below (chezmoi-nz0)
+hasc "argument paragraph" '**The argument.**'
 
 # flat /to-tickets appears only in the Variants section
 awk '/^## /{sec=$0} /\/mattpocock-skills:to-tickets/ && sec !~ /Variants/ {print NR": "$0; n=1} END{exit n}' "$f" >/dev/null \
@@ -341,9 +268,7 @@ awk '/^\| 1 \|/{on=1} on && !/^\|/{bad=1} /^\| 8 \|/{on=0} END{exit bad}' "$f" |
 fi
 
 # ---- 3. /spec-to-stories ----
-f=$skills/spec-to-stories/SKILL.md
-if [ -f "$f" ]; then
-echo "== $f"
+if doc 3 "/spec-to-stories" "$skills/spec-to-stories/SKILL.md"; then
 has "frontmatter" 'disable-model-invocation: true'
 has "preflight pointer" '"Working-directory preflight"'
 has "epic gather pointer" '"gather the epic bead"'
@@ -441,9 +366,7 @@ hasc "add mode leaves Jira untouched" 'the Jira description is untouched'
 fi
 
 # ---- 4. /spec-to-tickets driver ----
-f=$skills/spec-to-tickets/SKILL.md
-if [ -f "$f" ]; then
-echo "== $f"
+if doc 4 "/spec-to-tickets driver" "$skills/spec-to-tickets/SKILL.md"; then
 has "frontmatter" 'disable-model-invocation: true'
 has "no-stories refusal" 'refused: no stories'
 has "every-story-cut refusal" 'refused: every story already cut'
@@ -513,7 +436,7 @@ lacks "rerun hint covering an already cut dependent" 'rerun this skill for the d
 fi
 
 # ---- 5. agent docs and skills: retired phrases ----
-echo "== $agents, $skills"
+echo "== 5. retired phrases: $agents, $skills"
 # whole words only ("shortcut one", "cut ones" pass); "re-cut one" is the spec's wording, not the retired name
 retired='(^|[^-A-Za-z0-9_])cut (one|two)([^-A-Za-z0-9_]|$)|<spec-slug>|story-cut\.md'
 # and no foreground spawn instruction: an Agent call returns at once whatever run_in_background
@@ -546,9 +469,7 @@ done < <({ find "$docs" -type f -name '*.md' 2>/dev/null; find "$agents" "$skill
   echo "$user_claude_md"; echo "$runbook"; } | grep . | sort -u)
 
 # ---- 6. shared rules the skills point at ----
-f=$agents/orchestration.md
-if [ -f "$f" ]; then
-echo "== $f"
+if doc 6 "orchestration rules" "$agents/orchestration.md"; then
 hasc "preflight section" '## Working-directory preflight'
 has "preflight remedy" '/add-dir <'
 # a runner waits on its subagent's report, never on a Bash poll loop; pgrep is dead in the sandbox (chezmoi-flq)
@@ -621,9 +542,7 @@ para_has '**Review verdict.**' "the blocking-or-minor tags" '**blocking** or **m
 para_has '**Review verdict.**' "a round with no blocking findings is clean" 'no blocking findings is **clean**'
 para_has '**Review verdict.**' "only blocking rounds count toward the limit" 'Only blocking rounds count'
 fi
-f=$agents/issue-tracker.md
-if [ -f "$f" ]; then
-echo "== $f"
+if doc 6 "tracker rules" "$agents/issue-tracker.md"; then
 # the one test of the session mode (ADR 0008), stated once, in the opening before any section
 opening() { awk '/^## /{exit} {print}' "$f"; }
 for need in '`<home>` is the session'"'"'s repo' '`<home>/repos.yaml`' '**workspace session**' '**repo session**' 'the only owner'; do
@@ -649,9 +568,7 @@ hasc "close rule tolerates untriaged children" 'closed or carries `needs-triage`
 fi
 
 # ---- 7. /story-to-tickets ----
-f=$skills/story-to-tickets/SKILL.md
-if [ -f "$f" ]; then
-echo "== $f"
+if doc 7 "/story-to-tickets" "$skills/story-to-tickets/SKILL.md"; then
 has "spec fetch pointer" 'Fetch the spec as the tracker doc'"'"'s "fetch the spec" says'
 has "story cutter trigger" '**Called, draft role ("story cutter"'
 has "publish trigger" 'opens `Publish this block`'
@@ -680,9 +597,7 @@ has "re-cut cites the tracker doc's per-edge rules" 'the tracker doc'"'"'s per-e
 fi
 
 # ---- 8. /implement-story: the deliver step pushes and opens the PR on the typed command's authority ----
-f=$skills/implement-story/SKILL.md
-if [ -f "$f" ]; then
-echo "== $f"
+if doc 8 "/implement-story" "$skills/implement-story/SKILL.md"; then
 hasc "delivery rule pointer" 'the rules doc'"'"'s Delivery'
 hasc "push command" 'git -C <owner> push -u origin <branch>'
 hasc "refused push is a failed line" 'failed: push'
@@ -802,9 +717,7 @@ lacks "the zero-findings bar" 'not clean after three rounds|no findings at all|c
 fi
 
 # ---- 9. /close-story: the ticket check counts children as the finished-story definition does ----
-f=$skills/close-story/SKILL.md
-if [ -f "$f" ]; then
-echo "== $f"
+if doc 9 "/close-story" "$skills/close-story/SKILL.md"; then
 # a child carrying needs-triage or wontfix is a note with nothing to implement, not a ticket
 # to wait for; any other open child is named with its status and label, so the remedy is
 # readable from the refusal line (chezmoi-afn)
@@ -823,9 +736,8 @@ fi
 # a feature's stories form a DAG of text blockers, each naming a human gate ticket or a story;
 # the one-text-blocker and no-chains rules are retired. The skills and the runbook get their
 # own checks in their sections, so the forbidden phrases are scoped to these two docs.
-for f in "$agents/issue-tracker.md" "$agents/orchestration.md"; do
-  [ -f "$f" ] || continue
-  echo "== $f"
+for d in "$agents/issue-tracker.md" "$agents/orchestration.md"; do
+  doc 10 "story DAG" "$d" || continue
   has "story DAG" 'story DAG'
   has "human gate ticket" 'human gate ticket'
   # read as one line, so a phrase wrapped across a line break is still caught; the chains
@@ -838,7 +750,7 @@ done
 # and the /close-story; a publish ticket waits on its story's tickets, not its repo's
 f=$agents/orchestration.md
 if [ -f "$f" ]; then
-echo "== $f"
+echo "== 10. story DAG: $f"
 hasc "story-closure human stop" 'merge its PR, then run `/dev:close-story <story-id>`'
 has "publish ticket ready on its story's tickets" "as soon as its story's implementation tickets close"
 lacks "publish ticket ready on its repo's tickets" "its repo's implementation tickets close"
@@ -846,7 +758,7 @@ fi
 # the story body shows only blocker lines a step fills; a middle story of a chain is ordered
 f=$agents/issue-tracker.md
 if [ -f "$f" ]; then
-echo "== $f"
+echo "== 10. story DAG: $f"
 lacks "gate ticket line no step fills" '<repo> <gate ticket id>'
 # the story cut writes a story line or a publish placeholder (step 2's skipped form too), so
 # "the only lines" of step 4 would contradict step 2
@@ -879,7 +791,75 @@ fi
 # built-in command do not count as skills. The driver passed as $1 is scanned too, wherever it
 # lives. In docs/specs/ only the existence check is skipped: a spec names the skills its
 # stories have yet to build.
-echo "== namespace rule"
+plugin=${PLUGIN_SKILLS:-$(ls -d "$HOME"/.claude/plugins/cache/claude-plugins-official/mattpocock-skills/*/skills 2>/dev/null | sort -V | tail -1)}
+# the plugin's skill names, listed once per run: a skill dir sits at the plugin's skills level,
+# directly or under one category dir (engineering/tdd), and is not a subdirectory of another
+# skill (tdd/scripts)
+plugin_skills=
+if [ -d "$plugin" ]; then
+  plugin_skills=$(find "$plugin" -mindepth 1 -maxdepth 2 -type d 2>/dev/null | while IFS= read -r m; do
+    [ -f "$(dirname "$m")/SKILL.md" ] || basename "$m"
+  done | sort -u)
+fi
+builtin=" model add-dir code-review plugin sandbox clear mcp help config tmp compact init permissions hooks resume agents bug context cost doctor exit login logout memory pr-comments review status statusline terminal-setup vim ide install-github-app release-notes rewind export usage theme output-style loop schedule security-review simplify run fewer-permission-prompts keybindings-help update-config claude-api "
+
+# the /command tokens of file $1, one per line. A slash starts a command only at the start of a
+# line or after whitespace, an opening delimiter or an opening backtick (so not a/b, ~/x, a URL,
+# a closing tag, <home>/x, $(pwd)/x or a closing `x`/y). The name is [a-z-]+ with an optional
+# :skill; what follows it tells a command from a path (/tmp/x, /x.sh) or a placeholder
+# (/dev:<x>): a command ends at a space, the end of line or punctuation, and a ":" or "." that
+# ends a sentence still counts, so adjacent commands and "/skill." or "/skill: x" are checked.
+cmd_tokens() { # <file>
+  local out
+  # LC_ALL=C: a multibyte char (arrow, em dash) next to a slash must not abort awk; an extractor
+  # failure is the caller's to report, never swallowed by the sort
+  out=$(LC_ALL=C awk -v q="'" '{
+    line = $0; n = length(line); inc = 0
+    for (i = 1; i <= n; i++) {
+      ch = substr(line, i, 1)
+      if (ch == "`") { inc = !inc; continue }
+      if (ch != "/") continue
+      p = (i > 1) ? substr(line, i - 1, 1) : ""
+      ok = (p == "" || p ~ /[ \t(\[{|,;"*_=]/ || p == q || (p == "`" && inc))
+      # a ">" opens a command only when it is not the end of a <placeholder>: <home>/x is a path
+      if (p == ">" && substr(line, 1, i - 1) !~ /<[^ \t<>]*>$/) ok = 1
+      if (!ok) continue
+      rest = substr(line, i + 1)
+      if (!match(rest, /^[a-z][a-z-]*(:[a-z-]+)?/)) continue
+      tok = substr(rest, 1, RLENGTH); c = substr(rest, RLENGTH + 1, 1); d = substr(rest, RLENGTH + 2, 1)
+      if (c ~ /[\/_A-Z0-9<]/) continue
+      if (c == ":" && (tok == "dev" || tok == "mattpocock-skills")) continue   # a namespace alone
+      if (c == "." && d ~ /[A-Za-z0-9_]/) continue
+      if (c == ":" && d != "" && d !~ /[ \t,;.)`]/) continue
+      sub(/-+$/, "", tok)
+      print tok
+    }
+  }' "$1") || return 1
+  [ -z "$out" ] || printf '%s\n' "$out" | sort -u
+}
+# every namespaced /command token in $@ maps to a skill directory: dev: ones under the
+# skills dir, mattpocock-skills: ones under the plugin skills dir. Bare and unknown-namespace
+# tokens are the loop's below, which calls this for every doc it scans.
+# A dev: name passes only when its skill dir exists, so a dropped, renamed or typo'd skill fails.
+cmds() { # <token>...
+  local tok name
+  for tok in "$@"; do
+    name=${tok##*:}
+    case "$tok" in
+      dev:*) [ -d "$skills/$name" ] || bad "/$tok names no skill" ;;
+      mattpocock-skills:*)
+        if [ ! -d "$plugin" ]; then
+          bad "/$tok cannot be resolved: plugin skills dir not found (${plugin:-unset}; install mattpocock-skills or set PLUGIN_SKILLS)"
+        else
+          case $'\n'"$plugin_skills"$'\n' in
+            *$'\n'"$name"$'\n'*) ;;
+            *) bad "/$tok names no skill" ;;
+          esac
+        fi ;;
+    esac
+  done
+}
+echo "== 11. namespace rule"
 while IFS= read -r f; do
   [ -f "$f" ] || continue
   toks=$(cmd_tokens "$f") || bad "token extractor failed on $f"
@@ -895,9 +875,7 @@ done < <({ find "$docs" "$agents" "$skills" -type f -name '*.md' 2>/dev/null
 
 # ---- 12. /retro: step 2 names the transcript shape and the two mining recipes ----
 # the pins are fragments, so a recipe can be reworded without a lint edit
-f=$skills/retro/SKILL.md
-if [ -f "$f" ]; then
-echo "== $f"
+if doc 12 "/retro" "$skills/retro/SKILL.md"; then
 hasc "one JSON object per line" 'one JSON object per line'
 hasc "the timestamp field named" '`.timestamp`'
 hasc "the tool call object" '`.type == "tool_use"`'
@@ -920,7 +898,7 @@ fi
 # `>`, indented or not (implement-spec's sits inside a list item), and runs to the next blank
 # line, so a wrapped line that drops the `>` is still inside it. The variable outside one is the
 # skill's own to resolve and passes.
-echo "== brief rule"
+echo "== 13. brief rule"
 while IFS= read -r f; do
   while IFS=: read -r n line; do
     bad "plugin-root variable in a brief in $f:$n (spell the plugin root literally; the rules doc's Plugin root rule): $line"
@@ -942,7 +920,7 @@ bump_repo=${VERSION_BUMP_REPO:-$root}
 shipping=(skills docs hooks GLOSSARY.md ':(exclude)docs/specs')
 if git -C "$bump_repo" rev-parse --git-dir >/dev/null 2>&1 \
   && [ "$(git -C "$bump_repo" rev-parse --abbrev-ref HEAD 2>/dev/null)" != main ]; then
-  echo "== version bump"
+  echo "== 14. version bump"
   base=${VERSION_BUMP_BASE:-$(git -C "$bump_repo" merge-base origin/HEAD HEAD 2>/dev/null \
     || git -C "$bump_repo" merge-base origin/main HEAD 2>/dev/null)}
   if [ -z "$base" ]; then
