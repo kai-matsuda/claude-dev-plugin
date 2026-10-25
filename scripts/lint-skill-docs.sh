@@ -144,23 +144,33 @@ set -u
 root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 fail=0
 bad() { echo "FAIL: $*"; fail=1; }
-# has (grep -iF), hasc (-F), hase (-E) and lacks (-iE) check <pattern> against $f line by line,
-# as those greps would. Each only queues its check: a section's checks run in one awk pass when
-# the next section opens (section) and at the end (checks_run), so their FAIL lines print under
-# their own section's header, at a cost of one process per section rather than one per check
-# (the regression test runs the lint a few hundred times).
+# has (grep -iF), hasc (-F), hase (-E), lacks (-iE) and lacksf (-iF) check <pattern> against $f
+# line by line, as those greps would; line_has (-F), line_hase (-E) and line_lacks (-F) check it
+# on the lines matching <anchor> (-E), as a grep -E <anchor> | grep -q pipeline would; para_has
+# (-iF) on the first paragraph opening with <heading> (that line to the next empty one), and
+# opening_has (-F) on the lines before the first "## ". Each only queues its check: a section's
+# checks run in one awk pass when the next section opens (section) and at the end (checks_run),
+# so their FAIL lines print under their own section's header, at a cost of one process per
+# section rather than one or two per check (the regression test runs the lint a few hundred
+# times, and its pool is CPU-bound).
 queue=
 has() { queue+="i	$f	$1	$2"$'\n'; }
 hasc() { queue+="c	$f	$1	$2"$'\n'; }
 hase() { queue+="e	$f	$1	$2"$'\n'; }
 lacks() { [ -f "$f" ] || return 0; queue+="x	$f	$1	$2"$'\n'; }
+lacksf() { [ -f "$f" ] || return 0; queue+="f	$f	$1	$2"$'\n'; }
+line_has() { queue+="a	$f	$2	$3	$1"$'\n'; }   # <anchor> <description> <phrase>
+line_hase() { queue+="A	$f	$2	$3	$1"$'\n'; }   # <anchor> <description> <pattern>
+line_lacks() { [ -f "$f" ] || return 0; queue+="X	$f	$2	$3	$1"$'\n'; }   # <anchor> <description> <phrase>
+para_has() { queue+="p	$f	$2	$3	$1"$'\n'; }   # <heading> <description> <phrase>
+opening_has() { queue+="o	$f	$1	$2"$'\n'; }
 # run the queued checks: a missing has/hasc/hase pattern or a present lacks one is a FAIL line,
 # a lacks one followed by its first three matching lines, numbered as grep -n numbers them
 checks_run() {
   local out
   [ -n "$queue" ] || return 0
   out=$(printf '%s' "$queue" | LC_ALL=C awk -F '\t' '
-    { k[NR] = $1; d[NR] = $3; p[NR] = $4; lp[NR] = tolower($4)
+    { k[NR] = $1; d[NR] = $3; p[NR] = $4; lp[NR] = tolower($4); a[NR] = $5
       if (!($2 in nat)) files[++nf] = $2
       at[$2, ++nat[$2]] = NR }
     END {
@@ -169,18 +179,36 @@ checks_run() {
         while ((getline line < fn) > 0) {
           ln++; low = tolower(line)
           for (m = 1; m <= nat[fn]; m++) {
-            i = at[fn, m]
-            if (k[i] == "i") { if (index(low, lp[i])) hit[i] = 1 }
-            else if (k[i] == "c") { if (index(line, p[i])) hit[i] = 1 }
-            else if (k[i] == "e") { if (line ~ p[i]) hit[i] = 1 }
-            else if (low ~ lp[i] && ++hit[i] <= 3) shown[i] = shown[i] ln ":" line "\n"
+            i = at[fn, m]; t = k[i]
+            if (t == "i") { if (index(low, lp[i])) hit[i] = 1 }
+            else if (t == "c") { if (index(line, p[i])) hit[i] = 1 }
+            else if (t == "e") { if (line ~ p[i]) hit[i] = 1 }
+            else if (t == "x") { if (low ~ lp[i] && ++hit[i] <= 3) shown[i] = shown[i] ln ":" line "\n" }
+            else if (t == "f") { if (index(low, lp[i]) && ++hit[i] <= 3) shown[i] = shown[i] ln ":" line "\n" }
+            else if (t == "a" || t == "X") { if (line ~ a[i] && index(line, p[i])) hit[i] = 1 }
+            else if (t == "A") { if (line ~ a[i] && line ~ p[i]) hit[i] = 1 }
+            else if (t == "p") {
+              # the paragraph opens on its heading line and closes for good at the next empty line
+              if (!closed[i]) {
+                if (index(line, a[i]) == 1) on[i] = 1
+                if (on[i]) { if (line == "") closed[i] = 1; else if (index(low, lp[i])) hit[i] = 1 }
+              }
+            }
+            else if (t == "o") { if (index(line, "## ") == 1) closed[i] = 1; if (!closed[i] && index(line, p[i])) hit[i] = 1 }
           }
         }
         close(fn)
       }
-      for (i = 1; i <= NR; i++)
-        if (k[i] == "x") { if (hit[i]) printf "FAIL: present: %s (%s)\n%s", d[i], p[i], shown[i] }
-        else if (!hit[i]) printf "FAIL: missing%s: %s (%s)\n", (k[i] == "c" ? " (case-sensitive)" : ""), d[i], p[i]
+      for (i = 1; i <= NR; i++) {
+        t = k[i]
+        if (t == "x" || t == "f") { if (hit[i]) printf "FAIL: present: %s (%s)\n%s", d[i], p[i], shown[i] }
+        else if (t == "X") { if (hit[i]) printf "FAIL: present: %s (%s on a line matching %s)\n", d[i], p[i], a[i] }
+        else if (hit[i]) continue
+        else if (t == "a" || t == "A") printf "FAIL: missing: %s (%s on a line matching %s)\n", d[i], p[i], a[i]
+        else if (t == "p") printf "FAIL: missing in the %s paragraph: %s (%s)\n", a[i], d[i], p[i]
+        else if (t == "o") printf "FAIL: missing in the opening: %s (%s)\n", d[i], p[i]
+        else printf "FAIL: missing%s: %s (%s)\n", (t == "c" ? " (case-sensitive)" : ""), d[i], p[i]
+      }
     }') || bad "the check pass failed (awk exit $?)"
   queue=
   [ -z "$out" ] || { printf '%s\n' "$out"; fail=1; }
@@ -276,18 +304,18 @@ awk '/^## /{sec=$0} /\/mattpocock-skills:to-tickets/ && sec !~ /Variants/ {print
 
 # stale wording
 for pat in 'cross-repo ticket' 'per-ticket `pr:`' 'single orchestrator' 'one orchestrator drives'; do
-  grep -qiF -- "$pat" "$f" && bad "stale wording: $pat"
+  lacksf "stale wording" "$pat"
 done
 # session mode (ADR 0008): runbook-only retired wording is absent (section 5 sweeps the walk-up list), the mode is named
 for pat in 'workspace **inbox**' 'resume from the home repo' "the home repo's story is a child"; do
-  grep -qiF -- "$pat" "$f" && bad "retired wording: $pat"
+  lacksf "retired wording" "$pat"
 done
 hasc "workspace session named" 'workspace session'
 hasc "cross-repo typed at the workspace root" 'typed at the workspace root'
 hasc "resume from the workspace root" 'resume from the workspace root'
 hasc "inbox is the home's beads" "the home's beads"
 
-grep -E '^\| 4a \|' "$f" | grep -q sonnet && bad "sonnet at 4a in session-model table"
+line_lacks '^\| 4a \|' "sonnet at 4a in session-model table" sonnet
 
 # required content
 hasc "one-line flow" '/mattpocock-skills:grill-with-docs → /mattpocock-skills:to-spec → /dev:spec-to-stories → /dev:spec-to-tickets → /dev:implement-spec → /dev:close-epic'
@@ -310,7 +338,7 @@ hase "/mattpocock-skills:pr named (Variants)" '/mattpocock-skills:pr([^a-z-]|$)'
 
 # /pr stays off the main line: the fenced flow block and stage 5
 awk '/^```/{fence=!fence; next} fence && /\/mattpocock-skills:pr([^a-z-]|$)/ {n=1} END{exit n}' "$f" || bad "/mattpocock-skills:pr in the fenced flow"
-grep -E '^\| 5 .*/mattpocock-skills:pr([^a-z-]|$)' "$f" | grep -q . && bad "/mattpocock-skills:pr in stage 5"
+lacks "/mattpocock-skills:pr in stage 5" '^\| 5 .*/mattpocock-skills:pr([^a-z-]|$)'
 
 # the stage table stays one table (rows 1..8 contiguous)
 awk '/^\| 1 \|/{on=1} on && !/^\|/{bad=1} /^\| 8 \|/{on=0} END{exit bad}' "$f" || bad "stage table broken by a non-row line"
@@ -566,8 +594,6 @@ hasc "finished story tolerates untriaged children" '`needs-triage` or `wontfix`'
 hasc "TMPDIR rule" '**TMPDIR.**'
 # the rule's own paragraph (from its heading to the next blank line) carries the line, the two
 # failures and the gitignore fact, so a word used elsewhere in the doc cannot stand in
-para() { awk -v h="$1" 'index($0, h) == 1 {on=1} on && /^$/ {exit} on {print}' "$f"; }
-para_has() { para "$1" | grep -qiF -- "$3" || bad "missing in the $1 paragraph: $2 ($3)"; }
 para_has '**TMPDIR.**' "TMPDIR line" 'mkdir -p <worktree>/.tmp && export TMPDIR=<worktree>/.tmp'
 para_has '**TMPDIR.**' "the heredoc failure" 'heredoc'
 para_has '**TMPDIR.**' "the directory is gitignored" '`.tmp/` is gitignored'
@@ -604,9 +630,8 @@ para_has '**Idle rule.**' "the Idle rule names the checks" "these are the story'
 fi
 if doc 6 "tracker rules" "$agents/issue-tracker.md"; then
 # the one test of the session mode (ADR 0008), stated once, in the opening before any section
-opening() { awk '/^## /{exit} {print}' "$f"; }
 for need in '`<home>` is the session'"'"'s repo' '`<home>/repos.yaml`' '**workspace session**' '**repo session**' 'the only owner'; do
-  opening | grep -qF -- "$need" || bad "missing in the tracker doc's opening: the one test ($need)"
+  opening_has "the tracker doc's one test" "$need"
 done
 hasc "epic gather section" 'When a skill says "gather the epic bead"'
 has "other-repo refusal" 'refused: epic bead lives in <repo>'
@@ -698,13 +723,13 @@ hasc "ticket runner brief carries the idle rule" "the rules doc's Idle rule"
 # the implementer, fix-up and merger briefs give lint and test runs an explicit ten-minute
 # timeout, so the 120 s default never backgrounds them (dev-7k0, INFRA-30)
 for step in 2 3 4; do
-  grep -E "^> $step\. " "$f" | grep -qF -- 'timeout: 600000' || bad "missing in the ticket runner brief's step $step: lint and test timeout (timeout: 600000)"
+  line_has "^> $step\. " "the ticket runner brief's step $step: lint and test timeout" 'timeout: 600000'
 done
 hasc "story fix-up brief names the lint and test limit" 'the ten-minute limit on lint and test runs'
 # the per-ticket reviewer reads the standards the story review reads: the repo's own files and
 # the plugin's coding-standards doc by its literal path (dev-co6)
 for need in '`CODING_STANDARDS.md` or `CONTRIBUTING.md`' '<plugin root>/docs/agents/coding-standards.md` spelled as the path this session resolved'; do
-  grep -E '^> 3\. ' "$f" | grep -qF -- "$need" || bad "missing in the ticket reviewer brief: standards source ($need)"
+  line_has '^> 3\. ' "the ticket reviewer brief's standards source" "$need"
 done
 # one story is one PR on `feat/<story-id>` (keyed or not); a finished story with an open agent
 # ticket is guarded by one forge query; a story-closure wait says to merge and close; the
@@ -762,9 +787,9 @@ hasc "mktemp -d takes a template under .tmp" 'mktemp -d <worktree>/.tmp/<name>.X
 # the ticket runner reads the rules doc, not this skill, so its brief points there
 hasc "ticket runner brief points at the rules doc's TMPDIR rule" "the rules doc's TMPDIR rule"
 for step in 2 3 4; do
-  grep -qE "^> $step\. .*TMPDIR line" "$f" || bad "missing: ticket runner step $step's brief starts with the TMPDIR line"
+  hase "ticket runner step $step's brief starts with the TMPDIR line" "^> $step\. .*TMPDIR line"
 done
-grep -qE '^7\. .*TMPDIR line' "$f" || bad "missing: the story review's fix-up implementer brief starts with the TMPDIR line"
+hase "the story review's fix-up implementer brief starts with the TMPDIR line" '^7\. .*TMPDIR line'
 hasc "Gitignore step counts four entries" "the rule's four entries"
 lacks "Gitignore step counts three entries" "the rule's three entries"
 # the reviewer brief in the runner's step 3 carries the two tags with their definitions and
@@ -773,64 +798,63 @@ lacks "Gitignore step counts three entries" "the rule's three entries"
 # clean as no finding at all, is gone (chezmoi-49k). The brief's phrases are read on the step 3
 # line alone, since step 7 carries the same ones
 for phrase in 'verdict: clean' 'verdict: blocking (<n>)' '**blocking** or **minor**' 'within the three rounds above'; do
-  grep -E '^> 3\. ' "$f" | grep -qF -- "$phrase" || bad "missing: ticket runner step 3's reviewer brief ($phrase)"
+  line_has '^> 3\. ' "ticket runner step 3's reviewer brief" "$phrase"
 done
-grep -qE "^> 3\. .*the rules doc's Review verdict" "$f" || bad "missing: ticket runner step 3 points at the rules doc's Review verdict"
-grep -qE "^7\. .*the rules doc's Review verdict" "$f" || bad "missing: the story review (step 7) points at the rules doc's Review verdict"
+hase "ticket runner step 3 points at the rules doc's Review verdict" "^> 3\. .*the rules doc's Review verdict"
+hase "the story review (step 7) points at the rules doc's Review verdict" "^7\. .*the rules doc's Review verdict"
 lacks "the zero-findings bar" 'not clean after three rounds|no findings at all|clean means zero findings'
 # the story orchestrator resolves the owner repo's lint command once, in the forge step, with a
 # three-way precedence, and the runner brief's header carries it so no agent guesses it (dev-cq0.1.2)
 L3='^   Resolve the owner repo'"'"'s \*\*lint command\*\*'
-grep -E "$L3" "$f" | grep -qF -- 'Resolve the owner repo'"'"'s **lint command** once' || bad "missing: step 3 resolves the lint command once"
-grep -E "$L3" "$f" | grep -qF -- '`make lint` when `<owner>`'"'"'s Makefile has a `lint` target' || bad "missing: lint precedence: make lint first"
-grep -E "$L3" "$f" | grep -qF -- 'else the command `<owner>`'"'"'s `CLAUDE.md` names, else none' || bad "missing: lint precedence: CLAUDE.md second, then none"
-grep -E '^> You are the ticket runner' "$f" | grep -qF -- 'lint command `<lint>` or none' || bad "missing: runner brief header carries the lint command"
+line_has "$L3" "step 3 resolves the lint command once" 'Resolve the owner repo'"'"'s **lint command** once'
+line_has "$L3" "lint precedence: make lint first" '`make lint` when `<owner>`'"'"'s Makefile has a `lint` target'
+line_has "$L3" "lint precedence: CLAUDE.md second, then none" 'else the command `<owner>`'"'"'s `CLAUDE.md` names, else none'
+line_has '^> You are the ticket runner' "runner brief header carries the lint command" 'lint command `<lint>` or none'
 # anchored: step 3's lint paragraph says who spells it out and where it runs; the runner brief's
 # opening paragraph lists it among what every brief carries; its step 2 offers no list to choose from
-grep -E "$L3" "$f" | grep -qF -- 'spells it out in every implementer, fix-up implementer and merger brief it sends' || bad "missing: step 3's lint paragraph names the implementer, fix-up implementer and merger briefs"
-grep -E "$L3" "$f" | grep -qF -- 'make -C <dir> lint' || bad "missing: step 3's lint paragraph runs the lint as make -C <dir> lint"
-grep -E '^> You are the ticket runner' "$f" | grep -qF -- 'the lint command `<lint>` (or none)' || bad "missing: the runner brief's every-brief list carries the lint command"
-grep -E "$L3" "$f" | grep -qF -- 'a command `CLAUDE.md` names runs in that same checkout or worktree' || bad "missing: step 3's lint paragraph says where a CLAUDE.md-named command runs"
-grep -E '^> 2\. ' "$f" | grep -qF -- 'leaving out any the lint command already runs' || bad "missing: runner step 2 leaves out the tests the lint command already runs"
-grep -E '^> 2\. ' "$f" | grep -qF -- "the brief's lint command" || bad "missing: runner step 2 takes the lint command from the brief"
-grep -E '^> 2\. ' "$f" | grep -qF -- '`make lint`' && bad "present: runner step 2 offers a list of lint commands to choose from"
+line_has "$L3" "step 3's lint paragraph names the implementer, fix-up implementer and merger briefs" 'spells it out in every implementer, fix-up implementer and merger brief it sends'
+line_has "$L3" "step 3's lint paragraph runs the lint as make -C <dir> lint" 'make -C <dir> lint'
+line_has '^> You are the ticket runner' "the runner brief's every-brief list carries the lint command" 'the lint command `<lint>` (or none)'
+line_has "$L3" "step 3's lint paragraph says where a CLAUDE.md-named command runs" 'a command `CLAUDE.md` names runs in that same checkout or worktree'
+line_has '^> 2\. ' "runner step 2 leaves out the tests the lint command already runs" 'leaving out any the lint command already runs'
+line_has '^> 2\. ' "runner step 2 takes the lint command from the brief" "the brief's lint command"
+line_lacks '^> 2\. ' "runner step 2 offers a list of lint commands to choose from" '`make lint`'
 # the ticket runner's check gate sits between the implementer (step 2) and the reviewer or
 # merger: it opens step 3 for every tier, ahead of the reviewer; each check is one logged Bash
 # call under the worktree's .tmp/; a red is noted on the ticket and counts toward the three
 # rounds the blocking reviews count toward; the implementer runs no gate (dev-cq0.1.4)
 G3='^> 3\. \*\*Check gate\*\*, every tier'
-grep -qE "$G3" "$f" || bad "missing: ticket runner step 3 opens with the check gate, every tier"
-grep -E "$G3" "$f" | grep -qE '\*\*Check gate\*\*.*Green: .*for `medium` and `high`, spawn a \*\*reviewer\*\*' || bad "missing: the check gate runs before step 3's reviewer"
+hase "ticket runner step 3 opens with the check gate, every tier" "$G3"
+line_hase "$G3" "the check gate runs before step 3's reviewer" '\*\*Check gate\*\*.*Green: .*for `medium` and `high`, spawn a \*\*reviewer\*\*'
 grep -E "$G3" "$f" | sed 's/Green: .*//' | grep -qF -- 'spawn a **reviewer**' && bad "present: ticket runner step 3 spawns a reviewer ahead of the check gate's green"
-grep -E "$G3" "$f" | grep -qF -- 'Green: for `low`, go to step 4' || bad "missing: a green gate sends low straight to the merger"
-grep -E '^> 2\. ' "$f" | grep -qF -- 'The implementer runs no gate and spawns no one' || bad "missing: runner step 2's implementer runs no gate and spawns no one"
-grep -E "$G3" "$f" | grep -qF -- 'mkdir -p <worktree path>/.tmp; export TMPDIR=<worktree path>/.tmp; <check> > <worktree path>/.tmp/checks-<round>-<k>.log 2>&1; echo exit=$?' || bad "missing: the check gate logs both streams under the worktree's .tmp/ and echoes the exit"
-grep -E "$G3" "$f" | grep -qF -- 'tail -n 40 <log>' || bad "missing: a red gate reads a forty-line tail of the log, never the whole output"
-grep -E "$G3" "$f" | grep -qF -- '`bd -C <owner> note <ticket-id> "checks <round>: red <command>"`' || bad "missing: a red gate's note form (checks <round>: red <command>)"
-grep -E "$G3" "$f" | grep -qF -- 'a green writes no note' || bad "missing: a green gate writes no note"
-grep -E "$G3" "$f" | grep -qF -- 'the log path, and no pasted output' || bad "missing: the gate's fix-up brief points at the log path"
-grep -E "$G3" "$f" | grep -qF -- 'a third round of either kind is `failed`' || bad "missing: red gates and blocking reviews share the three-round budget"
-grep -E "$G3" "$f" | grep -qF -- 'run the check gate again, and on green spawn a reviewer again' || bad "missing: a blocking round's fix-up passes the gate before the next reviewer"
+line_has "$G3" "a green gate sends low straight to the merger" 'Green: for `low`, go to step 4'
+line_has '^> 2\. ' "runner step 2's implementer runs no gate and spawns no one" 'The implementer runs no gate and spawns no one'
+line_has "$G3" "the check gate logs both streams under the worktree's .tmp/ and echoes the exit" 'mkdir -p <worktree path>/.tmp; export TMPDIR=<worktree path>/.tmp; <check> > <worktree path>/.tmp/checks-<round>-<k>.log 2>&1; echo exit=$?'
+line_has "$G3" "a red gate reads a forty-line tail of the log, never the whole output" 'tail -n 40 <log>'
+line_has "$G3" "a red gate's note form (checks <round>: red <command>)" '`bd -C <owner> note <ticket-id> "checks <round>: red <command>"`'
+line_has "$G3" "a green gate writes no note" 'a green writes no note'
+line_has "$G3" "the gate's fix-up brief points at the log path" 'the log path, and no pasted output'
+line_has "$G3" "red gates and blocking reviews share the three-round budget" 'a third round of either kind is `failed`'
+line_has "$G3" "a blocking round's fix-up passes the gate before the next reviewer" 'run the check gate again, and on green spawn a reviewer again'
 # the merger's two runs (step 4, dev-cq0.1.6): the implementer's worktree after the tip merge and
 # the owner checkout after the integration merge are runs of the story's checks, the lint command
 # included, in place of the tests
-grep -E '^> 4\. ' "$f" | grep -qF -- 'runs the story'"'"'s checks there, the lint command `<lint>` included' && grep -E '^> 4\. ' "$f" | grep -qF -- 'reruns the story'"'"'s checks on the merged result in `<owner>`, the lint command `<lint>` included' || bad "missing: the merger runs the story's checks, the lint command included, in the implementer's worktree"
+line_has '^> 4\. ' "the merger runs the story's checks, the lint command included, in the implementer's worktree" 'runs the story'"'"'s checks there, the lint command `<lint>` included'
+line_has '^> 4\. ' "the merger reruns the story's checks, the lint command included, on the merged result in <owner>" 'reruns the story'"'"'s checks on the merged result in `<owner>`, the lint command `<lint>` included'
 # the story review (step 7) runs the check gate on the integration branch tip before the
 # two-axis review, a matching marker jumping to the Evidence run; a second pre-review red stalls
 # with failed: <check> <command>; the Evidence is each check's command, exit and tail, cited so
 # in step 8, and the retired "the command and its output" is gone (dev-cq0.1.5)
-S7=$(grep -E '^7\. ' "$f")
 for need in 'skip the gate and the review and go to the Evidence run' 'the **check gate** on the integration branch tip' \
   'a second red skips the review' '`failed: <check> <command>`'; do
-  grep -qF -- "$need" <<<"$S7" || bad "missing in the story review (step 7): $need"
+  line_has '^7\. ' "the story review (step 7)" "$need"
 done
+# on the first step 7 line, the gate comes before the review
 awk -v g='the **check gate** on the integration branch tip' -v r='mattpocock-skills:code-review' \
-  '{ i = index($0, g); j = index($0, r); exit !(i && j && i < j) }' <<<"$S7" \
+  '/^7\. / { i = index($0, g); j = index($0, r); ok = (i && j && i < j); seen = 1; exit } END { exit !(seen && ok) }' "$f" \
   || bad "missing: the story review (step 7) runs the check gate before the two-axis review"
-awk 'index($0, "   **Evidence run.**") == 1' "$f" | grep -qF -- "each check's command, its exit and the last twenty lines of its log" \
-  || bad "missing: the Evidence run paragraph cites each check's command, exit and tail"
-grep -E '^8\. ' "$f" | grep -qF -- "each check's command, exit and twenty-line tail" \
-  || bad "missing: the deliver step (8) writes each check's command, exit and tail as Evidence"
+line_has '^   \*\*Evidence run\.\*\*' "the Evidence run paragraph cites each check's command, exit and tail" "each check's command, its exit and the last twenty lines of its log"
+line_has '^8\. ' "the deliver step (8) writes each check's command, exit and tail as Evidence" "each check's command, exit and twenty-line tail"
 hasc "report template's failed: line names the check" 'or <check> <command>'
 lacks "the retired Evidence phrase" 'the command and its output'
 

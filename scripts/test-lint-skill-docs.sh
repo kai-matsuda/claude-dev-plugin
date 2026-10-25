@@ -12,8 +12,11 @@
 # VERSION_BUMP_BASE; the other cases point the repo at a non-repo path and pin the base to HEAD):
 # its shipping pathspec, uncommitted edits and bumps, and the base on a detached HEAD.
 # The lint of the plugin's own tree is the Makefile's first step, not repeated here.
-# Each case's lint run goes in the background against its own snapshot of the scratch copy,
-# one per CPU, and the results print in case order.
+# Each case's lint run goes in the background against the scratch tree, moved into the case's
+# own dir (one tree per expect: fresh builds it, expect takes it), one per CPU, and the results
+# print in case order. Every fresh and snapshot runs in this shell, one after another, so each
+# is one process: fresh is a cp of a pristine tree built once, the snapshot is a mv, and the
+# verdicts are read and tallied with builtins.
 # Usage: scripts/test-lint-skill-docs.sh
 set -uo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
@@ -24,24 +27,32 @@ fx_scratch_dir test-lint-skill-docs || exit 1
 # the case snapshots live in $scratch/.jobs, which fresh leaves alone and the lib's trap removes
 jobs=$scratch/.jobs
 mkdir -p "$jobs"
-njobs=0 shown=0
+njobs=0 shown=0 nl=$'\n'
 # a rolling pool of one run per CPU: a case takes a slot token from this FIFO before it starts
 # and puts it back when it ends (bash 3.2 has no wait -n to wait on any one job)
 mkfifo "$jobs/slots" && exec 3<>"$jobs/slots" || exit 1
 for _ in $(seq "$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)"); do printf x >&3; done
 
-# fresh copy of the tree, so each case edits only its own file; empties the dir (but .jobs)
-# rather than recreating it (see fx_scratch_dir)
 # the stand-in for the installed plugin: every name the tree's /commands resolve to, and the
 # ones the cases below name; listed once, since every fresh copy holds the same tree
 plugin_names=$(grep -rhoE 'mattpocock-skills:[a-z-]+' "$repo_root/skills" "$repo_root/docs" "$repo_root/CLAUDE.md" "$repo_root/GLOSSARY.md" \
   | cut -d: -f2; printf '%s\n' tdd to-tickets)
+# the pristine tree, built once: every fresh copy is one cp of it
+pristine=$jobs/pristine
+mkdir "$pristine"
+cp -R "$repo_root/skills" "$repo_root/docs" "$repo_root/CLAUDE.md" "$repo_root/GLOSSARY.md" "$pristine/"
+cp -R "$fixtures/skills/sample" "$pristine/skills/"
+cp "$fixtures/agents/sample.md" "$pristine/docs/agents/"
+(cd "$pristine" && sort -u <<<"$plugin_names" | sed 's|^|plugin/|' | xargs mkdir -p)
+# fresh copy of the tree, so each case edits only its own file; empties the dir (but .jobs)
+# rather than recreating it (see fx_scratch_dir). After an expect the dir is already empty
+# (expect moved the tree away), so the sweep runs only when a case left something behind
+handed=0   # 1 once expect has taken the current tree; fresh resets it
 fresh() {
-  find "$scratch" -mindepth 1 -maxdepth 1 ! -name .jobs -exec rm -rf {} +
-  cp -R "$repo_root/skills" "$repo_root/docs" "$repo_root/CLAUDE.md" "$repo_root/GLOSSARY.md" "$scratch/"
-  cp -R "$fixtures/skills/sample" "$scratch/skills/"
-  cp "$fixtures/agents/sample.md" "$scratch/docs/agents/"
-  (cd "$scratch" && sort -u <<<"$plugin_names" | sed 's|^|plugin/|' | xargs mkdir -p)
+  local left=("$scratch"/*)
+  [ ! -e "${left[0]}" ] || find "$scratch" -mindepth 1 -maxdepth 1 ! -name .jobs -exec rm -rf {} +
+  cp -R "$pristine/." "$scratch/"
+  handed=0
 }
 # run the lint against the scratch copy, sealed to it; prints its output, then the exit code on
 # a last line. Extra arguments replace the lint's own ($1 driver, $2 runbook).
@@ -61,7 +72,7 @@ lint_scratch() {
 }
 # true when the lint output $3 (last line: exit code) ends in exit code $1 and contains $2
 result_is() { # <exit code> <message> <output>
-  [ "${3##*$'\n'}" = "$1" ] && { [ -z "$2" ] || grep -qF -- "$2" <<<"$3"; }
+  [ "${3##*$'\n'}" = "$1" ] && { [ -z "$2" ] || [[ $3 == *"$2"* ]]; }
 }
 # the sections with a FAIL line in lint output $1 (stdin), space-separated, ascending
 failed_sections() {
@@ -93,15 +104,17 @@ expect_flush() {
       echo "FAIL case $((shown+1)) printed no verdict" > "$jobs/$((shown+1)).out"
     fi
     shown=$((shown+1))
-    rm -rf "${jobs:?}/${shown:?}"
-    cat "$jobs/$shown.out"
-    ! grep -q '^FAIL' "$jobs/$shown.out" || fails=$((fails+1))
+    # builtins only: this loop runs in the parent after every case
+    verdict=
+    IFS= read -r -d '' verdict < "$jobs/$shown.out" || true
+    printf '%s' "$verdict"
+    case "$nl$verdict" in *"$nl"FAIL*) fails=$((fails+1));; esac
   done
 }
 # expect <description> <expected exit code> [message the output must contain] [lint args...]
-# Snapshots the scratch copy and lints the snapshot in the background, every $scratch path in the
-# message, the arguments and the override variables rewritten to it. A case with a throwaway
-# repo (bump_repo_dir) runs in the foreground on the scratch copy itself.
+# Moves the scratch tree into the case's own dir and lints it there in the background, every
+# $scratch path in the message, the arguments and the override variables rewritten to it. A case
+# with a throwaway repo (bump_repo_dir) runs in the foreground on the scratch copy itself.
 expect() {
   local d=$1 want=$2 msg=${3:-} dir a v args
   args=()
@@ -114,8 +127,15 @@ expect() {
     return
   fi
   njobs=$((njobs+1)) dir=$jobs/$njobs
+  # fresh builds a tree for one expect: a second one on it would lint an empty dir
+  if [ "$handed" = 1 ]; then
+    echo "FAIL $d (no fresh since the previous expect)" > "$dir.out"
+    expect_flush
+    return
+  fi
+  handed=1
   mkdir "$dir"
-  cp -R "$scratch"/* "$dir/"   # the glob skips .jobs
+  mv "$scratch"/* "$dir/"   # the glob skips .jobs; the tree moves, nothing is copied
   for a in "$@"; do a=${a//"$scratch"/"$dir"}; args+=("$a"); done
   read -r -n 1 -u 3 _   # wait for a free slot
   (
@@ -124,6 +144,7 @@ expect() {
     done
     msg=${msg//"$scratch"/"$dir"} scratch=$dir
     judge "$d" "$want" "$msg" "$(lint_scratch ${args[@]+"${args[@]}"})" > "$dir.part" 2>&1
+    rm -rf "${dir:?}"   # the case's tree goes here, off the parent's path
     # the .out appears whole or not at all, so expect_flush never prints half a verdict
     mv "$dir.part" "$dir.out"
     printf x >&3
