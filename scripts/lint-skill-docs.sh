@@ -89,7 +89,13 @@
 #      fix-up implementer and merger briefs start with the TMPDIR line, whose rule section 6
 #      checks in orchestration.md (chezmoi-3eg), and its reviewer brief tags every finding
 #      blocking or minor and ends on the verdict line, its runner step 3 and story review step 7
-#      pointing at the rules doc's Review verdict, whose rule section 6 checks (chezmoi-49k);
+#      pointing at the rules doc's Review verdict, whose rule section 6 checks (chezmoi-49k),
+#      and its step 3 resolves the owner's lint command once, which the runner brief's header
+#      and every brief it sends carry, runner step 2 taking it from the brief (dev-cq0.1.2),
+#      and its story review runs the check gate before the two-axis review, a matching marker
+#      jumping to the Evidence run, a second red stalling with failed: <check> <command>, the
+#      Evidence each check's command, exit and tail cited in step 8, and the retired "the
+#      command and its output" gone (dev-cq0.1.5); section 6 checks the rules doc's Check gate;
 #   9. /close-story: its Forgejo/Gitea query carries --repo <path> as the intro and
 #      /implement-story's merge guard do (dev-hac); its ticket check skips a child carrying
 #      needs-triage or wontfix, as the finished story does, and its refusal names each open
@@ -258,6 +264,11 @@ if doc 2 "runbook" "$runbook"; then
 # the cut skills take the feature as their one argument; the runbook has a paragraph on it and
 # writes it in the 3a and 3b rows below (chezmoi-nz0)
 hasc "argument paragraph" '**The argument.**'
+# the flat path (row 4b) runs the checks before the built-in code-review, and its review is the
+# ticket review; "ticket gate" is retired so "gate" means the checks in every doc (dev-cq0.1.3)
+hasc "flat path runs the checks before the built-in code-review" "then the checks (the owner repo's lint, then the agreed test seams), then the built-in \`code-review\`"
+hasc "flat path's review is the ticket review" 'the ticket review (switch'
+lacks "retired ticket gate name in the runbook" 'ticket gate'
 
 # flat /to-tickets appears only in the Variants section
 awk '/^## /{sec=$0} /\/mattpocock-skills:to-tickets/ && sec !~ /Variants/ {print NR": "$0; n=1} END{exit n}' "$f" >/dev/null \
@@ -572,14 +583,24 @@ para_has '**Plugin root.**' "resolved once per session" 'once per session'
 para_has '**Plugin root.**' "the rules-doc path spelled literally in every brief" '<plugin root>/docs/agents/'
 para_has '**Plugin root.**' "spelled out in every brief" 'every brief'
 # a reviewer tags every finding blocking or minor and ends on a verdict line; a round with no
-# blocking findings is clean and only blocking rounds count toward the three-round limit. The
+# blocking findings is clean; blocking rounds and red check rounds count toward the three-round limit. The
 # rule is stated once here; the runner brief and the story review point at it (chezmoi-49k)
 hasc "Review verdict rule" '**Review verdict.**'
 para_has '**Review verdict.**' "the clean verdict line" 'verdict: clean'
 para_has '**Review verdict.**' "the blocking verdict line" 'verdict: blocking (<n>)'
 para_has '**Review verdict.**' "the blocking-or-minor tags" '**blocking** or **minor**'
 para_has '**Review verdict.**' "a round with no blocking findings is clean" 'no blocking findings is **clean**'
-para_has '**Review verdict.**' "only blocking rounds count toward the limit" 'Only blocking rounds count'
+para_has '**Review verdict.**' "blocking and red check rounds count toward the limit" 'Blocking rounds and red check rounds count'
+# the check gate: no reviewer sees a branch tip until the story's checks are green on it, at both
+# levels; lint first, then the test seams, the first red stops; a red goes to a fix-up
+# implementer, never a reviewer. The Idle rule's command list names the checks
+hasc "Check gate rule" '**Check gate.**'
+para_has '**Check gate.**' "no reviewer sees a red tip" 'No reviewer sees a branch tip'
+para_has '**Check gate.**' "both levels" 'ticket level and the story level'
+para_has '**Check gate.**' "lint first, then the test seams" 'lint first, then the test seams'
+para_has '**Check gate.**' "the first red stops" 'the first red stops'
+para_has '**Check gate.**' "a red goes to a fix-up implementer, never a reviewer" 'fix-up implementer, never to a reviewer'
+para_has '**Idle rule.**' "the Idle rule names the checks" "these are the story's checks"
 fi
 if doc 6 "tracker rules" "$agents/issue-tracker.md"; then
 # the one test of the session mode (ADR 0008), stated once, in the opening before any section
@@ -751,12 +772,67 @@ lacks "Gitignore step counts three entries" "the rule's three entries"
 # step 7 point at the rules doc's Review verdict for what a clean round does; the retired bar,
 # clean as no finding at all, is gone (chezmoi-49k). The brief's phrases are read on the step 3
 # line alone, since step 7 carries the same ones
-for phrase in 'verdict: clean' 'verdict: blocking (<n>)' '**blocking** or **minor**' 'at most three blocking rounds'; do
+for phrase in 'verdict: clean' 'verdict: blocking (<n>)' '**blocking** or **minor**' 'within the three rounds above'; do
   grep -E '^> 3\. ' "$f" | grep -qF -- "$phrase" || bad "missing: ticket runner step 3's reviewer brief ($phrase)"
 done
 grep -qE "^> 3\. .*the rules doc's Review verdict" "$f" || bad "missing: ticket runner step 3 points at the rules doc's Review verdict"
 grep -qE "^7\. .*the rules doc's Review verdict" "$f" || bad "missing: the story review (step 7) points at the rules doc's Review verdict"
 lacks "the zero-findings bar" 'not clean after three rounds|no findings at all|clean means zero findings'
+# the story orchestrator resolves the owner repo's lint command once, in the forge step, with a
+# three-way precedence, and the runner brief's header carries it so no agent guesses it (dev-cq0.1.2)
+L3='^   Resolve the owner repo'"'"'s \*\*lint command\*\*'
+grep -E "$L3" "$f" | grep -qF -- 'Resolve the owner repo'"'"'s **lint command** once' || bad "missing: step 3 resolves the lint command once"
+grep -E "$L3" "$f" | grep -qF -- '`make lint` when `<owner>`'"'"'s Makefile has a `lint` target' || bad "missing: lint precedence: make lint first"
+grep -E "$L3" "$f" | grep -qF -- 'else the command `<owner>`'"'"'s `CLAUDE.md` names, else none' || bad "missing: lint precedence: CLAUDE.md second, then none"
+grep -E '^> You are the ticket runner' "$f" | grep -qF -- 'lint command `<lint>` or none' || bad "missing: runner brief header carries the lint command"
+# anchored: step 3's lint paragraph says who spells it out and where it runs; the runner brief's
+# opening paragraph lists it among what every brief carries; its step 2 offers no list to choose from
+grep -E "$L3" "$f" | grep -qF -- 'spells it out in every implementer, fix-up implementer and merger brief it sends' || bad "missing: step 3's lint paragraph names the implementer, fix-up implementer and merger briefs"
+grep -E "$L3" "$f" | grep -qF -- 'make -C <dir> lint' || bad "missing: step 3's lint paragraph runs the lint as make -C <dir> lint"
+grep -E '^> You are the ticket runner' "$f" | grep -qF -- 'the lint command `<lint>` (or none)' || bad "missing: the runner brief's every-brief list carries the lint command"
+grep -E "$L3" "$f" | grep -qF -- 'a command `CLAUDE.md` names runs in that same checkout or worktree' || bad "missing: step 3's lint paragraph says where a CLAUDE.md-named command runs"
+grep -E '^> 2\. ' "$f" | grep -qF -- 'leaving out any the lint command already runs' || bad "missing: runner step 2 leaves out the tests the lint command already runs"
+grep -E '^> 2\. ' "$f" | grep -qF -- "the brief's lint command" || bad "missing: runner step 2 takes the lint command from the brief"
+grep -E '^> 2\. ' "$f" | grep -qF -- '`make lint`' && bad "present: runner step 2 offers a list of lint commands to choose from"
+# the ticket runner's check gate sits between the implementer (step 2) and the reviewer or
+# merger: it opens step 3 for every tier, ahead of the reviewer; each check is one logged Bash
+# call under the worktree's .tmp/; a red is noted on the ticket and counts toward the three
+# rounds the blocking reviews count toward; the implementer runs no gate (dev-cq0.1.4)
+G3='^> 3\. \*\*Check gate\*\*, every tier'
+grep -qE "$G3" "$f" || bad "missing: ticket runner step 3 opens with the check gate, every tier"
+grep -E "$G3" "$f" | grep -qE '\*\*Check gate\*\*.*Green: .*for `medium` and `high`, spawn a \*\*reviewer\*\*' || bad "missing: the check gate runs before step 3's reviewer"
+grep -E "$G3" "$f" | sed 's/Green: .*//' | grep -qF -- 'spawn a **reviewer**' && bad "present: ticket runner step 3 spawns a reviewer ahead of the check gate's green"
+grep -E "$G3" "$f" | grep -qF -- 'Green: for `low`, go to step 4' || bad "missing: a green gate sends low straight to the merger"
+grep -E '^> 2\. ' "$f" | grep -qF -- 'The implementer runs no gate and spawns no one' || bad "missing: runner step 2's implementer runs no gate and spawns no one"
+grep -E "$G3" "$f" | grep -qF -- 'mkdir -p <worktree path>/.tmp; export TMPDIR=<worktree path>/.tmp; <check> > <worktree path>/.tmp/checks-<round>-<k>.log 2>&1; echo exit=$?' || bad "missing: the check gate logs both streams under the worktree's .tmp/ and echoes the exit"
+grep -E "$G3" "$f" | grep -qF -- 'tail -n 40 <log>' || bad "missing: a red gate reads a forty-line tail of the log, never the whole output"
+grep -E "$G3" "$f" | grep -qF -- '`bd -C <owner> note <ticket-id> "checks <round>: red <command>"`' || bad "missing: a red gate's note form (checks <round>: red <command>)"
+grep -E "$G3" "$f" | grep -qF -- 'a green writes no note' || bad "missing: a green gate writes no note"
+grep -E "$G3" "$f" | grep -qF -- 'the log path, and no pasted output' || bad "missing: the gate's fix-up brief points at the log path"
+grep -E "$G3" "$f" | grep -qF -- 'a third round of either kind is `failed`' || bad "missing: red gates and blocking reviews share the three-round budget"
+grep -E "$G3" "$f" | grep -qF -- 'run the check gate again, and on green spawn a reviewer again' || bad "missing: a blocking round's fix-up passes the gate before the next reviewer"
+# the merger's two runs (step 4, dev-cq0.1.6): the implementer's worktree after the tip merge and
+# the owner checkout after the integration merge are runs of the story's checks, the lint command
+# included, in place of the tests
+grep -E '^> 4\. ' "$f" | grep -qF -- 'runs the story'"'"'s checks there, the lint command `<lint>` included' && grep -E '^> 4\. ' "$f" | grep -qF -- 'reruns the story'"'"'s checks on the merged result in `<owner>`, the lint command `<lint>` included' || bad "missing: the merger runs the story's checks, the lint command included, in the implementer's worktree"
+# the story review (step 7) runs the check gate on the integration branch tip before the
+# two-axis review, a matching marker jumping to the Evidence run; a second pre-review red stalls
+# with failed: <check> <command>; the Evidence is each check's command, exit and tail, cited so
+# in step 8, and the retired "the command and its output" is gone (dev-cq0.1.5)
+S7=$(grep -E '^7\. ' "$f")
+for need in 'skip the gate and the review and go to the Evidence run' 'the **check gate** on the integration branch tip' \
+  'a second red skips the review' '`failed: <check> <command>`'; do
+  grep -qF -- "$need" <<<"$S7" || bad "missing in the story review (step 7): $need"
+done
+awk -v g='the **check gate** on the integration branch tip' -v r='mattpocock-skills:code-review' \
+  '{ i = index($0, g); j = index($0, r); exit !(i && j && i < j) }' <<<"$S7" \
+  || bad "missing: the story review (step 7) runs the check gate before the two-axis review"
+awk 'index($0, "   **Evidence run.**") == 1' "$f" | grep -qF -- "each check's command, its exit and the last twenty lines of its log" \
+  || bad "missing: the Evidence run paragraph cites each check's command, exit and tail"
+grep -E '^8\. ' "$f" | grep -qF -- "each check's command, exit and twenty-line tail" \
+  || bad "missing: the deliver step (8) writes each check's command, exit and tail as Evidence"
+hasc "report template's failed: line names the check" 'or <check> <command>'
+lacks "the retired Evidence phrase" 'the command and its output'
 
 fi
 

@@ -6,6 +6,10 @@ status: accepted, amended
 > first implementer by `SendMessage` but to a fresh fix-up implementer in the same
 > worktree. The why is in `docs/agents/orchestration.md`, Orchestrator role.
 >
+> Amended by dev-cq0.1 (INFRA-31, 2026-10-25): the story's checks, lint and test seams, run
+> green before any reviewer at every tier, so for `low` the checks, not green tests alone,
+> are the gate. The why is in `docs/agents/orchestration.md`, Check gate.
+>
 > The flow both stages follow is drawn in `docs/SEQUENCES.md`.
 
 # Two review tools, one tier up, at two stages
@@ -36,6 +40,7 @@ our rule is that a reviewer sits one model tier above the implementer.
   reviewer → findings go back to the implementer (`SendMessage`, so its context stays
   intact) → implementer fixes. Amended: see the note above.
 - Effort for the built-in review follows the tier: `medium` → `medium`, `high` →
-  `high`. `low` tickets have no review gate; green tests are the gate.
+  `high`. `low` tickets have no review gate; green tests are the gate. Amended: the
+  checks are the gate (see the note above).
 - Docs must never name the review skill bare, `code-review` with no namespace: four skills answer to that name in a
   session, and which one wins is an accident of load order.

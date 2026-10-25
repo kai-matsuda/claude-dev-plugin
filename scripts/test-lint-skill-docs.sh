@@ -543,6 +543,20 @@ fresh
 drop_line docs/WORKFLOW.md '**The argument.**'
 expect "runbook copy without the argument paragraph fails" 1
 
+# the flat path's checks-first wording and its ticket review name (dev-cq0.1.3): each phrase
+# dropped alone, the rest of its row kept, so each case fires its own pin
+fresh
+drop_phrase docs/WORKFLOW.md "then the checks (the owner repo's lint, then the agreed test seams), then the built-in \`code-review\`"
+expect "runbook copy without the checks-first flat path fails" 1 "flat path runs the checks before the built-in code-review"
+
+fresh
+drop_phrase docs/WORKFLOW.md 'the ticket review (switch'
+expect "runbook copy without the ticket review name fails" 1 "flat path's review is the ticket review"
+
+fresh
+echo 'Then the ticket gate (switch `/model` to the tier'"'"'s review model) runs.' >> "$scratch/docs/WORKFLOW.md"
+expect "runbook copy with the seeded phrase ticket gate fails" 1 "retired ticket gate name in the runbook"
+
 fresh
 echo 'read `<owner>/.spec-notes/<epic-id>/story-cut.md` first' >> "$scratch/skills/spec-to-tickets/SKILL.md"
 sec="4 5" expect "story-cut.md in a skill fails" 1
@@ -903,10 +917,14 @@ fresh
 drop_phrase skills/implement-story/SKILL.md 'TMPDIR line'
 expect "implement-story whose briefs lose the TMPDIR line fails" 1
 
-# each brief is checked on its own: the line dropped from one step alone still fails
+# each brief is checked on its own: the line dropped from one step alone still fails (every
+# occurrence on that step's line: step 3 names it for the gate's fix-up and the blocking
+# fix-up; swap_phrase takes one per pass, so four bounded passes)
 for step in 2 3 4; do
   fresh
-  swap_phrase skills/implement-story/SKILL.md "^(> $step\. .*)TMPDIR line" '\1TMPDIR'
+  for _ in 1 2 3 4; do
+    swap_phrase skills/implement-story/SKILL.md "^(> $step\. .*)TMPDIR line" '\1TMPDIR'
+  done
   expect "implement-story whose ticket runner step $step brief loses the TMPDIR line fails" 1
 done
 
@@ -1360,7 +1378,7 @@ echo 'Two waves suffice for any feature.' >> "$scratch/skills/close-story/SKILL.
 expect "skill saying 'two waves suffice' fails" 1
 
 # a reviewer tags every finding blocking or minor and ends on a verdict line; a round with no
-# blocking findings is clean and only blocking rounds count toward the three-round limit
+# blocking findings is clean; blocking rounds and red check rounds count toward the three-round limit
 # (chezmoi-49k): the rule lives in the orchestration doc, the runner brief and the story
 # review point at it
 fresh
@@ -1368,7 +1386,7 @@ drop_line docs/agents/orchestration.md '**Review verdict.**'
 expect "orchestration doc without the Review verdict rule fails" 1
 
 # the checks read the rule's own paragraph, so a phrase kept elsewhere in the doc does not pass
-for phrase in 'verdict: clean' 'verdict: blocking (<n>)' '**blocking** or **minor**' 'Only blocking rounds count'; do
+for phrase in 'verdict: clean' 'verdict: blocking (<n>)' '**blocking** or **minor**' 'Blocking rounds and red check rounds count'; do
   fresh
   drop_phrase docs/agents/orchestration.md "$phrase"
   expect "orchestration doc without '$phrase' fails" 1
@@ -1378,9 +1396,81 @@ fresh
 drop_phrase docs/agents/orchestration.md 'no blocking findings is **clean**'
 expect "orchestration doc without the clean-round definition fails" 1
 
+# the check gate rule: its paragraph, each of its phrases, and the Idle rule's mention of the checks
+fresh
+drop_line docs/agents/orchestration.md '**Check gate.**'
+expect "orchestration doc without the Check gate rule fails" 1
+for phrase in 'No reviewer sees a branch tip' 'ticket level and the story level' 'lint first, then the test seams' \
+  'the first red stops' 'fix-up implementer, never to a reviewer'; do
+  fresh
+  drop_phrase docs/agents/orchestration.md "$phrase"
+  expect "orchestration doc's Check gate rule without '$phrase' fails" 1
+done
+fresh
+drop_phrase docs/agents/orchestration.md "these are the story's checks"
+expect "orchestration doc's Idle rule without the checks fails" 1
+
+# the lint command's resolution in /implement-story step 3 and the runner brief's header: each
+# pin is proven by dropping its phrase (dev-cq0.1.2)
+for phrase in 'Resolve the owner repo'"'"'s **lint command** once' \
+  '`make lint` when `<owner>`'"'"'s Makefile has a `lint` target' \
+  'else the command `<owner>`'"'"'s `CLAUDE.md` names, else none' \
+  'lint command `<lint>` or none'; do
+  fresh
+  drop_phrase skills/implement-story/SKILL.md "$phrase"
+  expect "implement-story without '$phrase' fails" 1
+done
+
+for phrase in 'spells it out in every implementer, fix-up implementer and merger brief it sends' 'make -C <dir> lint' \
+  'the lint command `<lint>` (or none)' "the brief's lint command" \
+  'a command `CLAUDE.md` names runs in that same checkout or worktree' 'leaving out any the lint command already runs'; do
+  fresh
+  drop_phrase skills/implement-story/SKILL.md "$phrase"
+  expect "implement-story without '$phrase' fails" 1
+done
+
+# a phrase kept elsewhere in the file does not satisfy an anchored pin: dropped on its own line only
+fresh
+swap_phrase skills/implement-story/SKILL.md '^(> You are the ticket runner.*)the lint command `<lint>` \(or none\)' '\1the lint'
+expect "runner brief header without the lint command in its every-brief list fails" 1
+
+fresh
+swap_phrase skills/implement-story/SKILL.md "^(> 2\. .*)the brief's lint command" '\1the brief'"'"'s lint command, `make ci`, `make lint`'
+expect "runner step 2 offering a list of lint commands fails" 1
+
+# the story review runs the check gate before the two-axis review, stalls on a second
+# pre-review red, and cites each check's command, exit and tail as the PR's Evidence; each pin
+# is proven by dropping its phrase, the order by moving the gate after the review (dev-cq0.1.5)
+for phrase in 'skip the gate and the review and go to the Evidence run' \
+  'the **check gate** on the integration branch tip' \
+  'a second red skips the review' \
+  "each check's command, its exit and the last twenty lines of its log" \
+  "each check's command, exit and twenty-line tail" \
+  'or <check> <command>'; do
+  fresh
+  drop_phrase skills/implement-story/SKILL.md "$phrase"
+  expect "implement-story without '$phrase' fails" 1
+done
+
+# the stall line is read on step 7's line: dropped there while the report template keeps it
+fresh
+swap_phrase skills/implement-story/SKILL.md '^(7\. .*)`failed: <check> <command>`' '\1a failed line'
+expect "story review step 7 without its failed: <check> <command> stall line fails" 1
+
+# the gate named after the review on step 7's line: the order pin fails
+fresh
+swap_phrase skills/implement-story/SKILL.md '^(7\. .*)$' '\1 Then the **check gate** on the integration branch tip again.'
+swap_phrase skills/implement-story/SKILL.md '^(7\. .*)the \*\*check gate\*\* on the integration branch tip runs first' '\1the review runs first'
+expect "story review step 7 with the gate after the two-axis review fails" 1
+
+# the retired phrase seeded back fails
+fresh
+echo 'Then run the seams and keep the command and its output.' >> "$scratch/skills/implement-story/SKILL.md"
+expect "implement-story with 'the command and its output' seeded fails" 1 "the command and its output"
+
 # the brief's phrases are read on the runner's step 3 line alone: dropped there while step 7
 # keeps them, the lint still fails (each phrase sits once on that line, so the swap hits it)
-for phrase in 'verdict: clean' 'verdict: blocking \(<n>\)' '\*\*blocking\*\* or \*\*minor\*\*' 'at most three blocking rounds'; do
+for phrase in 'verdict: clean' 'verdict: blocking \(<n>\)' '\*\*blocking\*\* or \*\*minor\*\*' 'within the three rounds above'; do
   fresh
   swap_phrase skills/implement-story/SKILL.md "^(> 3\. .*)$phrase" '\1'
   expect "ticket runner step 3 without '$phrase' fails" 1
@@ -1394,6 +1484,50 @@ expect "ticket runner step 3 without its pointer at the Review verdict rule fail
 fresh
 swap_phrase skills/implement-story/SKILL.md "^(7\. .*)the rules doc's Review verdict" '\1the rules doc'
 expect "story review step 7 without its pointer at the Review verdict rule fails" 1
+
+# the ticket runner's check gate (dev-cq0.1.4): the step 3 line carrying it dropped whole, then
+# each pin on its own line, so a phrase kept elsewhere in the file does not pass
+fresh
+drop_line skills/implement-story/SKILL.md '> 3. **Check gate**, every tier'
+expect "ticket runner brief without the check gate step fails" 1 "missing: ticket runner step 3 opens with the check gate, every tier"
+
+fresh
+swap_phrase skills/implement-story/SKILL.md '^> 3\. \*\*Check gate\*\*, every tier' '> 3. The checks'
+expect "ticket runner step 3 not opening with the check gate fails" 1 "missing: ticket runner step 3 opens with the check gate, every tier"
+
+# position, each pin on its own: the opener kept, a reviewer spawned ahead of the gate's green
+# (the green's own spawn kept too), then a green that spawns no reviewer
+fresh
+swap_phrase skills/implement-story/SKILL.md '^(> 3\. \*\*Check gate\*\*, every tier, )' '\1for `medium` and `high` spawn a **reviewer** alongside it, '
+expect "ticket runner step 3 spawning the reviewer before the check gate's green fails" 1 "present: ticket runner step 3 spawns a reviewer ahead of the check gate's green"
+
+fresh
+swap_phrase skills/implement-story/SKILL.md '^(> 3\. .*Green: for `low`, go to step 4; for `medium` and `high`, )spawn a \*\*reviewer\*\*' '\1hand the ticket to a **reviewer**'
+expect "ticket runner step 3 whose green spawns no reviewer fails" 1 "missing: the check gate runs before step 3's reviewer"
+
+for case in 'Green: for `low`, go to step 4|a green gate not sending low to the merger|missing: a green gate sends low straight to the merger' \
+  'mkdir -p <worktree path>/.tmp; export TMPDIR=<worktree path>/.tmp; <check> > <worktree path>/.tmp/checks-<round>-<k>.log 2>&1; echo exit=$?|a check not logged under the worktree|missing: the check gate logs both streams under the worktree' \
+  'tail -n 40 <log>|a red read without a forty-line tail|missing: a red gate reads a forty-line tail' \
+  '`bd -C <owner> note <ticket-id> "checks <round>: red <command>"`|a red without its note|missing: a red gate'"'"'s note form' \
+  'a green writes no note|a green that may write a note|missing: a green gate writes no note' \
+  'the log path, and no pasted output|a fix-up brief without the log path|missing: the gate'"'"'s fix-up brief points at the log path' \
+  'a third round of either kind is `failed`|red rounds not sharing the three-round budget|missing: red gates and blocking reviews share the three-round budget' \
+  'run the check gate again, and on green spawn a reviewer again|a blocking fix-up reviewed without the gate|missing: a blocking round'"'"'s fix-up passes the gate'; do
+  phrase=${case%%|*} rest=${case#*|}
+  fresh
+  drop_phrase skills/implement-story/SKILL.md "$phrase"
+  expect "ticket runner step 3 with ${rest%%|*} fails" 1 "${rest#*|}"
+done
+
+fresh
+drop_phrase skills/implement-story/SKILL.md 'The implementer runs no gate and spawns no one'
+expect "ticket runner step 2 without the implementer running no gate fails" 1 "missing: runner step 2's implementer runs no gate and spawns no one"
+
+# the merger's step 4 line dropped whole: the story's checks, the lint command included, are
+# the merger's two runs (dev-cq0.1.6)
+fresh
+drop_line skills/implement-story/SKILL.md '> 4. Spawn a **merger**'
+expect "ticket runner step 4 without the merger's check runs fails" 1 "missing: the merger runs the story's checks, the lint command included, in the implementer's worktree"
 
 fresh
 echo 'Anything you cannot finish (reviewer still not clean after three rounds) is `failed`.' >> "$scratch/skills/implement-story/SKILL.md"
