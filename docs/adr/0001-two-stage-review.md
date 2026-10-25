@@ -5,6 +5,8 @@ status: accepted, amended
 > Amended by chezmoi-1d7 (INFRA-27 retro, 2026-10-20): findings no longer go back to the
 > first implementer by `SendMessage` but to a fresh fix-up implementer in the same
 > worktree. The why is in `docs/agents/orchestration.md`, Orchestrator role.
+>
+> The flow both stages follow is drawn in `docs/REVIEW.md`.
 
 # Two review tools, one tier up, at two stages
 

@@ -76,4 +76,4 @@ Run Claude Code in this repo with `claude --plugin-dir .` to load the checkout n
 the installed copy. Check your changes with `make lint`, which runs the skill-doc lint and
 its tests (it needs `bd` and `cargo` for the fixture tests). Bump the version in
 `.claude-plugin/plugin.json` on every merge to main. Decisions are in `docs/adr/`,
-vocabulary in `GLOSSARY.md`.
+vocabulary in `GLOSSARY.md`, the review stages as sequence diagrams in `docs/REVIEW.md`.
