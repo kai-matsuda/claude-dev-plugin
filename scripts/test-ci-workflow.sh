@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Tests for .github/workflows/ci.yml: it runs on every push and on pull requests, checks out
 # mattpocock/skills at a pinned tag as the lint's PLUGIN_SKILLS, installs bd, sets the
-# version-bump rule's base to the PR base, and runs the Makefile's ci target, never the scripts.
+# version-bump rule's base to the PR base, and runs the Makefile's ci target, never the scripts;
+# and the ci target's git-init check refuses a test script that inits a repo outside the lib.
 # Usage: scripts/test-ci-workflow.sh
 set -uo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
@@ -43,6 +44,18 @@ help_names_scripts() { # <makefile>
     END { exit bad }' "$1"
 }
 fx_check "no Makefile help line names a script its recipe runs" help_names_scripts "$mk"
+fx_check "the ci target runs the test git-init check" bash -c 'grep -Fq scripts/check-test-git-init.sh <<<"$1"' _ "$ci_block"
+
+# the git-init check: a test script that inits a repo itself, directly or through a git_* wrapper,
+# fails it and is named; the lib's fx_git_repo, a bd init and a commented git init pass
+init_check=$repo_root/scripts/check-test-git-init.sh
+init_fixtures=$repo_root/scripts/fixtures/check-test-git-init
+fx_check "the plugin's own test scripts pass the git-init check" "$init_check"
+bad_out=$("$init_check" "$init_fixtures/bad" 2>&1); bad_rc=$?
+fx_check "a test script that inits its own repo fails the git-init check" fx_eq "$bad_rc" 1
+fx_check "the failure names the script that inits with -C <dir>" grep -Fq "scripts/test-hand-rolled.sh:3:" <<<"$bad_out"
+fx_check "the failure names the script that inits through a git_* wrapper" grep -Fq "scripts/test-wrapped.sh:3:" <<<"$bad_out"
+fx_check "fx_git_repo, bd init and an init in a comment pass the git-init check" "$init_check" "$init_fixtures/good"
 fx_check "the fixture lib header lists this test" grep -Fq test-ci-workflow.sh "$repo_root/scripts/fixture-test-lib.sh"
 
 fx_report_fails

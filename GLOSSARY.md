@@ -197,6 +197,14 @@ and PR. Spawned per story by `/dev:implement-spec`, or the session itself when `
 is typed in the story's repo.
 _Avoid_: sub-orchestrator, repo agent
 
+**Stray-commit check**:
+The read of every commit a push or a merge would carry but merges, before it runs: one whose
+author is not the run's `user.email`, or that has no `Bead:` trailer, came from outside the
+run (a test whose throwaway repo failed to init commits into the enclosing checkout).
+`/dev:implement-story` runs it before each push of the integration branch and each merger
+before its merge; a hit stops the push or merge with `failed: stray commit <sha> <subject>`.
+_Avoid_: push guard, stray check
+
 **Ticket runner**:
 The agent that owns one ticket from claim to close: its implementer, reviewer and merger,
 and the relay of findings from each review round to a fresh fix-up implementer. It

@@ -13,35 +13,32 @@
 # its shipping pathspec, uncommitted edits and bumps, and the base on a detached HEAD.
 # The lint of the plugin's own tree is the Makefile's first step, not repeated here.
 # Each case's lint run goes in the background against its own snapshot of the scratch copy,
-# one per CPU, and the results print in case order.
+# eight at a time, and the results print in case order.
 # Usage: scripts/test-lint-skill-docs.sh
 set -uo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 lint=$repo_root/scripts/lint-skill-docs.sh
 fixtures=$repo_root/scripts/fixtures/lint-skill-docs
-source "$repo_root/scripts/fixture-test-lib.sh"   # fx_scratch_dir, fx_check, fails, fx_report_fails
+source "$repo_root/scripts/fixture-test-lib.sh"   # fx_scratch_dir, fx_git_repo, fx_check, fails, fx_report_fails
 fx_scratch_dir test-lint-skill-docs || exit 1
 # the case snapshots live in $scratch/.jobs, which fresh leaves alone and the lib's trap removes
 jobs=$scratch/.jobs
 mkdir -p "$jobs"
 njobs=0 shown=0
-# a rolling pool of one run per CPU: a case takes a slot token from this FIFO before it starts
-# and puts it back when it ends (bash 3.2 has no wait -n to wait on any one job)
-mkfifo "$jobs/slots" && exec 3<>"$jobs/slots" || exit 1
-for _ in $(seq "$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)"); do printf x >&3; done
 
 # fresh copy of the tree, so each case edits only its own file; empties the dir (but .jobs)
 # rather than recreating it (see fx_scratch_dir)
-# the stand-in for the installed plugin: every name the tree's /commands resolve to, and the
-# ones the cases below name; listed once, since every fresh copy holds the same tree
-plugin_names=$(grep -rhoE 'mattpocock-skills:[a-z-]+' "$repo_root/skills" "$repo_root/docs" "$repo_root/CLAUDE.md" "$repo_root/GLOSSARY.md" \
-  | cut -d: -f2; printf '%s\n' tdd to-tickets)
 fresh() {
+  local name
   find "$scratch" -mindepth 1 -maxdepth 1 ! -name .jobs -exec rm -rf {} +
   cp -R "$repo_root/skills" "$repo_root/docs" "$repo_root/CLAUDE.md" "$repo_root/GLOSSARY.md" "$scratch/"
   cp -R "$fixtures/skills/sample" "$scratch/skills/"
   cp "$fixtures/agents/sample.md" "$scratch/docs/agents/"
-  (cd "$scratch" && sort -u <<<"$plugin_names" | sed 's|^|plugin/|' | xargs mkdir -p)
+  # the stand-in for the installed plugin: every name the tree's /commands resolve to, and the
+  # ones the cases below name
+  for name in $(grep -rhoE 'mattpocock-skills:[a-z-]+' "$scratch/skills" "$scratch/docs" "$scratch/CLAUDE.md" "$scratch/GLOSSARY.md" | cut -d: -f2 | sort -u) tdd to-tickets; do
+    mkdir -p "$scratch/plugin/$name"
+  done
 }
 # run the lint against the scratch copy, sealed to it; prints its output, then the exit code on
 # a last line. Extra arguments replace the lint's own ($1 driver, $2 runbook).
@@ -82,20 +79,16 @@ judge() {
   echo "FAIL $1 ($why)"
   grep '^FAIL' <<<"$4" | head -5 | sed 's/^/       /'
 }
-# print the finished cases' lines in order, as far as they have finished, counting their FAILs;
-# with "all", wait for every case first
+# print the finished cases' lines in order, counting their FAILs
 expect_flush() {
-  [ "${1:-}" != all ] || wait
+  wait
   while [ "$shown" -lt "$njobs" ]; do
-    if [ ! -f "$jobs/$((shown+1)).out" ]; then
-      [ "${1:-}" = all ] || return 0
-      # a case whose run died before judging it printed no verdict: that is a failure too
-      echo "FAIL case $((shown+1)) printed no verdict" > "$jobs/$((shown+1)).out"
-    fi
     shown=$((shown+1))
     rm -rf "${jobs:?}/${shown:?}"
     cat "$jobs/$shown.out"
-    ! grep -q '^FAIL' "$jobs/$shown.out" || fails=$((fails+1))
+    # a case whose run died before judging it printed no verdict: that is a failure too
+    grep -qE '^ok   ' "$jobs/$shown.out" && ! grep -q '^FAIL' "$jobs/$shown.out" \
+      || { grep -qE '^(ok|FAIL) ' "$jobs/$shown.out" || echo "FAIL case $shown printed no verdict"; fails=$((fails+1)); }
   done
 }
 # expect <description> <expected exit code> [message the output must contain] [lint args...]
@@ -107,28 +100,24 @@ expect() {
   args=()
   shift 3 2>/dev/null || shift $#
   if [ -n "${bump_repo_dir:-}" ]; then
-    expect_flush all
+    expect_flush
     njobs=$((njobs+1))
     judge "$d" "$want" "$msg" "$(lint_scratch "$@")" > "$jobs/$njobs.out"
-    expect_flush all
+    expect_flush
     return
   fi
   njobs=$((njobs+1)) dir=$jobs/$njobs
   mkdir "$dir"
-  cp -R "$scratch"/* "$dir/"   # the glob skips .jobs
+  find "$scratch" -mindepth 1 -maxdepth 1 ! -name .jobs -exec cp -R {} "$dir/" \;
   for a in "$@"; do a=${a//"$scratch"/"$dir"}; args+=("$a"); done
-  read -r -n 1 -u 3 _   # wait for a free slot
   (
     for v in skills_dir agent_docs claude_md glossary_md; do
       [ -z "${!v:-}" ] || eval "$v=\${$v//\"\$scratch\"/\"\$dir\"}"
     done
     msg=${msg//"$scratch"/"$dir"} scratch=$dir
-    judge "$d" "$want" "$msg" "$(lint_scratch ${args[@]+"${args[@]}"})" > "$dir.part" 2>&1
-    # the .out appears whole or not at all, so expect_flush never prints half a verdict
-    mv "$dir.part" "$dir.out"
-    printf x >&3
-  ) &
-  expect_flush
+    judge "$d" "$want" "$msg" "$(lint_scratch ${args[@]+"${args[@]}"})"
+  ) > "$jobs/$njobs.out" 2>&1 &
+  [ $((njobs % 8)) -ne 0 ] || expect_flush
 }
 
 fresh
@@ -481,6 +470,18 @@ expect "implement-story without the push command fails" 1
 fresh
 drop_line skills/implement-story/SKILL.md 'failed: push'
 expect "implement-story without the refused-push failed: line fails" 1
+
+fresh
+drop_phrase skills/implement-story/SKILL.md 'First the **stray-commit check**, before any push'
+expect "implement-story whose deliver step pushes without the stray-commit check fails" 1
+
+fresh
+drop_phrase skills/implement-story/SKILL.md 'runs the **stray-commit check** on what the merge brings in'
+expect "implement-story whose merger merges without the stray-commit check fails" 1
+
+fresh
+drop_phrase skills/implement-story/SKILL.md 'failed: stray commit <sha> <subject>'
+expect "implement-story without the stray-commit failed: line fails" 1
 
 fresh
 drop_line skills/implement-story/SKILL.md 'git -C <owner> status --porcelain -- .gitignore'
@@ -1393,7 +1394,7 @@ expect "implement-story saying a clean round has no findings fails" 1
 unset sec
 
 # a DOCS_DIR override must exist
-expect_flush all
+expect_flush
 fresh
 out=$(VERSION_BUMP_REPO=$scratch/no-repo VERSION_BUMP_BASE=HEAD DOCS_DIR=/typo-no-such-dir SKILLS_DIR=$scratch/skills AGENT_DOCS=$scratch/docs/agents USER_CLAUDE_MD=$scratch/CLAUDE.md PLUGIN_SKILLS=$scratch/plugin "$lint" "" "$scratch/docs/WORKFLOW.md" 2>&1; echo "rc=$?")
 fx_check "a DOCS_DIR that does not exist fails" grep -qF "no such directory: /typo-no-such-dir" <<<"$out"
@@ -1412,31 +1413,29 @@ expect "a /dev:<not yet built> in docs/specs passes" 0
 # The other cases pin the diff base to HEAD (an empty diff) and point VERSION_BUMP_REPO at a
 # path that is no repo, so the checkout the test runs in never decides them; these cases let the
 # lint derive the merge-base itself (diff_base=derive) in a throwaway repo.
-# GIT_CEILING_DIRECTORIES stops discovery at $scratch, and make_bump_repo checks init and the
-# top level before any add, so a failed init cannot commit into the enclosing checkout.
-git_t() { GIT_CEILING_DIRECTORIES=$scratch git -c core.hooksPath=/dev/null -c hook.commitlint.enabled=false -c user.name=t -c user.email=t@t -c commit.gpgsign=false "$@"; }
 # make_bump_repo <branch>: in the current scratch, a repo on main with a manifest at 0.1.0,
 # origin/main tracking that commit, <branch> checked out from it; fails, committing nothing, when the repo cannot be made
 make_bump_repo() {
   bump_repo_dir=$scratch/bump
   mkdir -p "$bump_repo_dir/.claude-plugin" "$bump_repo_dir/docs" "$bump_repo_dir/scripts"
-  # separate git dir: the sandbox refuses writes to any .git/config, nested repos included
-  git_t init -q --template= --separate-git-dir="$scratch/bump.gd" -b main "$bump_repo_dir" || return 1
-  fx_is_repo_top "$bump_repo_dir" || return 1
+  # fx_git_repo refuses a dir that is not the new repo's top level, so a failed init cannot
+  # commit into the enclosing checkout
+  fx_git_repo "$bump_repo_dir" "$scratch/bump.gd" || return 1
   echo '{"name":"dev","version":"0.1.0"}' > "$bump_repo_dir/.claude-plugin/plugin.json"
   echo one > "$bump_repo_dir/docs/a.md"; echo one > "$bump_repo_dir/scripts/a.sh"
-  git_t -C "$bump_repo_dir" add -A && git_t -C "$bump_repo_dir" commit -q -m base || return 1
-  git_t -C "$bump_repo_dir" update-ref refs/remotes/origin/main main
-  [ "$1" = main ] || git_t -C "$bump_repo_dir" checkout -q -b "$1"
+  git -C "$bump_repo_dir" add -A && git -C "$bump_repo_dir" commit -q -m base || return 1
+  git -C "$bump_repo_dir" update-ref refs/remotes/origin/main main
+  [ "$1" = main ] || git -C "$bump_repo_dir" checkout -q -b "$1"
 }
 bump_repo() { fresh; make_bump_repo "$1" || { echo "FAIL make the throwaway repo"; exit 1; }; }
-bump_commit() { git_t -C "$bump_repo_dir" add -A; git_t -C "$bump_repo_dir" commit -q -m "$1"; }
+bump_commit() { git -C "$bump_repo_dir" add -A; git -C "$bump_repo_dir" commit -q -m "$1"; }
 
 # a failed init commits nothing, here or in the enclosing checkout
-expect_flush all
+expect_flush
 fresh
 enclosing_head=$(git -C "$repo_root" rev-parse HEAD)
 touch "$scratch/bump.gd"   # a file where the git dir goes: init fails
+fx_check "fx_git_repo refuses a dir whose git dir path is an existing file" eval '! fx_git_repo "$scratch/bump" "$scratch/bump.gd"'
 fx_check "a throwaway repo whose init fails is refused" eval '! (make_bump_repo main)'
 fx_check "a failed throwaway init commits nothing into the enclosing checkout" fx_eq "$(git -C "$repo_root" rev-parse HEAD)" "$enclosing_head"
 mkdir -p "$scratch/plain"
@@ -1479,8 +1478,8 @@ expect "a docs/specs-only change without a version bump passes" 0
 # the working tree counts, so a pre-commit run sees an uncommitted edit and an uncommitted bump
 bump_repo feat
 mkdir -p "$bump_repo_dir/skills/x"; echo s > "$bump_repo_dir/skills/x/SKILL.md"; bump_commit "skill added"
-git_t -C "$bump_repo_dir" checkout -q main; git_t -C "$bump_repo_dir" merge -q --ff-only feat
-git_t -C "$bump_repo_dir" update-ref refs/remotes/origin/main main; git_t -C "$bump_repo_dir" checkout -q feat
+git -C "$bump_repo_dir" checkout -q main; git -C "$bump_repo_dir" merge -q --ff-only feat
+git -C "$bump_repo_dir" update-ref refs/remotes/origin/main main; git -C "$bump_repo_dir" checkout -q feat
 echo two > "$bump_repo_dir/skills/x/SKILL.md"
 expect "an uncommitted edit under skills/ without a version bump fails" 1 "version bump"
 echo '{"name":"dev","version":"0.2.0"}' > "$bump_repo_dir/.claude-plugin/plugin.json"
@@ -1506,15 +1505,15 @@ diff_base=derive
 
 # the derived base is origin's default branch, never a local main
 bump_repo feat
-git_t -C "$bump_repo_dir" update-ref -d refs/remotes/origin/main
+git -C "$bump_repo_dir" update-ref -d refs/remotes/origin/main
 expect "a repo with a local main but no origin default branch fails with no diff base" 1 "no diff base"
 
 bump_repo feat
 echo two > "$bump_repo_dir/docs/a.md"; bump_commit "docs change"
-git_t -C "$bump_repo_dir" update-ref refs/remotes/origin/trunk main
-git_t -C "$bump_repo_dir" symbolic-ref refs/remotes/origin/HEAD refs/remotes/origin/trunk
-git_t -C "$bump_repo_dir" update-ref -d refs/remotes/origin/main
-git_t -C "$bump_repo_dir" branch -q -f main feat   # a local main that would hide the change
+git -C "$bump_repo_dir" update-ref refs/remotes/origin/trunk main
+git -C "$bump_repo_dir" symbolic-ref refs/remotes/origin/HEAD refs/remotes/origin/trunk
+git -C "$bump_repo_dir" update-ref -d refs/remotes/origin/main
+git -C "$bump_repo_dir" branch -q -f main feat   # a local main that would hide the change
 expect "origin/HEAD names the default branch the base derives from" 1 "version bump"
 
 # a detached HEAD (a GitHub Actions checkout) gets the branch's verdict, with the base variable
@@ -1522,7 +1521,7 @@ expect "origin/HEAD names the default branch the base derives from" 1 "version b
 for diff_base in main derive; do
   bump_repo feat
   echo two > "$bump_repo_dir/docs/a.md"; bump_commit "docs change"
-  git_t -C "$bump_repo_dir" checkout -q --detach
+  git -C "$bump_repo_dir" checkout -q --detach
   expect "a detached HEAD with base $diff_base and no version bump fails" 1 "version bump"
   echo '{"name":"dev","version":"0.2.0"}' > "$bump_repo_dir/.claude-plugin/plugin.json"; bump_commit "bump"
   expect "a detached HEAD with base $diff_base and a version bump passes" 0
@@ -1538,9 +1537,9 @@ diff_base=derive
 # a main that moved on after the branch point: base...HEAD sees only the branch's own changes
 bump_repo feat
 echo two > "$bump_repo_dir/scripts/a.sh"; bump_commit "scripts change"
-git_t -C "$bump_repo_dir" checkout -q main
+git -C "$bump_repo_dir" checkout -q main
 echo two > "$bump_repo_dir/docs/a.md"; bump_commit "docs change on main"
-git_t -C "$bump_repo_dir" checkout -q feat
+git -C "$bump_repo_dir" checkout -q feat
 diff_base=main
 expect "the base variable is diffed three-dot, so a moved-on base does not count" 0
 diff_base=derive
@@ -1552,19 +1551,19 @@ expect "a reformatted manifest with the same version is not a bump" 1 "version b
 
 bump_repo feat
 echo two > "$bump_repo_dir/docs/a.md"
-git_t -C "$bump_repo_dir" rm -q .claude-plugin/plugin.json; bump_commit "docs change, manifest removed"
+git -C "$bump_repo_dir" rm -q .claude-plugin/plugin.json; bump_commit "docs change, manifest removed"
 expect "a manifest missing at HEAD is not a bump" 1 "version bump"
 
 bump_repo feat
-git_t -C "$bump_repo_dir" rm -q .claude-plugin/plugin.json; bump_commit "manifest removed"
+git -C "$bump_repo_dir" rm -q .claude-plugin/plugin.json; bump_commit "manifest removed"
 echo two > "$bump_repo_dir/docs/a.md"; bump_commit "docs change"
 diff_base=HEAD~1
 expect "a manifest missing at both ends is not a bump" 1 "version bump"
 diff_base=derive
 
 bump_repo feat
-git_t -C "$bump_repo_dir" rm -q .claude-plugin/plugin.json; bump_commit "manifest removed"
-git_t -C "$bump_repo_dir" tag nomanifest
+git -C "$bump_repo_dir" rm -q .claude-plugin/plugin.json; bump_commit "manifest removed"
+git -C "$bump_repo_dir" tag nomanifest
 mkdir -p "$bump_repo_dir/.claude-plugin"
 echo two > "$bump_repo_dir/docs/a.md"
 echo '{"name":"dev","version":"0.2.0"}' > "$bump_repo_dir/.claude-plugin/plugin.json"; bump_commit "docs change, manifest added"
@@ -1575,9 +1574,9 @@ diff_base=derive
 bump_repo feat
 echo two > "$bump_repo_dir/docs/a.md"
 echo '{"name":"dev","version":"0.2.0"}' > "$bump_repo_dir/.claude-plugin/plugin.json"; bump_commit "docs change and bump"
-git_t -C "$bump_repo_dir" branch -q -D main
+git -C "$bump_repo_dir" branch -q -D main
 expect "with no local main the merge-base uses origin/main" 0
 unset bump_repo_dir sec
 
-expect_flush all
+expect_flush
 fx_report_fails

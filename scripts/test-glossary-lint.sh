@@ -9,21 +9,15 @@
 set -uo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 lint=$repo_root/skills/glossary-lint/glossary-lint.sh
-source "$repo_root/scripts/fixture-test-lib.sh"   # fx_scratch_dir, fx_is_repo_top, fx_check, fx_report_fails
+source "$repo_root/scripts/fixture-test-lib.sh"   # fx_scratch_dir, fx_git_repo, fx_check, fx_report_fails
 fx_scratch_dir test-glossary-lint || exit 1
 
 # run_lint <dir>: the lint's output, then its exit code on a last line
 run_lint() { local out rc; out=$(cd "$1" && sh "$lint" 2>&1); rc=$?; printf '%s\n%s\n' "$out" "$rc"; }
 exit_is() { [ "${2##*$'\n'}" = "$1" ]; }   # <code> <run_lint output>
 
-# throwaway_repo <dir> <what>: an empty git repo at $scratch/<dir>, or the run ends on FAIL make <what>.
-# Separate git dir: the sandbox refuses writes to any .git/config; GIT_CEILING_DIRECTORIES and
-# fx_is_repo_top keep a failed init from adding into the enclosing checkout
-throwaway_repo() {
-  mkdir -p "$scratch/$1" \
-    && GIT_CEILING_DIRECTORIES=$scratch git init -q --template= --separate-git-dir="$scratch/$1.gd" "$scratch/$1" \
-    && fx_is_repo_top "$scratch/$1" || { echo "FAIL make $2"; exit 1; }
-}
+# throwaway_repo <dir> <what>: an empty git repo at $scratch/<dir>, or the run ends on FAIL make <what>
+throwaway_repo() { fx_git_repo "$scratch/$1" || { echo "FAIL make $2"; exit 1; }; }
 
 repo=$scratch/repo
 throwaway_repo repo "the throwaway repo"

@@ -10,6 +10,7 @@ lint: ci ## Everything: ci, then the fixture tests last (needs bd and cargo)
 
 ci: ## Lint the skill docs and run every script test that needs no beads database (the target CI calls)
 	scripts/lint-skill-docs.sh
+	scripts/check-test-git-init.sh
 	scripts/test-lint-skill-docs.sh
 	scripts/test-guard-rm.sh
 	scripts/test-glossary-lint.sh

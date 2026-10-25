@@ -24,6 +24,23 @@ fx_is_repo_top() { # <dir>
   local top
   top=$(git -C "$1" rev-parse --show-toplevel 2>/dev/null) && [ "$top" = "$(cd "$1" && pwd -P)" ]
 }
+# The one way a test script (scripts/test-*.sh; make ci's check-test-git-init.sh refuses a
+# git init anywhere else in one) makes a throwaway git repo: an empty repo on main at <dir>, its
+# git dir at <git dir> (default <dir>.gd), with the test identity set and hooks and signing off
+# in its config, so later git -C <dir> calls need no flags. Fails unless <dir> is the new repo's
+# own top level: under the sandbox git init can exit 0 leaving no HEAD (the hook template copy and
+# the config write are denied), and git then discovers upward, so an add and commit land in the
+# enclosing checkout (21f770c).
+# Separate git dir and empty template: the sandbox refuses writes inside any dir named .git.
+fx_git_repo() { # <dir> [<git dir>]
+  local dir=$1 gd=${2:-$1.gd} parent
+  mkdir -p "$dir" && parent=$(cd "$dir/.." && pwd -P) || return 1
+  GIT_CEILING_DIRECTORIES=$parent git init -q -b main --template= --separate-git-dir="$gd" "$dir" || return 1
+  GIT_CEILING_DIRECTORIES=$parent fx_is_repo_top "$dir" || return 1
+  git -C "$dir" config user.name Fixture && git -C "$dir" config user.email fixture@example.invalid \
+    && git -C "$dir" config core.hooksPath /dev/null && git -C "$dir" config hook.commitlint.enabled false \
+    && git -C "$dir" config commit.gpgsign false
+}
 # Front matter of a SKILL.md: the lines between the opening and closing ---.
 fx_front() { awk 'NR==1 && $0!="---"{exit} NR>1 && $0=="---"{exit} NR>1{print}' "$1"; }
 # Native blockers of bead <id> in <repo>: the ids it depends on with type blocks, sorted, comma-joined.
