@@ -13,7 +13,7 @@
 # its shipping pathspec, uncommitted edits and bumps, and the base on a detached HEAD.
 # The lint of the plugin's own tree is the Makefile's first step, not repeated here.
 # Each case's lint run goes in the background against its own snapshot of the scratch copy,
-# eight at a time, and the results print in case order.
+# one per CPU, and the results print in case order.
 # Usage: scripts/test-lint-skill-docs.sh
 set -uo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
@@ -25,20 +25,23 @@ fx_scratch_dir test-lint-skill-docs || exit 1
 jobs=$scratch/.jobs
 mkdir -p "$jobs"
 njobs=0 shown=0
+# a rolling pool of one run per CPU: a case takes a slot token from this FIFO before it starts
+# and puts it back when it ends (bash 3.2 has no wait -n to wait on any one job)
+mkfifo "$jobs/slots" && exec 3<>"$jobs/slots" || exit 1
+for _ in $(seq "$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)"); do printf x >&3; done
 
 # fresh copy of the tree, so each case edits only its own file; empties the dir (but .jobs)
 # rather than recreating it (see fx_scratch_dir)
+# the stand-in for the installed plugin: every name the tree's /commands resolve to, and the
+# ones the cases below name; listed once, since every fresh copy holds the same tree
+plugin_names=$(grep -rhoE 'mattpocock-skills:[a-z-]+' "$repo_root/skills" "$repo_root/docs" "$repo_root/CLAUDE.md" "$repo_root/GLOSSARY.md" \
+  | cut -d: -f2; printf '%s\n' tdd to-tickets)
 fresh() {
-  local name
   find "$scratch" -mindepth 1 -maxdepth 1 ! -name .jobs -exec rm -rf {} +
   cp -R "$repo_root/skills" "$repo_root/docs" "$repo_root/CLAUDE.md" "$repo_root/GLOSSARY.md" "$scratch/"
   cp -R "$fixtures/skills/sample" "$scratch/skills/"
   cp "$fixtures/agents/sample.md" "$scratch/docs/agents/"
-  # the stand-in for the installed plugin: every name the tree's /commands resolve to, and the
-  # ones the cases below name
-  for name in $(grep -rhoE 'mattpocock-skills:[a-z-]+' "$scratch/skills" "$scratch/docs" "$scratch/CLAUDE.md" "$scratch/GLOSSARY.md" | cut -d: -f2 | sort -u) tdd to-tickets; do
-    mkdir -p "$scratch/plugin/$name"
-  done
+  (cd "$scratch" && sort -u <<<"$plugin_names" | sed 's|^|plugin/|' | xargs mkdir -p)
 }
 # run the lint against the scratch copy, sealed to it; prints its output, then the exit code on
 # a last line. Extra arguments replace the lint's own ($1 driver, $2 runbook).
@@ -79,16 +82,20 @@ judge() {
   echo "FAIL $1 ($why)"
   grep '^FAIL' <<<"$4" | head -5 | sed 's/^/       /'
 }
-# print the finished cases' lines in order, counting their FAILs
+# print the finished cases' lines in order, as far as they have finished, counting their FAILs;
+# with "all", wait for every case first
 expect_flush() {
-  wait
+  [ "${1:-}" != all ] || wait
   while [ "$shown" -lt "$njobs" ]; do
+    if [ ! -f "$jobs/$((shown+1)).out" ]; then
+      [ "${1:-}" = all ] || return 0
+      # a case whose run died before judging it printed no verdict: that is a failure too
+      echo "FAIL case $((shown+1)) printed no verdict" > "$jobs/$((shown+1)).out"
+    fi
     shown=$((shown+1))
     rm -rf "${jobs:?}/${shown:?}"
     cat "$jobs/$shown.out"
-    # a case whose run died before judging it printed no verdict: that is a failure too
-    grep -qE '^ok   ' "$jobs/$shown.out" && ! grep -q '^FAIL' "$jobs/$shown.out" \
-      || { grep -qE '^(ok|FAIL) ' "$jobs/$shown.out" || echo "FAIL case $shown printed no verdict"; fails=$((fails+1)); }
+    ! grep -q '^FAIL' "$jobs/$shown.out" || fails=$((fails+1))
   done
 }
 # expect <description> <expected exit code> [message the output must contain] [lint args...]
@@ -100,24 +107,28 @@ expect() {
   args=()
   shift 3 2>/dev/null || shift $#
   if [ -n "${bump_repo_dir:-}" ]; then
-    expect_flush
+    expect_flush all
     njobs=$((njobs+1))
     judge "$d" "$want" "$msg" "$(lint_scratch "$@")" > "$jobs/$njobs.out"
-    expect_flush
+    expect_flush all
     return
   fi
   njobs=$((njobs+1)) dir=$jobs/$njobs
   mkdir "$dir"
-  find "$scratch" -mindepth 1 -maxdepth 1 ! -name .jobs -exec cp -R {} "$dir/" \;
+  cp -R "$scratch"/* "$dir/"   # the glob skips .jobs
   for a in "$@"; do a=${a//"$scratch"/"$dir"}; args+=("$a"); done
+  read -r -n 1 -u 3 _   # wait for a free slot
   (
     for v in skills_dir agent_docs claude_md glossary_md; do
       [ -z "${!v:-}" ] || eval "$v=\${$v//\"\$scratch\"/\"\$dir\"}"
     done
     msg=${msg//"$scratch"/"$dir"} scratch=$dir
-    judge "$d" "$want" "$msg" "$(lint_scratch ${args[@]+"${args[@]}"})"
-  ) > "$jobs/$njobs.out" 2>&1 &
-  [ $((njobs % 8)) -ne 0 ] || expect_flush
+    judge "$d" "$want" "$msg" "$(lint_scratch ${args[@]+"${args[@]}"})" > "$dir.part" 2>&1
+    # the .out appears whole or not at all, so expect_flush never prints half a verdict
+    mv "$dir.part" "$dir.out"
+    printf x >&3
+  ) &
+  expect_flush
 }
 
 fresh
@@ -1394,7 +1405,7 @@ expect "implement-story saying a clean round has no findings fails" 1
 unset sec
 
 # a DOCS_DIR override must exist
-expect_flush
+expect_flush all
 fresh
 out=$(VERSION_BUMP_REPO=$scratch/no-repo VERSION_BUMP_BASE=HEAD DOCS_DIR=/typo-no-such-dir SKILLS_DIR=$scratch/skills AGENT_DOCS=$scratch/docs/agents USER_CLAUDE_MD=$scratch/CLAUDE.md PLUGIN_SKILLS=$scratch/plugin "$lint" "" "$scratch/docs/WORKFLOW.md" 2>&1; echo "rc=$?")
 fx_check "a DOCS_DIR that does not exist fails" grep -qF "no such directory: /typo-no-such-dir" <<<"$out"
@@ -1431,7 +1442,7 @@ bump_repo() { fresh; make_bump_repo "$1" || { echo "FAIL make the throwaway repo
 bump_commit() { git -C "$bump_repo_dir" add -A; git -C "$bump_repo_dir" commit -q -m "$1"; }
 
 # a failed init commits nothing, here or in the enclosing checkout
-expect_flush
+expect_flush all
 fresh
 enclosing_head=$(git -C "$repo_root" rev-parse HEAD)
 touch "$scratch/bump.gd"   # a file where the git dir goes: init fails
@@ -1578,5 +1589,5 @@ git -C "$bump_repo_dir" branch -q -D main
 expect "with no local main the merge-base uses origin/main" 0
 unset bump_repo_dir sec
 
-expect_flush
+expect_flush all
 fx_report_fails

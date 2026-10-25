@@ -138,13 +138,52 @@ set -u
 root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 fail=0
 bad() { echo "FAIL: $*"; fail=1; }
-has() { grep -qiF -- "$2" "$f" || bad "missing: $1 ($2)"; }
-hasc() { grep -qF -- "$2" "$f" || bad "missing (case-sensitive): $1 ($2)"; }
-hase() { grep -qE -- "$2" "$f" || bad "missing: $1 ($2)"; }
-lacks() { [ -f "$f" ] || return 0; if grep -qiE -- "$2" "$f"; then bad "present: $1 ($2)"; grep -niE -- "$2" "$f" | head -3; fi; }
+# has (grep -iF), hasc (-F), hase (-E) and lacks (-iE) check <pattern> against $f line by line,
+# as those greps would. Each only queues its check: a section's checks run in one awk pass when
+# the next section opens (section) and at the end (checks_run), so their FAIL lines print under
+# their own section's header, at a cost of one process per section rather than one per check
+# (the regression test runs the lint a few hundred times).
+queue=
+has() { queue+="i	$f	$1	$2"$'\n'; }
+hasc() { queue+="c	$f	$1	$2"$'\n'; }
+hase() { queue+="e	$f	$1	$2"$'\n'; }
+lacks() { [ -f "$f" ] || return 0; queue+="x	$f	$1	$2"$'\n'; }
+# run the queued checks: a missing has/hasc/hase pattern or a present lacks one is a FAIL line,
+# a lacks one followed by its first three matching lines, numbered as grep -n numbers them
+checks_run() {
+  local out
+  [ -n "$queue" ] || return 0
+  out=$(printf '%s' "$queue" | LC_ALL=C awk -F '\t' '
+    { k[NR] = $1; d[NR] = $3; p[NR] = $4; lp[NR] = tolower($4)
+      if (!($2 in nat)) files[++nf] = $2
+      at[$2, ++nat[$2]] = NR }
+    END {
+      for (j = 1; j <= nf; j++) {
+        fn = files[j]; ln = 0
+        while ((getline line < fn) > 0) {
+          ln++; low = tolower(line)
+          for (m = 1; m <= nat[fn]; m++) {
+            i = at[fn, m]
+            if (k[i] == "i") { if (index(low, lp[i])) hit[i] = 1 }
+            else if (k[i] == "c") { if (index(line, p[i])) hit[i] = 1 }
+            else if (k[i] == "e") { if (line ~ p[i]) hit[i] = 1 }
+            else if (low ~ lp[i] && ++hit[i] <= 3) shown[i] = shown[i] ln ":" line "\n"
+          }
+        }
+        close(fn)
+      }
+      for (i = 1; i <= NR; i++)
+        if (k[i] == "x") { if (hit[i]) printf "FAIL: present: %s (%s)\n%s", d[i], p[i], shown[i] }
+        else if (!hit[i]) printf "FAIL: missing%s: %s (%s)\n", (k[i] == "c" ? " (case-sensitive)" : ""), d[i], p[i]
+    }') || bad "the check pass failed (awk exit $?)"
+  queue=
+  [ -z "$out" ] || { printf '%s\n' "$out"; fail=1; }
+}
+# section <header>: runs the previous section's checks, then opens this one
+section() { checks_run; echo "== $1"; }
 # doc <n> <title> <file>: opens section n on <file> (sets f), true when it exists; a missing one
 # is a failure naming it, never a skipped section
-doc() { f=$3; echo "== $1. $2: $f"; [ -f "$f" ] || { bad "missing document: $f"; return 1; }; }
+doc() { f=$3; section "$1. $2: $f"; [ -f "$f" ] || { bad "missing document: $f"; return 1; }; }
 
 skills=${SKILLS_DIR:-$root/skills}
 agents=${AGENT_DOCS:-$root/docs/agents}
@@ -155,7 +194,7 @@ glossary_md=${GLOSSARY_MD:-$root/GLOSSARY.md}
 runbook=${2:-$root/docs/WORKFLOW.md}
 # the dirs and the docs no section owns must exist, a default as much as an override; the
 # driver ($1) and the runbook ($2) are their sections' documents
-echo "== 0. paths"
+section "0. paths"
 for given in "$skills" "$agents" "$docs"; do
   [ -d "$given" ] || bad "no such directory: $given"
 done
@@ -436,7 +475,7 @@ lacks "rerun hint covering an already cut dependent" 'rerun this skill for the d
 fi
 
 # ---- 5. agent docs and skills: retired phrases ----
-echo "== 5. retired phrases: $agents, $skills"
+section "5. retired phrases: $agents, $skills"
 # whole words only ("shortcut one", "cut ones" pass); "re-cut one" is the spec's wording, not the retired name
 retired='(^|[^-A-Za-z0-9_])cut (one|two)([^-A-Za-z0-9_]|$)|<spec-slug>|story-cut\.md'
 # and no foreground spawn instruction: an Agent call returns at once whatever run_in_background
@@ -755,7 +794,7 @@ done
 # and the /close-story; a publish ticket waits on its story's tickets, not its repo's
 f=$agents/orchestration.md
 if [ -f "$f" ]; then
-echo "== 10. story DAG: $f"
+section "10. story DAG: $f"
 hasc "story-closure human stop" 'merge its PR, then run `/dev:close-story <story-id>`'
 has "publish ticket ready on its story's tickets" "as soon as its story's implementation tickets close"
 lacks "publish ticket ready on its repo's tickets" "its repo's implementation tickets close"
@@ -763,7 +802,7 @@ fi
 # the story body shows only blocker lines a step fills; a middle story of a chain is ordered
 f=$agents/issue-tracker.md
 if [ -f "$f" ]; then
-echo "== 10. story DAG: $f"
+section "10. story DAG: $f"
 lacks "gate ticket line no step fills" '<repo> <gate ticket id>'
 # the story cut writes a story line or a publish placeholder (step 2's skipped form too), so
 # "the only lines" of step 4 would contradict step 2
@@ -802,19 +841,23 @@ plugin=${PLUGIN_SKILLS:-$(ls -d "$HOME"/.claude/plugins/cache/claude-plugins-off
 # skill (tdd/scripts)
 plugin_skills=
 if [ -d "$plugin" ]; then
-  plugin_skills=$(find "$plugin" -mindepth 1 -maxdepth 2 -type d 2>/dev/null | while IFS= read -r m; do
-    [ -f "$(dirname "$m")/SKILL.md" ] || basename "$m"
-  done | sort -u)
+  # one listing: the SKILL.md files that make a dir a skill ("S"), then the candidate dirs ("D")
+  plugin_skills=$({ find "$plugin" -maxdepth 2 -name SKILL.md | sed 's/^/S /'
+    find "$plugin" -mindepth 1 -maxdepth 2 -type d | sed 's/^/D /'; } 2>/dev/null | awk '
+    { path = substr($0, 3) }
+    /^S / { sub(/\/SKILL\.md$/, "", path); skill[path] = 1; next }
+    { parent = path; sub(/\/[^\/]*$/, "", parent); if (!(parent in skill)) { sub(/.*\//, "", path); print path } }' | sort -u)
 fi
 builtin=" model add-dir code-review plugin sandbox clear mcp help config tmp compact init permissions hooks resume agents bug context cost doctor exit login logout memory pr-comments review status statusline terminal-setup vim ide install-github-app release-notes rewind export usage theme output-style loop schedule security-review simplify run fewer-permission-prompts keybindings-help update-config claude-api "
 
-# the /command tokens of file $1, one per line. A slash starts a command only at the start of a
+# the /command tokens of files $@, one "<file><tab><token>" line per distinct pair, in one awk
+# run rather than one per file. A slash starts a command only at the start of a
 # line or after whitespace, an opening delimiter or an opening backtick (so not a/b, ~/x, a URL,
 # a closing tag, <home>/x, $(pwd)/x or a closing `x`/y). The name is [a-z-]+ with an optional
 # :skill; what follows it tells a command from a path (/tmp/x, /x.sh) or a placeholder
 # (/dev:<x>): a command ends at a space, the end of line or punctuation, and a ":" or "." that
 # ends a sentence still counts, so adjacent commands and "/skill." or "/skill: x" are checked.
-cmd_tokens() { # <file>
+cmd_tokens() { # <file>...
   local out
   # LC_ALL=C: a multibyte char (arrow, em dash) next to a slash must not abort awk; an extractor
   # failure is the caller's to report, never swallowed by the sort
@@ -837,9 +880,9 @@ cmd_tokens() { # <file>
       if (c == "." && d ~ /[A-Za-z0-9_]/) continue
       if (c == ":" && d != "" && d !~ /[ \t,;.)`]/) continue
       sub(/-+$/, "", tok)
-      print tok
+      print FILENAME "\t" tok
     }
-  }' "$1") || return 1
+  }' "$@") || return 1
   [ -z "$out" ] || printf '%s\n' "$out" | sort -u
 }
 # every namespaced /command token in $@ maps to a skill directory: dev: ones under the
@@ -864,19 +907,20 @@ cmds() { # <token>...
     esac
   done
 }
-echo "== 11. namespace rule"
+section "11. namespace rule"
+scanned=()
 while IFS= read -r f; do
-  [ -f "$f" ] || continue
-  toks=$(cmd_tokens "$f") || bad "token extractor failed on $f"
-  # shellcheck disable=SC2086
-  case "$f" in "$docs/specs/"*) ;; *) cmds $toks ;; esac
-  for tok in $toks; do
-    case "$tok" in dev:*|mattpocock-skills:*) continue;; esac
-    case "$builtin" in *" $tok "*) continue;; esac
-    bad "bare or unknown skill namespace in $f: /$tok (use dev:<skill> or mattpocock-skills:<skill>)"
-  done
+  [ -f "$f" ] && scanned+=("$f")
 done < <({ find "$docs" "$agents" "$skills" -type f -name '*.md' 2>/dev/null
   echo "$runbook"; echo "$user_claude_md"; echo "$glossary_md"; echo "${1:-}"; } | grep . | sort -u)
+pairs=$(cmd_tokens "${scanned[@]}") || bad "token extractor failed on ${scanned[*]}"
+while IFS=$'\t' read -r f tok; do
+  [ -n "$tok" ] || continue
+  case "$f" in "$docs/specs/"*) ;; *) cmds "$tok" ;; esac
+  case "$tok" in dev:*|mattpocock-skills:*) continue;; esac
+  case "$builtin" in *" $tok "*) continue;; esac
+  bad "bare or unknown skill namespace in $f: /$tok (use dev:<skill> or mattpocock-skills:<skill>)"
+done <<<"$pairs"
 
 # ---- 12. /retro: step 2 names the transcript shape and the two mining recipes ----
 # the pins are fragments, so a recipe can be reworded without a lint edit
@@ -903,12 +947,13 @@ fi
 # `>`, indented or not (implement-spec's sits inside a list item), and runs to the next blank
 # line, so a wrapped line that drops the `>` is still inside it. The variable outside one is the
 # skill's own to resolve and passes.
-echo "== 13. brief rule"
-while IFS= read -r f; do
-  while IFS=: read -r n line; do
-    bad "plugin-root variable in a brief in $f:$n (spell the plugin root literally; the rules doc's Plugin root rule): $line"
-  done < <(awk '/^[[:space:]]*>/ {inq=1} /^[[:space:]]*$/ {inq=0} inq && /CLAUDE_PLUGIN_ROOT/ {print NR":"$0}' "$f")
-done < <(find "$skills" -type f -name '*.md' 2>/dev/null | sort)
+section "13. brief rule"
+# one awk over every skill doc, the quote state reset at each file's first line
+while IFS=$'\t' read -r f n line; do
+  bad "plugin-root variable in a brief in $f:$n (spell the plugin root literally; the rules doc's Plugin root rule): $line"
+done < <(find "$skills" -type f -name '*.md' -print0 2>/dev/null | sort -z | xargs -0 awk '
+  FNR == 1 {inq=0} /^[[:space:]]*>/ {inq=1} /^[[:space:]]*$/ {inq=0}
+  inq && /CLAUDE_PLUGIN_ROOT/ {print FILENAME "\t" FNR "\t" $0}' /dev/null)
 
 # version-bump rule: a change to what the plugin ships (skills, docs, hooks and the glossary,
 # less the specs under docs, which never reach an installed machine) needs a version change in
@@ -925,7 +970,7 @@ bump_repo=${VERSION_BUMP_REPO:-$root}
 shipping=(skills docs hooks GLOSSARY.md ':(exclude)docs/specs')
 if git -C "$bump_repo" rev-parse --git-dir >/dev/null 2>&1 \
   && [ "$(git -C "$bump_repo" rev-parse --abbrev-ref HEAD 2>/dev/null)" != main ]; then
-  echo "== 14. version bump"
+  section "14. version bump"
   base=${VERSION_BUMP_BASE:-$(git -C "$bump_repo" merge-base origin/HEAD HEAD 2>/dev/null \
     || git -C "$bump_repo" merge-base origin/main HEAD 2>/dev/null)}
   if [ -z "$base" ]; then
@@ -947,5 +992,6 @@ if git -C "$bump_repo" rev-parse --git-dir >/dev/null 2>&1 \
   fi
 fi
 
+checks_run
 [ "$fail" = 0 ] && echo "PASS"
 exit "$fail"
