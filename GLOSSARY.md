@@ -209,8 +209,8 @@ The line a reviewer's report ends on: `verdict: clean` when no finding is blocki
 `verdict: blocking (<n>)`. Every finding is tagged **blocking** (an acceptance criterion
 unmet, a behaviour wrong, a test missing) or **minor** (wording, naming, a nit that changes
 no behaviour an acceptance criterion names). A clean round sends its minors to one last
-fix-up implementer or to the inbox and moves on; only blocking rounds count toward a
-ticket's three (`docs/agents/orchestration.md`, "Review").
+fix-up implementer or to the inbox and moves on; only blocking rounds and red check rounds
+count toward a ticket's three (`docs/agents/orchestration.md`, "Review").
 _Avoid_: zero findings, nit-free, pass/fail
 
 **Story orchestrator**:
@@ -229,8 +229,8 @@ before its merge; a hit stops the push or merge with `failed: stray commit <sha>
 _Avoid_: push guard, stray check
 
 **Ticket runner**:
-The agent that owns one ticket from claim to close: its implementer, reviewer and merger,
-and the relay of findings from each review round to a fresh fix-up implementer. It
+The agent that owns one ticket from claim to close: its implementer, its check gate,
+reviewer and merger, and the relay of findings from each review round to a fresh fix-up implementer. It
 reports one line to its story orchestrator and is discarded, so no ticket's churn outlives it.
 _Avoid_: ticket agent, worker
 

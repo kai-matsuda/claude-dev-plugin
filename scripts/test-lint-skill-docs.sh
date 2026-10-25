@@ -1378,7 +1378,7 @@ echo 'Two waves suffice for any feature.' >> "$scratch/skills/close-story/SKILL.
 expect "skill saying 'two waves suffice' fails" 1
 
 # a reviewer tags every finding blocking or minor and ends on a verdict line; a round with no
-# blocking findings is clean and only blocking rounds count toward the three-round limit
+# blocking findings is clean; blocking rounds and red check rounds count toward the three-round limit
 # (chezmoi-49k): the rule lives in the orchestration doc, the runner brief and the story
 # review point at it
 fresh
@@ -1386,7 +1386,7 @@ drop_line docs/agents/orchestration.md '**Review verdict.**'
 expect "orchestration doc without the Review verdict rule fails" 1
 
 # the checks read the rule's own paragraph, so a phrase kept elsewhere in the doc does not pass
-for phrase in 'verdict: clean' 'verdict: blocking (<n>)' '**blocking** or **minor**' 'Only blocking rounds count'; do
+for phrase in 'verdict: clean' 'verdict: blocking (<n>)' '**blocking** or **minor**' 'Blocking rounds and red check rounds count'; do
   fresh
   drop_phrase docs/agents/orchestration.md "$phrase"
   expect "orchestration doc without '$phrase' fails" 1
@@ -1407,7 +1407,7 @@ for phrase in 'No reviewer sees a branch tip' 'ticket level and the story level'
   expect "orchestration doc's Check gate rule without '$phrase' fails" 1
 done
 fresh
-drop_phrase docs/agents/orchestration.md "which are the story's checks"
+drop_phrase docs/agents/orchestration.md "these are the story's checks"
 expect "orchestration doc's Idle rule without the checks fails" 1
 
 # the lint command's resolution in /implement-story step 3 and the runner brief's header: each
@@ -1470,7 +1470,7 @@ expect "implement-story with 'the command and its output' seeded fails" 1 "the c
 
 # the brief's phrases are read on the runner's step 3 line alone: dropped there while step 7
 # keeps them, the lint still fails (each phrase sits once on that line, so the swap hits it)
-for phrase in 'verdict: clean' 'verdict: blocking \(<n>\)' '\*\*blocking\*\* or \*\*minor\*\*' 'at most three blocking rounds'; do
+for phrase in 'verdict: clean' 'verdict: blocking \(<n>\)' '\*\*blocking\*\* or \*\*minor\*\*' 'within the three rounds above'; do
   fresh
   swap_phrase skills/implement-story/SKILL.md "^(> 3\. .*)$phrase" '\1'
   expect "ticket runner step 3 without '$phrase' fails" 1

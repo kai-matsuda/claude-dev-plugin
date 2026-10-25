@@ -244,6 +244,6 @@ sequenceDiagram
 - **Fresh fix-up, same worktree.** Findings never go back to the first implementer by
   message. Each round spawns a new **fix-up implementer** in the worktree the implementer
   left behind (the rules doc's Orchestrator role).
-- **Only blocking rounds count.** A clean round with minors ends the review loop. The
+- **Only blocking and red rounds count.** A clean round with minors ends the review loop. The
   minors get one unreviewed fix-up or go to the inbox as a **deferred finding**, and the
   story tier never fails on a verdict at all (the rules doc's Review verdict).

@@ -583,14 +583,14 @@ para_has '**Plugin root.**' "resolved once per session" 'once per session'
 para_has '**Plugin root.**' "the rules-doc path spelled literally in every brief" '<plugin root>/docs/agents/'
 para_has '**Plugin root.**' "spelled out in every brief" 'every brief'
 # a reviewer tags every finding blocking or minor and ends on a verdict line; a round with no
-# blocking findings is clean and only blocking rounds count toward the three-round limit. The
+# blocking findings is clean; blocking rounds and red check rounds count toward the three-round limit. The
 # rule is stated once here; the runner brief and the story review point at it (chezmoi-49k)
 hasc "Review verdict rule" '**Review verdict.**'
 para_has '**Review verdict.**' "the clean verdict line" 'verdict: clean'
 para_has '**Review verdict.**' "the blocking verdict line" 'verdict: blocking (<n>)'
 para_has '**Review verdict.**' "the blocking-or-minor tags" '**blocking** or **minor**'
 para_has '**Review verdict.**' "a round with no blocking findings is clean" 'no blocking findings is **clean**'
-para_has '**Review verdict.**' "only blocking rounds count toward the limit" 'Only blocking rounds count'
+para_has '**Review verdict.**' "blocking and red check rounds count toward the limit" 'Blocking rounds and red check rounds count'
 # the check gate: no reviewer sees a branch tip until the story's checks are green on it, at both
 # levels; lint first, then the test seams, the first red stops; a red goes to a fix-up
 # implementer, never a reviewer. The Idle rule's command list names the checks
@@ -600,7 +600,7 @@ para_has '**Check gate.**' "both levels" 'ticket level and the story level'
 para_has '**Check gate.**' "lint first, then the test seams" 'lint first, then the test seams'
 para_has '**Check gate.**' "the first red stops" 'the first red stops'
 para_has '**Check gate.**' "a red goes to a fix-up implementer, never a reviewer" 'fix-up implementer, never to a reviewer'
-para_has '**Idle rule.**' "the Idle rule names the checks" "which are the story's checks"
+para_has '**Idle rule.**' "the Idle rule names the checks" "these are the story's checks"
 fi
 if doc 6 "tracker rules" "$agents/issue-tracker.md"; then
 # the one test of the session mode (ADR 0008), stated once, in the opening before any section
@@ -772,7 +772,7 @@ lacks "Gitignore step counts three entries" "the rule's three entries"
 # step 7 point at the rules doc's Review verdict for what a clean round does; the retired bar,
 # clean as no finding at all, is gone (chezmoi-49k). The brief's phrases are read on the step 3
 # line alone, since step 7 carries the same ones
-for phrase in 'verdict: clean' 'verdict: blocking (<n>)' '**blocking** or **minor**' 'at most three blocking rounds'; do
+for phrase in 'verdict: clean' 'verdict: blocking (<n>)' '**blocking** or **minor**' 'within the three rounds above'; do
   grep -E '^> 3\. ' "$f" | grep -qF -- "$phrase" || bad "missing: ticket runner step 3's reviewer brief ($phrase)"
 done
 grep -qE "^> 3\. .*the rules doc's Review verdict" "$f" || bad "missing: ticket runner step 3 points at the rules doc's Review verdict"
@@ -787,8 +787,8 @@ grep -E "$L3" "$f" | grep -qF -- 'else the command `<owner>`'"'"'s `CLAUDE.md` n
 grep -E '^> You are the ticket runner' "$f" | grep -qF -- 'lint command `<lint>` or none' || bad "missing: runner brief header carries the lint command"
 # anchored: step 3's lint paragraph says who spells it out and where it runs; the runner brief's
 # opening paragraph lists it among what every brief carries; its step 2 offers no list to choose from
-grep -E "^   Resolve the owner repo's \*\*lint command\*\*" "$f" | grep -qF -- 'spells it out in every implementer, fix-up implementer and merger brief it sends' || bad "missing: step 3's lint paragraph names the implementer, fix-up implementer and merger briefs"
-grep -E "^   Resolve the owner repo's \*\*lint command\*\*" "$f" | grep -qF -- 'make -C <dir> lint' || bad "missing: step 3's lint paragraph runs the lint as make -C <dir> lint"
+grep -E "$L3" "$f" | grep -qF -- 'spells it out in every implementer, fix-up implementer and merger brief it sends' || bad "missing: step 3's lint paragraph names the implementer, fix-up implementer and merger briefs"
+grep -E "$L3" "$f" | grep -qF -- 'make -C <dir> lint' || bad "missing: step 3's lint paragraph runs the lint as make -C <dir> lint"
 grep -E '^> You are the ticket runner' "$f" | grep -qF -- 'the lint command `<lint>` (or none)' || bad "missing: the runner brief's every-brief list carries the lint command"
 grep -E "$L3" "$f" | grep -qF -- 'a command `CLAUDE.md` names runs in that same checkout or worktree' || bad "missing: step 3's lint paragraph says where a CLAUDE.md-named command runs"
 grep -E '^> 2\. ' "$f" | grep -qF -- 'leaving out any the lint command already runs' || bad "missing: runner step 2 leaves out the tests the lint command already runs"

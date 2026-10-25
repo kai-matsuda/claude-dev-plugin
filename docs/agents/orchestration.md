@@ -86,8 +86,8 @@ finished, and the child's final line went to the top-level session). A `Monitor`
 same background call behind a filter, so it is no better. Nor is a call left at the Bash
 tool's 120-second default: the harness moves one that runs longer to the background, the
 same idle state, so every lint or test run (`make lint`, `make ci`, `make fixtures`,
-`scripts/test-*.sh`, or the owner repo's own, which are the story's checks (Review: Check
-gate)) passes `timeout: 600000` on its Bash call (INFRA-30's run: two `make lint` calls
+`scripts/test-*.sh` or the owner repo's own; these are the story's checks, the Check gate
+rule under Review below) passes `timeout: 600000` on its Bash call (INFRA-30's run: two `make lint` calls
 were backgrounded that way, and one agent went looking for its own process with `ps`).
 This is the mechanism behind the no-polling rule above, and why INFRA-29's until-loops
 and Monitors woke agents with stale state. The one shell wait is a merger's wait on the owner checkout's lock (the
@@ -306,7 +306,8 @@ implementer before the merger, or to the inbox as a deferral when the orchestrat
 them out of the ticket's or the story's scope (the tracker doc's "capture a retro item";
 Frontier, Deferrals, below), never to a bead of the story; then the ticket closes, or the
 story proceeds to delivery, and no reviewer runs over that last fix-up.
-Only blocking rounds count toward a ticket's three-round limit: a round that reports every
+Blocking rounds and red check rounds count toward a ticket's three-round limit (the Check
+gate rule above); a clean round does not: a round that reports every
 acceptance criterion met plus three wording nits is clean, and the ticket goes to the
 merger after one fix-up. Before this rule a round was clean only with no finding of either
 kind (INFRA-29's runs, 2026-10-22 to 2026-10-23): `chezmoi-9v4.1.5` failed twice on rounds
