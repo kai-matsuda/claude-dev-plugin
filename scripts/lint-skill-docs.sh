@@ -711,6 +711,11 @@ lacks "merger sleeping and re-checking the lock by hand" 'waits [0-9]+ seconds|c
 hasc "frontier spawn ends the turn" 'then end your turn: each runner'
 hasc "ticket runner's spawn ends the turn" 'then end your turn: its report'
 hasc "ticket runner brief carries the idle rule" "the rules doc's Idle rule"
+# the per-ticket reviewer reads the standards the story review reads: the repo's own files and
+# the plugin's coding-standards doc by its literal path (dev-co6)
+for need in '`CODING_STANDARDS.md` or `CONTRIBUTING.md`' '<plugin root>/docs/agents/coding-standards.md` spelled as the path this session resolved'; do
+  grep -E '^> 3\. ' "$f" | grep -qF -- "$need" || bad "missing in the ticket reviewer brief: standards source ($need)"
+done
 # one story is one PR on `feat/<story-id>` (keyed or not); a finished story with an open agent
 # ticket is guarded by one forge query; a story-closure wait says to merge and close; the
 # sibling line carries the story id (chezmoi-9v4.1.5, ADR 0011)
