@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PLUGIN_SKILLS: ${{ github.workspace }}/.mattpocock-skills/skills
-      # a PR into main diffs against its base; a push or another PR target falls back to the merge-base with origin/main
+      # a PR into main diffs against its base; a push or another PR target falls back to the merge-base with origin's default branch
       VERSION_BUMP_BASE: ${{ github.event_name == 'pull_request' && github.base_ref == 'main' && github.event.pull_request.base.sha || '' }}
     steps:
       - uses: actions/checkout@v4

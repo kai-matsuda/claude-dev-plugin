@@ -8,7 +8,8 @@
 # CLAUDE.md and the root glossary), the brief rule (section 13: the plugin-root variable fails
 # inside a brief block and passes outside one), and the version-bump rule.
 # The last section drives the version-bump rule on a throwaway git repo (VERSION_BUMP_REPO,
-# VERSION_BUMP_BASE; the other cases point the repo at a non-repo path and pin the base to HEAD).
+# VERSION_BUMP_BASE; the other cases point the repo at a non-repo path and pin the base to HEAD):
+# its shipping pathspec, uncommitted edits and bumps, and the base on a detached HEAD.
 # The lint of the plugin's own tree is the Makefile's first step, not repeated here.
 # Usage: scripts/test-lint-skill-docs.sh
 set -uo pipefail
@@ -310,7 +311,7 @@ expect "a /dev:<not yet built> in docs/specs passes" 0
 # top level before any add, so a failed init cannot commit into the enclosing checkout.
 git_t() { GIT_CEILING_DIRECTORIES=$scratch git -c core.hooksPath=/dev/null -c hook.commitlint.enabled=false -c user.name=t -c user.email=t@t -c commit.gpgsign=false "$@"; }
 # make_bump_repo <branch>: in the current scratch, a repo on main with a manifest at 0.1.0,
-# <branch> checked out from it; fails, committing nothing, when the repo cannot be made
+# origin/main tracking that commit, <branch> checked out from it; fails, committing nothing, when the repo cannot be made
 make_bump_repo() {
   bump_repo_dir=$scratch/bump
   mkdir -p "$bump_repo_dir/.claude-plugin" "$bump_repo_dir/docs" "$bump_repo_dir/scripts"
@@ -320,6 +321,7 @@ make_bump_repo() {
   echo '{"name":"dev","version":"0.1.0"}' > "$bump_repo_dir/.claude-plugin/plugin.json"
   echo one > "$bump_repo_dir/docs/a.md"; echo one > "$bump_repo_dir/scripts/a.sh"
   git_t -C "$bump_repo_dir" add -A && git_t -C "$bump_repo_dir" commit -q -m base || return 1
+  git_t -C "$bump_repo_dir" update-ref refs/remotes/origin/main main
   [ "$1" = main ] || git_t -C "$bump_repo_dir" checkout -q -b "$1"
 }
 bump_repo() { fresh; make_bump_repo "$1" || { echo "FAIL make the throwaway repo"; exit 1; }; }
@@ -354,6 +356,33 @@ bump_repo feat
 echo two > "$bump_repo_dir/scripts/a.sh"; bump_commit "scripts change"
 expect "a scripts-only change passes" 0
 
+# the pathspec is what ships: hooks and the glossary do, the specs under docs do not
+bump_repo feat
+mkdir -p "$bump_repo_dir/hooks"; echo h > "$bump_repo_dir/hooks/h.sh"; bump_commit "hooks change"
+expect "a hooks-only change without a version bump fails" 1 "version bump"
+
+bump_repo feat
+echo g > "$bump_repo_dir/GLOSSARY.md"; bump_commit "glossary change"
+expect "a glossary-only change without a version bump fails" 1 "version bump"
+
+bump_repo feat
+mkdir -p "$bump_repo_dir/docs/specs"; echo s > "$bump_repo_dir/docs/specs/s.md"; bump_commit "spec change"
+expect "a docs/specs-only change without a version bump passes" 0
+
+# the working tree counts, so a pre-commit run sees an uncommitted edit and an uncommitted bump
+bump_repo feat
+mkdir -p "$bump_repo_dir/skills/x"; echo s > "$bump_repo_dir/skills/x/SKILL.md"; bump_commit "skill added"
+git_t -C "$bump_repo_dir" checkout -q main; git_t -C "$bump_repo_dir" merge -q --ff-only feat
+git_t -C "$bump_repo_dir" update-ref refs/remotes/origin/main main; git_t -C "$bump_repo_dir" checkout -q feat
+echo two > "$bump_repo_dir/skills/x/SKILL.md"
+expect "an uncommitted edit under skills/ without a version bump fails" 1 "version bump"
+echo '{"name":"dev","version":"0.2.0"}' > "$bump_repo_dir/.claude-plugin/plugin.json"
+expect "an uncommitted edit under skills/ with an uncommitted bump passes" 0
+
+bump_repo feat
+mkdir -p "$bump_repo_dir/skills/y"; echo s > "$bump_repo_dir/skills/y/SKILL.md"
+expect "an untracked file under skills/ without a version bump fails" 1 "version bump"
+
 bump_repo feat
 echo two > "$bump_repo_dir/docs/a.md"; bump_commit "docs change"
 diff_base=HEAD
@@ -368,9 +397,30 @@ diff_base=no-such-ref
 expect "an unresolvable base variable fails with its own message" 1 "does not resolve"
 diff_base=derive
 
+# the derived base is origin's default branch, never a local main
 bump_repo feat
-git_t -C "$bump_repo_dir" branch -q -m main trunk
-expect "a repo with no main branch fails with no diff base" 1 "no diff base"
+git_t -C "$bump_repo_dir" update-ref -d refs/remotes/origin/main
+expect "a repo with a local main but no origin default branch fails with no diff base" 1 "no diff base"
+
+bump_repo feat
+echo two > "$bump_repo_dir/docs/a.md"; bump_commit "docs change"
+git_t -C "$bump_repo_dir" update-ref refs/remotes/origin/trunk main
+git_t -C "$bump_repo_dir" symbolic-ref refs/remotes/origin/HEAD refs/remotes/origin/trunk
+git_t -C "$bump_repo_dir" update-ref -d refs/remotes/origin/main
+git_t -C "$bump_repo_dir" branch -q -f main feat   # a local main that would hide the change
+expect "origin/HEAD names the default branch the base derives from" 1 "version bump"
+
+# a detached HEAD (a GitHub Actions checkout) gets the branch's verdict, with the base variable
+# set and without it
+for diff_base in main derive; do
+  bump_repo feat
+  echo two > "$bump_repo_dir/docs/a.md"; bump_commit "docs change"
+  git_t -C "$bump_repo_dir" checkout -q --detach
+  expect "a detached HEAD with base $diff_base and no version bump fails" 1 "version bump"
+  echo '{"name":"dev","version":"0.2.0"}' > "$bump_repo_dir/.claude-plugin/plugin.json"; bump_commit "bump"
+  expect "a detached HEAD with base $diff_base and a version bump passes" 0
+done
+diff_base=derive
 
 bump_repo main
 echo two > "$bump_repo_dir/docs/a.md"; bump_commit "docs change on main"
@@ -418,9 +468,8 @@ diff_base=derive
 bump_repo feat
 echo two > "$bump_repo_dir/docs/a.md"
 echo '{"name":"dev","version":"0.2.0"}' > "$bump_repo_dir/.claude-plugin/plugin.json"; bump_commit "docs change and bump"
-git_t -C "$bump_repo_dir" update-ref refs/remotes/origin/main main
-git_t -C "$bump_repo_dir" branch -q -D main 2>/dev/null || git_t -C "$bump_repo_dir" branch -q -m main trunk
-expect "with no local main the merge-base falls back to origin/main" 0
+git_t -C "$bump_repo_dir" branch -q -D main
+expect "with no local main the merge-base uses origin/main" 0
 unset bump_repo_dir
 
 fx_report_fails

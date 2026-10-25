@@ -127,10 +127,10 @@
 # USER_CLAUDE_MD overrides the project CLAUDE.md (default: CLAUDE.md under the repo root).
 # GLOSSARY_MD overrides the root glossary (default: GLOSSARY.md under the repo root).
 # PLUGIN_SKILLS overrides the plugin skills directory (default: newest installed mattpocock-skills).
-# The last section is the version-bump rule (INFRA-30): a diff under skills/ or docs/ needs a
-# changed version in .claude-plugin/plugin.json. VERSION_BUMP_REPO overrides the repo it reads
-# (default: the repo root); VERSION_BUMP_BASE overrides the diff base (default: the merge-base
-# with main, else origin/main).
+# The last section is the version-bump rule (INFRA-30): a change to what the plugin ships
+# needs a changed version in .claude-plugin/plugin.json. VERSION_BUMP_REPO overrides the repo it
+# reads (default: the repo root); VERSION_BUMP_BASE overrides the diff base (default: the
+# merge-base with origin/HEAD, else origin/main).
 set -u
 root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 fail=0
@@ -927,32 +927,40 @@ while IFS= read -r f; do
   done < <(awk '/^[[:space:]]*>/ {inq=1} /^[[:space:]]*$/ {inq=0} inq && /CLAUDE_PLUGIN_ROOT/ {print NR":"$0}' "$f")
 done < <(find "$skills" -type f -name '*.md' 2>/dev/null | sort)
 
-# version-bump rule: a diff under skills/ or docs/ needs a version change in the plugin manifest.
-# The diff runs from VERSION_BUMP_BASE (a CI job can set it to the PR base) or else the merge-base
-# with main (origin/main when there is no local main), to HEAD, three-dot; VERSION_BUMP_REPO
+# version-bump rule: a change to what the plugin ships (skills, docs, hooks and the glossary,
+# less the specs under docs, which never reach an installed machine) needs a version change in
+# the plugin manifest. The base is VERSION_BUMP_BASE (a CI job sets it to the PR base) or else
+# the default branch's remote tracking ref, origin/HEAD or origin/main, so a detached HEAD
+# derives it as a branch does; no local branch name picks the base. The diff runs from the
+# merge-base of that base and HEAD to the working tree, untracked non-ignored files included, so
+# a pre-commit run sees an uncommitted edit and an uncommitted bump alike; VERSION_BUMP_REPO
 # overrides the repo (the regression test's throwaway repo). The manifest's parsed version value
-# is compared at base and HEAD: unreadable at base, or a reformat with the same value, is no bump.
-# A no-op on main itself, and in a tree that is not a git repo.
+# is compared at the merge-base and in the working tree: unreadable at either, or a reformat with
+# the same value, is no bump. A no-op with a local main checked out (by name, the one place a
+# branch name counts), and in a tree that is not a git repo.
 bump_repo=${VERSION_BUMP_REPO:-$root}
+shipping=(skills docs hooks GLOSSARY.md ':(exclude)docs/specs')
 if git -C "$bump_repo" rev-parse --git-dir >/dev/null 2>&1 \
   && [ "$(git -C "$bump_repo" rev-parse --abbrev-ref HEAD 2>/dev/null)" != main ]; then
   echo "== version bump"
-  base=${VERSION_BUMP_BASE:-$(git -C "$bump_repo" merge-base main HEAD 2>/dev/null \
+  base=${VERSION_BUMP_BASE:-$(git -C "$bump_repo" merge-base origin/HEAD HEAD 2>/dev/null \
     || git -C "$bump_repo" merge-base origin/main HEAD 2>/dev/null)}
   if [ -z "$base" ]; then
-    bad "version bump: no diff base (no main branch to merge-base with; set VERSION_BUMP_BASE)"
+    bad "version bump: no diff base (neither origin/HEAD nor origin/main to merge-base with; set VERSION_BUMP_BASE)"
   elif ! git -C "$bump_repo" rev-parse --verify --quiet "$base^{commit}" >/dev/null; then
     bad "version bump: diff base '$base' does not resolve to a commit (a shallow checkout may not have fetched it)"
-  elif [ -n "$(git -C "$bump_repo" diff --name-only "$base...HEAD" -- skills docs)" ]; then
+  elif ! fork=$(git -C "$bump_repo" merge-base "$base" HEAD 2>/dev/null); then
+    bad "version bump: diff base '$base' shares no history with HEAD (a shallow checkout may have cut it)"
+  elif [ -n "$(git -C "$bump_repo" diff --name-only "$fork" -- "${shipping[@]}"
+               git -C "$bump_repo" ls-files --others --exclude-standard -- "${shipping[@]}")" ]; then
     manifest=.claude-plugin/plugin.json
-    manifest_version() { # <rev>: the manifest's "version" value at <rev>, empty if unreadable
-      git -C "$bump_repo" show "$1:$manifest" 2>/dev/null \
-        | sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1
+    version_of() { # stdin: a manifest; prints its "version" value, empty if none
+      sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1
     }
-    old=$(manifest_version "$base")
-    new=$(manifest_version HEAD)
+    old=$(git -C "$bump_repo" show "$fork:$manifest" 2>/dev/null | version_of)
+    new=$(cat "$bump_repo/$manifest" 2>/dev/null | version_of)
     { [ -n "$old" ] && [ -n "$new" ] && [ "$old" != "$new" ]; } \
-      || bad "version bump: skills/ or docs/ changed since ${base:0:9} but $manifest has no version change"
+      || bad "version bump: a shipping path changed since ${fork:0:9} but $manifest has no version change"
   fi
 fi
 
