@@ -917,10 +917,13 @@ fresh
 drop_phrase skills/implement-story/SKILL.md 'TMPDIR line'
 expect "implement-story whose briefs lose the TMPDIR line fails" 1
 
-# each brief is checked on its own: the line dropped from one step alone still fails
+# each brief is checked on its own: the line dropped from one step alone still fails (every
+# occurrence on that step's line: step 3 names it for the gate's fix-up and the reviewer's)
 for step in 2 3 4; do
   fresh
-  swap_phrase skills/implement-story/SKILL.md "^(> $step\. .*)TMPDIR line" '\1TMPDIR'
+  while grep -qE "^> $step\. .*TMPDIR line" "$scratch/skills/implement-story/SKILL.md"; do
+    swap_phrase skills/implement-story/SKILL.md "^(> $step\. .*)TMPDIR line" '\1TMPDIR'
+  done
   expect "implement-story whose ticket runner step $step brief loses the TMPDIR line fails" 1
 done
 
@@ -1450,6 +1453,38 @@ expect "ticket runner step 3 without its pointer at the Review verdict rule fail
 fresh
 swap_phrase skills/implement-story/SKILL.md "^(7\. .*)the rules doc's Review verdict" '\1the rules doc'
 expect "story review step 7 without its pointer at the Review verdict rule fails" 1
+
+# the ticket runner's check gate (dev-cq0.1.4): the step 3 line carrying it dropped whole, then
+# each pin on its own line, so a phrase kept elsewhere in the file does not pass
+fresh
+drop_line skills/implement-story/SKILL.md '> 3. **Check gate**, every tier'
+expect "ticket runner brief without the check gate step fails" 1
+
+fresh
+swap_phrase skills/implement-story/SKILL.md '^> 3\. \*\*Check gate\*\*, every tier' '> 3. The checks'
+expect "ticket runner step 3 not opening with the check gate fails" 1
+
+# position: the reviewer spawned before the gate's green
+fresh
+swap_phrase skills/implement-story/SKILL.md '^(> 3\. )(.*)Green: for `low`, go to step 4; for `medium` and `high`, spawn a \*\*reviewer\*\*' '\1For `medium` and `high`, spawn a **reviewer** first. \2Green: for `low`, go to step 4; then'
+expect "ticket runner step 3 spawning the reviewer before the check gate fails" 1
+
+for pair in 'Green: for `low`, go to step 4|a green gate not sending low to the merger' \
+  '> <worktree path>/.tmp/checks-<round>-<k>.log 2>&1; echo exit=$?|a check not logged under the worktree' \
+  'tail -n 40 <log>|a red read without a forty-line tail' \
+  '`bd -C <owner> note <ticket-id> "checks <round>: red <command>"`|a red without its note' \
+  'a green writes no note|a green that may write a note' \
+  'the log path, and no pasted output|a fix-up brief without the log path' \
+  'a third round of either kind is `failed`|red rounds not sharing the three-round budget' \
+  'run the check gate again, and on green spawn a reviewer again|a blocking fix-up reviewed without the gate'; do
+  fresh
+  drop_phrase skills/implement-story/SKILL.md "${pair%%|*}"
+  expect "ticket runner step 3 with ${pair#*|} fails" 1
+done
+
+fresh
+drop_phrase skills/implement-story/SKILL.md 'The implementer runs no gate and spawns no one'
+expect "ticket runner step 2 without the implementer running no gate fails" 1
 
 fresh
 echo 'Anything you cannot finish (reviewer still not clean after three rounds) is `failed`.' >> "$scratch/skills/implement-story/SKILL.md"
