@@ -811,6 +811,10 @@ grep -E "$G3" "$f" | grep -qF -- 'a green writes no note' || bad "missing: a gre
 grep -E "$G3" "$f" | grep -qF -- 'the log path, and no pasted output' || bad "missing: the gate's fix-up brief points at the log path"
 grep -E "$G3" "$f" | grep -qF -- 'a third round of either kind is `failed`' || bad "missing: red gates and blocking reviews share the three-round budget"
 grep -E "$G3" "$f" | grep -qF -- 'run the check gate again, and on green spawn a reviewer again' || bad "missing: a blocking round's fix-up passes the gate before the next reviewer"
+# the merger's two runs (step 4, dev-cq0.1.6): the implementer's worktree after the tip merge and
+# the owner checkout after the integration merge are runs of the story's checks, the lint command
+# included, in place of the tests
+grep -E '^> 4\. ' "$f" | grep -qF -- 'runs the story'"'"'s checks there, the lint command `<lint>` included' && grep -E '^> 4\. ' "$f" | grep -qF -- 'reruns the story'"'"'s checks on the merged result in `<owner>`, the lint command `<lint>` included' || bad "missing: the merger runs the story's checks, the lint command included, in the implementer's worktree"
 # the story review (step 7) runs the check gate on the integration branch tip before the
 # two-axis review, a matching marker jumping to the Evidence run; a second pre-review red stalls
 # with failed: <check> <command>; the Evidence is each check's command, exit and tail, cited so
