@@ -89,7 +89,13 @@
 #      fix-up implementer and merger briefs start with the TMPDIR line, whose rule section 6
 #      checks in orchestration.md (chezmoi-3eg), and its reviewer brief tags every finding
 #      blocking or minor and ends on the verdict line, its runner step 3 and story review step 7
-#      pointing at the rules doc's Review verdict, whose rule section 6 checks (chezmoi-49k);
+#      pointing at the rules doc's Review verdict, whose rule section 6 checks (chezmoi-49k),
+#      and its step 3 resolves the owner's lint command once, which the runner brief's header
+#      and every brief it sends carry, runner step 2 taking it from the brief (dev-cq0.1.2),
+#      and its story review runs the check gate before the two-axis review, a matching marker
+#      jumping to the Evidence run, a second red stalling with failed: <check> <command>, the
+#      Evidence each check's command, exit and tail cited in step 8, and the retired "the
+#      command and its output" gone (dev-cq0.1.5); section 6 checks the rules doc's Check gate;
 #   9. /close-story: its Forgejo/Gitea query carries --repo <path> as the intro and
 #      /implement-story's merge guard do (dev-hac); its ticket check skips a child carrying
 #      needs-triage or wontfix, as the finished story does, and its refusal names each open
@@ -805,6 +811,24 @@ grep -E "$G3" "$f" | grep -qF -- 'a green writes no note' || bad "missing: a gre
 grep -E "$G3" "$f" | grep -qF -- 'the log path, and no pasted output' || bad "missing: the gate's fix-up brief points at the log path"
 grep -E "$G3" "$f" | grep -qF -- 'a third round of either kind is `failed`' || bad "missing: red gates and blocking reviews share the three-round budget"
 grep -E "$G3" "$f" | grep -qF -- 'run the check gate again, and on green spawn a reviewer again' || bad "missing: a blocking round's fix-up passes the gate before the next reviewer"
+# the story review (step 7) runs the check gate on the integration branch tip before the
+# two-axis review, a matching marker jumping to the Evidence run; a second pre-review red stalls
+# with failed: <check> <command>; the Evidence is each check's command, exit and tail, cited so
+# in step 8, and the retired "the command and its output" is gone (dev-cq0.1.5)
+S7=$(grep -E '^7\. ' "$f")
+for need in 'skip the gate and the review and go to the Evidence run' 'the **check gate** on the integration branch tip' \
+  'a second red skips the review' '`failed: <check> <command>`'; do
+  grep -qF -- "$need" <<<"$S7" || bad "missing in the story review (step 7): $need"
+done
+awk -v g='the **check gate** on the integration branch tip' -v r='mattpocock-skills:code-review' \
+  '{ i = index($0, g); j = index($0, r); exit !(i && j && i < j) }' <<<"$S7" \
+  || bad "missing: the story review (step 7) runs the check gate before the two-axis review"
+awk 'index($0, "   **Evidence run.**") == 1' "$f" | grep -qF -- "each check's command, its exit and the last twenty lines of its log" \
+  || bad "missing: the Evidence run paragraph cites each check's command, exit and tail"
+grep -E '^8\. ' "$f" | grep -qF -- "each check's command, exit and twenty-line tail" \
+  || bad "missing: the deliver step (8) writes each check's command, exit and tail as Evidence"
+hasc "report template's failed: line names the check" 'or <check> <command>'
+lacks "the retired Evidence phrase" 'the command and its output'
 
 fi
 

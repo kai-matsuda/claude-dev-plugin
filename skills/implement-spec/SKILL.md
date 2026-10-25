@@ -60,7 +60,8 @@ Follow `${CLAUDE_PLUGIN_ROOT}/docs/agents/orchestration.md`, read before step 1:
    repo:    <owner>
    PR:      <url>            (or  branch: <name> @ <tip SHA>; from the orchestrator's block, or the story's pr:/branch: notes when it was finished or waiting)
    failed:  <bead-id> <open blocker or failure reason>     (one per line, as the orchestrator's block has them:
-                                                            a ticket, a red seam, or push <command>: <error>)
+                                                            a ticket, <check> <command> for a red check,
+                                                            or push <command>: <error>)
    human:   <bead-id> <title>                              (one per open ready-for-human ticket in the story)
    human:   <owner repo> <story-id> <pr url>: the PR to merge and the /dev:close-story <story-id> to run
                                                            (in the blocking story's block: a finished story another story waits on, not yet closed)

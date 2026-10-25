@@ -1438,6 +1438,36 @@ fresh
 swap_phrase skills/implement-story/SKILL.md "^(> 2\. .*)the brief's lint command" '\1the brief'"'"'s lint command, `make ci`, `make lint`'
 expect "runner step 2 offering a list of lint commands fails" 1
 
+# the story review runs the check gate before the two-axis review, stalls on a second
+# pre-review red, and cites each check's command, exit and tail as the PR's Evidence; each pin
+# is proven by dropping its phrase, the order by moving the gate after the review (dev-cq0.1.5)
+for phrase in 'skip the gate and the review and go to the Evidence run' \
+  'the **check gate** on the integration branch tip' \
+  'a second red skips the review' \
+  "each check's command, its exit and the last twenty lines of its log" \
+  "each check's command, exit and twenty-line tail" \
+  'or <check> <command>'; do
+  fresh
+  drop_phrase skills/implement-story/SKILL.md "$phrase"
+  expect "implement-story without '$phrase' fails" 1
+done
+
+# the stall line is read on step 7's line: dropped there while the report template keeps it
+fresh
+swap_phrase skills/implement-story/SKILL.md '^(7\. .*)`failed: <check> <command>`' '\1a failed line'
+expect "story review step 7 without its failed: <check> <command> stall line fails" 1
+
+# the gate named after the review on step 7's line: the order pin fails
+fresh
+swap_phrase skills/implement-story/SKILL.md '^(7\. .*)$' '\1 Then the **check gate** on the integration branch tip again.'
+swap_phrase skills/implement-story/SKILL.md '^(7\. .*)the \*\*check gate\*\* on the integration branch tip runs first' '\1the review runs first'
+expect "story review step 7 with the gate after the two-axis review fails" 1
+
+# the retired phrase seeded back fails
+fresh
+echo 'Then run the seams and keep the command and its output.' >> "$scratch/skills/implement-story/SKILL.md"
+expect "implement-story with 'the command and its output' seeded fails" 1 "the command and its output"
+
 # the brief's phrases are read on the runner's step 3 line alone: dropped there while step 7
 # keeps them, the lint still fails (each phrase sits once on that line, so the swap hits it)
 for phrase in 'verdict: clean' 'verdict: blocking \(<n>\)' '\*\*blocking\*\* or \*\*minor\*\*' 'at most three blocking rounds'; do
