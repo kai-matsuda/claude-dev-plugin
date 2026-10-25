@@ -565,6 +565,10 @@ hasc "a nested orchestrator ends its turn after spawning" 'ends its turn'
 hasc "run_in_background is a JSON boolean" '`run_in_background` is a JSON boolean'
 hasc "idle rule" '**Idle rule.**'
 hasc "Bash in the foreground only below the driver" 'in the foreground only'
+# the Bash tool backgrounds a call that outlives its 120 s default, which is the idle state the
+# rule forbids, so lint and test runs pass timeout: 600000 (dev-7k0, INFRA-30)
+hasc "the 120-second default backgrounds a longer call" '120-second default'
+hasc "lint and test runs carry the ten-minute timeout" 'timeout: 600000'
 lacks "a foreground spawn" 'spawns in the foreground|foreground spawn returns|has no notification to wait for'
 # the merger's wait on the owner checkout's lock is the one shell wait, a bounded foreground
 # until-loop, since a background call ends the merger's turn early (chezmoi-sn1, the idle rule)
@@ -711,6 +715,12 @@ lacks "merger sleeping and re-checking the lock by hand" 'waits [0-9]+ seconds|c
 hasc "frontier spawn ends the turn" 'then end your turn: each runner'
 hasc "ticket runner's spawn ends the turn" 'then end your turn: its report'
 hasc "ticket runner brief carries the idle rule" "the rules doc's Idle rule"
+# the implementer, fix-up and merger briefs give lint and test runs an explicit ten-minute
+# timeout, so the 120 s default never backgrounds them (dev-7k0, INFRA-30)
+for step in 2 3 4; do
+  grep -E "^> $step\. " "$f" | grep -qF -- 'timeout: 600000' || bad "missing in the ticket runner brief's step $step: lint and test timeout (timeout: 600000)"
+done
+hasc "story fix-up brief names the lint and test limit" 'the ten-minute limit on lint and test runs'
 # the per-ticket reviewer reads the standards the story review reads: the repo's own files and
 # the plugin's coding-standards doc by its literal path (dev-co6)
 for need in '`CODING_STANDARDS.md` or `CONTRIBUTING.md`' '<plugin root>/docs/agents/coding-standards.md` spelled as the path this session resolved'; do

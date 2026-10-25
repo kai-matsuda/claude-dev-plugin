@@ -83,7 +83,12 @@ once the background call completes, escapes to the top-level session (the probe 
 2026-10-23: a haiku parent spawned a haiku child that ran `sleep` in a background Bash call
 and ended its turn; the parent was resumed with the interim notification and listed as
 finished, and the child's final line went to the top-level session). A `Monitor` is that
-same background call behind a filter, so it is no better. This is the mechanism behind
+same background call behind a filter, so it is no better. Nor is a call left at the Bash
+tool's 120-second default: the harness moves one that runs longer to the background, the
+same idle state, so every lint or test run (`make lint`, `make ci`, `make fixtures`,
+`scripts/test-*.sh`, or the owner repo's own) passes `timeout: 600000` on its Bash call
+(INFRA-30's run: two `make lint` calls were backgrounded that way, and one agent went
+looking for its own process with `ps`). This is the mechanism behind
 the no-polling rule above, and why INFRA-29's until-loops and Monitors woke agents with
 stale state. The one shell wait is a merger's wait on the owner checkout's lock (the
 ticket runner brief's step 4): a single foreground Bash call running an `until` loop over

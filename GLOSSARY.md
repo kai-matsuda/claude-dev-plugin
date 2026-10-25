@@ -228,8 +228,9 @@ _Avoid_: cleanup, kill, orphan reaping
 Every subagent below the driver runs Bash in the foreground only, never a background call
 or a `Monitor`: a turn that ends with one still running counts as idle, so the parent is
 resumed with an interim report and marked finished, and the real report escapes to the
-top-level session. A turn that ends with an Agent child mid-turn is not idle; that is how
-a nested orchestrator waits (ADR 0012).
+top-level session; a lint or test run passes `timeout: 600000`, since one left at the
+120-second default is backgrounded. A turn that ends with an Agent child mid-turn is not
+idle; that is how a nested orchestrator waits (ADR 0012).
 _Avoid_: foreground rule, no-background rule, sync rule
 
 **TMPDIR line**:
