@@ -4,7 +4,7 @@ How a feature is implemented, drawn once: the loop every row runs. This page exp
 decides nothing. The rules are in `docs/agents/orchestration.md`: the loop and its table
 (The loop), the two scoping rules (Scoping rules), the six trust rules (Trust rules), the
 check gate and the review verdict (Review) and the frontier (Frontier). The why is in
-`docs/adr/0001-two-stage-review.md`, ADR 0006 and ADR 0011. When the diagram and those
+`docs/adr/0014-one-loop-at-three-rows.md`, ADR 0006 and ADR 0011. When the diagram and those
 texts disagree, the texts win and the diagram is the bug. Bold terms are defined in
 `GLOSSARY.md`.
 
@@ -40,13 +40,13 @@ sequenceDiagram
     O->>I: spawn the builder (a worktree, or the row below)
     I-->>O: ready for review
 
-    loop the checks, then the review on green, reds and blocking verdicts share three fix-ups
+    loop the checks, then the review on green, three fix-ups per unit (the epic row, three per story)
         O->>O: run the check command on the tip (the epic row reads the forge's status on the PR tip), unless its tree has a record, write the check record
         alt the checks are red
             O->>BD: note the failing command and its log
             O->>F: fix-up by pointer brief
             F-->>O: report, the loop starts over from the checks
-        else checks green, no reviewer at this row or tier
+        else checks green, the ticket row at low, no reviewer
             Note over O: the loop exits on green
         else checks green
             O->>V: spawn the review, the row's axes (the epic row, the spec axis only)
@@ -73,15 +73,17 @@ sequenceDiagram
         opt minors out of scope
             O->>IN: capture a retro item (needs-triage), never a bead of the unit
         end
-        O->>O: stray-commit check
         alt ticket row
-            O->>O: wait on the owner checkout's lock, merge onto the integration branch
+            O->>O: wait on the owner checkout's lock
+            O->>O: stray-commit check
+            O->>O: merge onto the integration branch
             opt the merge conflicts
                 O->>F: an implementer in the ticket worktree merges the integration tip in
                 F-->>O: report, O fast-forwards and reruns the check command on the new tree
             end
             O->>BD: close the ticket's bead
         else story or epic row
+            O->>O: stray-commit check
             O->>U: push (story, draft PR) or mark the PR ready (epic)
             Note over BD: the story and epic beads stay open, /dev:close-story and /dev:close-epic close them after the merge
         end
