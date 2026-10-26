@@ -647,6 +647,7 @@ done
 hasc "review scoping rule" '**Review scope.**'
 para_has '**Review scope.**' "the spec axis takes the row's own unit" "The spec axis takes the row's own unit"
 para_has '**Review scope.**' "the standards axis reads what entered since" 'The standards axis reviews what entered since the last standards review'
+para_has '**Review scope.**' "the review scope's why is ADR 0014" 'ADR 0014 in the plugin repo'
 hasc "check scoping rule" '**Check scope.**'
 para_has '**Check scope.**' "every tree is checked once" 'Every tree is checked once'
 para_has '**Check scope.**' "a tree with a check record counts as checked" 'a tree with a check record counts as checked'
@@ -755,6 +756,21 @@ hasc "epic bead writes convention" '- Epic bead writes:'
 # (chezmoi-afn)
 hasc "close rule tolerates untriaged children" 'closed or carries `needs-triage` or `wontfix`'
 
+fi
+# ADR 0014 records the one loop and supersedes ADR 0001, which keeps its text and points at it
+if doc 6 "ADR 0014" "$docs/adr/0014-one-loop-at-three-rows.md"; then
+hasc "ADR 0014 is accepted" 'status: accepted'
+hasc "ADR 0014 supersedes ADR 0001" 'Supersedes ADR 0001'
+hasc "ADR 0014 has considered options" '## Considered options'
+hasc "ADR 0014 option: the two-tool review" '**The two-tool review ADR 0001 chose**'
+hasc "ADR 0014 option: a per-row check list" '**A per-row check list**'
+hasc "ADR 0014 option: a merger kept as a role" '**A merger kept as a role**'
+hasc "ADR 0014 decides the ticket orchestrator lands its ticket" 'The ticket orchestrator lands its ticket'
+hasc "ADR 0014 decides every tree is checked once" 'every tree is checked once'
+fi
+if doc 6 "ADR 0001" "$docs/adr/0001-two-stage-review.md"; then
+hasc "ADR 0001 is superseded by 0014" 'status: superseded by ADR 0014'
+hasc "ADR 0001 points at ADR 0014" 'docs/adr/0014-one-loop-at-three-rows.md'
 fi
 
 # ---- 7. /story-to-tickets ----
