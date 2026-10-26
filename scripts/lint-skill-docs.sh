@@ -875,6 +875,11 @@ line_has '^7\. ' "the exit iteration's run is the PR's Evidence" "this iteration
 line_has '^7\. ' "a reviewed tip is marked and the loop starts over" 'write the marker on the new tip, and the loop starts over'
 line_has '^7\. ' "the story loop's fourth failure skips delivery" 'the fourth failure skips step 8 and goes to step 9'
 line_has '^7\. ' "the story loop's stall line" '`failed: <check> <command>`'
+# one budget for the story loop, red or review, a minors-only review's fix-up included, and the
+# review's own stall form (dev-1xf.1.3 review 1)
+line_has '^7\. ' "red and review fix-ups share the story loop's budget of three" 'The budget is three fix-ups per story, red or review alike'
+line_has '^7\. ' "a minors-only review's fix-up spends the story loop's budget" "every fix-up in the story loop spends it, a minors-only review's included"
+line_has '^7\. ' "the story loop's stall line for a review" "(a review's as \`failed: review mattpocock-skills:code-review\`)"
 # on the first step 7 line, the checks come before the marker compare and the review
 awk -v g='Each iteration runs the checks first' -v m='the same SHA exits the loop' -v r='mattpocock-skills:code-review' \
   '/^7\. / { i = index($0, g); k = index($0, m); j = index($0, r); ok = (i && k && j && i < k && k < j); seen = 1; exit } END { exit !(seen && ok) }' "$f" \

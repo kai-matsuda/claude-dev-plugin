@@ -1487,6 +1487,9 @@ for case in "the rules doc's Check gate loop on the integration branch tip, with
   "this iteration's run (each check's command, its exit and the last twenty lines of its log) is the PR's Evidence|Evidence not from the exit iteration|missing: the exit iteration's run is the PR's Evidence" \
   'write the marker on the new tip, and the loop starts over|a reviewed tip not starting the loop over|missing: a reviewed tip is marked and the loop starts over' \
   'the fourth failure skips step 8 and goes to step 9|a story loop without its fourth-failure stall|missing: the story loop'"'"'s fourth failure skips delivery' \
+  'The budget is three fix-ups per story, red or review alike|a story loop without its one budget|missing: red and review fix-ups share the story loop'"'"'s budget of three' \
+  'every fix-up in the story loop spends it, a minors-only review'"'"'s included|a story loop whose minors-only fix-up is unbudgeted|missing: a minors-only review'"'"'s fix-up spends the story loop'"'"'s budget' \
+  '(a review'"'"'s as `failed: review mattpocock-skills:code-review`)|a story loop without the review'"'"'s stall form|missing: the story loop'"'"'s stall line for a review' \
   "its Evidence from step 7's exit iteration (each check's command, exit and twenty-line tail)|a deliver step not citing the exit iteration|missing: the deliver step (8) takes its Evidence from step 7's exit iteration" \
   'or <check> <command>|a report template without the check failed line|missing (case-sensitive): report template'"'"'s failed: line names the check'; do
   phrase=${case%%|*} rest=${case#*|}
