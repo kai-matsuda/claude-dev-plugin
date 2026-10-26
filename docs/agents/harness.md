@@ -45,9 +45,9 @@ and ended its turn; the parent was resumed with the interim notification and lis
 finished, and the child's final line went to the top-level session). A `Monitor` is that
 same background call behind a filter, so it is no better. Nor is a call left at the Bash
 tool's 120-second default: the harness moves one that runs longer to the background, the
-same idle state, so every lint or test run (`make lint`, `make ci`, `make fixtures`,
-`scripts/test-*.sh` or the owner repo's own; these are the story's checks, the Check gate
-rule in `orchestration.md`) passes `timeout: 600000` on its Bash call (INFRA-30's run: two `make lint` calls
+same idle state, so every run of the check command (`make check`, the Check command rule
+in `orchestration.md`) and any other long lint or test run passes `timeout: 600000` on its
+Bash call (INFRA-30's run: two `make lint` calls
 were backgrounded that way, and one agent went looking for its own process with `ps`).
 This is the mechanism behind the no-polling rule above, and why INFRA-29's until-loops
 and Monitors woke agents with stale state. The one shell wait is a ticket orchestrator's wait on the owner checkout's lock (the

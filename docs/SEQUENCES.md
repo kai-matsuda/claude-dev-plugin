@@ -11,15 +11,9 @@ texts disagree, the texts win and the diagram is the bug. Bold terms are defined
 ## The loop
 
 The ticket, the story and the epic are one loop at three rows. The diagram draws the row
-in general, with `O` the row's orchestrator and the unit a ticket, a story or an epic. The
-table is the model doc's table, copied whole so no column is lost: the Fix-up column is
-where the rows differ most, and the diagram draws all three of its cases.
-
-| Row | Orchestrator | Builds | Checks | Review spec axis | Review standards axis | Reviewer and model | Fix-up | Lands by | Exits when | Budget |
-|---|---|---|---|---|---|---|---|---|---|---|
-| **Ticket** | ticket orchestrator | one implementer in a worktree | the check command | the ticket's body | the ticket diff | both axes, at the ticket's review model; none at `low` | an implementer by pointer brief, same worktree | merge onto the integration branch under the lock, after the stray-commit check | the checks green on the tip the review called clean | three fix-ups |
-| **Story** | story orchestrator | ticket orchestrators in parallel over the frontier | the check command | the story's body | what entered since the last standards review: conflict resolutions and cross-ticket coherence | both axes, at the review model of the story's max tier | an implementer by pointer brief in a fix-up worktree | push, the PR staying a draft | the checks green on the tip the review called clean | three fix-ups |
-| **Epic** | epic orchestrator | story orchestrators in parallel over the frontier | the check command as the forge runs it | the Jira Epic's spec | none, the axis is skipped | the spec axis only, at the review model of the epic's max tier | findings filed as `ready-for-agent` tickets under the story, that story re-run in add mode | the PR marked ready, the human merges, then `/dev:close-story` and `/dev:close-epic` | the checks green on the tip the review called clean | three per story |
+in general, with `O` the row's orchestrator and the unit a ticket, a story or an epic. Each
+row's parameters are the model doc's table (`docs/agents/orchestration.md`, The loop): the
+Fix-up column is where the rows differ most, and the diagram draws all three of its cases.
 
 ```mermaid
 sequenceDiagram
@@ -79,7 +73,7 @@ sequenceDiagram
             O->>O: merge onto the integration branch
             opt the merge conflicts
                 O->>F: an implementer in the ticket worktree merges the integration tip in
-                F-->>O: report, O fast-forwards and reruns the check command on the new tree
+                F-->>O: report, O runs the check command on the resolved tree, then fast-forwards
             end
             O->>BD: close the ticket's bead
         else story or epic row

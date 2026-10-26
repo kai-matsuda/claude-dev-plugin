@@ -23,7 +23,7 @@ human is not a row: a ready PR is theirs to merge.
 | Row | Orchestrator | Builds | Checks | Review spec axis | Review standards axis | Reviewer and model | Fix-up | Lands by | Exits when | Budget |
 |---|---|---|---|---|---|---|---|---|---|---|
 | **Ticket** | ticket orchestrator | one implementer in a worktree | the check command | the ticket's body | the ticket diff | both axes, at the ticket's review model; none at `low` | an implementer by pointer brief, same worktree | merge onto the integration branch under the lock, after the stray-commit check | the checks green on the tip the review called clean | three fix-ups |
-| **Story** | story orchestrator | ticket orchestrators in parallel over the frontier | the check command | the story's body | what entered since the last standards review: conflict resolutions and cross-ticket coherence | both axes, at the review model of the story's max tier | an implementer by pointer brief in a fix-up worktree | push, the PR staying a draft | the checks green on the tip the review called clean | three fix-ups |
+| **Story** | story orchestrator | ticket orchestrators in parallel over the frontier | the check command | the story's body | what entered since the last standards review: conflict resolutions, cross-ticket coherence and the story gate's fix-up commits | both axes, at the review model of the story's max tier | an implementer by pointer brief in a fix-up worktree | push, the PR staying a draft | the checks green on the tip the review called clean | three fix-ups |
 | **Epic** | epic orchestrator | story orchestrators in parallel over the frontier | the check command as the forge runs it | the Jira Epic's spec | none, the axis is skipped | the spec axis only, at the review model of the epic's max tier | findings filed as `ready-for-agent` tickets under the story, that story re-run in add mode | the PR marked ready, the human merges, then `/dev:close-story` and `/dev:close-epic` | the checks green on the tip the review called clean | three per story |
 
 **Landing a ticket.** The ticket orchestrator waits on the owner checkout's lock, runs the
@@ -129,7 +129,7 @@ two axes, one tier up (Complexity tier).
 The spec axis takes the row's own unit: the ticket's body (its acceptance criteria and the
 story's test seams), the story's body, the Jira Epic's spec.
 The standards axis reviews what entered since the last standards review: the ticket diff at
-the ticket row; the conflict resolutions and the coherence across tickets at the story row,
+the ticket row; the conflict resolutions, the coherence across tickets and the story gate's own fix-up commits at the story row,
 since each ticket's diff was reviewed at its own row; nothing at the epic row, where the axis
 is skipped. So no line is read for standards twice (ADR 0014 in the plugin repo).
 
@@ -217,11 +217,13 @@ implementer's own runs never count (trust rule 3). The PR's Evidence is the reco
 **Check gate.** At every row the gate exits when the checks are green on the tip the review called clean.
 Each pass runs the check command on the tip, unless its tree has a record, then the review.
 A red or a blocking verdict goes to a fresh implementer by pointer brief and the loop starts over;
-three such fix-ups per unit, and the fourth is `failed`, one line, the same words at every row.
+three such fix-ups per unit (at the epic row, three per story), and the fourth is `failed`,
+one line, the same words at every row.
 A minors fix-up and a conflict resolution move the tip, so the checks rerun, but no reviewer
-runs again and no budget is spent: the gate exits on the moved tip once its checks are green,
-and the note records that tip. The story orchestrator records the reviewed tip in its notes,
-so a rerun knows the tip the review called clean and reviews only a tip that has moved past it.
+runs again and no budget is spent: the gate exits on the moved tip once its checks are green.
+The story orchestrator records the reviewed tip in its notes, the reviewed-tip note on the story bead
+(`review: <tip SHA>`), which names that moved tip, so a rerun knows the tip the review called
+clean and reviews only a tip that has moved past it; the ticket row writes no such note.
 
 **Review verdict.** Every reviewer, at every row, tags every finding **blocking** or **minor** and ends its report on one verdict line. A
 finding is blocking when an acceptance criterion is unmet, a behaviour is wrong, a test is

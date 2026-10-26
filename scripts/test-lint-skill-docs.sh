@@ -1059,7 +1059,7 @@ done
 # the cut-off and commits rules, and the idle rule's check-command list and timeout, moved to
 # the harness doc with the rest of the mechanics (dev-9k5.1.2)
 for phrase in '**Cut-off agents.**' 'First the **stop sweep**' '**Commits.**' '`git status --porcelain --untracked-files=no` prints nothing' \
-  '120-second default' 'timeout: 600000' "these are the story's checks"; do
+  '120-second default' 'timeout: 600000' 'every run of the check command'; do
   fresh
   drop_phrase docs/agents/harness.md "$phrase"
   expect "harness doc without '$phrase' fails" 1
@@ -1429,6 +1429,7 @@ pin_case "the tea mark-ready command" 'tea pr edit <n> --repo <owner> --ready'
 pin_case "one fix-up ticket per blocking finding" 'one per blocking finding'
 pin_case "the add-mode re-run" 'in add mode'
 pin_case "the per-story fix-up budget" 'three per story'
+pin_case "the story orchestrator brief's Commits rule" 'commit under the Commits rule of `<plugin root>/docs/agents/harness.md`'
 pin_case "the fourth blocking verdict failing" 'the fourth is `failed`'
 pin_case "the report template's review: line" 'review:  <verdict line>'
 pin_case "Done's clean epic review" 'epic review clean'
@@ -1683,7 +1684,7 @@ for case in "Ticket@| ticket orchestrator |@ticket row: the ticket orchestrator"
   "Story@| ticket orchestrators in parallel over the frontier |@story row: ticket orchestrators over the frontier" \
   "Story@| the check command |@Story row: the check command" \
   "Story@| the story's body |@story row: the story's body as spec" \
-  "Story@what entered since the last standards review: conflict resolutions and cross-ticket coherence@story row: what entered since as standards" \
+  "Story@what entered since the last standards review: conflict resolutions, cross-ticket coherence and the story gate's fix-up commits@story row: what entered since as standards" \
   "Story@| both axes, at the review model of the story's max tier |@story row: both axes at the review model of the story's max tier" \
   "Story@| an implementer by pointer brief in a fix-up worktree |@story row: a fix-up by pointer brief in a fix-up worktree" \
   "Story@| push, the PR staying a draft |@story row: lands by a push, the PR a draft" \
@@ -1733,7 +1734,10 @@ for case in '**Review scope.**|review scoping rule' "The spec axis takes the row
   'A minors fix-up and a conflict resolution move the tip, so the checks rerun|a minors fix-up and a conflict resolution rerun the checks' \
   'no budget is spent|and spend nothing' 'records the reviewed tip in its notes|the reviewed tip noted on the story' \
   'the gate exits on the moved tip once its checks are green|the gate exits on the moved tip' \
-  'the note records that tip|the note records the moved tip' \
+  'the reviewed-tip note on the story bead|the reviewed-tip note names the moved tip' \
+  'the ticket row writes no such note|the ticket row writes no reviewed-tip note' \
+  'at the epic row, three per story|the epic row budgets per story' \
+  "the story gate's own fix-up commits|the story row's standards axis takes the gate's fix-up commits" \
   "the forge reports them green on the PR's tip|the epic row's checks are the forge's status on the PR tip" \
   'no test at a story seam exercises the criteria|no test at a story seam is blocking' \
   '`mattpocock-skills:code-review` at every row|the one review tool'; do
@@ -1786,8 +1790,12 @@ for case in 'lint first, then the test seams|present: the retired two-level chec
   sec=$s expect "orchestration doc with '${case%%|*}' fails" 1 "${case#*|}"
 done
 fresh
-drop_phrase docs/agents/harness.md "these are the story's checks"
-expect "harness doc's Idle rule without the checks fails" 1
+drop_phrase docs/agents/harness.md 'every run of the check command'
+expect "harness doc's Idle rule without the check command fails" 1 "the Idle rule names the check command"
+# the Idle rule's retired story's-checks clause, seeded back (story dev-9k5.1 review)
+fresh
+echo "These are the story's checks." >> "$scratch/docs/agents/harness.md"
+expect "harness doc regaining the story's-checks clause fails" 1 "present: the Idle rule's retired story's-checks clause"
 
 # the ticket orchestrator brief (dev-9k5.1.7): its row parameters, the check command by Makefile
 # convention and the one-line harness citation, each phrase dropped alone; the brief opener
@@ -1809,7 +1817,8 @@ done
 
 for case in 'check command `make check` when `<owner>`'"'"'s Makefile has a `check` target, else none and the gate is review-only|missing: the brief'"'"'s check command by Makefile convention' \
   'The harness mechanics are in `<plugin root>/docs/agents/harness.md`|missing: the brief cites the harness doc in one line' \
-  'every brief you send cites it in one line|missing: every brief it sends cites the harness doc'; do
+  'every brief you send cites it in one line|missing: every brief it sends cites the harness doc' \
+  "a missing Makefile (grep's exit 2) reads as no check command|missing: a missing Makefile reads as no check command"; do
   fresh
   drop_phrase skills/implement-story/SKILL.md "${case%%|*}"
   expect "ticket orchestrator brief without '${case%%|*}' fails" 1 "${case#*|}"
@@ -1837,7 +1846,8 @@ for case in '`git -C <worktree path> rev-parse HEAD^{tree}`|missing: the gate ke
   'a tree with a record is checked: read its exit and run nothing|missing: a tree with a check record is not checked again' \
   'mkdir -p <worktree path>/.tmp; mkdir -p <owner>/.tmp/checks/<tree>; export TMPDIR=<worktree path>/.tmp; make -C <worktree path> check > <owner>/.tmp/checks/<tree>/log 2>&1; echo "command=make check exit=$?" > <owner>/.tmp/checks/<tree>/record; cat <owner>/.tmp/checks/<tree>/record|missing: the gate writes the check record per tree' \
   'With no check command the checks are skipped and the gate is review-only|missing: no check command makes the gate review-only' \
-  '`mattpocock-skills:code-review`|missing: the gate reviews with mattpocock-skills:code-review'; do
+  '`mattpocock-skills:code-review`|missing: the gate reviews with mattpocock-skills:code-review' \
+  '`git -C <worktree path> diff <branch>...HEAD`|missing: the reviewer brief names the harness-route diff'; do
   fresh
   drop_phrase skills/implement-story/SKILL.md "${case%%|*}"
   expect "ticket orchestrator step 3 without '${case%%|*}' fails" 1 "${case#*|}"
@@ -1863,11 +1873,18 @@ for case in "A conflict goes to an implementer in the ticket's worktree|missing:
   "briefed to merge \`<branch>\`'s tip into the ticket branch|missing: the conflict implementer merges the integration tip into the ticket branch" \
   '`git -C <owner> merge --abort`|missing: a conflicted merge is aborted' \
   '`git -C <owner> merge --ff-only <ticket branch>`|missing: the orchestrator then fast-forwards' \
-  "step 3's checks run on the resolved tree and no reviewer runs|missing: the resolved tree is checked and not reviewed again"; do
+  "step 3's checks run on the resolved tree and no reviewer runs|missing: the resolved tree is checked and not reviewed again" \
+  "restarts step 3's whole loop, review included|missing: a red after a resolution restarts the whole loop, review included"; do
   fresh
   drop_phrase skills/implement-story/SKILL.md "${case%%|*}"
   expect "ticket orchestrator step 4 without '${case%%|*}' fails" 1 "${case#*|}"
 done
+
+# a red fix-up after a resolution skipping its review, seeded back on step 4's line, fails
+# (story dev-9k5.1 review: the rules doc exempts only the minors fix-up and the resolution)
+fresh
+swap_phrase skills/implement-story/SKILL.md '^(> 4\. .*)$' '\1 A red fix-up then starts over from the checks only.'
+expect "ticket orchestrator step 4 regaining an unreviewed red fix-up fails" 1 "present: a red fix-up after a resolution skipping its review"
 
 fresh
 swap_phrase skills/implement-story/SKILL.md '^> 4\. \*\*Land the ticket\*\*' '> 4. Spawn a merger'

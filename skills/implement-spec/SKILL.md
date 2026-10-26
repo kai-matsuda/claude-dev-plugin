@@ -44,9 +44,9 @@ The harness mechanics (Waiting, the Idle rule, Cut-off agents, literal paths, Co
 
 4. **Preflight.** Run the "Working-directory preflight" of `${CLAUDE_PLUGIN_ROOT}/docs/agents/orchestration.md` on the owner repo of every startable story and of every story step 6 reviews (its review set, read from step 3's reads: step 6 runs `git -C <owner>` and files tickets with `bd -C <owner>` there), on the no-startable path too: one `/add-dir <owner>` line per missing repo, then stop, spawning nothing. A waiting story outside the review set needs no working directory.
 
-5. **Spawn.** One story orchestrator per startable story, all in a single message: Agent calls with `subagent_type: "general-purpose"` (the rules doc's Subagent type) and `model: "opus"`. Each brief is two pointers and an instruction, nothing else:
+5. **Spawn.** One story orchestrator per startable story, all in a single message: Agent calls with `subagent_type: "general-purpose"` (the rules doc's Subagent type) and `model: "opus"`. Each brief is two pointers, an instruction and the harness doc's Commits rule, nothing else, `<plugin root>` the plugin root spelled as a literal path (the rules doc's Plugin root rule):
 
-   > Story `<story-id>` in the repo at `<owner>`. Call the Skill tool with `dev:implement-story`, and report the block it ends on.
+   > Story `<story-id>` in the repo at `<owner>`. Call the Skill tool with `dev:implement-story`, commit under the Commits rule of `<plugin root>/docs/agents/harness.md`, and report the block it ends on.
 
    Then end your turn: an Agent call returns at once, and each orchestrator's block arrives as the Agent tool's completion notification and resumes you (the harness doc's Waiting; never a poll). Step 6 needs every report before it reviews, so it runs once the last of the batch is in. A closed publish ticket cannot happen mid-run (a human closes it), so no waiting story becomes startable while the batch runs and the set is fixed per run.
 

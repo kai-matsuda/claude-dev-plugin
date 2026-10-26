@@ -317,6 +317,9 @@ has "mark ready with tea" 'tea pr edit <n> --repo <owner> --ready'
 has "fix-up: one ready-for-agent ticket per blocking finding" 'one per blocking finding'
 has "fix-up: the story re-run in add mode" 'in add mode'
 has "fix-up budget" 'three per story'
+# the story orchestrator brief names the harness doc's Commits rule, as that rule asks of every
+# brief to an agent that commits or merges (story dev-9k5.1 review)
+has "the story orchestrator brief names the Commits rule" 'commit under the Commits rule of `<plugin root>/docs/agents/harness.md`'
 has "fix-up budget's fourth" 'the fourth is `failed`'
 hasc "report template's epic review line" 'review:  <verdict line>'
 has "Done needs a clean epic review" 'epic review clean'
@@ -734,7 +737,7 @@ row='^[|] [*][*]Story[*][*] [|]'
 line_has "$row" "story row: the story orchestrator" '| story orchestrator |'
 line_has "$row" "story row: ticket orchestrators over the frontier" '| ticket orchestrators in parallel over the frontier |'
 line_has "$row" "story row: the story's body as spec" "| the story's body |"
-line_has "$row" "story row: what entered since as standards" 'what entered since the last standards review: conflict resolutions and cross-ticket coherence'
+line_has "$row" "story row: what entered since as standards" "what entered since the last standards review: conflict resolutions, cross-ticket coherence and the story gate's fix-up commits"
 line_has "$row" "story row: both axes at the review model of the story's max tier" "| both axes, at the review model of the story's max tier |"
 line_has "$row" "story row: a fix-up by pointer brief in a fix-up worktree" '| an implementer by pointer brief in a fix-up worktree |'
 line_has "$row" "story row: lands by a push, the PR a draft" '| push, the PR staying a draft |'
@@ -758,6 +761,7 @@ hasc "review scoping rule" '**Review scope.**'
 para_has '**Review scope.**' "the spec axis takes the row's own unit" "The spec axis takes the row's own unit"
 para_has '**Review scope.**' "the standards axis reads what entered since" 'The standards axis reviews what entered since the last standards review'
 para_has '**Review scope.**' "the review scope's why is ADR 0014" 'ADR 0014 in the plugin repo'
+para_has '**Review scope.**' "the story row's standards axis takes the gate's fix-up commits" "the story gate's own fix-up commits"
 hasc "check scoping rule" '**Check scope.**'
 para_has '**Check scope.**' "every tree is checked once" 'Every tree is checked once'
 para_has '**Check scope.**' "a tree with a check record counts as checked" 'a tree with a check record counts as checked'
@@ -787,12 +791,14 @@ hasc "Check gate rule" '**Check gate.**'
 para_has '**Check gate.**' "one gate at every row" 'At every row the gate exits when the checks are green on the tip the review called clean'
 para_has '**Check gate.**' "a red or blocking verdict goes to a fresh implementer" 'A red or a blocking verdict goes to a fresh implementer by pointer brief and the loop starts over'
 para_has '**Check gate.**' "three fix-ups per unit" 'three such fix-ups per unit'
+para_has '**Check gate.**' "the epic row budgets per story" 'at the epic row, three per story'
 para_has '**Check gate.**' "a fourth failure is failed" 'the fourth is `failed`'
 para_has '**Check gate.**' "a minors fix-up and a conflict resolution rerun the checks" 'A minors fix-up and a conflict resolution move the tip, so the checks rerun'
 para_has '**Check gate.**' "and spend nothing" 'no budget is spent'
 para_has '**Check gate.**' "the reviewed tip noted on the story" 'records the reviewed tip in its notes'
 para_has '**Check gate.**' "the gate exits on the moved tip" 'the gate exits on the moved tip once its checks are green'
-para_has '**Check gate.**' "the note records the moved tip" 'the note records that tip'
+para_has '**Check gate.**' "the reviewed-tip note names the moved tip" 'the reviewed-tip note on the story bead'
+para_has '**Check gate.**' "the ticket row writes no reviewed-tip note" 'the ticket row writes no such note'
 para_has '**The epic row.**' "the epic row's checks are the forge's status on the PR tip" "the forge reports them green on the PR's tip"
 lacks "the retired two-level check order" 'lint first, then the test seams'
 lacks "the retired review marker exit" 'the review marker is the exit'
@@ -834,7 +840,8 @@ para_has '**TMPDIR.**' "the heredoc failure" 'heredoc'
 para_has '**TMPDIR.**' "the directory is gitignored" '`.tmp/` is gitignored'
 para_has '**TMPDIR.**' "export repeated per Bash call" 'export TMPDIR=<worktree>/.tmp; <command>'
 para_has '**TMPDIR.**' "mktemp -d takes a template under .tmp" 'mktemp -d <worktree>/.tmp/<name>.XXXXXX'
-para_has '**Idle rule.**' "the Idle rule names the checks" "these are the story's checks"
+para_has '**Idle rule.**' "the Idle rule names the check command" 'every run of the check command'
+lacks "the Idle rule's retired story's-checks clause" "these are the story's checks"
 # the cut-off rule with its stop sweep, and the commits rule with its clean-tree check
 hasc "cut-off rule" '**Cut-off agents.**'
 para_has '**Cut-off agents.**' "the stop sweep" 'First the **stop sweep**'
@@ -1060,6 +1067,7 @@ done
 line_has "$H" "the brief's check command by Makefile convention" 'check command `make check` when `<owner>`'"'"'s Makefile has a `check` target, else none and the gate is review-only'
 line_has "$H" "the brief cites the harness doc in one line" 'The harness mechanics are in `<plugin root>/docs/agents/harness.md`'
 line_has "$H" "every brief it sends cites the harness doc" 'every brief you send cites it in one line'
+line_has "$H" "a missing Makefile reads as no check command" "a missing Makefile (grep's exit 2) reads as no check command"
 lacks "the retired lint-command resolution" 'resolve the owner repo.s \*\*lint command\*\*|`make lint` when `<owner>`.s makefile has a `lint` target'
 lacksf "the retired lint placeholder" '`<lint>`'
 # the ticket orchestrator's check and review loop sits between the implementer (step 2) and the
@@ -1087,6 +1095,7 @@ line_has "$G3" "a tree with a check record is not checked again" 'a tree with a 
 line_has "$G3" "the gate writes the check record per tree" 'mkdir -p <worktree path>/.tmp; mkdir -p <owner>/.tmp/checks/<tree>; export TMPDIR=<worktree path>/.tmp; make -C <worktree path> check > <owner>/.tmp/checks/<tree>/log 2>&1; echo "command=make check exit=$?" > <owner>/.tmp/checks/<tree>/record; cat <owner>/.tmp/checks/<tree>/record'
 line_has "$G3" "no check command makes the gate review-only" 'With no check command the checks are skipped and the gate is review-only'
 line_has "$G3" "the gate reviews with mattpocock-skills:code-review" '`mattpocock-skills:code-review`'
+line_has "$G3" "the reviewer brief names the harness-route diff" '`git -C <worktree path> diff <branch>...HEAD`'
 line_lacks "$G3" "the per-round check log" 'checks-<round>-<k>.log'
 line_lacks "$G3" "the built-in code-review" 'the built-in `code-review`'
 line_has "$G3" "a red gate reads a forty-line tail of the log, never the whole output" 'tail -n 40 <log>'
@@ -1106,6 +1115,11 @@ line_has "$L4" "the conflict implementer merges the integration tip into the tic
 line_has "$L4" "a conflicted merge is aborted, never resolved by the orchestrator" '`git -C <owner> merge --abort`'
 line_has "$L4" "the orchestrator then fast-forwards" '`git -C <owner> merge --ff-only <ticket branch>`'
 line_has "$L4" "the resolved tree is checked and not reviewed again" 'step 3'"'"'s checks run on the resolved tree and no reviewer runs'
+# a red on the resolved tree goes to a fix-up that spends budget and restarts the whole loop,
+# review included: the rules doc exempts only the minors fix-up and the resolution (story
+# dev-9k5.1 review)
+line_has "$L4" "a red after a resolution restarts the whole loop, review included" 'restarts step 3'"'"'s whole loop, review included'
+line_lacks "$L4" "a red fix-up after a resolution skipping its review" 'starts over from the checks only'
 lacksf "the retired merger brief" 'Spawn a **merger**'
 # the story gate (step 7) is the rules doc's Check gate loop on the integration branch tip, the
 # story row of its table (dev-9k5.1.9): it exits when the checks are green on the tip the review
