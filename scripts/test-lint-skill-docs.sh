@@ -1613,6 +1613,35 @@ for case in '**Review scope.**|review scoping rule' "The spec axis takes the row
   drop_phrase $orch "$phrase"
   sec=6 expect "orchestration doc without '$phrase' fails" 1 "${case#*|}"
 done
+# the review scope's why names ADR 0014; ADR 0014 and ADR 0001 keep their decision lines
+fresh
+drop_phrase $orch 'ADR 0014 in the plugin repo'
+sec=6 expect "orchestration doc's review scope without ADR 0014 fails" 1 "the review scope's why is ADR 0014"
+for case in 'status: accepted|ADR 0014 is accepted' 'Supersedes ADR 0001|ADR 0014 supersedes ADR 0001' \
+  '## Considered options|ADR 0014 has considered options' \
+  '**The two-tool review ADR 0001 chose**|ADR 0014 option: the two-tool review' \
+  '**A per-row check list**|ADR 0014 option: a per-row check list' \
+  '**A merger kept as a role**|ADR 0014 option: a merger kept as a role' \
+  'The ticket orchestrator lands its ticket|ADR 0014 decides the ticket orchestrator lands its ticket' \
+  'every tree is checked once|ADR 0014 decides every tree is checked once'; do
+  fresh
+  drop_phrase docs/adr/0014-one-loop-at-three-rows.md "${case%%|*}"
+  sec=6 expect "ADR 0014 without '${case%%|*}' fails" 1 "${case#*|}"
+done
+# the accepted status is the frontmatter line itself: an amended status, or the words in the body, do not pass
+fresh
+swap_phrase docs/adr/0014-one-loop-at-three-rows.md '^status: accepted$' 'status: accepted, amended'
+printf '\nThe decision is status: accepted, as the prose says.\n' >> "$scratch/docs/adr/0014-one-loop-at-three-rows.md"
+sec=6 expect "ADR 0014 with 'status: accepted, amended' in the frontmatter fails" 1 "ADR 0014 is accepted"
+fresh
+rm "$scratch/docs/adr/0014-one-loop-at-three-rows.md"
+sec=6 expect "a missing ADR 0014 fails" 1 "missing document: $scratch/docs/adr/0014-one-loop-at-three-rows.md"
+for case in 'status: superseded by ADR 0014|ADR 0001 is superseded by 0014' \
+  'docs/adr/0014-one-loop-at-three-rows.md|ADR 0001 points at ADR 0014'; do
+  fresh
+  drop_phrase docs/adr/0001-two-stage-review.md "${case%%|*}"
+  sec=6 expect "ADR 0001 without '${case%%|*}' fails" 1 "${case#*|}"
+done
 # a scoping rule's phrase kept outside its paragraph does not pass
 fresh
 drop_phrase $orch 'Every tree is checked once'
