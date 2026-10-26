@@ -1623,6 +1623,7 @@ done
 # record written per tree, review-only with no check command, the one review tool; the per-round
 # log and the built-in review seeded back on that line fail
 for case in '`git -C <worktree path> rev-parse HEAD^{tree}`|missing: the gate keys the check on the tree SHA' \
+  'First confirm the worktree is clean, `git -C <worktree path> status --porcelain --untracked-files=no` prints nothing; a dirty worktree goes to a fresh fix-up implementer as a red does|missing: the gate reads the tree only of a clean worktree' \
   'a tree with a record is checked: read its exit and run nothing|missing: a tree with a check record is not checked again' \
   'mkdir -p <owner>/.tmp/checks/<tree>; export TMPDIR=<worktree path>/.tmp; make -C <worktree path> check > <owner>/.tmp/checks/<tree>/log 2>&1; echo "command=make check exit=$?" > <owner>/.tmp/checks/<tree>/record; cat <owner>/.tmp/checks/<tree>/record|missing: the gate writes the check record per tree' \
   'With no check command the checks are skipped and the gate is review-only|missing: no check command makes the gate review-only' \

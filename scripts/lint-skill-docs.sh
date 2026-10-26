@@ -948,6 +948,7 @@ line_has '^> 2\. ' "runner step 2's implementer runs no gate and spawns no one" 
 # the check record (dev-9k5.1.7): keyed by the tree SHA under the owner checkout's .tmp/checks/,
 # written only by the ticket orchestrator, a tree with a record not checked again
 line_has "$G3" "the gate keys the check on the tree SHA" '`git -C <worktree path> rev-parse HEAD^{tree}`'
+line_has "$G3" "the gate reads the tree only of a clean worktree" 'First confirm the worktree is clean, `git -C <worktree path> status --porcelain --untracked-files=no` prints nothing; a dirty worktree goes to a fresh fix-up implementer as a red does'
 line_has "$G3" "a tree with a check record is not checked again" 'a tree with a record is checked: read its exit and run nothing'
 line_has "$G3" "the gate writes the check record per tree" 'mkdir -p <owner>/.tmp/checks/<tree>; export TMPDIR=<worktree path>/.tmp; make -C <worktree path> check > <owner>/.tmp/checks/<tree>/log 2>&1; echo "command=make check exit=$?" > <owner>/.tmp/checks/<tree>/record; cat <owner>/.tmp/checks/<tree>/record'
 line_has "$G3" "no check command makes the gate review-only" 'With no check command the checks are skipped and the gate is review-only'
