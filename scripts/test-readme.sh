@@ -41,7 +41,7 @@ fx_check "setup names /dev:setup-repo" grep -q '/dev:setup-repo`' <<<"$setup"
 
 dev=$(section Developing)
 fx_check "developing: the plugin-directory flag" grep -q -- '--plugin-dir' <<<"$dev"
-fx_check "developing: make lint" grep -q 'make lint' <<<"$dev"
+fx_check "developing: make check" grep -q 'make check' <<<"$dev"
 fx_check "developing: bump plugin.json version on merge to main" bash -c 'grep -q "plugin.json" <<<"$1" && grep -q "version" <<<"$1" && grep -q "main" <<<"$1"' _ "$dev"
 
 fx_report_fails

@@ -1,11 +1,11 @@
 # Feature workflow (human runbook)
 
 How a feature moves from idea to merged code using the Matt Pocock engineering skills,
-Jira, and beads. The drivers below are user-typed; the agent cannot invoke them on its
-own. `/dev:implement-story` and `/dev:close-story` are also invoked by the drivers
-(`/dev:implement-spec`, `/dev:close-epic`), so you type them yourself only in the Variants cases.
+Jira, and beads. The commands below are user-typed; the agent cannot invoke them on its
+own. `/dev:implement-story` and `/dev:close-story` are also invoked by
+`/dev:implement-spec` and `/dev:close-epic`, so you type them yourself only in the Variants cases.
 The agent-side rules these commands rely on live in the dev plugin's `docs/agents/`. Bold
-terms (story orchestrator, ticket runner, text blocker, human stop, finished story) are
+terms (epic, story and ticket orchestrator, text blocker, human stop, finished story) are
 defined in the plugin's `GLOSSARY.md`, and the ADRs this runbook cites for the why are the
 plugin's `docs/adr/`. Both live in the plugin repo (`vangogh500/claude-dev-plugin`):
 `GLOSSARY.md` at its root, `docs/adr/` beside this file; a feature's own glossary and ADRs
@@ -110,10 +110,10 @@ Cross-repo notes:
 | 2 | `/mattpocock-skills:to-spec` | No interview. Synthesises the conversation into the spec template. Asks you to confirm the **test seams** (highest point the feature can be tested through; fewer is better). | **Jira Epic** in the repo's project with the spec, `ready-for-agent`; an epic bead linked via `--external-ref`. |
 | 3a | `/dev:spec-to-stories <KEY>-<n>` | The **story cut**, with its own story quiz. Splits the spec into **stories**, one per PR and usually one per repo it changes, each resolved to its owner through `repos.yaml`; a split into several stories in one repo is yours to ask for, and proposed on its own only for a deprecate-then-remove. A story that follows another carries a `## Blocked by` line naming it (a publish placeholder for a crate the dependency publishes, which the ticket cut turns into a human gate ticket), so the stories form a **story DAG**; the quiz shows it. Iterate until stories and owners are right. On a feature whose stories exist it runs in **add mode**: the same steps over the additions only, with one forge query per finished story an addition touches; when every story is closed it prints `<epic-id> refused: every story is closed (<repo> <story-id>, ...); next: /dev:close-epic`. | A story bead per PR (a repo session's stories are children of the epic bead), each carrying the story cut's orientation in its design field; in add mode, the additions only. No Jira comment. |
 | 3b | `/dev:spec-to-tickets <KEY>-<n>` | The **ticket cut**, with its own ticket quiz. Cuts each story into vertical tracer-bullet tickets, sized to one context window, with blocking edges (wide refactors become expand → migrate → contract). Cuts the stories in one topological pass over the story DAG, in waves; creates each dependency story's **publish ticket** (`ready-for-human`, the human gate ticket) and fills in the dependent story's blocker, and re-cuts an already cut dependent inline when a new publish ticket lands. Iterate until granularity and edges are right. Among its refusals: a dependency cycle (`dependency cycle (<repo> <story-id> -> <repo> <story-id> -> ... -> <repo> <story-id>)`; the story DAG has none). | Each story's tickets as children with native `blocked-by` deps and one `complexity:<tier>` each. One summary comment on the Jira epic. |
-| 4a | `/dev:implement-spec` | AFK. Starts one **story orchestrator** per startable story, each in its own repo; a story waits while any text blocker is open, a blocker naming a story staying open until `/dev:close-story` closes it. Each story orchestrator runs **ticket runners** (implementer subagents in worktrees, model chosen by tier; every ticket's checks run green by its runner before any review or merge (the **check gate**); each `medium`/`high` ticket reviewed one tier up with the built-in `code-review`; merger subagents fold them in) onto one integration branch, runs `/mattpocock-skills:code-review` at the story's review model, and opens the PR on the story's integration branch (`feat/<story-id>`, keyed or not; the Jira key stays on the commits, the PR body and the bead). Tickets close and the story bead is left open; Jira epic → in review. When a run ends with a `ready-for-human` ticket (the publish ticket) open, or a story waiting only on a sibling's closure, it stops (the **human stop**) and reports what to publish or merge; do the human step (Cross-repo notes above), then `/dev:implement-spec <KEY>-<n>` again. | PRs delivered: one integration branch and a draft-turned-ready PR per story, with `branch:` and `pr:` notes on the story bead; or the stop report naming the publish ticket, its crate and version, or, for a story-closure stop, the PR to merge and the story to close. |
-| 4b | `/mattpocock-skills:implement <bead-id>` | For the flat small-bug path and triaged beads only; a ticket under a story is delivered by `/dev:implement-story`, since only that writes the story's `branch:` and `pr:` notes. One ticket, in your session, on your current branch. Set `/model` from the bead's tier first. `/mattpocock-skills:tdd` at the agreed seams, then the checks (the owner repo's lint, then the agreed test seams), then the built-in `code-review`, the ticket review (switch `/model` to the tier's review model for it), then commit. | A commit on the current branch; bead closed. |
+| 4a | `/dev:implement-spec` | AFK. The session is the **epic orchestrator**: it starts one **story orchestrator** per startable story, each in its own repo; a story waits while any text blocker is open, a blocker naming a story staying open until `/dev:close-story` closes it. Each story orchestrator runs one **ticket orchestrator** per ticket (an opus session whose implementer subagent works in a worktree at the tier's model; each ticket orchestrator runs the **check gate** (the checks, then for `medium`/`high` a review one tier up with `/mattpocock-skills:code-review`) before it lands the ticket itself) onto one integration branch, runs the same check gate on that branch at the story's review model, and delivers the PR as a draft that stays a draft; the epic orchestrator marks it ready once its spec-axis review is clean, and files any findings as tickets that re-run the story in add mode; those tickets land on the story's integration branch (`feat/<story-id>`, keyed or not; the Jira key stays on the commits, the PR body and the bead). Tickets close and the story bead is left open; Jira epic → in review. When a run ends with a `ready-for-human` ticket (the publish ticket) open, or a story waiting only on a sibling's closure, it stops (the **human stop**) and reports what to publish or merge; do the human step (Cross-repo notes above), then `/dev:implement-spec <KEY>-<n>` again. | PRs delivered: one integration branch and a draft-turned-ready PR per story, with `branch:` and `pr:` notes on the story bead; or the stop report naming the publish ticket, its crate and version, or, for a story-closure stop, the PR to merge and the story to close. |
+| 4b | `/mattpocock-skills:implement <bead-id>` | For the flat small-bug path and triaged beads only; a ticket under a story is delivered by `/dev:implement-story`, since only that writes the story's `branch:` and `pr:` notes. One ticket, in your session, on your current branch. Set `/model` from the bead's tier first. `/mattpocock-skills:tdd` at the agreed seams, then the checks (the owner repo's check command), then `/mattpocock-skills:code-review`, the ticket review (switch `/model` to the tier's review model for it), then commit. | A commit on the current branch; bead closed. |
 | 5 | review and merge each story's PR | You, on the forge. Nothing to type; the agent never merges. A story another waits on to close is merged, then closed with `/dev:close-story <story-id>`, before the run resumes; a dependency's publish edge instead takes the human step above (land its PR, publish, close the publish ticket). | Every story's PR merged. |
-| 6 | `/dev:close-epic` | A driver over `/dev:close-story`: for each story, checks its tickets are closed and its PR shows `MERGED` on the forge, closes the story bead, then closes the epic bead; comments the PR links on the Jira epic and transitions it to done. Refuses rather than overrides. Retro items carrying the same key never block it: they are environment work, not slices of the feature, and the skill skips `retro`-labelled beads. | Epic done. |
+| 6 | `/dev:close-epic` | Runs `/dev:close-story` for each story (which checks its tickets are closed and its PR shows `MERGED` on the forge, and closes the story bead), then closes the epic bead; comments the PR links on the Jira epic and transitions it to done. Refuses rather than overrides. Retro items carrying the same key never block it: they are environment work, not slices of the feature, and the skill skips `retro`-labelled beads. | Epic done. |
 | 7 | `/dev:retro` (optional) | Reads the session for improvements to the agent's environment, keeps the candidates that trace to a moment in it, and files each as a `needs-triage` bead in the home's inbox naming the repo that likely owns the fix. Applies nothing; can run unattended. | Inbox beads, ids reported. |
 | 8 | `/dev:triage` | Shows the open inbox with the five tests (moment, recurrence, layer, blast radius, owner) and asks which to accept. Accepted items get acceptance criteria, a `complexity:<tier>`, and a bead in the repo that owns the change; the inbox bead closes pointing at it. Rejected close as `wontfix`. | Routed beads on each repo's frontier; one Jira comment when the manifest names a standing epic. |
 
@@ -166,11 +166,10 @@ Assigned per ticket at the ticket cut (`/dev:spec-to-tickets`, or `/dev:story-to
 `bd list -l complexity:high` shows what will cost the most; `bd ready -l complexity:low`
 is cheap work to hand off.
 
-Two review tools, two stages: per ticket, the built-in `code-review` (bug hunt, effort
-`medium`/`high` matching the tier) run by a reviewer at the tier's review model; per
-story, `/mattpocock-skills:code-review` (repo standards + fidelity to the spec). Why:
-the plugin's `docs/adr/0001-two-stage-review.md`. Both stages are drawn as
-sequence diagrams in the plugin's `docs/SEQUENCES.md`. Never write bare
+One review tool, three rows: at the ticket, the story and the epic, `/mattpocock-skills:code-review`
+is run by a reviewer: at the ticket (`medium` and `high` only) on both axes (repo standards,
+fidelity to the spec) at the ticket's review model; at the story on both axes, and at the epic
+on the spec axis only, each at the review model of the max tier beneath it. Why: the plugin's `docs/adr/0014-one-loop-at-three-rows.md`. Never write bare
 `/code-review` in a doc — four skills answer to that name.
 
 ## Session model per stage
@@ -183,8 +182,8 @@ The tier table above sets *subagent* models; this sets what your own session run
 | Stage | `/model` | Why |
 |---|---|---|
 | 1–3b | fable | Design judgement; every later stage inherits its mistakes. |
-| 4a | opus | The driver session, the story orchestrators it starts and their ticket runners all run at opus (the plugin's `docs/adr/0006-one-story-per-repo.md`). Each ticket runner's implementer, reviewer and merger follow the tier table; the runner runs the check gate itself. |
-| 4b | the bead's implementation model; its review model for the built-in `code-review` | The session *is* the implementer. |
+| 4a | opus | The epic orchestrator session, the story orchestrators it starts and their ticket orchestrators all run at opus (the plugin's `docs/adr/0006-one-story-per-repo.md`). Each ticket orchestrator's implementer and reviewer follow the tier table; the orchestrator runs the check gate itself. |
+| 4b | the bead's implementation model; its review model for `/mattpocock-skills:code-review` | The session *is* the implementer. |
 | 5 | no switch | You review and merge on the forge. |
 | 6 | sonnet | Tool-call sequencing with explicit stop points. |
 | 7 | no switch | It reads the session it runs in. |
@@ -212,8 +211,7 @@ The tier table above sets *subagent* models; this sets what your own session run
 - **Design question you can't settle by talking** → `/mattpocock-skills:prototype` for a throwaway answer;
   `/mattpocock-skills:research` to read primary sources in the background.
 - **Review something already written** → `/mattpocock-skills:code-review` (two axes:
-  repo standards, and fidelity to the spec/ticket), or the built-in `code-review` for
-  a plain bug hunt at a chosen effort.
+  repo standards, and fidelity to the spec/ticket).
 - **Improve the codebase, not a feature** → `/mattpocock-skills:improve-codebase-architecture` scans for
   deepening opportunities and grills through the one you pick.
 - **Unsure which of the above** → `/mattpocock-skills:ask-matt`.

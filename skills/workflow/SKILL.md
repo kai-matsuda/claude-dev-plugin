@@ -34,7 +34,7 @@ the small-bug path · next: `/mattpocock-skills:implement <ticket-id>` one at a 
 
 ## Position of a story-shaped epic
 
-**Gather the stories** the way the drivers do: the "Stories" gather of "fetch the relevant
+**Gather the stories** the way `/dev:implement-spec`, `/dev:spec-to-tickets` and `/dev:close-epic` do: the "Stories" gather of "fetch the relevant
 ticket" in `${CLAUDE_PLUGIN_ROOT}/docs/agents/issue-tracker.md`, its fallback and failure rules
 included. A sweep that stops there is reported on that epic's line, and no position is
 printed for it, since that repo's unfinished story would otherwise drop out.

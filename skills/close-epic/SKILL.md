@@ -4,7 +4,7 @@ description: "Stage 6 of the feature workflow: after the PRs have merged, close 
 disable-model-invocation: true
 ---
 
-Closes out one feature whose PRs have merged. A driver: `/dev:close-story` verifies and closes
+Closes out one feature whose PRs have merged. `/dev:close-story` verifies and closes
 each **story** (${CLAUDE_PLUGIN_ROOT}/GLOSSARY.md), this skill closes the **epic bead** after them and updates the
 Jira Epic. The rules it enforces are in `${CLAUDE_PLUGIN_ROOT}/docs/agents/issue-tracker.md`, under
 "When a skill says 'close the epic'". Every precondition refuses rather than proceeds, with

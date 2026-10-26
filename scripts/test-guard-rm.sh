@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Tests for hooks/guard-rm.sh, the PreToolUse hook on Bash that refuses a recursive rm whose
 # target carries a shell variable, special parameter or ~ not guarded with :?, or whose last
-# path segment is a * (chezmoi-cyc, INFRA-29: a fix-up implementer ran rm -rf "$s"/* with $s
+# path segment is a * (chezmoi-cyc, INFRA-29: a fix-up ran rm -rf "$s"/* with $s
 # empty; INFRA-30: the parser gaps of dev-n3w). Each case
 # feeds the hook the tool-input JSON Claude Code sends and asserts the exit code: 2 refuses the
 # command before it runs, 0 lets it through.

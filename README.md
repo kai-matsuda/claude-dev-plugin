@@ -3,7 +3,7 @@
 The `dev` plugin for Claude Code: a Jira + beads feature workflow. One Jira Epic per
 feature for people; beads for the agent's stories and tickets; skills that cut a spec
 into stories and tickets, implement them AFK through story orchestrators and ticket
-runners, review, open the PR, and close the loop with retro and triage.
+orchestrators, review, open the PR, and close the loop with retro and triage.
 
 Skills are addressed as `/dev:<skill>`. Start with `/dev:workflow` for the runbook.
 
@@ -73,8 +73,8 @@ ones your machine uses:
 ## Developing
 
 Run Claude Code in this repo with `claude --plugin-dir .` to load the checkout next to
-the installed copy. Check your changes with `make lint`, which runs the skill-doc lint and
+the installed copy. Check your changes with `make check`, which runs the skill-doc lint and
 its tests (it needs `bd` and `cargo` for the fixture tests). Bump the version in
 `.claude-plugin/plugin.json` on every merge to main. Decisions are in `docs/adr/`,
-vocabulary in `GLOSSARY.md`, the implementation stages drawn as sequence diagrams in
+vocabulary in `GLOSSARY.md`, the loop every row runs drawn as one sequence diagram in
 `docs/SEQUENCES.md`.
