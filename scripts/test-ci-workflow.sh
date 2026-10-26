@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Tests for .github/workflows/ci.yml: it runs on every push and on pull requests, checks out
-# mattpocock/skills at a pinned tag as the lint's PLUGIN_SKILLS, installs bd, sets the
+# mattpocock/skills at a pinned tag as the lint's PLUGIN_SKILLS, installs bd with CI blanked, sets the
 # version-bump rule's base to the PR base, and runs the Makefile's check target, never the scripts;
 # and the ci target's git-init check refuses a test script that inits a repo outside the lib.
 # Usage: scripts/test-ci-workflow.sh
@@ -20,6 +20,7 @@ fx_check "sets VERSION_BUMP_BASE to the PR base sha" grep -Eq 'VERSION_BUMP_BASE
 fx_check "VERSION_BUMP_BASE applies only when the PR targets main" grep -Eq "VERSION_BUMP_BASE:.*github\.base_ref == 'main'" "$wf"
 fx_check "fetches full history for the version-bump diff" grep -Eq 'fetch-depth:[[:space:]]*0' "$wf"
 fx_check "installs bd pinned to a version" grep -Eq 'run:[[:space:]]*npm install -g @beads/bd@[0-9]+\.[0-9]+\.[0-9]+[[:space:]]*$' "$wf"
+fx_check "the bd install blanks CI so its postinstall downloads the binary" bash -c 'grep -A3 "run:[[:space:]]*npm install -g @beads/bd@" "$1" | grep -Eq "CI:[[:space:]]*\"\"[[:space:]]*$"' _ "$wf"
 fx_check "runs the Makefile check target" grep -Eq 'run:[[:space:]]*make check[[:space:]]*$' "$wf"
 fx_check "the only run steps are the bd install and make check" bash -c '[ "$(grep -Ec "^[[:space:]-]*run:" "$1")" -eq 2 ]' _ "$wf"
 fx_check "never runs the scripts directly" bash -c '! grep -Eq "run:.*scripts/" "$1"' _ "$wf"
