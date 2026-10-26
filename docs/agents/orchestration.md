@@ -131,7 +131,7 @@ story's test seams), the story's body, the Jira Epic's spec.
 The standards axis reviews what entered since the last standards review: the ticket diff at
 the ticket row; the conflict resolutions and the coherence across tickets at the story row,
 since each ticket's diff was reviewed at its own row; nothing at the epic row, where the axis
-is skipped. So no line is read for standards twice.
+is skipped. So no line is read for standards twice (ADR 0014 in the plugin repo).
 
 **Check scope.** Every tree is checked once. A check is one run of the check command on a
 tree, named by the tip's tree SHA, and a tree with a check record counts as checked at

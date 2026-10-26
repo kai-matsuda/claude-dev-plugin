@@ -1,6 +1,10 @@
 ---
-status: accepted, amended
+status: superseded by ADR 0014
 ---
+
+> Superseded by ADR 0014 (`docs/adr/0014-one-loop-at-three-rows.md`): one review tool, its
+> axes set per row, replaces the two tools below. The text is kept as the record of
+> what was decided and why at the time.
 
 > Amended by chezmoi-1d7 (INFRA-27 retro, 2026-10-20): findings no longer go back to the
 > first implementer by `SendMessage` but to a fresh fix-up implementer in the same
