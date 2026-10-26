@@ -294,6 +294,18 @@ has "fix-up budget" 'three per story'
 has "fix-up budget's fourth" 'the fourth is `failed`'
 hasc "report template's epic review line" 'review:  <verdict line>'
 has "Done needs a clean epic review" 'epic review clean'
+# epic review 1 of dev-9k5.1.8
+has "preflight covers the review set" 'every story step 6 reviews'
+has "mark-ready recorded as a ready: note" 'ready: <tip SHA>'
+has "a clean draft's checks are re-polled" 're-poll its checks'
+has "review set: open stories with an open PR" 'only open stories with an open PR'
+has "every fix-up round spends the budget" 'every fix-up round, red or blocking'
+lacks "a budget of blocking verdicts only" 'three blocking verdicts'
+has "Done reads the ready: note" 'its `ready:` note on its current tip'
+has "PR number placeholder defined" "the PR number from the story's \`pr:\` note"
+has "cut-off reviewer rule" 'reviewer that returns an error instead of a report'
+has "tea fallback evidence" "the delivered tip's check record"
+has "batch clause's reason" 'reports no delivery this run'
 has "frontmatter" 'disable-model-invocation: true'
 has "legacy line" 'refused: flat epic (tickets directly under the epic bead); the story skills do not handle it — the small-bug path does: /mattpocock-skills:implement <ticket-id> per ticket, then bd close <epic-id>'
 has "add-dir refusal" '/add-dir <'

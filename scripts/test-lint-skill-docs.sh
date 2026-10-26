@@ -1375,6 +1375,24 @@ pin_case "the per-story fix-up budget" 'three per story'
 pin_case "the fourth blocking verdict failing" 'the fourth is `failed`'
 pin_case "the report template's review: line" 'review:  <verdict line>'
 pin_case "Done's clean epic review" 'epic review clean'
+# epic review 1 of dev-9k5.1.8: the preflight covers the review set, the skip keys on a
+# recorded mark-ready, only open stories with an open PR are reviewed, every fix-up round
+# spends the budget, and Done reads the ready: note; plus the minors' placeholders, cut-off
+# reviewer and tea fallback
+pin_case "the preflight over the review set" 'every story step 6 reviews'
+pin_case "the ready: note recorded on mark-ready" 'ready: <tip SHA>'
+pin_case "the clean draft's checks re-polled" 're-poll its checks'
+pin_case "the review set's open stories and PRs" 'only open stories with an open PR'
+pin_case "every fix-up round spending the budget" 'every fix-up round, red or blocking'
+pin_case "Done read from the ready: note" 'its `ready:` note on its current tip'
+pin_case "the PR number placeholder" "the PR number from the story's \`pr:\` note"
+pin_case "the cut-off reviewer rule" 'reviewer that returns an error instead of a report'
+pin_case "the tea check-record fallback" "the delivered tip's check record"
+pin_case "the batch clause's reason" 'reports no delivery this run'
+
+fresh_spec
+echo "three blocking verdicts are fixed up" >> "$spec"
+expect "implement-spec counting only blocking verdicts fails" 1 "a budget of blocking verdicts only" "$spec" "$scratch/docs/WORKFLOW.md"
 
 fresh_spec
 echo "You are the driver, the feature-level session." >> "$spec"
