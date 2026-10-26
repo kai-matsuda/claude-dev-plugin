@@ -566,30 +566,9 @@ done < <({ find "$docs" -type f -name '*.md' 2>/dev/null; find "$agents" "$skill
 
 # ---- 6. shared rules the skills point at ----
 if doc 6 "orchestration rules" "$agents/orchestration.md"; then
+lacks "a foreground spawn" 'spawns in the foreground|foreground spawn returns|has no notification to wait for'
 hasc "preflight section" '## Working-directory preflight'
 has "preflight remedy" '/add-dir <'
-# a runner waits on its subagent's report, never on a Bash poll loop; pgrep is dead in the sandbox (chezmoi-flq)
-hasc "waiting rule" '**Waiting.**'
-hasc "pgrep unusable in the sandbox" '`pgrep` cannot list processes in the sandbox'
-# an Agent call returns at once in this harness, so an orchestrator ends its turn after spawning
-# and the child's report arrives as the Agent tool's completion notification; run_in_background
-# is a JSON boolean the probe found ignored or absent for a nested agent; every subagent below
-# the driver runs Bash in the foreground only, since a child that ends a turn with background
-# work running counts as idle and its real report escapes to the top-level session (chezmoi-p4q)
-hasc "an Agent call returns at once" 'An Agent call returns at once'
-hasc "the completion notification carries the report" "the Agent tool's completion notification"
-hasc "a nested orchestrator ends its turn after spawning" 'ends its turn'
-hasc "run_in_background is a JSON boolean" '`run_in_background` is a JSON boolean'
-hasc "idle rule" '**Idle rule.**'
-hasc "Bash in the foreground only below the driver" 'in the foreground only'
-# the Bash tool backgrounds a call that outlives its 120 s default, which is the idle state the
-# rule forbids, so lint and test runs pass timeout: 600000 (dev-7k0, INFRA-30)
-hasc "the 120-second default backgrounds a longer call" '120-second default'
-hasc "lint and test runs carry the ten-minute timeout" 'timeout: 600000'
-lacks "a foreground spawn" 'spawns in the foreground|foreground spawn returns|has no notification to wait for'
-# the merger's wait on the owner checkout's lock is the one shell wait, a bounded foreground
-# until-loop, since a background call ends the merger's turn early (chezmoi-sn1, the idle rule)
-hasc "merger lock wait is the one shell wait" 'The one shell wait'
 # the typed implement command is the authority to push and open the PR, so the push is a step
 # of the run, with a failed: line when it is refused (ADR 0009, chezmoi-g61)
 hasc "delivery rule" '**Delivery.**'
@@ -606,17 +585,6 @@ hasc "frontier unclaim rule" '**Unclaim.**'
 hasc "frontier admits ready-for-agent only" 'it is labelled `ready-for-agent`'
 lacks "frontier keyed on ready-for-human alone" 'it is not labelled `ready-for-human`'
 hasc "finished story tolerates untriaged children" '`needs-triage` or `wontfix`'
-# every worktree brief starts by exporting a gitignored repo-relative TMPDIR, since the macOS
-# default is unwritable in the sandbox (mktemp -d, heredocs); the export is repeated per Bash
-# call and mktemp -d takes a template, since macOS mktemp ignores TMPDIR (chezmoi-3eg)
-hasc "TMPDIR rule" '**TMPDIR.**'
-# the rule's own paragraph (from its heading to the next blank line) carries the line, the two
-# failures and the gitignore fact, so a word used elsewhere in the doc cannot stand in
-para_has '**TMPDIR.**' "TMPDIR line" 'mkdir -p <worktree>/.tmp && export TMPDIR=<worktree>/.tmp'
-para_has '**TMPDIR.**' "the heredoc failure" 'heredoc'
-para_has '**TMPDIR.**' "the directory is gitignored" '`.tmp/` is gitignored'
-para_has '**TMPDIR.**' "export repeated per Bash call" 'export TMPDIR=<worktree>/.tmp; <command>'
-para_has '**TMPDIR.**' "mktemp -d takes a template under .tmp" 'mktemp -d <worktree>/.tmp/<name>.XXXXXX'
 para_has '**Gitignore.**' "/.tmp/ among the Gitignore rule's entries" '`/.tmp/`'
 # the rules docs ship in the plugin, so a brief reaches them through the plugin root: resolved
 # once per session from the harness's variable and spelled as an absolute path in every brief,
@@ -654,7 +622,52 @@ para_has '**Check gate.**' "three fix-ups per ticket at the ticket level" 'three
 para_has '**Check gate.**' "three per story at the story level" 'three per story at the story level'
 para_has '**Check gate.**' "either cause spends the budget" 'Either cause spends the budget'
 para_has '**Check gate.**' "a fourth failure is failed" 'a fourth failure is `failed`'
+fi
+if doc 6 "harness rules" "$agents/harness.md"; then
+# the mechanics live in the harness doc (dev-9k5.1.2): the rules above moved out of the
+# orchestration doc with it, and the doc points back at the preflight that stays there
+# a runner waits on its subagent's report, never on a Bash poll loop; pgrep is dead in the sandbox (chezmoi-flq)
+hasc "waiting rule" '**Waiting.**'
+hasc "pgrep unusable in the sandbox" '`pgrep` cannot list processes in the sandbox'
+# an Agent call returns at once in this harness, so an orchestrator ends its turn after spawning
+# and the child's report arrives as the Agent tool's completion notification; run_in_background
+# is a JSON boolean the probe found ignored or absent for a nested agent; every subagent below
+# the driver runs Bash in the foreground only, since a child that ends a turn with background
+# work running counts as idle and its real report escapes to the top-level session (chezmoi-p4q)
+hasc "an Agent call returns at once" 'An Agent call returns at once'
+hasc "the completion notification carries the report" "the Agent tool's completion notification"
+hasc "a nested orchestrator ends its turn after spawning" 'ends its turn'
+hasc "run_in_background is a JSON boolean" '`run_in_background` is a JSON boolean'
+hasc "idle rule" '**Idle rule.**'
+hasc "Bash in the foreground only below the driver" 'in the foreground only'
+# the Bash tool backgrounds a call that outlives its 120 s default, which is the idle state the
+# rule forbids, so lint and test runs pass timeout: 600000 (dev-7k0, INFRA-30)
+hasc "the 120-second default backgrounds a longer call" '120-second default'
+hasc "lint and test runs carry the ten-minute timeout" 'timeout: 600000'
+lacks "a foreground spawn" 'spawns in the foreground|foreground spawn returns|has no notification to wait for'
+# the merger's wait on the owner checkout's lock is the one shell wait, a bounded foreground
+# until-loop, since a background call ends the merger's turn early (chezmoi-sn1, the idle rule)
+hasc "merger lock wait is the one shell wait" 'The one shell wait'
+# every worktree brief starts by exporting a gitignored repo-relative TMPDIR, since the macOS
+# default is unwritable in the sandbox (mktemp -d, heredocs); the export is repeated per Bash
+# call and mktemp -d takes a template, since macOS mktemp ignores TMPDIR (chezmoi-3eg)
+hasc "TMPDIR rule" '**TMPDIR.**'
+# the rule's own paragraph (from its heading to the next blank line) carries the line, the two
+# failures and the gitignore fact, so a word used elsewhere in the doc cannot stand in
+para_has '**TMPDIR.**' "TMPDIR line" 'mkdir -p <worktree>/.tmp && export TMPDIR=<worktree>/.tmp'
+para_has '**TMPDIR.**' "the heredoc failure" 'heredoc'
+para_has '**TMPDIR.**' "the directory is gitignored" '`.tmp/` is gitignored'
+para_has '**TMPDIR.**' "export repeated per Bash call" 'export TMPDIR=<worktree>/.tmp; <command>'
+para_has '**TMPDIR.**' "mktemp -d takes a template under .tmp" 'mktemp -d <worktree>/.tmp/<name>.XXXXXX'
 para_has '**Idle rule.**' "the Idle rule names the checks" "these are the story's checks"
+# the cut-off rule with its stop sweep, and the commits rule with its clean-tree check
+hasc "cut-off rule" '**Cut-off agents.**'
+para_has '**Cut-off agents.**' "the stop sweep" 'First the **stop sweep**'
+hasc "commits rule" '**Commits.**'
+para_has '**Commits.**' "the clean-tree check" '`git status --porcelain --untracked-files=no` prints nothing'
+# the shell-commands discipline and the pointer back at the preflight kept in the rules doc
+hasc "the -C discipline" 'This section binds every session and subagent'
+hasc "the preflight stays in the rules doc" 'The working-directory preflight stays in `orchestration.md`'
 fi
 if doc 6 "tracker rules" "$agents/issue-tracker.md"; then
 # the one test of the session mode (ADR 0008), stated once, in the opening before any section

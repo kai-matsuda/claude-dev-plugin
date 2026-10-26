@@ -484,11 +484,11 @@ drop_line skills/story-to-tickets/SKILL.md 'Fetch the spec as the tracker doc'
 expect "story-to-tickets without its spec fetch fails" 1
 
 fresh
-drop_line docs/agents/orchestration.md '**Waiting.**'
-expect "orchestration doc without the waiting rule fails" 1
+drop_line docs/agents/harness.md '**Waiting.**'
+expect "harness doc without the waiting rule fails" 1
 
 fresh
-drop_line docs/agents/orchestration.md '`pgrep` cannot list processes in the sandbox'
+drop_line docs/agents/harness.md '`pgrep` cannot list processes in the sandbox'
 expect "orchestration doc without the pgrep warning fails" 1
 
 fresh
@@ -744,8 +744,8 @@ drop_line skills/implement-story/SKILL.md 'failed twice: <reason>; resume:'
 expect "implement-story without the resume pointer on a second failure fails" 1
 
 fresh
-drop_line docs/agents/orchestration.md 'The one shell wait'
-expect "orchestration doc without the merger's one shell wait fails" 1
+drop_line docs/agents/harness.md 'The one shell wait'
+expect "harness doc without the merger's one shell wait fails" 1
 
 fresh
 drop_line skills/implement-story/SKILL.md 'named `feat/<story-id>`, keyed or not'
@@ -922,21 +922,21 @@ expect "implement-story printing the worktrees: line unconditionally fails" 1
 # every worktree brief starts with the TMPDIR line: the rule in the orchestration doc with its
 # per-call export and its mktemp template, the line in each of the three briefs (chezmoi-3eg)
 fresh
-drop_line docs/agents/orchestration.md '**TMPDIR.**'
-expect "orchestration doc without the TMPDIR rule fails" 1
+drop_line docs/agents/harness.md '**TMPDIR.**'
+expect "harness doc without the TMPDIR rule fails" 1
 
 # the checks read the rule's own paragraph: a word kept elsewhere in the doc does not pass them
 for phrase in 'mkdir -p <worktree>/.tmp && export TMPDIR=<worktree>/.tmp' 'export TMPDIR=<worktree>/.tmp; <command>' \
   'mktemp -d <worktree>/.tmp/<name>.XXXXXX' '`.tmp/` is gitignored'; do
   fresh
-  drop_phrase docs/agents/orchestration.md "$phrase"
-  expect "orchestration doc without '$phrase' fails" 1
+  drop_phrase docs/agents/harness.md "$phrase"
+  expect "harness doc without '$phrase' fails" 1
 done
 
 fresh
-swap_phrase docs/agents/orchestration.md 'heredoc' 'here-document'
-printf '\nA heredoc elsewhere in the doc.\n' >> "$scratch/docs/agents/orchestration.md"
-expect "orchestration doc whose TMPDIR rule names no heredoc fails" 1
+swap_phrase docs/agents/harness.md 'heredoc' 'here-document'
+printf '\nA heredoc elsewhere in the doc.\n' >> "$scratch/docs/agents/harness.md"
+expect "harness doc whose TMPDIR rule names no heredoc fails" 1
 
 fresh
 drop_phrase docs/agents/orchestration.md ' and `/.tmp/`'
@@ -999,9 +999,34 @@ expect "orchestration doc saying a foreground spawn returns with the report fail
 
 for phrase in 'An Agent call returns at once' "the Agent tool's completion notification" 'ends its turn' 'in the foreground only' '`run_in_background` is a JSON boolean' '**Idle rule.**'; do
   fresh
-  drop_line docs/agents/orchestration.md "$phrase"
-  expect "orchestration doc without '$phrase' fails" 1
+  drop_line docs/agents/harness.md "$phrase"
+  expect "harness doc without '$phrase' fails" 1
 done
+
+# the cut-off and commits rules, and the idle rule's check-command list and timeout, moved to
+# the harness doc with the rest of the mechanics (dev-9k5.1.2)
+for phrase in '**Cut-off agents.**' 'First the **stop sweep**' '**Commits.**' '`git status --porcelain --untracked-files=no` prints nothing' \
+  '120-second default' 'timeout: 600000' "these are the story's checks"; do
+  fresh
+  drop_phrase docs/agents/harness.md "$phrase"
+  expect "harness doc without '$phrase' fails" 1
+done
+
+fresh
+drop_line docs/agents/harness.md 'This section binds every session and subagent'
+expect "harness doc without the -C discipline fails" 1
+
+fresh
+mv "$scratch/docs/agents/harness.md" "$scratch/docs/agents/harness-gone.md"
+expect "a missing harness doc fails naming it" 1 "missing document: $scratch/docs/agents/harness.md"
+
+fresh
+echo 'spawn each child with `run_in_background: false`' >> "$scratch/docs/agents/harness.md"
+expect "run_in_background: false seeded in the harness doc fails" 1
+
+fresh
+echo 'a nested orchestrator (one that is itself a subagent) spawns in the foreground' >> "$scratch/docs/agents/harness.md"
+expect "harness doc regaining the nested foreground spawn fails" 1
 
 fresh
 drop_line skills/implement-story/SKILL.md 'then end your turn: each runner'
@@ -1478,8 +1503,8 @@ for phrase in 'ticket level and the story level' 'lint first, then the test seam
   expect "orchestration doc's Check gate loop without '$phrase' fails" 1
 done
 fresh
-drop_phrase docs/agents/orchestration.md "these are the story's checks"
-expect "orchestration doc's Idle rule without the checks fails" 1
+drop_phrase docs/agents/harness.md "these are the story's checks"
+expect "harness doc's Idle rule without the checks fails" 1
 
 # the lint command's resolution in /implement-story step 3 and the runner brief's header: each
 # pin is proven by dropping its phrase (dev-cq0.1.2)
