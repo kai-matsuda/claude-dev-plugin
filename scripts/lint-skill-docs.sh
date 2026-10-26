@@ -96,8 +96,12 @@
 #      checks in orchestration.md (chezmoi-3eg), and its reviewer brief tags every finding
 #      blocking or minor and ends on the verdict line, its runner step 3 and story review step 7
 #      pointing at the rules doc's Review verdict, whose rule section 6 checks (chezmoi-49k),
-#      and its step 3 resolves the owner's lint command once, which the runner brief's header
-#      and every brief it sends carry, runner step 2 taking it from the brief (dev-cq0.1.2),
+#      and its ticket orchestrator brief states the ticket row's parameters, the check command
+#      by Makefile convention (none: review-only) and the harness doc in one line, writes a check
+#      record per tree SHA, reviews with mattpocock-skills:code-review and lands its own ticket
+#      (lock wait, stray-commit check, merge; a conflict to an implementer in the ticket's
+#      worktree, then a fast-forward, the resolved tree checked and not reviewed again), with the
+#      lint-command resolution and the merger brief retired (dev-9k5.1.7),
 #      and its story review is the check gate loop with the review marker as its exit, a red
 #      or a reviewed tip starting it over, a fourth failure stalling with failed: <check>
 #      <command>, the exit iteration's run (each check's command, exit and tail) the Evidence
@@ -794,7 +798,7 @@ hasc "refused push is a failed line" 'failed: push'
 # a commit from outside the run (21f770c: a test whose throwaway init failed committed into the
 # enclosing checkout) is refused before the push and before a merger's merge (dev-y1p)
 hasc "deliver step's stray-commit check" 'First the **stray-commit check**, before any push'
-hasc "merger brief's stray-commit check" 'runs the **stray-commit check** on what the merge brings in'
+hasc "the ticket orchestrator's landing runs the stray-commit check" 'run the **stray-commit check** on what the merge brings in'
 hasc "stray-commit failed: line" 'failed: stray commit <sha> <subject>'
 lacks "profile-gated push" 'when the active profile permits|ask the user to run that exact command|give the user that exact command'
 hasc "gitignore commit keyed on a dirty file" 'git -C <owner> status --porcelain -- .gitignore'
@@ -814,17 +818,18 @@ hasc "frontier keeps ready-for-agent tickets only" 'keeping only the tickets lab
 lacks "frontier minus ready-for-human alone" 'minus `ready-for-human` tickets|other than `ready-for-human` ones|non-`ready-for-human`'
 hasc "deferred findings go through the retro capture" '"capture a retro item"'
 hasc "finished story tolerates untriaged children" '`needs-triage` or `wontfix`'
-# the merger waits on the owner checkout's lock in one bounded foreground until-loop, not a
-# check-and-sleep loop the merger runs by hand (chezmoi-sn1; the Waiting rule is checked in 6)
-hasc "merger waits on the lock with an until-loop" 'until ! [ -e <owner>/.git/index.lock ]'
-hasc "merger's lock wait is bounded by the call's timeout" 'timeout: 300000'
-lacks "merger sleeping and re-checking the lock by hand" 'waits [0-9]+ seconds|checks again|re-?checks the lock|checks every [0-9]+ seconds'
+# the ticket orchestrator landing its ticket waits on the owner checkout's lock in one bounded
+# foreground until-loop, not a check-and-sleep loop by hand (chezmoi-sn1, dev-9k5.1.7; the
+# Waiting rule is checked in 6)
+hasc "the landing waits on the lock with an until-loop" 'until ! [ -e <owner>/.git/index.lock ]'
+hasc "the landing's lock wait is bounded by the call's timeout" 'timeout: 300000'
+lacks "a lock wait sleeping and re-checking the lock by hand" 'waits [0-9]+ seconds|checks again|re-?checks the lock|checks every [0-9]+ seconds'
 # the story orchestrator and the ticket runner end their turn after spawning and are resumed by
 # the completion notification; the runner and its subagents run Bash in the foreground only
 # (chezmoi-p4q; the rule itself is checked in 6)
-hasc "frontier spawn ends the turn" 'then end your turn: each runner'
-hasc "ticket runner's spawn ends the turn" 'then end your turn: its report'
-hasc "ticket runner brief carries the idle rule" "the rules doc's Idle rule"
+hasc "frontier spawn ends the turn" 'then end your turn: each ticket orchestrator'
+hasc "ticket orchestrator's spawn ends the turn" 'then end your turn: its report'
+hasc "ticket orchestrator brief carries the idle rule" "the harness doc's Idle rule"
 # the implementer, fix-up and merger briefs give lint and test runs an explicit ten-minute
 # timeout, so the 120 s default never backgrounds them (dev-7k0, INFRA-30)
 for step in 2 3 4; do
@@ -889,8 +894,8 @@ hasc "the worktrees: line appears only with content" '`worktrees:` and `resume:`
 hasc "TMPDIR line stated in the skill" 'mkdir -p <worktree>/.tmp && export TMPDIR=<worktree>/.tmp'
 hasc "export repeated per Bash call" 'repeated at the head of every Bash call'
 hasc "mktemp -d takes a template under .tmp" 'mktemp -d <worktree>/.tmp/<name>.XXXXXX'
-# the ticket runner reads the rules doc, not this skill, so its brief points there
-hasc "ticket runner brief points at the rules doc's TMPDIR rule" "the rules doc's TMPDIR rule"
+# the ticket orchestrator reads the harness doc, not this skill, so its brief points there
+hasc "ticket orchestrator brief points at the harness doc's TMPDIR rule" "the harness doc's TMPDIR rule"
 for step in 2 3 4; do
   hase "ticket runner step $step's brief starts with the TMPDIR line" "^> $step\. .*TMPDIR line"
 done
@@ -908,22 +913,22 @@ done
 hase "ticket runner step 3 points at the rules doc's Review verdict" "^> 3\. .*the rules doc's Review verdict"
 hase "the story review (step 7) points at the rules doc's Review verdict" "^7\. .*the rules doc's Review verdict"
 lacks "the zero-findings bar" 'not clean after three rounds|no findings at all|clean means zero findings'
-# the story orchestrator resolves the owner repo's lint command once, in the forge step, with a
-# three-way precedence, and the runner brief's header carries it so no agent guesses it (dev-cq0.1.2)
-L3='^   Resolve the owner repo'"'"'s \*\*lint command\*\*'
-line_has "$L3" "step 3 resolves the lint command once" 'Resolve the owner repo'"'"'s **lint command** once'
-line_has "$L3" "lint precedence: make lint first" '`make lint` when `<owner>`'"'"'s Makefile has a `lint` target'
-line_has "$L3" "lint precedence: CLAUDE.md second, then none" 'else the command `<owner>`'"'"'s `CLAUDE.md` names, else none'
-line_has '^> You are the ticket runner' "runner brief header carries the lint command" 'lint command `<lint>` or none'
-# anchored: step 3's lint paragraph says who spells it out and where it runs; the runner brief's
-# opening paragraph lists it among what every brief carries; its step 2 offers no list to choose from
-line_has "$L3" "step 3's lint paragraph names the implementer, fix-up implementer and merger briefs" 'spells it out in every implementer, fix-up implementer and merger brief it sends'
-line_has "$L3" "step 3's lint paragraph runs the lint as make -C <dir> lint" 'make -C <dir> lint'
-line_has '^> You are the ticket runner' "the runner brief's every-brief list carries the lint command" 'the lint command `<lint>` (or none)'
-line_has "$L3" "step 3's lint paragraph says where a CLAUDE.md-named command runs" 'a command `CLAUDE.md` names runs in that same checkout or worktree'
-line_has '^> 2\. ' "runner step 2 leaves out the tests the lint command already runs" 'leaving out any the lint command already runs'
-line_has '^> 2\. ' "runner step 2 takes the lint command from the brief" "the brief's lint command"
-line_lacks '^> 2\. ' "runner step 2 offers a list of lint commands to choose from" '`make lint`'
+# the brief states its row of the rules doc's table, the check command by Makefile convention
+# (none: review-only) and cites the harness doc in one line; step 3's lint-command resolution,
+# the runner brief's lint header and its step 2 lint list are retired (dev-9k5.1.7)
+H='^> You are the \*\*ticket orchestrator\*\*'
+hase "the brief opens on the ticket orchestrator" "$H"
+for phrase in "your row is the ticket row of the rules doc's table" 'you build with one implementer in a worktree' \
+  'check with the check command' "review the ticket's body as the spec axis and the ticket diff as the standards axis, one tier up, none at \`low\`" \
+  'fix up by pointer brief in the same worktree' 'land by merging onto `<branch>` under the lock after the stray-commit check' \
+  'exit when the checks are green on the tip the review called clean' 'three fix-ups'; do
+  line_has "$H" "the brief's row parameter" "$phrase"
+done
+line_has "$H" "the brief's check command by Makefile convention" 'check command `make check` when `<owner>`'"'"'s Makefile has a `check` target, else none and the gate is review-only'
+line_has "$H" "the brief cites the harness doc in one line" 'The harness mechanics are in `<plugin root>/docs/agents/harness.md`'
+line_has "$H" "every brief it sends cites the harness doc" 'every brief you send cites it in one line'
+lacks "the retired lint-command resolution" 'resolve the owner repo.s \*\*lint command\*\*|`make lint` when `<owner>`.s makefile has a `lint` target'
+lacksf "the retired lint placeholder" '`<lint>`'
 # the ticket runner's check and review loop sits between the implementer (step 2) and the merger
 # (step 4) as one step: it opens step 3 for every tier, checks ahead of the reviewer; each check
 # is one logged Bash call under the worktree's .tmp/; a red is noted on the ticket; a red and a
@@ -940,7 +945,15 @@ line_hase "$G3" "the check gate runs before step 3's reviewer" '\*\*Check gate\*
 grep -E "$G3" "$f" | sed 's/Green: .*//' | grep -qF -- 'spawn a **reviewer**' && bad "present: ticket runner step 3 spawns a reviewer ahead of the checks' green"
 line_has "$G3" "a low ticket exits the loop on green checks" 'Green: a `low` ticket exits the loop, go to step 4'
 line_has '^> 2\. ' "runner step 2's implementer runs no gate and spawns no one" 'The implementer runs no gate and spawns no one'
-line_has "$G3" "the check gate logs both streams under the worktree's .tmp/ and echoes the exit" 'mkdir -p <worktree path>/.tmp; export TMPDIR=<worktree path>/.tmp; <check> > <worktree path>/.tmp/checks-<round>-<k>.log 2>&1; echo exit=$?'
+# the check record (dev-9k5.1.7): keyed by the tree SHA under the owner checkout's .tmp/checks/,
+# written only by the ticket orchestrator, a tree with a record not checked again
+line_has "$G3" "the gate keys the check on the tree SHA" '`git -C <worktree path> rev-parse HEAD^{tree}`'
+line_has "$G3" "a tree with a check record is not checked again" 'a tree with a record is checked: read its exit and run nothing'
+line_has "$G3" "the gate writes the check record per tree" 'mkdir -p <owner>/.tmp/checks/<tree>; export TMPDIR=<worktree path>/.tmp; make -C <worktree path> check > <owner>/.tmp/checks/<tree>/log 2>&1; echo "command=make check exit=$?" > <owner>/.tmp/checks/<tree>/record; cat <owner>/.tmp/checks/<tree>/record'
+line_has "$G3" "no check command makes the gate review-only" 'With no check command the checks are skipped and the gate is review-only'
+line_has "$G3" "the gate reviews with mattpocock-skills:code-review" '`mattpocock-skills:code-review`'
+line_lacks "$G3" "the per-round check log" 'checks-<round>-<k>.log'
+line_lacks "$G3" "the built-in code-review" 'the built-in `code-review`'
 line_has "$G3" "a red gate reads a forty-line tail of the log, never the whole output" 'tail -n 40 <log>'
 line_has "$G3" "a red gate's note form (checks <round>: red <command>)" '`bd -C <owner> note <ticket-id> "checks <round>: red <command>"`'
 line_has "$G3" "a green gate writes no note" 'a green writes no note'
@@ -948,11 +961,17 @@ line_has "$G3" "the gate's fix-up brief points at the log path" 'the log path, a
 line_has "$G3" "red and blocking fix-ups share one budget of three, the fourth failure is failed" 'The budget is three fix-ups of either cause; the fourth red or blocking verdict is `failed`'
 line_has "$G3" "the minors fix-up after a clean verdict spends no budget and advances no round" 'The minors fix-up spends no budget and advances no round'
 lacks "the retired run-the-gate-again wording" 'run the check gate again, and on green spawn a reviewer again'
-# the merger's two runs (step 4, dev-cq0.1.6): the implementer's worktree after the tip merge and
-# the owner checkout after the integration merge are runs of the story's checks, the lint command
-# included, in place of the tests
-line_has '^> 4\. ' "the merger runs the story's checks, the lint command included, in the implementer's worktree" 'runs the story'"'"'s checks there, the lint command `<lint>` included'
-line_has '^> 4\. ' "the merger reruns the story's checks, the lint command included, on the merged result in <owner>" 'reruns the story'"'"'s checks on the merged result in `<owner>`, the lint command `<lint>` included'
+# the ticket orchestrator lands its own ticket (step 4): lock wait, stray-commit check, merge; a
+# conflict goes to an implementer in the ticket's worktree, then a fast-forward; the resolved
+# tree is checked and not reviewed again; the merger brief is retired (dev-9k5.1.7)
+L4='^> 4\. \*\*Land the ticket\*\*'
+hase "step 4 lands the ticket" "$L4"
+line_has "$L4" "a conflict goes to an implementer in the ticket's worktree" 'A conflict goes to an implementer in the ticket'"'"'s worktree'
+line_has "$L4" "the conflict implementer merges the integration tip into the ticket branch" 'briefed to merge `<branch>`'"'"'s tip into the ticket branch'
+line_has "$L4" "a conflicted merge is aborted, never resolved by the orchestrator" '`git -C <owner> merge --abort`'
+line_has "$L4" "the orchestrator then fast-forwards" '`git -C <owner> merge --ff-only <ticket branch>`'
+line_has "$L4" "the resolved tree is checked and not reviewed again" 'step 3'"'"'s checks run on the resolved tree and no reviewer runs'
+lacksf "the retired merger brief" 'Spawn a **merger**'
 # the story review (step 7) is the rules doc's Check gate loop on the integration branch tip
 # with the review marker as its exit: each iteration runs the checks first; a red goes to the
 # fix-up implementer and merger and the loop starts over; green and a tip matching the marker
