@@ -1412,6 +1412,29 @@ pin_case "the spent budget's skip" 'is failed and not reviewed again'
 pin_case "the Human stop's epic-review failures" "step 6's \`failed:\` lines too"
 pin_case "the fix-up filing clause" 'files fix-up tickets and implements none'
 pin_case "the red check's ticket body" 'the check, its command and its log pointer'
+# epic review 4 of dev-9k5.1.8: the minors
+pin_case "the Stall's tip mismatch" 'current tip is not its delivered tip'
+pin_case "the reviewer's story bead" 'bd -C <owner> show <story-id>` to tell them apart'
+pin_case "the reviewer's findings-only rule" 'create no bead'
+pin_case "the fix-up edge onto the publish ticket" 'dep add <publish ticket id> <new id>'
+pin_case "gh's no checks reported" '`no checks reported`'
+pin_case "the replaced reviewer's stop sweep" 'the stop sweep, then spawn a fresh one'
+pin_case "the end state's forge reads" "step 6's forge reads"
+pin_case "the red-check budget failure line" 'checks red after three fix-ups'
+pin_case "the pending checks re-polled after a fix-up batch" 'any whose checks were pending'
+pin_case "the end state's checks pending outcome" 'clean with checks pending'
+
+fresh_spec
+echo "tea pr list --repo <owner> --state open lists it" >> "$spec"
+expect "implement-spec listing open PRs with tea pr list fails" 1 "the paginated tea pr list" "$spec" "$scratch/docs/WORKFLOW.md"
+
+fresh_spec
+echo "Then open a PR for the story." >> "$spec"
+expect "implement-spec opening a PR in prose fails" 1 "PR-opening steps" "$spec" "$scratch/docs/WORKFLOW.md"
+
+fresh_spec
+echo "Run tea pulls create for the story." >> "$spec"
+expect "implement-spec opening a PR with tea pulls create fails" 1 "PR-opening steps" "$spec" "$scratch/docs/WORKFLOW.md"
 
 fresh_spec
 echo "three blocking verdicts are fixed up" >> "$spec"

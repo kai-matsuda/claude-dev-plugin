@@ -283,7 +283,7 @@ hasc "report template shows the story-closure human: line" 'human:   <owner repo
 # the glossary avoids "human ticket" for the human gate ticket ("ready-for-human ticket" is fine)
 lacks "glossary's avoided term human ticket" '(^|[^-])human ticket'
 # the epic row reviews and marks ready, but opening a PR stays the story orchestrator's
-lacks "PR-opening steps" 'draft PR|pr create'
+lacks "PR-opening steps" 'draft PR|pr create|pulls create|open(s|ing)? (a|the) PR'
 lacks "the retired driver role" '(^|[^a-z])driver'
 hasc "epic orchestrator role" '**epic orchestrator**'
 has "harness doc cited" 'docs/agents/harness.md'
@@ -335,6 +335,18 @@ has "Human stop reports epic-review failures" "step 6's \`failed:\` lines too"
 has "files fix-up tickets, implements none" 'files fix-up tickets and implements none'
 lacks "nothing touches a ticket" 'nothing below touches a ticket'
 has "red check ticket body" 'the check, its command and its log pointer'
+# epic review 4 of dev-9k5.1.8: the minors
+has "Stall names a tip mismatch" 'current tip is not its delivered tip'
+has "reviewer reads the story bead" 'bd -C <owner> show <story-id>` to tell them apart'
+has "reviewer reports findings only" 'create no bead'
+has "fix-up blocks the publish ticket" 'dep add <publish ticket id> <new id>'
+has "gh's no checks reported is none configured" '`no checks reported`'
+has "replaced reviewer's stop sweep" 'the stop sweep, then spawn a fresh one'
+has "end state reads step 6's forge reads" "step 6's forge reads"
+has "red-check budget failure line" 'checks red after three fix-ups'
+has "pending checks re-polled after a fix-up batch" 'any whose checks were pending'
+has "end state's checks pending outcome" 'clean with checks pending'
+lacks "the paginated tea pr list" 'tea pr list'
 has "frontmatter" 'disable-model-invocation: true'
 has "legacy line" 'refused: flat epic (tickets directly under the epic bead); the story skills do not handle it — the small-bug path does: /mattpocock-skills:implement <ticket-id> per ticket, then bd close <epic-id>'
 has "add-dir refusal" '/add-dir <'
