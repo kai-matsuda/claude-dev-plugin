@@ -110,11 +110,15 @@
 #      (lock wait, stray-commit check, merge; a conflict to an implementer in the ticket's
 #      worktree, then a fast-forward, the resolved tree checked and not reviewed again), with the
 #      lint-command resolution and the merger brief retired (dev-9k5.1.7),
-#      and its story review is the check gate loop with the review marker as its exit, a red
-#      or a reviewed tip starting it over, a fourth failure stalling with failed: <check>
-#      <command>, the exit iteration's run (each check's command, exit and tail) the Evidence
-#      cited in step 8, and "the command and its output" gone (section 5's sweep covers the
-#      Evidence run and the second-red stall) (dev-cq0.1.5, dev-1xf.1.3); section 6 checks the
+#      and its story gate (step 7) is the rules doc's Check gate loop at the story row: it exits
+#      when the checks are green on the tip the review called clean, reads the checks from the
+#      check records, keeps the reviewed tip in the story's review: note, reviews the story's body
+#      (spec) and what entered since the ticket reviews (standards), sends a red or a blocking
+#      verdict to a fresh fix-up, three per story, the fourth failed, and spends nothing on the
+#      minors fix-up; its deliver step (8) leaves the PR a draft, its Evidence the delivered tip's
+#      check record, and step 9 removes the records; "Running the checks", the "review marker"
+#      and "the command and its output" are gone (section 5's sweep covers the Evidence run and the
+#      second-red stall) (dev-cq0.1.5, dev-1xf.1.3, dev-9k5.1.9); section 6 checks the
 #      rules doc's Check gate;
 #   9. /close-story: its Forgejo/Gitea query carries --repo <path> as the intro and
 #      /implement-story's merge guard do (dev-hac); its ticket check skips a child carrying
@@ -923,7 +927,7 @@ hasc "the skill names the harness doc's Idle rule" "the harness doc's Idle rule"
 for step in 2 3 4; do
   line_has "^> $step\. " "the ticket orchestrator brief's step $step: check and test timeout" 'timeout: 600000'
 done
-hasc "story fix-up brief names the lint and test limit" 'the ten-minute limit on lint and test runs'
+line_has '^7\. ' "story fix-up brief names the check and test limit" 'the ten-minute limit on check and test runs'
 # the per-ticket reviewer reads the standards the story review reads: the repo's own files and
 # the plugin's coding-standards doc by its literal path (dev-co6)
 for need in '`CODING_STANDARDS.md` or `CONTRIBUTING.md`' '<plugin root>/docs/agents/coding-standards.md` spelled as the path this session resolved'; do
@@ -974,7 +978,8 @@ lacks "the sweep limited to this run's worktrees" 'every worktree the run made'
 hasc "a locked or unmerged worktree is reported, not removed" 'reported with its path'
 lacks "a locked or unmerged worktree forced" 'worktree remove[^`]* -(-force|f)'
 hasc "report template shows the worktrees: line" 'worktrees: <absolute path>'
-hasc "the worktrees: line appears only with content" '`worktrees:` and `resume:` lines appear only when they have content'
+hasc "the worktrees: line appears only with content" '`waiting:` and `worktrees:` lines appear only when they have content'
+lacks "the resume: line printed only with content" '`resume:` lines appear only'
 # the implementer, fix-up implementer and conflict-resolving implementer briefs start with the
 # TMPDIR line, stated once in the Owner repo section with its two riders and named in the ticket
 # orchestrator brief's steps 2, 3 and 4 (the landing) and the story review's fix-up (step 7); the
@@ -1068,32 +1073,72 @@ line_has "$L4" "a conflicted merge is aborted, never resolved by the orchestrato
 line_has "$L4" "the orchestrator then fast-forwards" '`git -C <owner> merge --ff-only <ticket branch>`'
 line_has "$L4" "the resolved tree is checked and not reviewed again" 'step 3'"'"'s checks run on the resolved tree and no reviewer runs'
 lacksf "the retired merger brief" 'Spawn a **merger**'
-# the story review (step 7) is the rules doc's Check gate loop on the integration branch tip
-# with the review marker as its exit: each iteration runs the checks first; a red goes to the
-# fix-up implementer and merger and the loop starts over; green and a tip matching the marker
-# exits, that iteration's run (each check's command, exit and tail) the PR's Evidence, cited so
-# in step 8; a tip off the marker is reviewed, fixed, marked and the loop starts over; the
-# fourth failure stalls with failed: <check> <command>; the separate Evidence run, the later
-# run that reviewed its fix and the second-red stall are gone (dev-cq0.1.5, dev-1xf.1.3)
-line_has '^7\. ' "the story review (step 7) is the rules doc's Check gate loop with the marker as its exit" "the rules doc's Check gate loop on the integration branch tip, with the **review marker** as its exit"
-line_has '^7\. ' "the story review (step 7) runs the checks first in each iteration" 'Each iteration runs the checks first'
-line_has '^7\. ' "a red at the story review starts the loop over" 'to the fix-up implementer below, then its merger, and the loop starts over'
-line_has '^7\. ' "a green tip matching the review marker exits the loop" 'the same SHA exits the loop'
-line_has '^7\. ' "the exit iteration's run is the PR's Evidence" "this iteration's run (each check's command, its exit and the last twenty lines of its log) is the PR's Evidence"
-line_has '^7\. ' "a reviewed tip is marked and the loop starts over" 'write the marker on the new tip, and the loop starts over'
-line_has '^7\. ' "the story loop's fourth failure skips delivery" 'the fourth failure skips step 8 and goes to step 9'
-line_has '^7\. ' "the story loop's stall line" '`failed: <check> <command>`'
-# one budget for the story loop, red or review, a minors-only review's fix-up included, and the
-# review's own stall form (dev-1xf.1.3 review 1)
-line_has '^7\. ' "red and review fix-ups share the story loop's budget of three" 'The budget is three fix-ups per story, red or review alike'
-line_has '^7\. ' "a minors-only review's fix-up spends the story loop's budget" "every fix-up in the story loop spends it, a minors-only review's included"
-line_has '^7\. ' "the story loop's stall line for a review" "(a review's as \`failed: review mattpocock-skills:code-review\`)"
-# on the first step 7 line, the checks come before the marker compare and the review
-awk -v g='Each iteration runs the checks first' -v m='the same SHA exits the loop' -v r='mattpocock-skills:code-review' \
+# the story gate (step 7) is the rules doc's Check gate loop on the integration branch tip, the
+# story row of its table (dev-9k5.1.9): it exits when the checks are green on the tip the review
+# called clean; each pass reads the checks from the check records first (a recorded tree runs
+# nothing, an unrecorded one is checked once in the clean owner checkout and recorded), then
+# compares the reviewed tip the story keeps in its review: note; the review's spec axis is the
+# story's body and its standards axis what entered since the ticket reviews; a red or a blocking
+# verdict goes to a fresh fix-up and the loop starts over, three per story, the fourth failed; the
+# minors fix-up reruns the checks and spends nothing; the story orchestrator lands its fix-up
+# itself, no merger; "Running the checks" and the review marker are gone. Step 8 leaves the PR a
+# draft, its Evidence the delivered tip's check record; step 9 removes the records
+G7='^7\. '
+hase "step 7 is the story gate" '^7\. \*\*Story gate\.\*\*'
+line_has "$G7" "the story gate names its row of the rules doc's table" "the story row of the rules doc's table"
+line_has "$G7" "the story gate exits on green checks at the tip the review called clean" 'it exits when the checks are green on the tip the review called clean'
+line_has "$G7" "the story gate runs the checks first in each pass" 'Each pass runs the checks first'
+line_has "$G7" "the story gate reads the tree only of a clean owner checkout" 'confirm the owner checkout is clean, `git -C <owner> status --porcelain` prints nothing'
+# the guard (dev-9k5.1.9 review 1): the owner checkout on <branch>, untracked files counted and
+# why, the failed line naming the files, its exit classified as step 6 says
+line_has "$G7" "the story gate confirms the owner checkout is on the integration branch" '`git -C <owner> branch --show-current` prints `<branch>`'
+line_has "$G7" "the story gate's off-branch failed line" '`failed: <story-id> not on <branch>`'
+line_has "$G7" "the story gate's clean-checkout guard says why untracked files count" 'untracked files count, since the check runs on the working tree while the record keys on the committed tree'
+line_has "$G7" "the dirty-checkout failed line names the files" '`failed: <story-id> owner checkout dirty: <files>`, `<files>` the paths that status call printed, classified as step 6 says'
+line_has "$G7" "the story gate keys the check on the tip's tree" '`git -C <owner> rev-parse <branch>^{tree}`'
+line_has "$G7" "the story gate reads a recorded tree's check record and runs nothing" 'a tree with a record is checked: read its exit and run nothing'
+# the check-record call is defined once, in the ticket orchestrator brief's step 3, and step 7
+# names it with <owner> for the worktree path (dev-9k5.1.9 review 1)
+line_has "$G7" "the story gate writes the check record with the brief's step 3 call" "the ticket orchestrator brief's step 3 check-record call with \`<owner>\` as its \`<worktree path>\`"
+line_lacks "$G7" "a second copy of the check-record call" 'check > <owner>/.tmp/checks/<tree>/log'
+line_has "$G7" "the story keeps the reviewed tip in its notes" "The story keeps the reviewed tip in its notes: its \`review:\` note names the tip the gate exits on after a clean review, so a rerun reviews only a tip that has moved past it"
+# the story review round is numbered on from the notes, not from 1 per run, and its note names
+# the tip it read (dev-9k5.1.9 review 1)
+hasc "step 1 reads the story review notes" '`review:` and `story review <round>` (step 7)'
+line_has "$G7" "the story review round continues across runs" "\`<round>\` one more than the last \`story review\` note's round step 1 read (1 when there is none)"
+line_has "$G7" "the story review note names the reviewed tip" '`bd -C <owner> note <story-id> "story review <round> <tip SHA>: <findings>; <verdict line>"`'
+line_has "$G7" "a green tip the review called clean exits the gate" 'the same SHA exits the gate'
+line_has "$G7" "the story review's spec axis is the story's body" "the spec axis is the story's body"
+line_has "$G7" "the story review's standards axis is what entered since the ticket reviews" 'the standards axis is what entered since the ticket reviews: the conflict resolutions and the coherence across tickets'
+# the standards axis gets its inputs: the base SHA, each merge's resolution and the fix-up
+# commits since the last story review (dev-9k5.1.9 review 1)
+line_has "$G7" "the story review names the base SHA" '`<base>`, `git -C <owner> merge-base <default branch> <branch>`'
+line_has "$G7" "the standards axis gets each merge's resolution" '`git -C <owner> show --remerge-diff <merge>`'
+line_has "$G7" "the standards axis gets the fix-up commits since the last story review" "\`git -C <owner> log --no-merges --grep='^Bead: <story-id>\$' <since>..<branch>\`"
+line_has "$G7" "a red or a blocking verdict goes to a fresh fix-up and starts the loop over" 'A red or a blocking verdict goes to a fresh fix-up implementer by pointer brief and the loop starts over'
+line_has "$G7" "the minors fix-up reruns the checks and spends no budget" 'the minors fix-up reruns the checks and spends no budget'
+line_has "$G7" "the story gate's budget is three fix-ups, red or blocking" 'The budget is three fix-ups per story, red or blocking alike'
+line_has "$G7" "the story gate's fourth failure skips delivery" 'the fourth failure skips step 8 and goes to step 9'
+line_has "$G7" "the story gate's stall line" '`failed: <check> <command>`'
+line_has "$G7" "the story gate's stall line for a review" "(a review's as \`failed: review mattpocock-skills:code-review\`)"
+line_has "$G7" "the story gate lands its fix-up itself" "you land its branch as the ticket orchestrator brief's step 4 lands a ticket"
+line_lacks "$G7" "a merger at the story gate" 'merger'
+line_lacks "$G7" "the story gate's minors fix-up spending budget" "a minors-only review's included"
+lacksf "the retired Running the checks paragraph" '**Running the checks.**'
+lacks "the retired review marker" 'review marker'
+# on the first step 7 line, the checks come before the reviewed-tip compare and the review
+awk -v g='Each pass runs the checks first' -v m='the same SHA exits the gate' -v r='mattpocock-skills:code-review' \
   '/^7\. / { i = index($0, g); k = index($0, m); j = index($0, r); ok = (i && k && j && i < k && k < j); seen = 1; exit } END { exit !(seen && ok) }' "$f" \
-  || bad "missing: the story review (step 7) runs the checks before the marker compare and the two-axis review"
-line_has '^8\. ' "the deliver step (8) takes its Evidence from step 7's exit iteration" "its Evidence from step 7's exit iteration (each check's command, exit and twenty-line tail)"
+  || bad "missing: the story gate (step 7) runs the checks before the reviewed-tip compare and the two-axis review"
+line_has '^8\. ' "the deliver step leaves the PR a draft" 'The PR stays a draft'
+line_lacks '^8\. ' "the deliver step marking the PR ready" 'gh pr ready'
+line_lacks '^8\. ' "the deliver step marking the PR ready with tea" 'tea pr edit <n> --repo <owner> --ready'
+line_has '^8\. ' "the deliver step's Evidence is the delivered tip's check record" "its Evidence the delivered tip's check record"
+line_has '^9\. ' "step 9 removes the check records" '`rm -rf <owner>/.tmp/checks`'
 hasc "report template's failed: line names the check" 'or <check> <command>'
+# the report marks the PR a draft and always carries the resume line (dev-9k5.1.9 review 1)
+hasc "report template marks the PR a draft" 'PR:      <url> (draft)'
+hasc "the resume: line always appears" 'the `resume:` line always appears'
 lacks "the retired Evidence phrase" 'the command and its output'
 
 fi
