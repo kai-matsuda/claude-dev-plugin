@@ -47,7 +47,7 @@ story's orchestrator in add mode; three such fix-ups per story.
 
 Five roles run a feature, named by their row: the **epic orchestrator**, the **story
 orchestrator**, the **ticket orchestrator**, the **implementer** and the **reviewer**. The
-plain word "orchestrator" in these rules means any of the three. A fix-up implementer is a
+plain word "orchestrator" in these rules means any of the three. A fix-up is a
 brief shape of the implementer, not a role, and no agent merges for another: the ticket
 orchestrator lands its own ticket.
 

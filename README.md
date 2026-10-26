@@ -3,7 +3,7 @@
 The `dev` plugin for Claude Code: a Jira + beads feature workflow. One Jira Epic per
 feature for people; beads for the agent's stories and tickets; skills that cut a spec
 into stories and tickets, implement them AFK through story orchestrators and ticket
-runners, review, open the PR, and close the loop with retro and triage.
+orchestrators, review, open the PR, and close the loop with retro and triage.
 
 Skills are addressed as `/dev:<skill>`. Start with `/dev:workflow` for the runbook.
 

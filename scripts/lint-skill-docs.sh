@@ -202,6 +202,7 @@ retired_row_names() {
   lacks "the retired driver role" '(^|[^a-z])[Dd]rivers?([^a-z]|$)'
   lacks "the retired ticket runner role" '[Tt]icket runners?'
   lacks "the retired merger role" '(^|[^a-z])[Mm]ergers?([^a-z]|$)'
+  lacks "the retired fix-up implementer role" '[Ff]ix-up implementers?'
   lacks "the built-in code-review named" 'built-in `code-review`'
   lacks "the two review tools paragraph" 'Two review tools'
 }
@@ -1026,7 +1027,7 @@ hasc "ticket orchestrator brief points at the harness doc's TMPDIR rule" "the ha
 for step in 2 3 4; do
   hase "ticket orchestrator step $step's brief starts with the TMPDIR line" "^> $step\. .*TMPDIR line"
 done
-hase "the story review's fix-up implementer brief starts with the TMPDIR line" '^7\. .*TMPDIR line'
+hase "the story review's fix-up brief starts with the TMPDIR line" '^7\. .*TMPDIR line'
 hasc "Gitignore step counts four entries" "the rule's four entries"
 lacks "Gitignore step counts three entries" "the rule's three entries"
 # the reviewer brief in the ticket orchestrator's step 3 carries the two tags with their definitions and
@@ -1064,14 +1065,14 @@ lacksf "the retired lint placeholder" '`<lint>`'
 # the ticket orchestrator's check and review loop sits between the implementer (step 2) and the
 # landing (step 4) as one step: it opens step 3 for every tier, checks ahead of the reviewer; each check
 # is one logged Bash call under the worktree's .tmp/; a red is noted on the ticket; a red and a
-# blocking verdict both spawn a fresh fix-up implementer and start the loop over from the checks,
+# blocking verdict both spawn a fresh implementer on the fix-up and start the loop over from the checks,
 # on one budget of three fix-ups; a low ticket exits on green; the implementer runs no checks
 # (dev-cq0.1.4, dev-1xf.1.2)
 G3='^> 3\. \*\*Check gate\*\*, every tier'
 hase "ticket orchestrator step 3 opens with the check gate, every tier" "$G3"
 line_has "$G3" "the loop step cites the rules doc's loop" "as the rules doc's Check gate says"
-line_has "$G3" "a red starts the loop over from the checks" 'A red spawns a fresh fix-up implementer and the loop starts over from the checks'
-line_has "$G3" "a blocking verdict starts the loop over from the checks, never straight to the reviewer" 'a blocking verdict spawns a fresh fix-up implementer and the loop starts over from the checks, never straight to the reviewer'
+line_has "$G3" "a red starts the loop over from the checks" 'A red spawns a fresh implementer on the fix-up and the loop starts over from the checks'
+line_has "$G3" "a blocking verdict starts the loop over from the checks, never straight to the reviewer" 'a blocking verdict spawns a fresh implementer on the fix-up and the loop starts over from the checks, never straight to the reviewer'
 line_has "$G3" "a clean verdict exits the loop" '**Clean** exits the loop'
 line_hase "$G3" "the check gate runs before step 3's reviewer" '\*\*Check gate\*\*.*Green:.*for `medium` and `high`, spawn a \*\*reviewer\*\*'
 grep -E "$G3" "$f" | sed 's/Green: .*//' | grep -qF -- 'spawn a **reviewer**' && bad "present: ticket orchestrator step 3 spawns a reviewer ahead of the checks' green"
@@ -1080,7 +1081,7 @@ line_has '^> 2\. ' "ticket orchestrator step 2's implementer runs no gate and sp
 # the check record (dev-9k5.1.7): keyed by the tree SHA under the owner checkout's .tmp/checks/,
 # written only by the ticket orchestrator, a tree with a record not checked again
 line_has "$G3" "the gate keys the check on the tree SHA" '`git -C <worktree path> rev-parse HEAD^{tree}`'
-line_has "$G3" "the gate reads the tree only of a clean worktree" 'First confirm the worktree is clean, `git -C <worktree path> status --porcelain` prints nothing; a dirty worktree goes to a fresh fix-up implementer as a red does'
+line_has "$G3" "the gate reads the tree only of a clean worktree" 'First confirm the worktree is clean, `git -C <worktree path> status --porcelain` prints nothing; a dirty worktree goes to a fresh implementer as a red does'
 line_lacks "$G3" "the clean-worktree guard that hides untracked files" '`git -C <worktree path> status --porcelain --untracked-files=no`'
 line_has "$G3" "a tree with a check record is not checked again" 'a tree with a record is checked: read its exit and run nothing'
 line_has "$G3" "the gate writes the check record per tree" 'mkdir -p <worktree path>/.tmp; mkdir -p <owner>/.tmp/checks/<tree>; export TMPDIR=<worktree path>/.tmp; make -C <worktree path> check > <owner>/.tmp/checks/<tree>/log 2>&1; echo "command=make check exit=$?" > <owner>/.tmp/checks/<tree>/record; cat <owner>/.tmp/checks/<tree>/record'
@@ -1148,7 +1149,7 @@ line_has "$G7" "the story review's standards axis is what entered since the tick
 line_has "$G7" "the story review names the base SHA" '`<base>`, `git -C <owner> merge-base <default branch> <branch>`'
 line_has "$G7" "the standards axis gets each merge's resolution" '`git -C <owner> show --remerge-diff <merge>`'
 line_has "$G7" "the standards axis gets the fix-up commits since the last story review" "\`git -C <owner> log --no-merges --grep='^Bead: <story-id>\$' <since>..<branch>\`"
-line_has "$G7" "a red or a blocking verdict goes to a fresh fix-up and starts the loop over" 'A red or a blocking verdict goes to a fresh fix-up implementer by pointer brief and the loop starts over'
+line_has "$G7" "a red or a blocking verdict goes to a fresh fix-up and starts the loop over" 'A red or a blocking verdict goes to a fresh implementer by pointer brief and the loop starts over'
 line_has "$G7" "the minors fix-up reruns the checks and spends no budget" 'the minors fix-up reruns the checks and spends no budget'
 line_has "$G7" "the story gate's budget is three fix-ups, red or blocking" 'The budget is three fix-ups per story, red or blocking alike'
 line_has "$G7" "the story gate's fourth failure skips delivery" 'the fourth failure skips step 8 and goes to step 9'

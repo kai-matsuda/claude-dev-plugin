@@ -34,3 +34,5 @@ docs/adr/0012-nested-orchestrators-wait-on-the-completion-notification.md driver
 docs/adr/0012-nested-orchestrators-wait-on-the-completion-notification.md ticket runner  # the retired name of the ticket orchestrator, in the words of its day
 docs/adr/0012-nested-orchestrators-wait-on-the-completion-notification.md merger  # the retired merger role, in the words of its day
 docs/adr/0014-one-loop-at-three-rows.md merger  # the role this ADR retires, named to say so
+docs/adr/0001-two-stage-review.md fix-up implementer  # the retired name of the implementer on a fix-up, in the words of its day
+docs/adr/0014-one-loop-at-three-rows.md fix-up implementer  # names the role this ADR retires

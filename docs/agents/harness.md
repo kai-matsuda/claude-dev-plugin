@@ -66,7 +66,7 @@ uncommitted changes through when they touch no file the merge does, so a skipped
 goes unnoticed (INFRA-28's run 1, 2026-10-20: an implementer whose subject failed the
 72-character limit merged `feat/infra-28` over its uncommitted fixes and committed them
 after the merge). Every brief to an agent that commits or merges (implementer, fix-up
-implementer, ticket orchestrator) names this rule.
+included, ticket orchestrator, story orchestrator) names this rule.
 
 **Cut-off agents.** An Agent call that returns an API error (`HTTP 429 You've hit your
 session limit`) in place of a report is a **cut-off**: the child and everything below it
@@ -88,16 +88,16 @@ Every other agent is replaced, never resumed: to its orchestrator a cut-off chil
 `failed: cut off by <error>` report, and the next pass gives the work a fresh subagent,
 same tier, same worktree, as a child that needs another pass gets one. A cut-off
 is no verdict on the ticket: it rejoins the frontier with its failure count unchanged. Its
-claim outlives the runner, and `bd ready` excludes an `in_progress` ticket, so the story
+claim outlives the orchestrator, and `bd ready` excludes an `in_progress` ticket, so the story
 orchestrator `bd -C <owner> unclaim <ticket-id>`s it before the next frontier read. The
-fresh runner's implementer resets the worktree onto the integration branch tip as its brief
+fresh ticket orchestrator's implementer resets the worktree onto the integration branch tip as its brief
 says, so what a cut-off implementer left unmerged on `ticket/<slug>` is lost and the ticket
 starts over; what reached the integration branch stays.
 
 ## Scratch space
 
-**Worktrees.** Spawn each implementer with the Agent tool's `isolation: "worktree"` (a
-fix-up implementer is the exception: it is spawned without `isolation`, into the worktree
+**Worktrees.** Spawn each implementer with the Agent tool's `isolation: "worktree"` (an
+implementer on a fix-up is the exception: it is spawned without `isolation`, into the worktree
 and branch the first implementer reported, and reaches it with `git -C <path>`). The
 harness creates the worktree under `.claude/worktrees/agent-<id>/` on a branch named
 `worktree-agent-<id>`, registers it with the sandbox, and makes it the subagent's real
@@ -121,7 +121,7 @@ against the worktree and refuses one whose path comes from a shell variable or s
 construct it cannot parse (seen in INFRA-26's `chezmoi-0jp.22` fixture run). Spell every
 path out literally, one plain command per Bash call.
 
-**TMPDIR.** Every worktree brief (implementer, fix-up implementer) starts with
+**TMPDIR.** Every worktree brief (implementer, fix-up included) starts with
 `mkdir -p <worktree>/.tmp && export TMPDIR=<worktree>/.tmp`, `<worktree>` the absolute
 worktree path spelled out literally: on the hand-rolled route the path the brief gives, on
 the harness route the one `pwd` prints, since that brief carries none and the worktree

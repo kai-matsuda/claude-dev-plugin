@@ -610,7 +610,7 @@ fresh
 echo 'Then the ticket gate (switch `/model` to the tier'"'"'s review model) runs.' >> "$scratch/docs/WORKFLOW.md"
 expect "runbook copy with the seeded phrase ticket gate fails" 1 "retired ticket gate name in the runbook"
 
-# the retired row names seeded back into each doc outside the retire-the-vocabulary sweep
+# the retired row names seeded back into each doc, runbook and cut skills among them
 # (dev-9k5.1.10): the driver role, the ticket runner, the merger, the built-in review by name
 # and the two-review-tools paragraph each fail in the runbook, /workflow, the story and ticket
 # cuts, close-epic and the tracker doc
@@ -1612,6 +1612,7 @@ for file in skills/sample/SKILL.md docs/agents/triage-labels.md CLAUDE.md docs/W
   for case in 'The driver spawns the stories.|the retired driver role' \
     'Each ticket runner implements.|the retired ticket runner role' \
     'A merger folds it in.|the retired merger role' \
+    'Spawn a fresh fix-up implementer.|the retired fix-up implementer role' \
     'Run the built-in `code-review` on it.|the built-in code-review named' \
     'Exit on the review marker.|the retired review marker' \
     'Run the lint command, then the tip.|the retired lint command' \
@@ -1832,7 +1833,7 @@ done
 # record written per tree, review-only with no check command, the one review tool; the per-round
 # log and the built-in review seeded back on that line fail
 for case in '`git -C <worktree path> rev-parse HEAD^{tree}`|missing: the gate keys the check on the tree SHA' \
-  'First confirm the worktree is clean, `git -C <worktree path> status --porcelain` prints nothing; a dirty worktree goes to a fresh fix-up implementer as a red does|missing: the gate reads the tree only of a clean worktree' \
+  'First confirm the worktree is clean, `git -C <worktree path> status --porcelain` prints nothing; a dirty worktree goes to a fresh implementer as a red does|missing: the gate reads the tree only of a clean worktree' \
   'a tree with a record is checked: read its exit and run nothing|missing: a tree with a check record is not checked again' \
   'mkdir -p <worktree path>/.tmp; mkdir -p <owner>/.tmp/checks/<tree>; export TMPDIR=<worktree path>/.tmp; make -C <worktree path> check > <owner>/.tmp/checks/<tree>/log 2>&1; echo "command=make check exit=$?" > <owner>/.tmp/checks/<tree>/record; cat <owner>/.tmp/checks/<tree>/record|missing: the gate writes the check record per tree' \
   'With no check command the checks are skipped and the gate is review-only|missing: no check command makes the gate review-only' \
@@ -1894,7 +1895,7 @@ for case in "the story row of the rules doc's table|a story gate not naming its 
   'the same SHA exits the gate|a reviewed tip not exiting the gate|missing: a green tip the review called clean exits the gate' \
   "the spec axis is the story's body|a story review without its spec axis|missing: the story review's spec axis is the story's body" \
   'the standards axis is what entered since the ticket reviews: the conflict resolutions and the coherence across tickets|a story review without its standards axis|missing: the story review'"'"'s standards axis is what entered since the ticket reviews' \
-  'A red or a blocking verdict goes to a fresh fix-up implementer by pointer brief and the loop starts over|a story red or blocking verdict not starting the loop over|missing: a red or a blocking verdict goes to a fresh fix-up and starts the loop over' \
+  'A red or a blocking verdict goes to a fresh implementer by pointer brief and the loop starts over|a story red or blocking verdict not starting the loop over|missing: a red or a blocking verdict goes to a fresh fix-up and starts the loop over' \
   'the minors fix-up reruns the checks and spends no budget|a story gate whose minors fix-up is budgeted|missing: the minors fix-up reruns the checks and spends no budget' \
   'The budget is three fix-ups per story, red or blocking alike|a story gate without its one budget|missing: the story gate'"'"'s budget is three fix-ups, red or blocking' \
   'the fourth failure skips step 8 and goes to step 9|a story gate without its fourth-failure stall|missing: the story gate'"'"'s fourth failure skips delivery' \
@@ -2011,7 +2012,7 @@ swap_phrase skills/implement-story/SKILL.md '^(> 3\. .*Green: a `low` ticket exi
 expect "ticket orchestrator step 3 whose green spawns no reviewer fails" 1 "missing: the check gate runs before step 3's reviewer"
 
 for case in "as the rules doc's Check gate says|a loop step not citing the rules doc's loop|missing: the loop step cites the rules doc's loop" \
-  'A red spawns a fresh fix-up implementer and the loop starts over from the checks|a red not starting the loop over|missing: a red starts the loop over from the checks' \
+  'A red spawns a fresh implementer on the fix-up and the loop starts over from the checks|a red not starting the loop over|missing: a red starts the loop over from the checks' \
   'and the loop starts over from the checks, never straight to the reviewer|a blocking verdict not starting over from the checks|missing: a blocking verdict starts the loop over from the checks' \
   '**Clean** exits the loop|a clean verdict not exiting the loop|missing: a clean verdict exits the loop' \
   'Green: a `low` ticket exits the loop, go to step 4|a low ticket not exiting on green|missing: a low ticket exits the loop on green checks' \

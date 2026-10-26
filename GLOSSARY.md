@@ -245,6 +245,13 @@ check, the merge), sending a conflict to an implementer in the ticket's worktree
 fast-forwarding. It reports one line to its story orchestrator and is discarded.
 _Avoid_: ticket agent, worker, ticket runner, merger
 
+**Implementer**:
+The one agent kind that edits files: it builds a ticket, fixes a failed check or a review
+finding by pointer brief, or resolves a merge conflict, always fresh and in the unit's
+worktree. A fix-up or a conflict resolution is an implementer given a different brief,
+not a role of its own (ADR 0014).
+_Avoid_: fix-up implementer, fixer, merger
+
 **Stray-commit check**:
 The read of every commit a push or a merge would carry but merges, before it runs: one whose
 author is not the run's `user.email`, or that has no `Bead:` trailer, came from outside the
@@ -257,20 +264,20 @@ _Avoid_: push guard, stray check
 **Cut-off**:
 An Agent call that returns an API error (a session or rate limit) in place of its report.
 The child and everything below it stop where they are, state intact: a story orchestrator
-is resumed by the driver, every other agent is replaced by a fresh one in the same
+is resumed by the epic orchestrator, every other agent is replaced by a fresh one in the same
 worktree, and a cut-off ticket rejoins the frontier with its failure count unchanged. A
-runner's `failed` line is its own verdict on its ticket, not a cut-off, and neither is a
+ticket orchestrator's `failed` line is its own verdict on its ticket, not a cut-off, and neither is a
 story orchestrator the user stopped: that one is replaced on the next typed command.
 _Avoid_: crash, timeout
 
 **Stop sweep**:
-What the driver does before resuming a cut-off story orchestrator: `ListAgents`, then
+What the epic orchestrator does before resuming a cut-off story orchestrator: `ListAgents`, then
 `TaskStop` on every agent it did not itself spawn, since a child whose parent's turn was
 cut off is owned by no one else and stays listed as running however quiet it is.
 _Avoid_: cleanup, kill, orphan reaping
 
 **Idle rule**:
-Every subagent below the driver runs Bash in the foreground only, never a background call
+Every subagent below the epic orchestrator runs Bash in the foreground only, never a background call
 or a `Monitor`: a turn that ends with one still running counts as idle, so the parent is
 resumed with an interim report and marked finished, and the real report escapes to the
 top-level session; a lint or test run passes `timeout: 600000`, since one left at the
@@ -279,8 +286,7 @@ idle; that is how a nested orchestrator waits (ADR 0012).
 _Avoid_: foreground rule, no-background rule, sync rule
 
 **TMPDIR line**:
-The first line of every brief to an agent that works in a worktree (implementer, fix-up
-implementer, merger): `mkdir -p <worktree>/.tmp && export TMPDIR=<worktree>/.tmp`, the
+The first line of every brief to an agent that works in a worktree (an implementer, whatever its brief): `mkdir -p <worktree>/.tmp && export TMPDIR=<worktree>/.tmp`, the
 worktree path spelled out literally, so `mktemp`, heredocs and the scripts that use them
 write under a gitignored directory inside the worktree instead of a temp directory the
 sandbox denies. Its two riders: the `export` is repeated at the head of every Bash call,
@@ -311,15 +317,15 @@ _Avoid_: publish mode (and the bare word "publish" as a trigger)
 One batch of story cutters the ticket cut spawns together and waits for as a whole: one wave
 per level of the stories' DAG, in topological order, so each cutter gets the breakdown of
 every story its own waits on. A cycle is refused before the first wave. The word is the
-ticket cut's: a batch of ticket runners is not a wave.
+ticket cut's: a batch of ticket orchestrators is not a wave.
 
 **Frontier**:
 Per story: the tickets of one story that `bd ready --parent <story-id>` lists and that
 carry `ready-for-agent` (`bd ready` lists a `ready-for-human` or `needs-triage` child
 all the same), and none at all while the story has an open text blocker
-(`docs/agents/orchestration.md`, "Frontier"). A ticket whose runner ended
+(`docs/agents/orchestration.md`, "Frontier"). A ticket whose orchestrator ended
 without closing it is unclaimed by the story orchestrator before its next frontier read,
-since a claim outlives its runner and hides the ticket from `bd ready`; a ticket that failed
+since a claim outlives its orchestrator and hides the ticket from `bd ready`; a ticket that failed
 twice in a run is off that run's frontier though `bd ready` lists it. (The grilling skill uses the
 same word for askable questions; in this repo it means tickets.)
 _Avoid_: ready list, todo, backlog
@@ -404,7 +410,7 @@ _Avoid_: phase
 
 **Epic-level stage**:
 A stage that works the whole feature across its owner repos: the story cut, the ticket cut
-and the `/dev:implement-spec` driver. It writes to an owner repo only through that repo's beads
+and the `/dev:implement-spec` epic orchestrator. It writes to an owner repo only through that repo's beads
 database; files, `.gitignore` entries and commits there are the story orchestrator's (ADR 0010).
 _Avoid_: feature-level skill
 
