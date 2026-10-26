@@ -1583,6 +1583,11 @@ for case in 'status: accepted|ADR 0014 is accepted' 'Supersedes ADR 0001|ADR 001
   drop_phrase docs/adr/0014-one-loop-at-three-rows.md "${case%%|*}"
   sec=6 expect "ADR 0014 without '${case%%|*}' fails" 1 "${case#*|}"
 done
+# the accepted status is the frontmatter line itself: an amended status, or the words in the body, do not pass
+fresh
+swap_phrase docs/adr/0014-one-loop-at-three-rows.md '^status: accepted$' 'status: accepted, amended'
+printf '\nThe decision is status: accepted, as the prose says.\n' >> "$scratch/docs/adr/0014-one-loop-at-three-rows.md"
+sec=6 expect "ADR 0014 with 'status: accepted, amended' in the frontmatter fails" 1 "ADR 0014 is accepted"
 fresh
 rm "$scratch/docs/adr/0014-one-loop-at-three-rows.md"
 sec=6 expect "a missing ADR 0014 fails" 1 "missing document: $scratch/docs/adr/0014-one-loop-at-three-rows.md"

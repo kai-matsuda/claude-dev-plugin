@@ -40,7 +40,7 @@ holds the table of each row's parameters; this ADR holds why the loop is one.
 
 ## Considered options
 
-- **The two-tool review ADR 0001 chose**: the built-in `code-review` per ticket for
+- **The two-tool review ADR 0001 chose**: the built-in review per ticket for
   correctness, `mattpocock-skills:code-review` per story for standards and spec, with the
   reviewer spawned by the orchestrator so it runs one tier up. Rejected because its reason
   no longer holds: ADR 0001 gave the ticket a different tool since a ticket's spec was one

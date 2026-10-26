@@ -57,7 +57,10 @@
 #      model (dev-9k5.1.3): the loop sentence, the table's header and each of its three rows, the
 #      two scoping rules, the six trust rules as a closed list, the check command, the check record
 #      and the one gate exit, the seam-test blocking case and the one review tool, with the two-level
-#      loop's lint-first order, its review-marker exit and the built-in code-review retired; the
+#      loop's lint-first order, its review-marker exit and the built-in code-review retired; ADR 0014 (its
+#      frontmatter status line accepted, Supersedes ADR 0001, its considered options and
+#      decisions) and ADR 0001 (its status superseded by ADR 0014, its pointer at 0014), and
+#      the Review scope's pointer to ADR 0014; the
 #      Orchestrator role's beads-only principle for the epic-level stages (ADR 0010), the
 #      Frontier's unclaim rule (chezmoi-jvc) and its ready-for-agent-only admission with the
 #      finished story that tolerates an untriaged child (chezmoi-wgi), the Review verdict rule
@@ -759,7 +762,7 @@ hasc "close rule tolerates untriaged children" 'closed or carries `needs-triage`
 fi
 # ADR 0014 records the one loop and supersedes ADR 0001, which keeps its text and points at it
 if doc 6 "ADR 0014" "$docs/adr/0014-one-loop-at-three-rows.md"; then
-hasc "ADR 0014 is accepted" 'status: accepted'
+line_hase '^status: accepted$' "ADR 0014 is accepted" '^status: accepted$'
 hasc "ADR 0014 supersedes ADR 0001" 'Supersedes ADR 0001'
 hasc "ADR 0014 has considered options" '## Considered options'
 hasc "ADR 0014 option: the two-tool review" '**The two-tool review ADR 0001 chose**'
