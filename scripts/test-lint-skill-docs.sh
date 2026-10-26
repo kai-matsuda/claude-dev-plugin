@@ -613,7 +613,7 @@ expect "runbook copy with the seeded phrase ticket gate fails" 1 "retired ticket
 # the retired row names seeded back into each doc outside the retire-the-vocabulary sweep
 # (dev-9k5.1.10): the driver role, the ticket runner, the merger, the built-in review by name
 # and the two-review-tools paragraph each fail in the runbook, /workflow, the story and ticket
-# cuts and the tracker doc
+# cuts, close-epic and the tracker doc
 for doc in docs/WORKFLOW.md skills/workflow/SKILL.md skills/close-epic/SKILL.md skills/spec-to-stories/SKILL.md skills/spec-to-tickets/SKILL.md docs/agents/issue-tracker.md; do
   for case in 'A driver over the stories.|the retired driver role' \
     'Each ticket runner implements.|the retired ticket runner role' \
@@ -629,6 +629,10 @@ done
 fresh
 echo '`medium` and `high` tickets pass the check gate before merge.' >> "$scratch/docs/agents/issue-tracker.md"
 expect "tracker doc limiting the check gate to medium and high fails" 1 "medium and high tickets passing the check gate"
+
+fresh
+drop_phrase docs/agents/issue-tracker.md 'every ticket passes the check gate'
+expect "tracker doc without every ticket passing the check gate fails" 1 "every ticket passes the check gate"
 
 fresh
 echo 'read `<owner>/.spec-notes/<epic-id>/story-cut.md` first' >> "$scratch/skills/spec-to-tickets/SKILL.md"

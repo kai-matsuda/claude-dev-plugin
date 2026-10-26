@@ -13,6 +13,9 @@
 #   2. the human runbook docs/WORKFLOW.md (chezmoi-0jp.25) and the /workflow skill:
 #      names only commands that exist, no stale cross-repo wording, the cut skills' argument
 #      written in the runbook and filled in on /workflow's next lines (chezmoi-nz0);
+#      the /close-epic doc block (dev-9k5.1.10), and the retired_row_names sweep (the driver,
+#      ticket runner and merger roles, the built-in review by name, the two-review-tools
+#      paragraph) across sections 2, 3, 4 and 6;
 #   3. /spec-to-stories: user-typed, the required argument with its usage line and no
 #      no-argument epic recovery (chezmoi-nz0), the refusals, preflight, the orientation written
 #      to the story bead's design field behind its header line, no file and no git write in any
@@ -402,7 +405,7 @@ hasc "argument paragraph" '**The argument.**'
 retired_row_names
 line_has '^[|] 4b [|]' "flat path runs the checks before the review" "then the checks (the owner repo's check command), then \`/mattpocock-skills:code-review\`"
 line_has '^[|] 4a [|] `/dev:implement-spec`' "4a names the ticket orchestrators" '**ticket orchestrator**'
-line_has '^One review tool, three rows' "the one review tool paragraph" 'One review tool, three rows'
+hase "the one review tool paragraph" '^One review tool, three rows'
 line_has '^[|] 4a [|] opus [|]' "session model 4a: the epic orchestrator session" 'The epic orchestrator session'
 
 hasc "flat path's review is the ticket review" 'the ticket review (switch'
@@ -837,6 +840,7 @@ if doc 6 "tracker rules" "$agents/issue-tracker.md"; then
 retired_row_names
 # every ticket passes the check gate; only the review is medium/high (ADR 0014)
 lacks "medium and high tickets passing the check gate" '`medium` and `high` tickets pass the check gate'
+hasc "every ticket passes the check gate" 'every ticket passes the check gate'
 # the one test of the session mode (ADR 0008), stated once, in the opening before any section
 for need in '`<home>` is the session'"'"'s repo' '`<home>/repos.yaml`' '**workspace session**' '**repo session**' 'the only owner'; do
   opening_has "the tracker doc's one test" "$need"
