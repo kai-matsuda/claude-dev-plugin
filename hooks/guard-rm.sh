@@ -2,7 +2,7 @@
 # PreToolUse hook on Bash (registered in hooks/hooks.json): refuses a recursive rm whose target
 # carries a shell variable, special parameter or ~ not guarded with :?, or whose last path
 # segment is a *, before the command runs. Exit 2 refuses and the stderr line reaches the
-# model; exit 0 lets the command through. A fix-up implementer whose mktemp -d was denied ran
+# model; exit 0 lets the command through. An implementer whose mktemp -d was denied ran
 # rm -rf "$s"/* with $s empty, as rm -rf /*, for five minutes (chezmoi-cyc, INFRA-29).
 #
 # Checked: every unquoted word `rm` (also /bin/rm and \rm) in the command, in any position

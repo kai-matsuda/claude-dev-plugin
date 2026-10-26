@@ -217,8 +217,8 @@ acceptance criterion unmet, a behaviour wrong, a test missing, or no test at a s
 exercising the criteria) or **minor** (wording, naming, a nit that changes no behaviour an
 acceptance criterion names). The spec axis judges the row's unit (ticket body, story body,
 Jira Epic spec); the standards axis judges what entered since the last standards review,
-and is skipped at the epic row. A clean round sends its minors to one last fix-up
-implementer or to the inbox and moves on; a red or blocking fix-up spends the check gate's
+and is skipped at the epic row. A clean round sends its minors to one last implementer
+fix-up or to the inbox and moves on; a red or blocking fix-up spends the check gate's
 budget, a minors fix-up spends none (`docs/agents/orchestration.md`, "Review").
 _Avoid_: zero findings, nit-free, pass/fail
 
@@ -250,7 +250,7 @@ The one agent kind that edits files: it builds a ticket, fixes a failed check or
 finding by pointer brief, or resolves a merge conflict, always fresh and in the unit's
 worktree. A fix-up or a conflict resolution is an implementer given a different brief,
 not a role of its own (ADR 0014).
-_Avoid_: fix-up implementer, fixer, merger
+_Avoid_: fix-up implementer, fixer
 
 **Stray-commit check**:
 The read of every commit a push or a merge would carry but merges, before it runs: one whose
@@ -395,8 +395,8 @@ In a repo session an item whose fix lives outside the home is still filed there,
 _Avoid_: action item, suggestion
 
 **Deferred finding**:
-A story-review finding the story orchestrator puts off rather than sends to the fix-up
-implementer: out of the story's scope, or a note with nothing to implement; one kind of
+A story-review finding the story orchestrator puts off rather than sends to a fix-up
+brief: out of the story's scope, or a note with nothing to implement; one kind of
 follow-up.
 It is captured as a retro item in the inbox and never as a child of the story, since a
 child is a ticket and `bd ready` would list it to the next run

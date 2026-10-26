@@ -199,12 +199,12 @@ para_has() { queue+="p	$f	$2	$3	$1"$'\n'; }   # <heading> <description> <phrase>
 opening_has() { queue+="o	$f	$1	$2"$'\n'; }
 # the roles and review tools the three-row restatement retired (INFRA-33), swept in section 5
 retired_row_names() {
-  lacks "the retired driver role" '(^|[^a-z])[Dd]rivers?([^a-z]|$)'
-  lacks "the retired ticket runner role" '[Tt]icket runners?'
-  lacks "the retired merger role" '(^|[^a-z])[Mm]ergers?([^a-z]|$)'
-  lacks "the retired fix-up implementer role" '[Ff]ix-up implementers?'
-  lacks "the built-in code-review named" 'built-in `code-review`'
-  lacks "the two review tools paragraph" 'Two review tools'
+  lacks "the retired driver role in $f" '(^|[^a-z])[Dd]rivers?([^a-z]|$)'
+  lacks "the retired ticket runner role in $f" '[Tt]icket runners?'
+  lacks "the retired merger role in $f" '(^|[^a-z])[Mm]ergers?([^a-z]|$)'
+  lacks "the retired fix-up implementer role in $f" '[Ff]ix-up implementers?'
+  lacks "the built-in code-review named in $f" 'built-in `code-review`'
+  lacks "the two review tools paragraph in $f" 'Two review tools'
 }
 # run the queued checks: a missing pattern or a present lacks one is a FAIL line; a lacks, lacksf
 # or lackse one is followed by its first three matching lines, numbered as grep -n numbers them,
@@ -303,7 +303,7 @@ hasc "report template shows the story-closure human: line" 'human:   <owner repo
 lacks "glossary's avoided term human ticket" '(^|[^-])human ticket'
 # the epic row reviews and marks ready, but opening a PR stays the story orchestrator's
 lacks "PR-opening steps" 'draft PR|pr create|pulls create|open(s|ing)? (a|the) PR'
-lacks "the retired driver role" '(^|[^a-z])driver'
+lacks "the retired driver role in $f" '(^|[^a-z])driver'
 hasc "epic orchestrator role" '**epic orchestrator**'
 has "harness doc cited" 'docs/agents/harness.md'
 has "epic review, one PR at a time" 'one PR at a time'
@@ -663,9 +663,9 @@ done < <({ find "$agents" "$skills" -type f 2>/dev/null; echo "$user_claude_md";
 # docs/adr/ keeps their historical sense through .glossary-allow, so neither is swept here
 while IFS= read -r f; do
   retired_row_names
-  lacks "the retired review marker" 'review markers?'
-  lacks "the retired lint command" 'the lint command'
-  lacks "the retired test seams as checks" 'test seams? as (the )?checks?'
+  lacks "the retired review marker in $f" 'review markers?'
+  lacks "the retired lint command in $f" 'the lint command'
+  lacks "the retired test seams as checks in $f" 'test seams? as (the )?checks?'
 done < <({ find "$agents" "$skills" -type f 2>/dev/null; echo "$user_claude_md"; echo "$runbook"; echo "$docs/SEQUENCES.md"; } | sort)
 
 # the docs ship in the plugin: no path into the old dotfiles deployment (~/.claude/docs,
@@ -817,7 +817,7 @@ hasc "the completion notification carries the report" "the Agent tool's completi
 hasc "a nested orchestrator ends its turn after spawning" 'ends its turn'
 hasc "run_in_background is a JSON boolean" '`run_in_background` is a JSON boolean'
 hasc "idle rule" '**Idle rule.**'
-hasc "Bash in the foreground only below the driver" 'in the foreground only'
+hasc "Bash in the foreground only below the story orchestrator" 'in the foreground only'
 # the Bash tool backgrounds a call that outlives its 120 s default, which is the idle state the
 # rule forbids, so lint and test runs pass timeout: 600000 (dev-7k0, INFRA-30)
 hasc "the 120-second default backgrounds a longer call" '120-second default'
@@ -933,7 +933,7 @@ hasc "exploration subagent reads the design field" '.[0].design'
 hasc "exploration subagent owns the notes directory" '`<owner>/.spec-notes/<epic-id>/`'
 # a failed runner's ticket is unclaimed at once, a second failure leaves the resume pointer on
 # it, and the resume section says when a human runs the unclaim instead (chezmoi-jvc)
-hasc "a failed runner's ticket is unclaimed" 'first `bd -C <owner> unclaim <id>`'
+hasc "a failed ticket orchestrator's ticket is unclaimed" 'first `bd -C <owner> unclaim <id>`'
 hasc "second failure notes the resume pointer" 'failed twice: <reason>; resume:'
 hasc "hand unclaim condition in the resume section" 'by hand only when'
 # the frontier keeps only ready-for-agent tickets, a deferred review finding is captured in the
