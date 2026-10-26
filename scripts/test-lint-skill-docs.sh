@@ -912,8 +912,21 @@ drop_line skills/implement-story/SKILL.md 'worktrees: <absolute path>'
 expect "implement-story whose report template has no worktrees: line fails" 1
 
 fresh
-drop_phrase skills/implement-story/SKILL.md '`worktrees:` and `resume:` lines appear only when they have content'
+drop_phrase skills/implement-story/SKILL.md '`waiting:` and `worktrees:` lines appear only when they have content'
 expect "implement-story printing the worktrees: line unconditionally fails" 1
+
+# the report marks the PR a draft and always prints the resume line (dev-9k5.1.9 review 1)
+fresh
+drop_phrase skills/implement-story/SKILL.md 'the `resume:` line always appears'
+expect "implement-story whose resume: line is not always printed fails" 1 "missing (case-sensitive): the resume: line always appears"
+
+fresh
+echo 'The `human:` and `resume:` lines appear only when they have content.' >> "$scratch/skills/implement-story/SKILL.md"
+expect "implement-story printing the resume: line only with content fails" 1 "present: the resume: line printed only with content"
+
+fresh
+drop_phrase skills/implement-story/SKILL.md 'PR:      <url> (draft)'
+expect "implement-story whose report does not mark the PR a draft fails" 1 "missing (case-sensitive): report template marks the PR a draft"
 
 # every worktree brief starts with the TMPDIR line: the rule in the orchestration doc with its
 # per-call export and its mktemp template, the line in each of the three briefs (chezmoi-3eg)
@@ -1799,8 +1812,17 @@ for case in "the story row of the rules doc's table|a story gate not naming its 
   'Each pass runs the checks first|a pass not running the checks first|missing: the story gate runs the checks first in each pass' \
   'confirm the owner checkout is clean, `git -C <owner> status --porcelain` prints nothing|a story gate without its clean-checkout guard|missing: the story gate reads the tree only of a clean owner checkout' \
   '`git -C <owner> rev-parse <branch>^{tree}`|a story gate not keyed on the tree|missing: the story gate keys the check on the tip'"'"'s tree' \
-  'mkdir -p <owner>/.tmp/checks/<tree>; export TMPDIR=<owner>/.tmp; make -C <owner> check > <owner>/.tmp/checks/<tree>/log 2>&1; echo "command=make check exit=$?" > <owner>/.tmp/checks/<tree>/record; cat <owner>/.tmp/checks/<tree>/record|a story gate writing no check record|missing: the story gate writes the check record per tree' \
-  'The story keeps the reviewed tip in its notes: its `review:` note names the tip the review called clean, so a rerun reviews only a tip that has moved past it|a story gate without the reviewed-tip sentence|missing: the story keeps the reviewed tip in its notes' \
+  "the ticket orchestrator brief's step 3 check-record call with \`<owner>\` as its \`<worktree path>\`|a story gate writing no check record|missing: the story gate writes the check record with the brief's step 3 call" \
+  'The story keeps the reviewed tip in its notes: its `review:` note names the tip the gate exits on after a clean review, so a rerun reviews only a tip that has moved past it|a story gate without the reviewed-tip sentence|missing: the story keeps the reviewed tip in its notes' \
+  '`git -C <owner> branch --show-current` prints `<branch>`|a story gate not confirming its branch|missing: the story gate confirms the owner checkout is on the integration branch' \
+  '`failed: <story-id> not on <branch>`|a story gate without its off-branch failed line|missing: the story gate'"'"'s off-branch failed line' \
+  'untracked files count, since the check runs on the working tree while the record keys on the committed tree|a dirty-checkout guard not saying why untracked files count|missing: the story gate'"'"'s clean-checkout guard says why untracked files count' \
+  '`failed: <story-id> owner checkout dirty: <files>`, `<files>` the paths that status call printed, classified as step 6 says|a dirty-checkout failed line naming no files|missing: the dirty-checkout failed line names the files' \
+  "\`<round>\` one more than the last \`story review\` note's round step 1 read (1 when there is none)|a story review round restarting per run|missing: the story review round continues across runs" \
+  '`bd -C <owner> note <story-id> "story review <round> <tip SHA>: <findings>; <verdict line>"`|a story review note without its tip|missing: the story review note names the reviewed tip' \
+  '`<base>`, `git -C <owner> merge-base <default branch> <branch>`|a story review without its base SHA|missing: the story review names the base SHA' \
+  '`git -C <owner> show --remerge-diff <merge>`|a standards axis without the merge resolutions|missing: the standards axis gets each merge'"'"'s resolution' \
+  "\`git -C <owner> log --no-merges --grep='^Bead: <story-id>\$' <since>..<branch>\`|a standards axis without the fix-up commits|missing: the standards axis gets the fix-up commits since the last story review" \
   'the same SHA exits the gate|a reviewed tip not exiting the gate|missing: a green tip the review called clean exits the gate' \
   "the spec axis is the story's body|a story review without its spec axis|missing: the story review's spec axis is the story's body" \
   'the standards axis is what entered since the ticket reviews: the conflict resolutions and the coherence across tickets|a story review without its standards axis|missing: the story review'"'"'s standards axis is what entered since the ticket reviews' \
@@ -1820,6 +1842,16 @@ for case in "the story row of the rules doc's table|a story gate not naming its 
   drop_phrase skills/implement-story/SKILL.md "$phrase"
   expect "implement-story with ${rest%%|*} fails" 1 "${rest#*|}"
 done
+
+# step 1 drops the story review note kind (dev-9k5.1.9 review 1)
+fresh
+drop_phrase skills/implement-story/SKILL.md '`review:` and `story review <round>` (step 7)'
+expect "implement-story step 1 not reading the story review notes fails" 1 "missing (case-sensitive): step 1 reads the story review notes"
+
+# step 7's heading swapped away fails the story-gate pin (dev-9k5.1.9 review 1)
+fresh
+swap_phrase skills/implement-story/SKILL.md '^7\. \*\*Story gate\.\*\*' '7. **Story review.**'
+expect "implement-story step 7 not headed the story gate fails" 1 "missing: step 7 is the story gate"
 
 # the recorded-tree phrase sits on step 3's line too: dropped from step 7's line alone, it fails
 fresh
@@ -1841,7 +1873,9 @@ expect "story gate step 7 with the checks after the two-axis review fails" 1 "mi
 # fix-up, the Running the checks paragraph, the review marker, a deliver step marking the PR ready
 for case in '^(7\. .*)$|\1 Then spawn a merger.|present: a merger at the story gate' \
   "^(7\\. .*)\$|\\1 Every fix-up spends it, a minors-only review's included.|present: the story gate's minors fix-up spending budget" \
-  '^(8\. .*)$|\1 Mark the PR ready (`gh pr ready <n> --repo <forge-slug>`).|present: the deliver step marking the PR ready'; do
+  '^(8\. .*)$|\1 Mark the PR ready (`gh pr ready <n> --repo <forge-slug>`).|present: the deliver step marking the PR ready' \
+  '^(8\. .*)$|\1 Mark it ready (`tea pr edit <n> --repo <owner> --ready`).|present: the deliver step marking the PR ready with tea' \
+  '^(7\. .*)$|\1 Run `make -C <owner> check > <owner>/.tmp/checks/<tree>/log 2>\&1`.|present: a second copy of the check-record call'; do
   anchor=${case%%|*} rest=${case#*|}
   fresh
   swap_phrase skills/implement-story/SKILL.md "$anchor" "${rest%%|*}"

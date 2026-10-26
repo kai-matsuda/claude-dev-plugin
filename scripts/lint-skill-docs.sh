@@ -978,7 +978,8 @@ lacks "the sweep limited to this run's worktrees" 'every worktree the run made'
 hasc "a locked or unmerged worktree is reported, not removed" 'reported with its path'
 lacks "a locked or unmerged worktree forced" 'worktree remove[^`]* -(-force|f)'
 hasc "report template shows the worktrees: line" 'worktrees: <absolute path>'
-hasc "the worktrees: line appears only with content" '`worktrees:` and `resume:` lines appear only when they have content'
+hasc "the worktrees: line appears only with content" '`waiting:` and `worktrees:` lines appear only when they have content'
+lacks "the resume: line printed only with content" '`resume:` lines appear only'
 # the implementer, fix-up implementer and conflict-resolving implementer briefs start with the
 # TMPDIR line, stated once in the Owner repo section with its two riders and named in the ticket
 # orchestrator brief's steps 2, 3 and 4 (the landing) and the story review's fix-up (step 7); the
@@ -1088,13 +1089,32 @@ line_has "$G7" "the story gate names its row of the rules doc's table" "the stor
 line_has "$G7" "the story gate exits on green checks at the tip the review called clean" 'it exits when the checks are green on the tip the review called clean'
 line_has "$G7" "the story gate runs the checks first in each pass" 'Each pass runs the checks first'
 line_has "$G7" "the story gate reads the tree only of a clean owner checkout" 'confirm the owner checkout is clean, `git -C <owner> status --porcelain` prints nothing'
+# the guard (dev-9k5.1.9 review 1): the owner checkout on <branch>, untracked files counted and
+# why, the failed line naming the files, its exit classified as step 6 says
+line_has "$G7" "the story gate confirms the owner checkout is on the integration branch" '`git -C <owner> branch --show-current` prints `<branch>`'
+line_has "$G7" "the story gate's off-branch failed line" '`failed: <story-id> not on <branch>`'
+line_has "$G7" "the story gate's clean-checkout guard says why untracked files count" 'untracked files count, since the check runs on the working tree while the record keys on the committed tree'
+line_has "$G7" "the dirty-checkout failed line names the files" '`failed: <story-id> owner checkout dirty: <files>`, `<files>` the paths that status call printed, classified as step 6 says'
 line_has "$G7" "the story gate keys the check on the tip's tree" '`git -C <owner> rev-parse <branch>^{tree}`'
 line_has "$G7" "the story gate reads a recorded tree's check record and runs nothing" 'a tree with a record is checked: read its exit and run nothing'
-line_has "$G7" "the story gate writes the check record per tree" 'mkdir -p <owner>/.tmp/checks/<tree>; export TMPDIR=<owner>/.tmp; make -C <owner> check > <owner>/.tmp/checks/<tree>/log 2>&1; echo "command=make check exit=$?" > <owner>/.tmp/checks/<tree>/record; cat <owner>/.tmp/checks/<tree>/record'
-line_has "$G7" "the story keeps the reviewed tip in its notes" "The story keeps the reviewed tip in its notes: its \`review:\` note names the tip the review called clean, so a rerun reviews only a tip that has moved past it"
+# the check-record call is defined once, in the ticket orchestrator brief's step 3, and step 7
+# names it with <owner> for the worktree path (dev-9k5.1.9 review 1)
+line_has "$G7" "the story gate writes the check record with the brief's step 3 call" "the ticket orchestrator brief's step 3 check-record call with \`<owner>\` as its \`<worktree path>\`"
+line_lacks "$G7" "a second copy of the check-record call" 'check > <owner>/.tmp/checks/<tree>/log'
+line_has "$G7" "the story keeps the reviewed tip in its notes" "The story keeps the reviewed tip in its notes: its \`review:\` note names the tip the gate exits on after a clean review, so a rerun reviews only a tip that has moved past it"
+# the story review round is numbered on from the notes, not from 1 per run, and its note names
+# the tip it read (dev-9k5.1.9 review 1)
+hasc "step 1 reads the story review notes" '`review:` and `story review <round>` (step 7)'
+line_has "$G7" "the story review round continues across runs" "\`<round>\` one more than the last \`story review\` note's round step 1 read (1 when there is none)"
+line_has "$G7" "the story review note names the reviewed tip" '`bd -C <owner> note <story-id> "story review <round> <tip SHA>: <findings>; <verdict line>"`'
 line_has "$G7" "a green tip the review called clean exits the gate" 'the same SHA exits the gate'
 line_has "$G7" "the story review's spec axis is the story's body" "the spec axis is the story's body"
 line_has "$G7" "the story review's standards axis is what entered since the ticket reviews" 'the standards axis is what entered since the ticket reviews: the conflict resolutions and the coherence across tickets'
+# the standards axis gets its inputs: the base SHA, each merge's resolution and the fix-up
+# commits since the last story review (dev-9k5.1.9 review 1)
+line_has "$G7" "the story review names the base SHA" '`<base>`, `git -C <owner> merge-base <default branch> <branch>`'
+line_has "$G7" "the standards axis gets each merge's resolution" '`git -C <owner> show --remerge-diff <merge>`'
+line_has "$G7" "the standards axis gets the fix-up commits since the last story review" "\`git -C <owner> log --no-merges --grep='^Bead: <story-id>\$' <since>..<branch>\`"
 line_has "$G7" "a red or a blocking verdict goes to a fresh fix-up and starts the loop over" 'A red or a blocking verdict goes to a fresh fix-up implementer by pointer brief and the loop starts over'
 line_has "$G7" "the minors fix-up reruns the checks and spends no budget" 'the minors fix-up reruns the checks and spends no budget'
 line_has "$G7" "the story gate's budget is three fix-ups, red or blocking" 'The budget is three fix-ups per story, red or blocking alike'
@@ -1112,9 +1132,13 @@ awk -v g='Each pass runs the checks first' -v m='the same SHA exits the gate' -v
   || bad "missing: the story gate (step 7) runs the checks before the reviewed-tip compare and the two-axis review"
 line_has '^8\. ' "the deliver step leaves the PR a draft" 'The PR stays a draft'
 line_lacks '^8\. ' "the deliver step marking the PR ready" 'gh pr ready'
+line_lacks '^8\. ' "the deliver step marking the PR ready with tea" 'tea pr edit <n> --repo <owner> --ready'
 line_has '^8\. ' "the deliver step's Evidence is the delivered tip's check record" "its Evidence the delivered tip's check record"
 line_has '^9\. ' "step 9 removes the check records" '`rm -rf <owner>/.tmp/checks`'
 hasc "report template's failed: line names the check" 'or <check> <command>'
+# the report marks the PR a draft and always carries the resume line (dev-9k5.1.9 review 1)
+hasc "report template marks the PR a draft" 'PR:      <url> (draft)'
+hasc "the resume: line always appears" 'the `resume:` line always appears'
 lacks "the retired Evidence phrase" 'the command and its output'
 
 fi
