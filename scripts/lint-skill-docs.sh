@@ -53,8 +53,11 @@
 #   6. the shared rules: orchestration.md's working-directory preflight, and harness.md's
 #      waiting rule (an Agent call returns at once, the orchestrator ends its turn and the
 #      completion notification resumes it, never a Bash poll loop; pgrep is dead in the
-#      sandbox) with its idle rule (Bash in the foreground only below the driver, chezmoi-p4q) and the
-#      merger's lock wait as its one shell wait (chezmoi-sn1), the
+#      sandbox) with its idle rule (Bash in the foreground only below the driver, chezmoi-p4q), the
+#      model (dev-9k5.1.3): the loop sentence, the table's header and each of its three rows, the
+#      two scoping rules, the six trust rules as a closed list, the check command, the check record
+#      and the one gate exit, the seam-test blocking case and the one review tool, with the two-level
+#      loop's lint-first order, its review-marker exit and the built-in code-review retired; the
 #      Orchestrator role's beads-only principle for the epic-level stages (ADR 0010), the
 #      Frontier's unclaim rule (chezmoi-jvc) and its ready-for-agent-only admission with the
 #      finished story that tolerates an untriaged child (chezmoi-wgi), the Review verdict rule
@@ -603,25 +606,81 @@ para_has '**Review verdict.**' "the blocking verdict line" 'verdict: blocking (<
 para_has '**Review verdict.**' "the blocking-or-minor tags" '**blocking** or **minor**'
 para_has '**Review verdict.**' "a round with no blocking findings is clean" 'no blocking findings is **clean**'
 para_has '**Review verdict.**' "every fix-up, red or blocking, spends the loop's budget" "Every fix-up, red or blocking, spends the loop's budget"
-# the check gate, stated once as the loop (INFRA-32): at both levels; checks (lint first, then the test
-# seams, the first red stops); a red goes to a fresh fix-up implementer and the loop starts over; the
-# review; a blocking verdict likewise; a clean verdict exits at the ticket level, the review marker
-# at the story level; three fix-ups of either cause, a fourth failure is failed. Nothing carries the
-# story count across runs, so the rule claims no resume behaviour. The Idle rule's command list
-# names the checks
+# the model (dev-9k5.1.3): one loop run at three rows, stated once as its sentence and a table
+# whose rows give each level its parameters; each row pinned on its own line, so a cell kept
+# elsewhere in the doc cannot stand in
+hasc "the loop sentence" 'claim a unit, have a subagent build it, check it, review it, send a failure to a fresh fix-up or land it at the row above, and report one line'
+line_has '^[|] Row [|]' "the table's header names every parameter" '| Orchestrator | Builds | Checks | Review spec axis | Review standards axis | Reviewer and model | Fix-up | Lands by | Exits when | Budget |'
+row='^[|] [*][*]Ticket[*][*] [|]'
+line_has "$row" "ticket row: the ticket orchestrator" '| ticket orchestrator |'
+line_has "$row" "ticket row: one implementer in a worktree" '| one implementer in a worktree |'
+line_has "$row" "ticket row: the ticket's body as spec" "| the ticket's body |"
+line_has "$row" "ticket row: the ticket diff as standards" '| the ticket diff |'
+line_has "$row" "ticket row: lands by merge under the lock after the stray-commit check" 'merge onto the integration branch under the lock, after the stray-commit check'
+line_has "$row" "ticket row: three fix-ups" '| three fix-ups |'
+row='^[|] [*][*]Story[*][*] [|]'
+line_has "$row" "story row: the story orchestrator" '| story orchestrator |'
+line_has "$row" "story row: ticket orchestrators over the frontier" '| ticket orchestrators in parallel over the frontier |'
+line_has "$row" "story row: the story's body as spec" "| the story's body |"
+line_has "$row" "story row: what entered since as standards" 'what entered since the last standards review: conflict resolutions and cross-ticket coherence'
+line_has "$row" "story row: lands by a push, the PR a draft" '| push, the PR staying a draft |'
+line_has "$row" "story row: three fix-ups" '| three fix-ups |'
+row='^[|] [*][*]Epic[*][*] [|]'
+line_has "$row" "epic row: the epic orchestrator" '| epic orchestrator |'
+line_has "$row" "epic row: story orchestrators over the frontier" '| story orchestrators in parallel over the frontier |'
+line_has "$row" "epic row: the check command as the forge runs it" '| the check command as the forge runs it |'
+line_has "$row" "epic row: the Jira Epic's spec" "| the Jira Epic's spec |"
+line_has "$row" "epic row: no standards axis" '| none, the axis is skipped |'
+line_has "$row" "epic row: findings filed as tickets, the story re-run in add mode" 'findings filed as `ready-for-agent` tickets under the story, that story re-run in add mode'
+line_has "$row" "epic row: the PR marked ready, the human merges" 'the PR marked ready, the human merges'
+line_has "$row" "epic row: three per story" '| three per story |'
+for r in Ticket Story Epic; do
+  line_has "^[|] [*][*]$r[*][*] [|]" "$r row: the check command" '| the check command'
+  line_has "^[|] [*][*]$r[*][*] [|]" "$r row: the one exit" '| the checks green on the tip the review called clean |'
+done
+# the two scoping rules: what a review reads at a row, and which trees a row checks
+hasc "review scoping rule" '**Review scope.**'
+para_has '**Review scope.**' "the spec axis takes the row's own unit" "The spec axis takes the row's own unit"
+para_has '**Review scope.**' "the standards axis reads what entered since" 'The standards axis reviews what entered since the last standards review'
+hasc "check scoping rule" '**Check scope.**'
+para_has '**Check scope.**' "every tree is checked once" 'Every tree is checked once'
+para_has '**Check scope.**' "a tree with a check record counts as checked" 'a tree with a check record counts as checked'
+para_has '**Check scope.**' "a changed tree is checked again" 'changes the tree, so it is checked again'
+# the six trust rules, a closed list
+hasc "trust rule 1: reviewer one tier up" '1. The reviewer runs one tier of model above the implementer'
+hasc "trust rule 2: a fresh fix-up, never a message back" '2. A fix-up is a fresh implementer in the same worktree, never a message back'
+hasc "trust rule 3: an implementer's own check runs never count" "3. An implementer's own check runs never count"
+hasc "trust rule 4: the stray-commit check before every merge and push" '4. The stray-commit check runs before every merge and every push'
+hasc "trust rule 5: only ready-for-agent tickets are claimed" '5. Only `ready-for-agent` tickets are claimed'
+hasc "trust rule 6: the typed command authorises delivery" '6. The typed command authorises delivery'
+hasc "the trust rules are a closed list" 'The list is closed: a rule that wants to join needs an ADR'
+# one check command by Makefile convention, review-only without one; the check record keyed by
+# tree SHA, written only by an orchestrator, the delivered tip's record the PR's Evidence
+hasc "Check command rule" '**Check command.**'
+para_has '**Check command.**' "make check by Makefile convention" '`make check` when its Makefile has a `check` target'
+para_has '**Check command.**' "review-only without one" 'the gate is review-only'
+hasc "Check record rule" '**Check record.**'
+para_has '**Check record.**' "keyed by the tree SHA" 'keyed by the tree SHA'
+para_has '**Check record.**' "only an orchestrator writes a record" 'Only an orchestrator writes a check record'
+para_has '**Check record.**' "the delivered tip's record is the Evidence" "the record of the delivered tip's tree"
+# the one gate semantics at every row (INFRA-33): the exit, the fix-up and its budget, the
+# minors fix-up and the conflict resolution that rerun the checks and spend nothing, the
+# reviewed tip as a sentence; the two-level loop with lint before the seams and the review
+# marker exit is retired
 hasc "Check gate rule" '**Check gate.**'
-para_has '**Check gate.**' "both levels" 'ticket level and the story level'
-para_has '**Check gate.**' "lint first, then the test seams" 'lint first, then the test seams'
-para_has '**Check gate.**' "the first red stops" 'the first red stops'
-para_has '**Check gate.**' "a red goes to a fresh fix-up implementer and the loop starts over" 'A red goes to a fresh fix-up implementer, never to a reviewer, and the loop starts over'
-para_has '**Check gate.**' "a blocking verdict goes to a fresh fix-up implementer and the loop starts over" 'a blocking verdict goes to a fresh fix-up implementer and the loop starts over'
-para_has '**Check gate.**' "with the checks green, run the review" 'With the checks green, run the review:'
-para_has '**Check gate.**' "a clean verdict exits at the ticket level" 'a clean verdict exits at the ticket level'
-para_has '**Check gate.**' "the review marker is the story level's exit" 'at the story level the review marker is the exit'
-para_has '**Check gate.**' "three fix-ups per ticket at the ticket level" 'three fix-ups per ticket at the ticket level'
-para_has '**Check gate.**' "three per story at the story level" 'three per story at the story level'
-para_has '**Check gate.**' "either cause spends the budget" 'Either cause spends the budget'
-para_has '**Check gate.**' "a fourth failure is failed" 'a fourth failure is `failed`'
+para_has '**Check gate.**' "one gate at every row" 'At every row the gate exits when the checks are green on the tip the review called clean'
+para_has '**Check gate.**' "a red or blocking verdict goes to a fresh implementer" 'A red or a blocking verdict goes to a fresh implementer by pointer brief and the loop starts over'
+para_has '**Check gate.**' "three fix-ups per unit" 'three such fix-ups per unit'
+para_has '**Check gate.**' "a fourth failure is failed" 'the fourth is `failed`'
+para_has '**Check gate.**' "a minors fix-up and a conflict resolution rerun the checks" 'A minors fix-up and a conflict resolution move the tip, so the checks rerun'
+para_has '**Check gate.**' "and spend nothing" 'no budget is spent'
+para_has '**Check gate.**' "the reviewed tip noted on the story" 'records the reviewed tip in its notes'
+lacks "the retired two-level check order" 'lint first, then the test seams'
+lacks "the retired review marker exit" 'the review marker is the exit'
+# the seam-test blocking case, and the one review tool
+para_has '**Review verdict.**' "no test at a story seam is blocking" 'no test at a story seam exercises the criteria'
+hasc "the one review tool" '`mattpocock-skills:code-review` at every row'
+lacks "the built-in code-review in the model" 'built-in `code-review`'
 fi
 if doc 6 "harness rules" "$agents/harness.md"; then
 # the mechanics live in the harness doc (dev-9k5.1.2): the rules above moved out of the
@@ -645,9 +704,6 @@ hasc "Bash in the foreground only below the driver" 'in the foreground only'
 hasc "the 120-second default backgrounds a longer call" '120-second default'
 hasc "lint and test runs carry the ten-minute timeout" 'timeout: 600000'
 lacks "a foreground spawn" 'spawns in the foreground|foreground spawn returns|has no notification to wait for'
-# the merger's wait on the owner checkout's lock is the one shell wait, a bounded foreground
-# until-loop, since a background call ends the merger's turn early (chezmoi-sn1, the idle rule)
-hasc "merger lock wait is the one shell wait" 'The one shell wait'
 # every worktree brief starts by exporting a gitignored repo-relative TMPDIR, since the macOS
 # default is unwritable in the sandbox (mktemp -d, heredocs); the export is repeated per Bash
 # call and mktemp -d takes a template, since macOS mktemp ignores TMPDIR (chezmoi-3eg)

@@ -39,7 +39,10 @@ _Avoid_: sub-task
 
 **Test seam**:
 The highest public boundary of a repo through which a feature can be tested, one of the
-few a story names under its `## Test seams`; every ticket of the story verifies at them.
+few a story names under its `## Test seams`: the story's testing boundary, not a check.
+The implementer's brief names the seams as where its tests go, and the reviewer's as where
+the unit's criteria must be exercised; no test at a seam exercising them is a blocking
+finding.
 _Avoid_: test boundary, test surface, test entry point
 
 **Story cut**:
@@ -178,17 +181,32 @@ a branch-form note or no forge is decided locally, else asked. It is how a seale
 stays sealed.
 _Avoid_: merge check, PR check, seal check
 
+**Check command**:
+The one command an owner repo's check runs: `make check` when its Makefile has a `check`
+target, otherwise none, and the check gate is review-only. Every row runs the same one,
+resolved by that convention alone (`docs/agents/orchestration.md`, "Review").
+_Avoid_: gate command, CI command
+
 **Check**:
-One deterministic command whose exit code decides, the owner repo's lint or a test seam;
-a story's checks are that lint and its test seams together.
+One run of the check command on a tree, named by the tip's tree SHA. Every tree is checked
+once: a tree with a check record counts as checked, and a sibling landing, a conflict
+resolution or a fix-up makes a new tree that is checked again.
 _Avoid_: pre-flight, verification step
 
+**Check record**:
+The command, its exit and its log of one check, written by the orchestrator that ran it
+under the owner checkout's scratch directory, keyed by the tree SHA. Only an orchestrator
+writes one, an implementer's own runs never count, and the PR's Evidence is the record of
+the delivered tip's tree.
+_Avoid_: check stamp, check cache, run log
+
 **Check gate**:
-The loop both levels run on a read-only branch tip: the story's checks, cheapest first,
-then the review. A red check or a blocking verdict sends the tip to a fresh fix-up
-implementer and the loop starts over. At the ticket level a clean verdict exits; at the
-story level the review marker does. A ticket runner runs it on each implementer's branch,
-the story orchestrator on the integration branch.
+The one gate every row (ticket, story, epic) runs: the check command, then the review. It
+exits when the checks are green on the tip the review called clean. A red or a blocking
+verdict goes to a fresh implementer by pointer brief and the loop starts over, three such
+fix-ups per unit and the fourth `failed`; a minors fix-up and a conflict resolution move
+the tip, so the checks rerun, but no reviewer runs again and no budget is spent. The story
+orchestrator records the reviewed tip in its notes, so a rerun knows it.
 _Avoid_: test gate, lint gate, seam gate, check and review loop
 
 **Review marker**:
@@ -201,28 +219,47 @@ already reviewed tip was the orchestrator's guess.
 _Avoid_: review note, reviewed flag, review stamp
 
 **Review verdict**:
-The line a reviewer's report ends on: `verdict: clean` when no finding is blocking, else
-`verdict: blocking (<n>)`. Every finding is tagged **blocking** (an acceptance criterion
-unmet, a behaviour wrong, a test missing) or **minor** (wording, naming, a nit that changes
-no behaviour an acceptance criterion names). A clean round sends its minors to one last
-fix-up implementer or to the inbox and moves on; every fix-up, red or blocking, spends the
-check gate loop's budget; at the ticket level a clean round's fix-up does not, while at the
-story level it does (`docs/agents/orchestration.md`, "Review").
+The line a reviewer's report ends on, at every row: `verdict: clean` when no finding is
+blocking, else `verdict: blocking (<n>)`. Every finding is tagged **blocking** (an
+acceptance criterion unmet, a behaviour wrong, a test missing, or no test at a story seam
+exercising the criteria) or **minor** (wording, naming, a nit that changes no behaviour an
+acceptance criterion names). The spec axis judges the row's unit (ticket body, story body,
+Jira Epic spec); the standards axis judges what entered since the last standards review,
+and is skipped at the epic row. A clean round sends its minors to one last fix-up
+implementer or to the inbox and moves on; a red or blocking fix-up spends the check gate's
+budget, a minors fix-up spends none (`docs/agents/orchestration.md`, "Review").
 _Avoid_: zero findings, nit-free, pass/fail
 
+**Epic orchestrator**:
+The session that runs `/dev:implement-spec`, the epic row's orchestrator: it spawns one story
+orchestrator per startable story, runs the epic review once every story has delivered,
+holding each PR a draft until its verdict is clean, and reads the end state; nothing below
+it touches a ticket. It is the only agent whose turn a `SendMessage` reply reaches, so it
+alone resumes a cut-off story orchestrator, and its `TaskStop` reaches every agent of the
+run.
+_Avoid_: feature orchestrator, top-level orchestrator, main session
+
 **Story orchestrator**:
-The agent that implements one story: it works that story's frontier in its owner repo,
-spawning a ticket runner per ticket, and delivers the story's integration branch, review
-and PR. Spawned per story by `/dev:implement-spec`, or the session itself when `/dev:implement-story`
-is typed in the story's repo.
+The story row's orchestrator: it works one story's frontier in its owner repo, one ticket
+orchestrator per ticket, runs the story's check gate on the integration branch and delivers
+it as a draft PR. Spawned per story by the epic orchestrator, or the session itself when
+`/dev:implement-story` is typed in the story's repo.
 _Avoid_: sub-orchestrator, repo agent
+
+**Ticket orchestrator**:
+The ticket row's orchestrator: it owns one ticket from claim to landing, its implementer,
+its check gate and its fix-ups, and lands the ticket itself (the lock, the stray-commit
+check, the merge), sending a conflict to an implementer in the ticket's worktree and then
+fast-forwarding. It reports one line to its story orchestrator and is discarded.
+_Avoid_: ticket agent, worker
 
 **Stray-commit check**:
 The read of every commit a push or a merge would carry but merges, before it runs: one whose
 author is not the run's `user.email`, or that has no `Bead:` trailer, came from outside the
 run (a test whose throwaway repo failed to init commits into the enclosing checkout).
-`/dev:implement-story` runs it before each push of the integration branch and each merger
-before its merge; a hit stops the push or merge with `failed: stray commit <sha> <subject>`.
+The orchestrator runs it before every merge and every push (a trust rule): the ticket
+orchestrator before landing its ticket, the story orchestrator before each push of the
+integration branch; a hit stops the merge or push with `failed: stray commit <sha> <subject>`.
 _Avoid_: push guard, stray check
 
 **Ticket runner**:
