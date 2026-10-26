@@ -954,7 +954,7 @@ for step in 2 3 4; do
   for _ in 1 2 3 4; do
     swap_phrase skills/implement-story/SKILL.md "^(> $step\. .*)TMPDIR line" '\1TMPDIR'
   done
-  expect "implement-story whose ticket runner step $step brief loses the TMPDIR line fails" 1
+  expect "implement-story whose ticket orchestrator step $step brief loses the TMPDIR line fails" 1
 done
 
 fresh
@@ -1034,7 +1034,7 @@ expect "ticket orchestrator brief whose spawn does not end the turn fails" 1
 
 fresh
 drop_line skills/implement-story/SKILL.md "the harness doc's Idle rule"
-expect "ticket orchestrator brief without the idle rule fails" 1
+expect "implement-story without the harness doc's Idle rule fails" 1
 
 fresh
 drop_line skills/spec-to-tickets/SKILL.md 'the "Waiting" rule of `orchestration.md`'
@@ -1618,13 +1618,18 @@ expect "harness doc's Idle rule without the checks fails" 1
 # convention and the one-line harness citation, each phrase dropped alone; the brief opener
 # swapped for the retired name; the retired lint command, merger brief and per-round log seeded
 # back. Each pin is read on its own line, so the phrase dropped there alone still fails
-for phrase in "your row is the ticket row of the rules doc's table" 'you build with one implementer in a worktree' \
-  'check with the check command' "review the ticket's body as the spec axis and the ticket diff as the standards axis, one tier up, none at \`low\`" \
-  'fix up by pointer brief in the same worktree' 'land by merging onto `<branch>` under the lock after the stray-commit check' \
-  'exit when the checks are green on the tip the review called clean' 'three fix-ups'; do
+for case in "your row is the ticket row of the rules doc's table|the brief names its row of the rules doc's table" \
+  'you build with one implementer in a worktree|the row builds with one implementer in a worktree' \
+  'check with the check command|the row checks with the check command' \
+  "review the ticket's body as the spec axis and the ticket diff as the standards axis, one tier up, none at \`low\`|the row reviews the ticket body and diff one tier up, none at low" \
+  'fix up by pointer brief in the same worktree|the row fixes up by pointer brief in the same worktree' \
+  'land by merging onto `<branch>` under the lock after the stray-commit check|the row lands by merging under the lock after the stray-commit check' \
+  'exit when the checks are green on the tip the review called clean|the row exits on green checks at the tip the review called clean' \
+  'three fix-ups|the row budgets three fix-ups'; do
+  phrase=${case%%|*}
   fresh
   drop_phrase skills/implement-story/SKILL.md "$phrase"
-  expect "ticket orchestrator brief without its row parameter '$phrase' fails" 1 "missing: the brief's row parameter ($phrase"
+  expect "ticket orchestrator brief without its row parameter '$phrase' fails" 1 "missing: ${case#*|} ($phrase"
 done
 
 for case in 'check command `make check` when `<owner>`'"'"'s Makefile has a `check` target, else none and the gate is review-only|missing: the brief'"'"'s check command by Makefile convention' \
@@ -1743,37 +1748,37 @@ expect "implement-story with 'the command and its output' seeded fails" 1 "the c
 for phrase in 'verdict: clean' 'verdict: blocking \(<n>\)' '\*\*blocking\*\* or \*\*minor\*\*' 'within the budget above'; do
   fresh
   swap_phrase skills/implement-story/SKILL.md "^(> 3\. .*)$phrase" '\1'
-  expect "ticket runner step 3 without '$phrase' fails" 1
+  expect "ticket orchestrator step 3 without '$phrase' fails" 1
 done
 
 # each pointer is checked on its own line: step 3 of the runner brief and step 7 of the skill
 fresh
 swap_phrase skills/implement-story/SKILL.md "^(> 3\. .*)the rules doc's Review verdict" '\1the rules doc'
-expect "ticket runner step 3 without its pointer at the Review verdict rule fails" 1
+expect "ticket orchestrator step 3 without its pointer at the Review verdict rule fails" 1
 
 fresh
 swap_phrase skills/implement-story/SKILL.md "^(7\. .*)the rules doc's Review verdict" '\1the rules doc'
 expect "story review step 7 without its pointer at the Review verdict rule fails" 1
 
-# the ticket runner's check and review loop (dev-cq0.1.4, dev-1xf.1.2): the step 3 line carrying it
+# the ticket orchestrator's check and review loop (dev-cq0.1.4, dev-1xf.1.2): the step 3 line carrying it
 # dropped whole, then each pin on its own line, so a phrase kept elsewhere in the file does not pass
 fresh
 drop_line skills/implement-story/SKILL.md '> 3. **Check gate**, every tier'
-expect "ticket runner brief without the loop step fails" 1 "missing: ticket runner step 3 opens with the check gate, every tier"
+expect "ticket orchestrator brief without the loop step fails" 1 "missing: ticket orchestrator step 3 opens with the check gate, every tier"
 
 fresh
 swap_phrase skills/implement-story/SKILL.md '^> 3\. \*\*Check gate\*\*, every tier' '> 3. The checks'
-expect "ticket runner step 3 not opening with the loop fails" 1 "missing: ticket runner step 3 opens with the check gate, every tier"
+expect "ticket orchestrator step 3 not opening with the loop fails" 1 "missing: ticket orchestrator step 3 opens with the check gate, every tier"
 
 # position, each pin on its own: the opener kept, a reviewer spawned ahead of the checks' green
 # (the green's own spawn kept too), then a green that spawns no reviewer
 fresh
 swap_phrase skills/implement-story/SKILL.md '^(> 3\. \*\*Check gate\*\*, every tier, )' '\1for `medium` and `high` spawn a **reviewer** alongside it, '
-expect "ticket runner step 3 spawning the reviewer before the checks' green fails" 1 "present: ticket runner step 3 spawns a reviewer ahead of the checks' green"
+expect "ticket orchestrator step 3 spawning the reviewer before the checks' green fails" 1 "present: ticket orchestrator step 3 spawns a reviewer ahead of the checks' green"
 
 fresh
 swap_phrase skills/implement-story/SKILL.md '^(> 3\. .*Green: a `low` ticket exits the loop, go to step 4; for `medium` and `high`, )spawn a \*\*reviewer\*\*' '\1hand the ticket to a **reviewer**'
-expect "ticket runner step 3 whose green spawns no reviewer fails" 1 "missing: the check gate runs before step 3's reviewer"
+expect "ticket orchestrator step 3 whose green spawns no reviewer fails" 1 "missing: the check gate runs before step 3's reviewer"
 
 for case in "as the rules doc's Check gate says|a loop step not citing the rules doc's loop|missing: the loop step cites the rules doc's loop" \
   'A red spawns a fresh fix-up implementer and the loop starts over from the checks|a red not starting the loop over|missing: a red starts the loop over from the checks' \
@@ -1789,7 +1794,7 @@ for case in "as the rules doc's Check gate says|a loop step not citing the rules
   phrase=${case%%|*} rest=${case#*|}
   fresh
   drop_phrase skills/implement-story/SKILL.md "$phrase"
-  expect "ticket runner step 3 with ${rest%%|*} fails" 1 "${rest#*|}"
+  expect "ticket orchestrator step 3 with ${rest%%|*} fails" 1 "${rest#*|}"
 done
 
 fresh
@@ -1798,7 +1803,7 @@ expect "implement-story regaining the run-the-gate-again wording fails" 1 "prese
 
 fresh
 drop_phrase skills/implement-story/SKILL.md 'The implementer runs no gate and spawns no one'
-expect "ticket runner step 2 without the implementer running no gate fails" 1 "missing: runner step 2's implementer runs no gate and spawns no one"
+expect "ticket orchestrator step 2 without the implementer running no gate fails" 1 "missing: ticket orchestrator step 2's implementer runs no gate and spawns no one"
 
 fresh
 echo 'Anything you cannot finish (reviewer still not clean after three rounds) is `failed`.' >> "$scratch/skills/implement-story/SKILL.md"
