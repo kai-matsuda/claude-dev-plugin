@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help lint ci fixtures
+.PHONY: help check lint ci fixtures
 
 # run one step and print its elapsed seconds after it, so a CI log says where the time went
 timed = @t=$$(date +%s); $(1); rc=$$?; echo "$(1): $$(( $$(date +%s) - t ))s"; exit $$rc
@@ -8,10 +8,12 @@ timed = @t=$$(date +%s); $(1); rc=$$?; echo "$(1): $$(( $$(date +%s) - t ))s"; e
 help: ## Show this help
 	@grep -E '^[a-z]+:.*##' $(MAKEFILE_LIST) | awk -F ':.*## ' '{printf "  %-8s %s\n", $$1, $$2}'
 
-lint: ci ## Everything: ci, then the fixture tests last (needs bd and cargo)
+check: ci ## Everything: ci, then the fixture tests last (needs bd and cargo); the target CI calls
 	$(MAKE) fixtures
 
-ci: ## Lint the skill docs and run every script test that needs no beads database (the target CI calls)
+lint: check ## Deprecated alias of check, kept for one release
+
+ci: ## Lint the skill docs and run every script test that needs no beads database (check runs it first)
 	$(call timed,scripts/lint-skill-docs.sh)
 	$(call timed,scripts/check-test-git-init.sh)
 	$(call timed,scripts/test-lint-skill-docs.sh)
