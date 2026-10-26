@@ -5,7 +5,7 @@ disable-model-invocation: true
 ---
 
 <!-- The story cut as its own typed stage (INFRA-27, ADR 0007), taken out of the old
-     /dev:spec-to-tickets, which keeps the ticket cut as a thin driver over story cutters. This
+     /dev:spec-to-tickets, which keeps the ticket cut as a thin skill over story cutters. This
      file keeps the epic bead and spec gather with its refusals, the manifest resolution,
      the working-directory preflight (shared, in orchestration.md), the inline exploration, the story
      quiz, the publish and the orientation written to each story's design field (chezmoi-cdf,

@@ -31,7 +31,7 @@
 #      answering failed twice: notes, one sandbox-disabled forge query per finished story it
 #      touches with the MERGED, OPEN and no-forge paths, and its additions-only publish
 #      with the dependent's body rewritten and Jira untouched (chezmoi-9v4.1.7);
-#   4. the /spec-to-tickets driver: user-typed, the same argument rule as 3, the refusals,
+#   4. /spec-to-tickets: user-typed, the same argument rule as 3, the refusals,
 #      cutters pointed at the waiting rule and without a model override, explicit dependent
 #      lines, the closed and publish-failed lines, a Jira comment over every story, no
 #      story-cut procedure; the cycle refusal, topological waves with every upstream
@@ -191,6 +191,15 @@ line_hase() { queue+="A	$f	$2	$3	$1"$'\n'; }   # <anchor> <description> <pattern
 line_lacks() { [ -f "$f" ] || return 0; queue+="X	$f	$2	$3	$1"$'\n'; }   # <anchor> <description> <phrase>
 para_has() { queue+="p	$f	$2	$3	$1"$'\n'; }   # <heading> <description> <phrase>
 opening_has() { queue+="o	$f	$1	$2"$'\n'; }
+# the roles and review tools the three-row restatement retired (INFRA-33): a doc outside the
+# retire-the-vocabulary sweep names none of them
+retired_row_names() {
+  lacks "the retired driver role" '(^|[^a-z])[Dd]rivers?([^a-z]|$)'
+  lacks "the retired ticket runner role" '[Tt]icket runners?'
+  lacks "the retired merger role" '(^|[^a-z])[Mm]ergers?([^a-z]|$)'
+  lacks "the built-in code-review named" 'built-in `code-review`'
+  lacks "the two review tools paragraph" 'Two review tools'
+}
 # run the queued checks: a missing pattern or a present lacks one is a FAIL line; a lacks, lacksf
 # or lackse one is followed by its first three matching lines, numbered as grep -n numbers them,
 # an anchored one names its anchor, a paragraph or opening one the scope it searched
@@ -379,14 +388,20 @@ fi
 if doc 2 "/workflow" "$skills/workflow/SKILL.md"; then
 hasc "workflow prints the story cut's argument" 'next: `/dev:spec-to-stories <arg>`'
 hasc "workflow prints the ticket cut's argument" 'next: `/dev:spec-to-tickets <arg>`'
+retired_row_names
 fi
 if doc 2 "runbook" "$runbook"; then
 # the cut skills take the feature as their one argument; the runbook has a paragraph on it and
 # writes it in the 3a and 3b rows below (chezmoi-nz0)
 hasc "argument paragraph" '**The argument.**'
-# the flat path (row 4b) runs the checks before the built-in code-review, and its review is the
+# the flat path (row 4b) runs the checks before the one review tool, and its review is the
 # ticket review; "ticket gate" is retired so "gate" means the checks in every doc (dev-cq0.1.3)
-hasc "flat path runs the checks before the built-in code-review" "then the checks (the owner repo's lint, then the agreed test seams), then the built-in \`code-review\`"
+retired_row_names
+hasc "flat path runs the checks before the review" "then the checks (the owner repo's lint, then the agreed test seams), then \`/mattpocock-skills:code-review\`"
+hasc "4a names the ticket orchestrators" '**ticket orchestrator**'
+hasc "the one review tool paragraph" 'One review tool, three rows'
+hasc "session model 4a: the epic orchestrator session" 'The epic orchestrator session'
+
 hasc "flat path's review is the ticket review" 'the ticket review (switch'
 lacks "retired ticket gate name in the runbook" 'ticket gate'
 
@@ -439,6 +454,7 @@ fi
 
 # ---- 3. /spec-to-stories ----
 if doc 3 "/spec-to-stories" "$skills/spec-to-stories/SKILL.md"; then
+retired_row_names
 has "frontmatter" 'disable-model-invocation: true'
 has "preflight pointer" '"Working-directory preflight"'
 has "epic gather pointer" '"gather the epic bead"'
@@ -535,8 +551,9 @@ hasc "add mode leaves Jira untouched" 'the Jira description is untouched'
 
 fi
 
-# ---- 4. /spec-to-tickets driver ----
-if doc 4 "/spec-to-tickets driver" "$skills/spec-to-tickets/SKILL.md"; then
+# ---- 4. /spec-to-tickets ----
+if doc 4 "/spec-to-tickets" "$skills/spec-to-tickets/SKILL.md"; then
+retired_row_names
 has "frontmatter" 'disable-model-invocation: true'
 has "no-stories refusal" 'refused: no stories'
 has "every-story-cut refusal" 'refused: every story already cut'
@@ -577,7 +594,7 @@ has "topological waves" 'topological waves'
 has "one wave per DAG level" 'one wave per level of the story DAG'
 has "dependent brief carries every upstream breakdown" 'one `Dependency:` line per publish blocker'
 has "story-closure edge orders no wave" 'a story-closure edge orders no wave'
-has "driver re-cuts an already cut dependent" 're-cuts that dependent itself'
+has "the ticket cut re-cuts an already cut dependent" 're-cuts that dependent itself'
 has "the re-cut adds a second bump" 'second bump'
 # a skipped repo's publish line has no dependency story; the inline re-cut is keyed on the
 # missing bump; a finished dependent is excluded at step 1, and a failed re-cut of a dependency
@@ -814,6 +831,7 @@ hasc "the -C discipline" 'This section binds every session and subagent'
 hasc "the preflight stays in the rules doc" 'The working-directory preflight stays in `orchestration.md`'
 fi
 if doc 6 "tracker rules" "$agents/issue-tracker.md"; then
+retired_row_names
 # the one test of the session mode (ADR 0008), stated once, in the opening before any section
 for need in '`<home>` is the session'"'"'s repo' '`<home>/repos.yaml`' '**workspace session**' '**repo session**' 'the only owner'; do
   opening_has "the tracker doc's one test" "$need"

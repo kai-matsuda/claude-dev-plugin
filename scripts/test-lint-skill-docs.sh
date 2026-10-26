@@ -579,8 +579,8 @@ expect "runbook copy without the argument paragraph fails" 1
 # the flat path's checks-first wording and its ticket review name (dev-cq0.1.3): each phrase
 # dropped alone, the rest of its row kept, so each case fires its own pin
 fresh
-drop_phrase docs/WORKFLOW.md "then the checks (the owner repo's lint, then the agreed test seams), then the built-in \`code-review\`"
-expect "runbook copy without the checks-first flat path fails" 1 "flat path runs the checks before the built-in code-review"
+drop_phrase docs/WORKFLOW.md "then the checks (the owner repo's lint, then the agreed test seams), then \`/mattpocock-skills:code-review\`"
+expect "runbook copy without the checks-first flat path fails" 1 "flat path runs the checks before the review"
 
 fresh
 drop_phrase docs/WORKFLOW.md 'the ticket review (switch'
@@ -589,6 +589,22 @@ expect "runbook copy without the ticket review name fails" 1 "flat path's review
 fresh
 echo 'Then the ticket gate (switch `/model` to the tier'"'"'s review model) runs.' >> "$scratch/docs/WORKFLOW.md"
 expect "runbook copy with the seeded phrase ticket gate fails" 1 "retired ticket gate name in the runbook"
+
+# the retired row names seeded back into each doc outside the retire-the-vocabulary sweep
+# (dev-9k5.1.10): the driver role, the ticket runner, the merger, the built-in review by name
+# and the two-review-tools paragraph each fail in the runbook, /workflow, the story and ticket
+# cuts and the tracker doc
+for doc in docs/WORKFLOW.md skills/workflow/SKILL.md skills/spec-to-stories/SKILL.md skills/spec-to-tickets/SKILL.md docs/agents/issue-tracker.md; do
+  for case in 'A driver over the stories.|the retired driver role' \
+    'Each ticket runner implements.|the retired ticket runner role' \
+    'A merger folds it in.|the retired merger role' \
+    'Run the built-in `code-review` on it.|the built-in code-review named' \
+    'Two review tools, two stages: per ticket.|the two review tools paragraph'; do
+    fresh
+    echo "${case%%|*}" >> "$scratch/$doc"
+    expect "$doc seeded with ${case##*|} fails" 1 "${case##*|}"
+  done
+done
 
 fresh
 echo 'read `<owner>/.spec-notes/<epic-id>/story-cut.md` first' >> "$scratch/skills/spec-to-tickets/SKILL.md"
