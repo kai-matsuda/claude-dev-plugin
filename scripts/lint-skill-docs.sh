@@ -13,9 +13,7 @@
 #   2. the human runbook docs/WORKFLOW.md (chezmoi-0jp.25) and the /workflow skill:
 #      names only commands that exist, no stale cross-repo wording, the cut skills' argument
 #      written in the runbook and filled in on /workflow's next lines (chezmoi-nz0);
-#      the /close-epic doc block (dev-9k5.1.10), and the retired_row_names sweep (the driver,
-#      ticket runner and merger roles, the built-in review by name, the two-review-tools
-#      paragraph) across sections 2, 3, 4 and 6;
+#      the /close-epic doc block (dev-9k5.1.10);
 #   3. /spec-to-stories: user-typed, the required argument with its usage line and no
 #      no-argument epic recovery (chezmoi-nz0), the refusals, preflight, the orientation written
 #      to the story bead's design field behind its header line, no file and no git write in any
@@ -58,6 +56,11 @@
 #      and the check and review loop's retired two-gate wording ("Evidence run", "a later run
 #      reviews the fix", "a third round of either kind", "a second red") is absent from those,
 #      the root GLOSSARY.md and docs/SEQUENCES.md, never docs/specs (dev-1xf.1.4);
+#      and the retired vocabulary (dev-9k5.1.11): the driver, ticket runner and merger roles,
+#      the built-in review by name, the two-review-tools paragraph, the review marker, the lint
+#      command and the test seams as checks are absent from the skills, the agent docs, the
+#      project CLAUDE.md, the runbook and docs/SEQUENCES.md (the glossary lists them under
+#      _Avoid_, docs/adr/ keeps them through .glossary-allow);
 #   6. the shared rules: orchestration.md's working-directory preflight, and harness.md's
 #      waiting rule (an Agent call returns at once, the orchestrator ends its turn and the
 #      completion notification resumes it, never a Bash poll loop; pgrep is dead in the
@@ -194,8 +197,7 @@ line_hase() { queue+="A	$f	$2	$3	$1"$'\n'; }   # <anchor> <description> <pattern
 line_lacks() { [ -f "$f" ] || return 0; queue+="X	$f	$2	$3	$1"$'\n'; }   # <anchor> <description> <phrase>
 para_has() { queue+="p	$f	$2	$3	$1"$'\n'; }   # <heading> <description> <phrase>
 opening_has() { queue+="o	$f	$1	$2"$'\n'; }
-# the roles and review tools the three-row restatement retired (INFRA-33): a doc outside the
-# retire-the-vocabulary sweep names none of them
+# the roles and review tools the three-row restatement retired (INFRA-33), swept in section 5
 retired_row_names() {
   lacks "the retired driver role" '(^|[^a-z])[Dd]rivers?([^a-z]|$)'
   lacks "the retired ticket runner role" '[Tt]icket runners?'
@@ -391,18 +393,14 @@ fi
 if doc 2 "/workflow" "$skills/workflow/SKILL.md"; then
 hasc "workflow prints the story cut's argument" 'next: `/dev:spec-to-stories <arg>`'
 hasc "workflow prints the ticket cut's argument" 'next: `/dev:spec-to-tickets <arg>`'
-retired_row_names
 fi
-if doc 2 "/close-epic" "$skills/close-epic/SKILL.md"; then
-retired_row_names
-fi
+doc 2 "/close-epic" "$skills/close-epic/SKILL.md" || true   # no pins of its own; section 5 sweeps it
 if doc 2 "runbook" "$runbook"; then
 # the cut skills take the feature as their one argument; the runbook has a paragraph on it and
 # writes it in the 3a and 3b rows below (chezmoi-nz0)
 hasc "argument paragraph" '**The argument.**'
 # the flat path (row 4b) runs the checks before the one review tool, and its review is the
 # ticket review; "ticket gate" is retired so "gate" means the checks in every doc (dev-cq0.1.3)
-retired_row_names
 line_has '^[|] 4b [|]' "flat path runs the checks before the review" "then the checks (the owner repo's check command), then \`/mattpocock-skills:code-review\`"
 line_has '^[|] 4a [|] `/dev:implement-spec`' "4a names the ticket orchestrators" '**ticket orchestrator**'
 hase "the one review tool paragraph" '^One review tool, three rows'
@@ -460,7 +458,6 @@ fi
 
 # ---- 3. /spec-to-stories ----
 if doc 3 "/spec-to-stories" "$skills/spec-to-stories/SKILL.md"; then
-retired_row_names
 has "frontmatter" 'disable-model-invocation: true'
 has "preflight pointer" '"Working-directory preflight"'
 has "epic gather pointer" '"gather the epic bead"'
@@ -559,7 +556,6 @@ fi
 
 # ---- 4. /spec-to-tickets ----
 if doc 4 "/spec-to-tickets" "$skills/spec-to-tickets/SKILL.md"; then
-retired_row_names
 has "frontmatter" 'disable-model-invocation: true'
 has "no-stories refusal" 'refused: no stories'
 has "every-story-cut refusal" 'refused: every story already cut'
@@ -659,6 +655,17 @@ retired_loop='evidence run|a later run reviews the fix|a third round of either k
 while IFS= read -r f; do
   lacks "retired two-gate wording in $f" "$retired_loop"
 done < <({ find "$agents" "$skills" -type f 2>/dev/null; echo "$user_claude_md"; echo "$runbook"; echo "$glossary_md"; echo "$docs/SEQUENCES.md"; } | sort)
+
+# the retired vocabulary (dev-9k5.1.11): the driver, ticket runner and merger roles, the built-in
+# review by name, the review marker, the lint command and the test seams as checks are absent from
+# the four file kinds and the sequence diagrams; the glossary lists them under _Avoid_, and
+# docs/adr/ keeps their historical sense through .glossary-allow, so neither is swept here
+while IFS= read -r f; do
+  retired_row_names
+  lacks "the retired review marker" 'review markers?'
+  lacks "the retired lint command" 'the lint command'
+  lacks "the retired test seams as checks" 'test seams? as (the )?checks?'
+done < <({ find "$agents" "$skills" -type f 2>/dev/null; echo "$user_claude_md"; echo "$runbook"; echo "$docs/SEQUENCES.md"; } | sort)
 
 # the docs ship in the plugin: no path into the old dotfiles deployment (~/.claude/docs,
 # ~/.claude/hooks) or the chezmoi source remains in any doc under docs/, the skills, the agent
@@ -837,7 +844,6 @@ hasc "the -C discipline" 'This section binds every session and subagent'
 hasc "the preflight stays in the rules doc" 'The working-directory preflight stays in `orchestration.md`'
 fi
 if doc 6 "tracker rules" "$agents/issue-tracker.md"; then
-retired_row_names
 # every ticket passes the check gate; only the review is medium/high (ADR 0014)
 lacks "medium and high tickets passing the check gate" '`medium` and `high` tickets pass the check gate'
 hasc "every ticket passes the check gate" 'every ticket passes the check gate'

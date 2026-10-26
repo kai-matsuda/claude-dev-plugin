@@ -1605,6 +1605,27 @@ fresh
 echo 'The retired Evidence run stays in the spec.' >> "$scratch/docs/specs/check-and-review-loop.md"
 expect "a spec keeping 'Evidence run' passes" 0
 
+# the retired vocabulary (dev-9k5.1.11): each retired word or phrase seeded into each file kind
+# section 5 sweeps (a skill, an agent doc, the project CLAUDE.md, the runbook, the sequence
+# diagrams) fails, by section 5 alone; the glossary and docs/adr/ are not swept
+for file in skills/sample/SKILL.md docs/agents/triage-labels.md CLAUDE.md docs/WORKFLOW.md docs/SEQUENCES.md; do
+  for case in 'The driver spawns the stories.|the retired driver role' \
+    'Each ticket runner implements.|the retired ticket runner role' \
+    'A merger folds it in.|the retired merger role' \
+    'Run the built-in `code-review` on it.|the built-in code-review named' \
+    'Exit on the review marker.|the retired review marker' \
+    'Run the lint command, then the tip.|the retired lint command' \
+    'Name the test seams as checks.|the retired test seams as checks'; do
+    fresh
+    echo "${case%%|*}" >> "$scratch/$file"
+    sec=5 expect "$file seeded with ${case##*|} fails section 5" 1 "${case##*|}"
+  done
+done
+
+fresh
+echo 'The driver and the review marker are retired.' >> "$scratch/GLOSSARY.md"
+expect "glossary naming the retired words passes the lint" 0
+
 # a semicolon ends a mermaid statement, so one inside a ```mermaid block fails; the same ';' in prose passes
 fresh
 printf '\n```mermaid\nsequenceDiagram\n    A->>B: one; two\n```\n' >> "$scratch/docs/SEQUENCES.md"
@@ -1760,7 +1781,8 @@ for case in 'lint first, then the test seams|present: the retired two-level chec
   'reviewers run the built-in `code-review`|present: the built-in code-review in the model'; do
   fresh
   echo "${case%%|*}" >> "$scratch/$orch"
-  sec=6 expect "orchestration doc with '${case%%|*}' fails" 1 "${case#*|}"
+  s=6; case ${case%%|*} in *"review marker"*|*built-in*) s="5 6";; esac   # section 5 sweeps the retired word too
+  sec=$s expect "orchestration doc with '${case%%|*}' fails" 1 "${case#*|}"
 done
 fresh
 drop_phrase docs/agents/harness.md "these are the story's checks"
@@ -1794,7 +1816,7 @@ done
 
 fresh
 swap_phrase skills/implement-story/SKILL.md '^> You are the \*\*ticket orchestrator\*\*' '> You are the ticket runner'
-expect "a brief opening on the ticket runner fails" 1 "missing: the brief opens on the ticket orchestrator"
+sec="5 8" expect "a brief opening on the ticket runner fails" 1 "missing: the brief opens on the ticket orchestrator"
 
 for case in 'Resolve the owner repo'"'"'s **lint command** once, here beside the forge.|present: the retired lint-command resolution' \
   '`make lint` when `<owner>`'"'"'s Makefile has a `lint` target|present: the retired lint-command resolution' \
@@ -1802,7 +1824,8 @@ for case in 'Resolve the owner repo'"'"'s **lint command** once, here beside the
   '> 4. Spawn a **merger** at the tier'"'"'s implementation model.|present: the retired merger brief'; do
   fresh
   echo "${case%%|*}" >> "$scratch/skills/implement-story/SKILL.md"
-  expect "implement-story regaining '${case%%|*}' fails" 1 "${case#*|}"
+  s=one; case ${case%%|*} in *merger*|*"the lint command"*|*"review marker"*) s="5 8";; esac   # section 5 sweeps the retired word too
+  sec=$s expect "implement-story regaining '${case%%|*}' fails" 1 "${case#*|}"
 done
 
 # the check record on step 3's line: keyed by the tree SHA, a recorded tree not run again, the
@@ -1829,7 +1852,8 @@ for case in ' Each check logs to <worktree path>/.tmp/checks-<round>-<k>.log.|pr
   ' Spawn a reviewer briefed to call the built-in `code-review`.|present: the built-in code-review'; do
   fresh
   swap_phrase skills/implement-story/SKILL.md '^(> 3\. .*)$' "\\1${case%%|*}"
-  expect "ticket orchestrator step 3 regaining '${case%%|*}' fails" 1 "${case#*|}"
+  s=one; case ${case%%|*} in *built-in*) s="5 8";; esac
+  sec=$s expect "ticket orchestrator step 3 regaining '${case%%|*}' fails" 1 "${case#*|}"
 done
 
 # the landing and its conflict route on step 4's line, each phrase dropped alone; the step's
@@ -1846,7 +1870,7 @@ done
 
 fresh
 swap_phrase skills/implement-story/SKILL.md '^> 4\. \*\*Land the ticket\*\*' '> 4. Spawn a merger'
-expect "ticket orchestrator step 4 not landing the ticket fails" 1 "missing: step 4 lands the ticket"
+sec="5 8" expect "ticket orchestrator step 4 not landing the ticket fails" 1 "missing: step 4 lands the ticket"
 
 # the story gate (step 7) is the check gate loop at the story row: each pin is proven by
 # dropping its phrase, the order by moving the checks after the review, the retired merger,
@@ -1923,13 +1947,15 @@ for case in '^(7\. .*)$|\1 Then spawn a merger.|present: a merger at the story g
   anchor=${case%%|*} rest=${case#*|}
   fresh
   swap_phrase skills/implement-story/SKILL.md "$anchor" "${rest%%|*}"
-  expect "implement-story regaining '${rest%%|*}' fails" 1 "${rest#*|}"
+  s=one; case ${rest%%|*} in *merger*) s="5 8";; esac
+  sec=$s expect "implement-story regaining '${rest%%|*}' fails" 1 "${rest#*|}"
 done
 for case in '   **Running the checks.** The checks are the lint command, then the test seams.|present: the retired Running the checks paragraph' \
   'The exit is the review marker.|present: the retired review marker'; do
   fresh
   echo "${case%%|*}" >> "$scratch/skills/implement-story/SKILL.md"
-  expect "implement-story regaining '${case%%|*}' fails" 1 "${case#*|}"
+  s=one; case ${case%%|*} in *merger*|*"the lint command"*|*"review marker"*) s="5 8";; esac   # section 5 sweeps the retired word too
+  sec=$s expect "implement-story regaining '${case%%|*}' fails" 1 "${case#*|}"
 done
 
 # the retired two-gate phrases seeded back fail, by section 5's sweep alone

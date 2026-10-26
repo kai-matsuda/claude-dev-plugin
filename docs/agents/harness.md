@@ -11,15 +11,15 @@ run it pin it. Terms are those of `GLOSSARY.md` in the plugin repo.
 An Agent call returns at once in this harness ("Async agent launched successfully"),
 whichever way `run_in_background` is written. `run_in_background` is a JSON boolean, so
 the string `"false"` is truthy and launches in the background, which is how every call in
-INFRA-29's run 2 was written (2026-10-23, Claude Code 2.1.306); the driver's call that
-omitted the field launched async as well; and a ticket runner of that run reported that
+INFRA-29's run 2 was written (2026-10-23, Claude Code 2.1.306); the epic orchestrator's call that
+omitted the field launched async as well; and a ticket orchestrator of that run reported that
 the Agent tool it saw had no `run_in_background` parameter at all. So on 2.1.306 the field
 is absent for a nested agent, and a boolean `false` there has nothing to switch; whether a
 top-level session's boolean `false` is honoured was not tested, and nothing here depends
 on it. There is no foreground spawn. A child's report reaches its parent only as
 the Agent tool's completion notification, and only while the parent is still waiting on
 work it spawned; so after spawning, the orchestrator ends its turn, the notification
-resumes it with the report, and the driver never has to relay a report by `SendMessage`.
+resumes it with the report, and the epic orchestrator never has to relay a report by `SendMessage`.
 A batch is the same: spawn every call in one message, end the turn, and act on each
 report as its notification arrives. An orchestrator never polls: not in a Bash loop,
 foreground or background, on `bd show` of the ticket's status, on `sleep` or on the
@@ -31,9 +31,9 @@ a child still running; a `bd show` loop holds a shell for as long as the child r
 tells the orchestrator nothing the report will not (INFRA-28's run 1, 2026-10-20: 21 of 45
 background shells were killed, one printing the same two `in_progress` tickets for an hour).
 
-**Idle rule.** Every subagent below the driver runs Bash in the foreground only (`timeout`
+**Idle rule.** Every subagent below the epic orchestrator runs Bash in the foreground only (`timeout`
 up to 600000 ms) and never starts a background Bash call or a `Monitor` on a bead; the
-merger's lock wait is no exception. The harness notifies a parent of a child's turn ending
+ticket orchestrator's lock wait is no exception. The harness notifies a parent of a child's turn ending
 only when nothing is live below the child. A turn that ends with an Agent child mid-turn
 keeps the parent waiting, which is how a nested orchestrator waits (above); a turn that
 ends with a background Bash call or a `Monitor` still running counts as idle, not live.
@@ -50,11 +50,11 @@ same idle state, so every lint or test run (`make lint`, `make ci`, `make fixtur
 rule in `orchestration.md`) passes `timeout: 600000` on its Bash call (INFRA-30's run: two `make lint` calls
 were backgrounded that way, and one agent went looking for its own process with `ps`).
 This is the mechanism behind the no-polling rule above, and why INFRA-29's until-loops
-and Monitors woke agents with stale state. The one shell wait is a merger's wait on the owner checkout's lock (the
-ticket runner brief's step 4): a single foreground Bash call running an `until` loop over
+and Monitors woke agents with stale state. The one shell wait is a ticket orchestrator's wait on the owner checkout's lock (the
+ticket orchestrator brief's step 4): a single foreground Bash call running an `until` loop over
 `<owner>/.git/index.lock` and `MERGE_HEAD`, with the call's `timeout` as the five-minute
 bound, so it returns when the lock clears and is killed when it does not (chezmoi-sn1's
-check, 2026-10-22, saw the background form end the merger's turn with nothing reported).
+check, 2026-10-22, saw the background form end the ticket orchestrator's turn with nothing reported).
 The Bash tool's text says foreground `sleep` is blocked and points at `Monitor`; the same
 check ran the foreground loop unblocked in a session and in a subagent alike, and the
 observed run wins.
@@ -66,15 +66,15 @@ uncommitted changes through when they touch no file the merge does, so a skipped
 goes unnoticed (INFRA-28's run 1, 2026-10-20: an implementer whose subject failed the
 72-character limit merged `feat/infra-28` over its uncommitted fixes and committed them
 after the merge). Every brief to an agent that commits or merges (implementer, fix-up
-implementer, merger) names this rule.
+implementer, ticket orchestrator) names this rule.
 
 **Cut-off agents.** An Agent call that returns an API error (`HTTP 429 You've hit your
 session limit`) in place of a report is a **cut-off**: the child and everything below it
 stop where they are, context, worktree and claimed ticket intact (INFRA-28's run 1,
-2026-10-20). The driver's turn is the only one a `SendMessage` reply reaches, so only the
-driver resumes an agent, and only a story orchestrator. First the **stop sweep**:
-`ListAgents`, then `TaskStop` on every agent id the driver did not itself spawn (the
-orchestrators' runners, implementers, reviewers and mergers), since a child whose parent's
+2026-10-20). The epic orchestrator's turn is the only one a `SendMessage` reply reaches, so only the
+epic orchestrator resumes an agent, and only a story orchestrator. First the **stop sweep**:
+`ListAgents`, then `TaskStop` on every agent id the epic orchestrator did not itself spawn (the
+orchestrators' ticket orchestrators, implementers and reviewers), since a child whose parent's
 turn was cut off is owned by no one else and stays listed as running however quiet it is
 (that run's implementer, "quiet for over 30 minutes"). Then one line to the same agent id,
 `resume: re-read the story and its tickets from the beads and carry on`. The beads and notes
@@ -121,7 +121,7 @@ against the worktree and refuses one whose path comes from a shell variable or s
 construct it cannot parse (seen in INFRA-26's `chezmoi-0jp.22` fixture run). Spell every
 path out literally, one plain command per Bash call.
 
-**TMPDIR.** Every worktree brief (implementer, fix-up implementer, merger) starts with
+**TMPDIR.** Every worktree brief (implementer, fix-up implementer) starts with
 `mkdir -p <worktree>/.tmp && export TMPDIR=<worktree>/.tmp`, `<worktree>` the absolute
 worktree path spelled out literally: on the hand-rolled route the path the brief gives, on
 the harness route the one `pwd` prints, since that brief carries none and the worktree

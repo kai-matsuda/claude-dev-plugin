@@ -185,7 +185,7 @@ _Avoid_: merge check, PR check, seal check
 The one command an owner repo's check runs: `make check` when its Makefile has a `check`
 target, otherwise none, and the check gate is review-only. Every row runs the same one,
 resolved by that convention alone (`docs/agents/orchestration.md`, "Review").
-_Avoid_: gate command, CI command
+_Avoid_: gate command, CI command, lint command
 
 **Check**:
 One run of the check command on a tree, named by the tip's tree SHA. Every tree is checked
@@ -208,16 +208,7 @@ fix-ups per unit and the fourth `failed`; a minors fix-up and a conflict resolut
 the tip, so the checks rerun, but no reviewer runs again and no budget is spent: the gate
 exits on the moved tip once its checks are green, and the note records that tip. The story
 orchestrator records the reviewed tip in its notes, so a rerun knows it.
-_Avoid_: test gate, lint gate, seam gate, check and review loop
-
-**Review marker**:
-The `review: <tip SHA>` note the story orchestrator writes on the story bead once the
-story review's findings are merged, or it found none; it is the exit of the story level's
-check gate loop. An iteration whose checks are green on a tip that matches it exits, and
-its check run is the PR's Evidence; a tip that has moved since, a check fix's move
-included, is reviewed again in the same run. Without it, whether a rerun re-reviewed an
-already reviewed tip was the orchestrator's guess.
-_Avoid_: review note, reviewed flag, review stamp
+_Avoid_: test gate, lint gate, seam gate, check and review loop, review marker
 
 **Review verdict**:
 The line a reviewer's report ends on, at every row: `verdict: clean` when no finding is
@@ -238,7 +229,7 @@ holding each PR a draft until its verdict is clean, and reads the end state; not
 it touches a ticket. It is the only agent whose turn a `SendMessage` reply reaches, so it
 alone resumes a cut-off story orchestrator, and its `TaskStop` reaches every agent of the
 run.
-_Avoid_: feature orchestrator, top-level orchestrator, main session
+_Avoid_: feature orchestrator, top-level orchestrator, main session, driver
 
 **Story orchestrator**:
 The story row's orchestrator: it works one story's frontier in its owner repo, one ticket
@@ -252,7 +243,7 @@ The ticket row's orchestrator: it owns one ticket from claim to landing, its imp
 its check gate and its fix-ups, and lands the ticket itself (the lock, the stray-commit
 check, the merge), sending a conflict to an implementer in the ticket's worktree and then
 fast-forwarding. It reports one line to its story orchestrator and is discarded.
-_Avoid_: ticket agent, worker
+_Avoid_: ticket agent, worker, ticket runner, merger
 
 **Stray-commit check**:
 The read of every commit a push or a merge would carry but merges, before it runs: one whose
@@ -262,19 +253,6 @@ The orchestrator runs it before every merge and every push (a trust rule): the t
 orchestrator before landing its ticket, the story orchestrator before each push of the
 integration branch; a hit stops the merge or push with `failed: stray commit <sha> <subject>`.
 _Avoid_: push guard, stray check
-
-**Ticket runner**:
-The agent that owns one ticket from claim to close: its implementer, its check gate,
-reviewer and merger, and the relay of findings from each review round to a fresh fix-up implementer. It
-reports one line to its story orchestrator and is discarded, so no ticket's churn outlives it.
-_Avoid_: ticket agent, worker
-
-**Driver**:
-The feature-level session that runs `/dev:implement-spec`: it spawns one story orchestrator
-per startable story and reads the end state; nothing below it touches a ticket. It is the
-only agent whose turn a `SendMessage` reply reaches, so it alone resumes a cut-off story
-orchestrator, and its `TaskStop` reaches every agent of the run.
-_Avoid_: feature orchestrator, top-level orchestrator, main session
 
 **Cut-off**:
 An Agent call that returns an API error (a session or rate limit) in place of its report.

@@ -23,3 +23,14 @@ docs/adr/0008-session-mode-declared-by-where-it-starts.md walk-up  # the mechani
 docs/adr/0008-session-mode-declared-by-where-it-starts.md discovered mode  # the mechanism this ADR replaced with the session mode
 docs/adr/0011-a-story-is-one-pr-and-stories-form-a-dag.md publish gate  # "non-publish gate": a gate that is not a publish
 docs/adr/0011-a-story-is-one-pr-and-stories-form-a-dag.md delivery round  # a rejected shape for the story
+docs/adr/0006-one-story-per-repo.md driver  # the retired name of the epic orchestrator, in the words of its day
+docs/adr/0006-one-story-per-repo.md ticket runner  # the retired name of the ticket orchestrator, in the words of its day
+docs/adr/0006-one-story-per-repo.md merger  # the retired merger role, in the words of its day
+docs/adr/0007-ticket-cut-runs-story-cutters-in-waves.md driver  # the retired name of the epic orchestrator, in the words of its day
+docs/adr/0008-session-mode-declared-by-where-it-starts.md driver  # the retired name of the epic orchestrator, in the words of its day
+docs/adr/0010-epic-level-stages-write-owner-repos-through-beads-only.md driver  # the retired name of the epic orchestrator, in the words of its day
+docs/adr/0011-a-story-is-one-pr-and-stories-form-a-dag.md review marker  # the retired exit of the check gate, in the words of its day
+docs/adr/0012-nested-orchestrators-wait-on-the-completion-notification.md driver  # the retired name of the epic orchestrator, in the words of its day
+docs/adr/0012-nested-orchestrators-wait-on-the-completion-notification.md ticket runner  # the retired name of the ticket orchestrator, in the words of its day
+docs/adr/0012-nested-orchestrators-wait-on-the-completion-notification.md merger  # the retired merger role, in the words of its day
+docs/adr/0014-one-loop-at-three-rows.md merger  # the role this ADR retires, named to say so
