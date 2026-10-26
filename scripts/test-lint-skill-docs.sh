@@ -1432,6 +1432,15 @@ fresh
 echo 'The retired Evidence run stays in the spec.' >> "$scratch/docs/specs/check-and-review-loop.md"
 expect "a spec keeping 'Evidence run' passes" 0
 
+# a semicolon ends a mermaid statement, so one inside a ```mermaid block fails; the same ';' in prose passes
+fresh
+printf '\n```mermaid\nsequenceDiagram\n    A->>B: one; two\n```\n' >> "$scratch/docs/SEQUENCES.md"
+expect "a mermaid block with a semicolon fails" 1 "a semicolon in a mermaid block in $scratch/docs/SEQUENCES.md"
+
+fresh
+echo 'Prose may keep a semicolon; one, two.' >> "$scratch/docs/SEQUENCES.md"
+expect "a semicolon outside a mermaid block passes" 0
+
 # a reviewer tags every finding blocking or minor and ends on a verdict line; a round with no
 # blocking findings is clean; every fix-up, red or blocking, spends the check gate loop's budget
 # (chezmoi-49k): the rule lives in the orchestration doc, the runner brief and the story

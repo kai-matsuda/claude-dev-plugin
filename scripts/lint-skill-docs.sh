@@ -129,7 +129,9 @@
 #      names the plugin-root variable CLAUDE_PLUGIN_ROOT, which Bash never has and the harness
 #      fills in only in the skill text it loads (the rules doc's Plugin root rule); the skill's
 #      path and the line are named. Outside a brief, where the skill itself resolves the
-#      variable, it passes (dev-rc9, INFRA-30).
+#      variable, it passes (dev-rc9, INFRA-30);
+#  15. the mermaid rule: no ";" on a line of a ```mermaid block in any doc the sweeps read, since
+#      mermaid ends the statement there and the diagram fails to render (dev-1xf.1.4).
 # Usage: scripts/lint-skill-docs.sh [implement-spec SKILL.md [WORKFLOW.md]]
 # A section whose doc is missing fails naming it ("missing document: <path>") rather than being
 # skipped, so a renamed skill or rules doc cannot turn its checks off (dev-dov); each section
@@ -1138,6 +1140,18 @@ if git -C "$bump_repo" rev-parse --git-dir >/dev/null 2>&1 \
       || bad "version bump: a shipping path changed since ${fork:0:9} but $manifest has no version change"
   fi
 fi
+
+# ---- 15. mermaid blocks: no semicolon ----
+# mermaid ends a sequenceDiagram statement at a ";", so a line of a ```mermaid block with one does
+# not render (dev-1xf.1.4). The block opens on a fence line starting ```mermaid, indented or not,
+# and closes on the next fence line; every .md under the docs dir, the skills and the agent docs,
+# plus the project CLAUDE.md, the runbook and the root glossary, is read.
+section "15. mermaid blocks: no semicolon"
+while IFS= read -r f; do
+  [ -f "$f" ] || continue
+  hits=$(awk '/^[[:space:]]*```mermaid/ { inm = 1; next } inm && /^[[:space:]]*```/ { inm = 0 } inm && index($0, ";") { print FNR": "$0 }' "$f")
+  [ -z "$hits" ] || { bad "present: a semicolon in a mermaid block in $f (mermaid ends the statement there)"; printf '%s\n' "$hits" | head -3; }
+done < <({ find "$agents" "$skills" "$docs" -type f -name '*.md' 2>/dev/null; echo "$user_claude_md"; echo "$runbook"; echo "$glossary_md"; } | sort -u)
 
 checks_run
 [ "$fail" = 0 ] && echo "PASS"

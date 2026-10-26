@@ -41,7 +41,7 @@ sequenceDiagram
     I-->>R: "ready for review" (branch, worktree path)
     Note over I: done, never messaged again
 
-    loop the checks, then the review on green; reds and blocking verdicts share three fix-ups
+    loop the checks, then the review on green, reds and blocking verdicts share three fix-ups
         R->>R: checks in the worktree, lint then the test seams, first red stops
         alt a check is red
             R->>BD: note ticket "checks n: red" with the failing command
@@ -134,7 +134,7 @@ sequenceDiagram
     end
 
     O->>O: git rev-parse the integration branch tip
-    loop the checks, then the review on a tip off the marker; the review marker is the exit
+    loop the checks, then the review on a tip off the marker - the review marker is the exit
         O->>O: checks on the tip, lint then the test seams, read-only, first red stops
         alt a check is red
             O->>F: fix-up with the failing command and its log path
@@ -143,7 +143,7 @@ sequenceDiagram
             M-->>O: merged
             Note over O: the loop starts over from the checks
         else checks green, tip matches the review marker
-            Note over O: exit; this iteration's checks are the PR's Evidence, each command, exit and last twenty lines
+            Note over O: exit - this iteration's checks are the PR's Evidence, each command, exit and last twenty lines
         else checks green, no marker or the tip has moved since
             O->>CR: Skill call on the owner repo (diff and log against the default branch, standards paths, spec = story + tickets + Jira epic)
             par two axes at the story tier's review model
