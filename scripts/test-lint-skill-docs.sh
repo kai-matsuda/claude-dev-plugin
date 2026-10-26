@@ -1652,15 +1652,21 @@ done
 # record written per tree, review-only with no check command, the one review tool; the per-round
 # log and the built-in review seeded back on that line fail
 for case in '`git -C <worktree path> rev-parse HEAD^{tree}`|missing: the gate keys the check on the tree SHA' \
-  'First confirm the worktree is clean, `git -C <worktree path> status --porcelain --untracked-files=no` prints nothing; a dirty worktree goes to a fresh fix-up implementer as a red does|missing: the gate reads the tree only of a clean worktree' \
+  'First confirm the worktree is clean, `git -C <worktree path> status --porcelain` prints nothing; a dirty worktree goes to a fresh fix-up implementer as a red does|missing: the gate reads the tree only of a clean worktree' \
   'a tree with a record is checked: read its exit and run nothing|missing: a tree with a check record is not checked again' \
-  'mkdir -p <owner>/.tmp/checks/<tree>; export TMPDIR=<worktree path>/.tmp; make -C <worktree path> check > <owner>/.tmp/checks/<tree>/log 2>&1; echo "command=make check exit=$?" > <owner>/.tmp/checks/<tree>/record; cat <owner>/.tmp/checks/<tree>/record|missing: the gate writes the check record per tree' \
+  'mkdir -p <worktree path>/.tmp; mkdir -p <owner>/.tmp/checks/<tree>; export TMPDIR=<worktree path>/.tmp; make -C <worktree path> check > <owner>/.tmp/checks/<tree>/log 2>&1; echo "command=make check exit=$?" > <owner>/.tmp/checks/<tree>/record; cat <owner>/.tmp/checks/<tree>/record|missing: the gate writes the check record per tree' \
   'With no check command the checks are skipped and the gate is review-only|missing: no check command makes the gate review-only' \
   '`mattpocock-skills:code-review`|missing: the gate reviews with mattpocock-skills:code-review'; do
   fresh
   drop_phrase skills/implement-story/SKILL.md "${case%%|*}"
   expect "ticket orchestrator step 3 without '${case%%|*}' fails" 1 "${case#*|}"
 done
+
+# the clean-worktree guard regaining --untracked-files=no fails (untracked files the check sees
+# but the tree lacks would pass a dirty worktree)
+fresh
+swap_phrase skills/implement-story/SKILL.md '^(> 3\. .*)`git -C <worktree path> status --porcelain`(.*)$' '\1`git -C <worktree path> status --porcelain --untracked-files=no`\2'
+expect "the clean-worktree guard regaining --untracked-files=no fails" 1 "present: the clean-worktree guard that hides untracked files"
 
 for case in ' Each check logs to <worktree path>/.tmp/checks-<round>-<k>.log.|present: the per-round check log' \
   ' Spawn a reviewer briefed to call the built-in `code-review`.|present: the built-in code-review'; do
