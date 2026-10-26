@@ -47,6 +47,9 @@
 #      That one list is the only walk-up check; sections 2-4 and 7 do not repeat it; the same
 #      four file kinds also lack the retired story-DAG wording ("one story per repo", feat/<key>-<n>,
 #      "chains are out of scope", "only text blocker", "two waves suffice"; ADR 0011);
+#      and the check and review loop's retired two-gate wording ("Evidence run", "a later run
+#      reviews the fix", "a third round of either kind", "a second red") is absent from those,
+#      the root GLOSSARY.md and docs/SEQUENCES.md, never docs/specs (dev-1xf.1.4);
 #   6. the shared rules: orchestration.md's working-directory preflight, its waiting rule
 #      (an Agent call returns at once, the orchestrator ends its turn and the completion
 #      notification resumes it, never a Bash poll loop; pgrep is dead in the sandbox) with its
@@ -92,10 +95,12 @@
 #      pointing at the rules doc's Review verdict, whose rule section 6 checks (chezmoi-49k),
 #      and its step 3 resolves the owner's lint command once, which the runner brief's header
 #      and every brief it sends carry, runner step 2 taking it from the brief (dev-cq0.1.2),
-#      and its story review runs the check gate before the two-axis review, a matching marker
-#      jumping to the Evidence run, a second red stalling with failed: <check> <command>, the
-#      Evidence each check's command, exit and tail cited in step 8, and the retired "the
-#      command and its output" gone (dev-cq0.1.5); section 6 checks the rules doc's Check gate;
+#      and its story review is the check gate loop with the review marker as its exit, a red
+#      or a reviewed tip starting it over, a fourth failure stalling with failed: <check>
+#      <command>, the exit iteration's run (each check's command, exit and tail) the Evidence
+#      cited in step 8, and "the command and its output" gone (section 5's sweep covers the
+#      Evidence run and the second-red stall) (dev-cq0.1.5, dev-1xf.1.3); section 6 checks the
+#      rules doc's Check gate;
 #   9. /close-story: its Forgejo/Gitea query carries --repo <path> as the intro and
 #      /implement-story's merge guard do (dev-hac); its ticket check skips a child carrying
 #      needs-triage or wontfix, as the finished story does, and its refusal names each open
@@ -124,7 +129,9 @@
 #      names the plugin-root variable CLAUDE_PLUGIN_ROOT, which Bash never has and the harness
 #      fills in only in the skill text it loads (the rules doc's Plugin root rule); the skill's
 #      path and the line are named. Outside a brief, where the skill itself resolves the
-#      variable, it passes (dev-rc9, INFRA-30).
+#      variable, it passes (dev-rc9, INFRA-30);
+#  15. the mermaid rule: no ";" on a line of a ```mermaid block in any doc the sweeps read, since
+#      mermaid ends the statement there and the diagram fails to render (dev-1xf.1.4).
 # Usage: scripts/lint-skill-docs.sh [implement-spec SKILL.md [WORKFLOW.md]]
 # A section whose doc is missing fails naming it ("missing document: <path>") rather than being
 # skipped, so a renamed skill or rules doc cannot turn its checks off (dev-dov); each section
@@ -539,6 +546,14 @@ while IFS= read -r f; do
   lacks "retired walk-up wording in $f" "$walkup"
   lacks "retired story-DAG wording in $f" "$retired_dag"
 done < <({ find "$agents" "$skills" -type f 2>/dev/null; echo "$user_claude_md"; echo "$runbook"; } | sort)
+# the check and review loop's retired two-gate wording (dev-1xf.1.4): the Evidence run, the later
+# run that reviews a fix, the third-round wording and the second-red stall are absent from every
+# file a reader meets, the four kinds above plus the root glossary and the sequence diagrams;
+# docs/specs keeps them, since a spec states the change it makes
+retired_loop='evidence run|a later run reviews the fix|a third round of either kind|a second red'
+while IFS= read -r f; do
+  lacks "retired two-gate wording in $f" "$retired_loop"
+done < <({ find "$agents" "$skills" -type f 2>/dev/null; echo "$user_claude_md"; echo "$runbook"; echo "$glossary_md"; echo "$docs/SEQUENCES.md"; } | sort)
 
 # the docs ship in the plugin: no path into the old dotfiles deployment (~/.claude/docs,
 # ~/.claude/hooks) or the chezmoi source remains in any doc under docs/, the skills, the agent
@@ -612,23 +627,33 @@ para_has '**Plugin root.**' "resolved once per session" 'once per session'
 para_has '**Plugin root.**' "the rules-doc path spelled literally in every brief" '<plugin root>/docs/agents/'
 para_has '**Plugin root.**' "spelled out in every brief" 'every brief'
 # a reviewer tags every finding blocking or minor and ends on a verdict line; a round with no
-# blocking findings is clean; blocking rounds and red check rounds count toward the three-round limit. The
+# blocking findings is clean; every fix-up, red or blocking, spends the check gate loop's budget. The
 # rule is stated once here; the runner brief and the story review point at it (chezmoi-49k)
 hasc "Review verdict rule" '**Review verdict.**'
 para_has '**Review verdict.**' "the clean verdict line" 'verdict: clean'
 para_has '**Review verdict.**' "the blocking verdict line" 'verdict: blocking (<n>)'
 para_has '**Review verdict.**' "the blocking-or-minor tags" '**blocking** or **minor**'
 para_has '**Review verdict.**' "a round with no blocking findings is clean" 'no blocking findings is **clean**'
-para_has '**Review verdict.**' "blocking and red check rounds count toward the limit" 'Blocking rounds and red check rounds count'
-# the check gate: no reviewer sees a branch tip until the story's checks are green on it, at both
-# levels; lint first, then the test seams, the first red stops; a red goes to a fix-up
-# implementer, never a reviewer. The Idle rule's command list names the checks
+para_has '**Review verdict.**' "every fix-up, red or blocking, spends the loop's budget" "Every fix-up, red or blocking, spends the loop's budget"
+# the check gate, stated once as the loop (INFRA-32): at both levels; checks (lint first, then the test
+# seams, the first red stops); a red goes to a fresh fix-up implementer and the loop starts over; the
+# review; a blocking verdict likewise; a clean verdict exits at the ticket level, the review marker
+# at the story level; three fix-ups of either cause, a fourth failure is failed. Nothing carries the
+# story count across runs, so the rule claims no resume behaviour. The Idle rule's command list
+# names the checks
 hasc "Check gate rule" '**Check gate.**'
-para_has '**Check gate.**' "no reviewer sees a red tip" 'No reviewer sees a branch tip'
 para_has '**Check gate.**' "both levels" 'ticket level and the story level'
 para_has '**Check gate.**' "lint first, then the test seams" 'lint first, then the test seams'
 para_has '**Check gate.**' "the first red stops" 'the first red stops'
-para_has '**Check gate.**' "a red goes to a fix-up implementer, never a reviewer" 'fix-up implementer, never to a reviewer'
+para_has '**Check gate.**' "a red goes to a fresh fix-up implementer and the loop starts over" 'A red goes to a fresh fix-up implementer, never to a reviewer, and the loop starts over'
+para_has '**Check gate.**' "a blocking verdict goes to a fresh fix-up implementer and the loop starts over" 'a blocking verdict goes to a fresh fix-up implementer and the loop starts over'
+para_has '**Check gate.**' "with the checks green, run the review" 'With the checks green, run the review:'
+para_has '**Check gate.**' "a clean verdict exits at the ticket level" 'a clean verdict exits at the ticket level'
+para_has '**Check gate.**' "the review marker is the story level's exit" 'at the story level the review marker is the exit'
+para_has '**Check gate.**' "three fix-ups per ticket at the ticket level" 'three fix-ups per ticket at the ticket level'
+para_has '**Check gate.**' "three per story at the story level" 'three per story at the story level'
+para_has '**Check gate.**' "either cause spends the budget" 'Either cause spends the budget'
+para_has '**Check gate.**' "a fourth failure is failed" 'a fourth failure is `failed`'
 para_has '**Idle rule.**' "the Idle rule names the checks" "these are the story's checks"
 fi
 if doc 6 "tracker rules" "$agents/issue-tracker.md"; then
@@ -800,7 +825,7 @@ lacks "Gitignore step counts three entries" "the rule's three entries"
 # step 7 point at the rules doc's Review verdict for what a clean round does; the retired bar,
 # clean as no finding at all, is gone (chezmoi-49k). The brief's phrases are read on the step 3
 # line alone, since step 7 carries the same ones
-for phrase in 'verdict: clean' 'verdict: blocking (<n>)' '**blocking** or **minor**' 'within the three rounds above'; do
+for phrase in 'verdict: clean' 'verdict: blocking (<n>)' '**blocking** or **minor**' 'within the budget above'; do
   line_has '^> 3\. ' "ticket runner step 3's reviewer brief" "$phrase"
 done
 hase "ticket runner step 3 points at the rules doc's Review verdict" "^> 3\. .*the rules doc's Review verdict"
@@ -822,42 +847,60 @@ line_has "$L3" "step 3's lint paragraph says where a CLAUDE.md-named command run
 line_has '^> 2\. ' "runner step 2 leaves out the tests the lint command already runs" 'leaving out any the lint command already runs'
 line_has '^> 2\. ' "runner step 2 takes the lint command from the brief" "the brief's lint command"
 line_lacks '^> 2\. ' "runner step 2 offers a list of lint commands to choose from" '`make lint`'
-# the ticket runner's check gate sits between the implementer (step 2) and the reviewer or
-# merger: it opens step 3 for every tier, ahead of the reviewer; each check is one logged Bash
-# call under the worktree's .tmp/; a red is noted on the ticket and counts toward the three
-# rounds the blocking reviews count toward; the implementer runs no gate (dev-cq0.1.4)
+# the ticket runner's check and review loop sits between the implementer (step 2) and the merger
+# (step 4) as one step: it opens step 3 for every tier, checks ahead of the reviewer; each check
+# is one logged Bash call under the worktree's .tmp/; a red is noted on the ticket; a red and a
+# blocking verdict both spawn a fresh fix-up implementer and start the loop over from the checks,
+# on one budget of three fix-ups; a low ticket exits on green; the implementer runs no checks
+# (dev-cq0.1.4, dev-1xf.1.2)
 G3='^> 3\. \*\*Check gate\*\*, every tier'
 hase "ticket runner step 3 opens with the check gate, every tier" "$G3"
-line_hase "$G3" "the check gate runs before step 3's reviewer" '\*\*Check gate\*\*.*Green: .*for `medium` and `high`, spawn a \*\*reviewer\*\*'
-grep -E "$G3" "$f" | sed 's/Green: .*//' | grep -qF -- 'spawn a **reviewer**' && bad "present: ticket runner step 3 spawns a reviewer ahead of the check gate's green"
-line_has "$G3" "a green gate sends low straight to the merger" 'Green: for `low`, go to step 4'
+line_has "$G3" "the loop step cites the rules doc's loop" "as the rules doc's Check gate says"
+line_has "$G3" "a red starts the loop over from the checks" 'A red spawns a fresh fix-up implementer and the loop starts over from the checks'
+line_has "$G3" "a blocking verdict starts the loop over from the checks, never straight to the reviewer" 'a blocking verdict spawns a fresh fix-up implementer and the loop starts over from the checks, never straight to the reviewer'
+line_has "$G3" "a clean verdict exits the loop" '**Clean** exits the loop'
+line_hase "$G3" "the check gate runs before step 3's reviewer" '\*\*Check gate\*\*.*Green:.*for `medium` and `high`, spawn a \*\*reviewer\*\*'
+grep -E "$G3" "$f" | sed 's/Green: .*//' | grep -qF -- 'spawn a **reviewer**' && bad "present: ticket runner step 3 spawns a reviewer ahead of the checks' green"
+line_has "$G3" "a low ticket exits the loop on green checks" 'Green: a `low` ticket exits the loop, go to step 4'
 line_has '^> 2\. ' "runner step 2's implementer runs no gate and spawns no one" 'The implementer runs no gate and spawns no one'
 line_has "$G3" "the check gate logs both streams under the worktree's .tmp/ and echoes the exit" 'mkdir -p <worktree path>/.tmp; export TMPDIR=<worktree path>/.tmp; <check> > <worktree path>/.tmp/checks-<round>-<k>.log 2>&1; echo exit=$?'
 line_has "$G3" "a red gate reads a forty-line tail of the log, never the whole output" 'tail -n 40 <log>'
 line_has "$G3" "a red gate's note form (checks <round>: red <command>)" '`bd -C <owner> note <ticket-id> "checks <round>: red <command>"`'
 line_has "$G3" "a green gate writes no note" 'a green writes no note'
 line_has "$G3" "the gate's fix-up brief points at the log path" 'the log path, and no pasted output'
-line_has "$G3" "red gates and blocking reviews share the three-round budget" 'a third round of either kind is `failed`'
-line_has "$G3" "a blocking round's fix-up passes the gate before the next reviewer" 'run the check gate again, and on green spawn a reviewer again'
+line_has "$G3" "red and blocking fix-ups share one budget of three, the fourth failure is failed" 'The budget is three fix-ups of either cause; the fourth red or blocking verdict is `failed`'
+line_has "$G3" "the minors fix-up after a clean verdict spends no budget and advances no round" 'The minors fix-up spends no budget and advances no round'
+lacks "the retired run-the-gate-again wording" 'run the check gate again, and on green spawn a reviewer again'
 # the merger's two runs (step 4, dev-cq0.1.6): the implementer's worktree after the tip merge and
 # the owner checkout after the integration merge are runs of the story's checks, the lint command
 # included, in place of the tests
 line_has '^> 4\. ' "the merger runs the story's checks, the lint command included, in the implementer's worktree" 'runs the story'"'"'s checks there, the lint command `<lint>` included'
 line_has '^> 4\. ' "the merger reruns the story's checks, the lint command included, on the merged result in <owner>" 'reruns the story'"'"'s checks on the merged result in `<owner>`, the lint command `<lint>` included'
-# the story review (step 7) runs the check gate on the integration branch tip before the
-# two-axis review, a matching marker jumping to the Evidence run; a second pre-review red stalls
-# with failed: <check> <command>; the Evidence is each check's command, exit and tail, cited so
-# in step 8, and the retired "the command and its output" is gone (dev-cq0.1.5)
-for need in 'skip the gate and the review and go to the Evidence run' 'the **check gate** on the integration branch tip' \
-  'a second red skips the review' '`failed: <check> <command>`'; do
-  line_has '^7\. ' "the story review (step 7)" "$need"
-done
-# on the first step 7 line, the gate comes before the review
-awk -v g='the **check gate** on the integration branch tip' -v r='mattpocock-skills:code-review' \
-  '/^7\. / { i = index($0, g); j = index($0, r); ok = (i && j && i < j); seen = 1; exit } END { exit !(seen && ok) }' "$f" \
-  || bad "missing: the story review (step 7) runs the check gate before the two-axis review"
-line_has '^   \*\*Evidence run\.\*\*' "the Evidence run paragraph cites each check's command, exit and tail" "each check's command, its exit and the last twenty lines of its log"
-line_has '^8\. ' "the deliver step (8) writes each check's command, exit and tail as Evidence" "each check's command, exit and twenty-line tail"
+# the story review (step 7) is the rules doc's Check gate loop on the integration branch tip
+# with the review marker as its exit: each iteration runs the checks first; a red goes to the
+# fix-up implementer and merger and the loop starts over; green and a tip matching the marker
+# exits, that iteration's run (each check's command, exit and tail) the PR's Evidence, cited so
+# in step 8; a tip off the marker is reviewed, fixed, marked and the loop starts over; the
+# fourth failure stalls with failed: <check> <command>; the separate Evidence run, the later
+# run that reviewed its fix and the second-red stall are gone (dev-cq0.1.5, dev-1xf.1.3)
+line_has '^7\. ' "the story review (step 7) is the rules doc's Check gate loop with the marker as its exit" "the rules doc's Check gate loop on the integration branch tip, with the **review marker** as its exit"
+line_has '^7\. ' "the story review (step 7) runs the checks first in each iteration" 'Each iteration runs the checks first'
+line_has '^7\. ' "a red at the story review starts the loop over" 'to the fix-up implementer below, then its merger, and the loop starts over'
+line_has '^7\. ' "a green tip matching the review marker exits the loop" 'the same SHA exits the loop'
+line_has '^7\. ' "the exit iteration's run is the PR's Evidence" "this iteration's run (each check's command, its exit and the last twenty lines of its log) is the PR's Evidence"
+line_has '^7\. ' "a reviewed tip is marked and the loop starts over" 'write the marker on the new tip, and the loop starts over'
+line_has '^7\. ' "the story loop's fourth failure skips delivery" 'the fourth failure skips step 8 and goes to step 9'
+line_has '^7\. ' "the story loop's stall line" '`failed: <check> <command>`'
+# one budget for the story loop, red or review, a minors-only review's fix-up included, and the
+# review's own stall form (dev-1xf.1.3 review 1)
+line_has '^7\. ' "red and review fix-ups share the story loop's budget of three" 'The budget is three fix-ups per story, red or review alike'
+line_has '^7\. ' "a minors-only review's fix-up spends the story loop's budget" "every fix-up in the story loop spends it, a minors-only review's included"
+line_has '^7\. ' "the story loop's stall line for a review" "(a review's as \`failed: review mattpocock-skills:code-review\`)"
+# on the first step 7 line, the checks come before the marker compare and the review
+awk -v g='Each iteration runs the checks first' -v m='the same SHA exits the loop' -v r='mattpocock-skills:code-review' \
+  '/^7\. / { i = index($0, g); k = index($0, m); j = index($0, r); ok = (i && k && j && i < k && k < j); seen = 1; exit } END { exit !(seen && ok) }' "$f" \
+  || bad "missing: the story review (step 7) runs the checks before the marker compare and the two-axis review"
+line_has '^8\. ' "the deliver step (8) takes its Evidence from step 7's exit iteration" "its Evidence from step 7's exit iteration (each check's command, exit and twenty-line tail)"
 hasc "report template's failed: line names the check" 'or <check> <command>'
 lacks "the retired Evidence phrase" 'the command and its output'
 
@@ -1097,6 +1140,18 @@ if git -C "$bump_repo" rev-parse --git-dir >/dev/null 2>&1 \
       || bad "version bump: a shipping path changed since ${fork:0:9} but $manifest has no version change"
   fi
 fi
+
+# ---- 15. mermaid blocks: no semicolon ----
+# mermaid ends a sequenceDiagram statement at a ";", so a line of a ```mermaid block with one does
+# not render (dev-1xf.1.4). The block opens on a fence line starting ```mermaid, indented or not,
+# and closes on the next fence line; every .md under the docs dir, the skills and the agent docs,
+# plus the project CLAUDE.md, the runbook and the root glossary, is read.
+section "15. mermaid blocks: no semicolon"
+while IFS= read -r f; do
+  [ -f "$f" ] || continue
+  hits=$(awk '/^[[:space:]]*```mermaid/ { inm = 1; next } inm && /^[[:space:]]*```/ { inm = 0 } inm && index($0, ";") { print FNR": "$0 }' "$f")
+  [ -z "$hits" ] || { bad "present: a semicolon in a mermaid block in $f (mermaid ends the statement there)"; printf '%s\n' "$hits" | head -3; }
+done < <({ find "$agents" "$skills" "$docs" -type f -name '*.md' 2>/dev/null; echo "$user_claude_md"; echo "$runbook"; echo "$glossary_md"; } | sort -u)
 
 checks_run
 [ "$fail" = 0 ] && echo "PASS"
