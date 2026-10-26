@@ -25,4 +25,12 @@ fx_check "skill names make check as the check command" grep -q '`make check`' <<
 fx_check "skill states the review-only fallback" grep -qi 'review-only' <<<"$body"
 fx_check "skill names no lint-command alternative" bash -c '! grep -qi "lint command\|make lint" "$1"' _ "$doc"
 
+# The present step (3) names the proposed check recipe, or the CLAUDE.md note when there is
+# no Makefile, so the confirm step (4) has it before anything is written.
+present=$(awk '/^3\. \*\*Present/{p=1} /^4\. /{p=0} p' "$doc")
+fx_check "present step names the proposed check recipe" grep -q '`check` target' <<<"$present"
+fx_check "present step names the CLAUDE.md note when no Makefile" grep -q 'CLAUDE.md' <<<"$present"
+confirm=$(awk '/^4\. \*\*Confirm/{p=1} /^5\. /{p=0} p' "$doc")
+fx_check "confirm step covers the check recipe" grep -q 'check' <<<"$confirm"
+
 fx_report_fails

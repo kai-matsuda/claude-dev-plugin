@@ -27,9 +27,12 @@ in step 4.
    alone. If `bd init` will run, say it makes a commit and that the pruning amends it, and
    name any staged or modified files from the explore step: stop, or ask the owner to
    commit or stash them, before `bd init`. If the repo already has a `Jira project key:`
-   line that would change, name the old and new value. A repo that already has everything
-   gets a report and no writes.
-4. **Confirm.** Wait for the owner's explicit yes. On a no, change nothing.
+   line that would change, name the old and new value. Name the `check` target the write
+   step would add: the recipe it would put in the `Makefile`, or, when the repo has no
+   `Makefile`, the note on the convention it would put in `CLAUDE.md`. A repo that already
+   has everything gets a report and no writes.
+4. **Confirm.** Wait for the owner's explicit yes, to the plan as presented, the `check`
+   recipe or `CLAUDE.md` note included. On a no, change nothing.
 5. **Write**, in this order, skipping what exists:
    - `.beads/`: if missing, run `bd init --non-interactive --agents-file CLAUDE.md`. It
      also generates `AGENTS.md`, `.codex/`, `.cursor/` and `.agents/` and makes a commit.
