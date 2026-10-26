@@ -190,19 +190,13 @@ implementer and the loop starts over; a clean verdict exits. A ticket runner run
 integration branch.
 _Avoid_: test gate, lint gate, seam gate
 
-**Evidence run**:
-The story orchestrator's last run of a story's checks on the integration branch tip, after
-the review marker is written (or straight from a marker that matches the tip): each check's
-command, its exit and the last twenty lines of its log are the PR's Evidence. A red there
-gets one fix-up round and a rerun; the marker stays put, so a later run reviews the fix.
-_Avoid_: final checks, evidence check
-
 **Review marker**:
 The `review: <tip SHA>` note the story orchestrator writes on the story bead once the
-story review's findings are merged, or it found none. A rerun whose integration branch tip is that SHA skips
-the check gate, the review and its fix-up and goes straight to the Evidence run; a tip that
-has moved since is gated and reviewed again. Without it, whether a rerun re-reviewed an already reviewed
-tip was the orchestrator's guess.
+story review's findings are merged, or it found none; it is the exit of the story level's
+check gate loop. An iteration whose checks are green on a tip that matches it exits, and
+its check run is the PR's Evidence: a matching tip runs the checks once and exits; a tip
+that has moved since, a check fix's move included, is reviewed again in the same run. Without
+it, whether a rerun re-reviewed an already reviewed tip was the orchestrator's guess.
 _Avoid_: review note, reviewed flag, review stamp
 
 **Review verdict**:

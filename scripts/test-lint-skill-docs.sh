@@ -1477,30 +1477,43 @@ fresh
 swap_phrase skills/implement-story/SKILL.md "^(> 2\. .*)the brief's lint command" '\1the brief'"'"'s lint command, `make ci`, `make lint`'
 expect "runner step 2 offering a list of lint commands fails" 1
 
-# the story review runs the check gate before the two-axis review, stalls on a second
-# pre-review red, and cites each check's command, exit and tail as the PR's Evidence; each pin
-# is proven by dropping its phrase, the order by moving the gate after the review (dev-cq0.1.5)
-for phrase in 'skip the gate and the review and go to the Evidence run' \
-  'the **check gate** on the integration branch tip' \
-  'a second red skips the review' \
-  "each check's command, its exit and the last twenty lines of its log" \
-  "each check's command, exit and twenty-line tail" \
-  'or <check> <command>'; do
+# the story review is the check gate loop with the review marker as its exit: each pin is proven
+# by dropping its phrase, the order by moving the checks after the review (dev-cq0.1.5,
+# dev-1xf.1.3)
+for case in "the rules doc's Check gate loop on the integration branch tip, with the **review marker** as its exit|a story review not the loop with the marker exit|missing: the story review (step 7) is the rules doc's Check gate loop" \
+  'Each iteration runs the checks first|an iteration not running the checks first|missing: the story review (step 7) runs the checks first in each iteration' \
+  'to the fix-up implementer below, then its merger, and the loop starts over|a story red not starting the loop over|missing: a red at the story review starts the loop over' \
+  'the same SHA exits the loop|a matching marker not exiting the loop|missing: a green tip matching the review marker exits the loop' \
+  "this iteration's run (each check's command, its exit and the last twenty lines of its log) is the PR's Evidence|Evidence not from the exit iteration|missing: the exit iteration's run is the PR's Evidence" \
+  'write the marker on the new tip, and the loop starts over|a reviewed tip not starting the loop over|missing: a reviewed tip is marked and the loop starts over' \
+  'the fourth failure skips step 8 and goes to step 9|a story loop without its fourth-failure stall|missing: the story loop'"'"'s fourth failure skips delivery' \
+  "its Evidence from step 7's exit iteration (each check's command, exit and twenty-line tail)|a deliver step not citing the exit iteration|missing: the deliver step (8) takes its Evidence from step 7's exit iteration" \
+  'or <check> <command>|a report template without the check failed line|missing (case-sensitive): report template'"'"'s failed: line names the check'; do
+  phrase=${case%%|*} rest=${case#*|}
   fresh
   drop_phrase skills/implement-story/SKILL.md "$phrase"
-  expect "implement-story without '$phrase' fails" 1
+  expect "implement-story with ${rest%%|*} fails" 1 "${rest#*|}"
 done
 
 # the stall line is read on step 7's line: dropped there while the report template keeps it
 fresh
 swap_phrase skills/implement-story/SKILL.md '^(7\. .*)`failed: <check> <command>`' '\1a failed line'
-expect "story review step 7 without its failed: <check> <command> stall line fails" 1
+expect "story review step 7 without its failed: <check> <command> stall line fails" 1 "missing: the story loop's stall line"
 
-# the gate named after the review on step 7's line: the order pin fails
+# the checks named after the review on step 7's line: the order pin fails
 fresh
-swap_phrase skills/implement-story/SKILL.md '^(7\. .*)$' '\1 Then the **check gate** on the integration branch tip again.'
-swap_phrase skills/implement-story/SKILL.md '^(7\. .*)the \*\*check gate\*\* on the integration branch tip runs first' '\1the review runs first'
-expect "story review step 7 with the gate after the two-axis review fails" 1
+swap_phrase skills/implement-story/SKILL.md '^(7\. .*)Each iteration runs the checks first' '\1Each iteration begins'
+swap_phrase skills/implement-story/SKILL.md '^(7\. .*)$' '\1 Each iteration runs the checks first.'
+expect "story review step 7 with the checks after the two-axis review fails" 1 "missing: the story review (step 7) runs the checks before the marker compare"
+
+# the retired two-gate phrases seeded back fail
+for case in 'Then the Evidence run checks the tip.|present: the retired Evidence run' \
+  'The marker stays put, so a later run reviews the fix.|present: the retired later-run review of a fix' \
+  'A second red skips step 8.|present: the retired second-red stall'; do
+  fresh
+  echo "${case%%|*}" >> "$scratch/skills/implement-story/SKILL.md"
+  expect "implement-story regaining '${case%%|*}' fails" 1 "${case#*|}"
+done
 
 # the retired phrase seeded back fails
 fresh

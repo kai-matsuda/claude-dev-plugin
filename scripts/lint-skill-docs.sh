@@ -92,10 +92,11 @@
 #      pointing at the rules doc's Review verdict, whose rule section 6 checks (chezmoi-49k),
 #      and its step 3 resolves the owner's lint command once, which the runner brief's header
 #      and every brief it sends carry, runner step 2 taking it from the brief (dev-cq0.1.2),
-#      and its story review runs the check gate before the two-axis review, a matching marker
-#      jumping to the Evidence run, a second red stalling with failed: <check> <command>, the
-#      Evidence each check's command, exit and tail cited in step 8, and the retired "the
-#      command and its output" gone (dev-cq0.1.5); section 6 checks the rules doc's Check gate;
+#      and its story review is the check gate loop with the review marker as its exit, a red
+#      or a reviewed tip starting it over, a fourth failure stalling with failed: <check>
+#      <command>, the exit iteration's run (each check's command, exit and tail) the Evidence
+#      cited in step 8, and the retired Evidence run, second-red stall and "the command and
+#      its output" gone (dev-cq0.1.5, dev-1xf.1.3); section 6 checks the rules doc's Check gate;
 #   9. /close-story: its Forgejo/Gitea query carries --repo <path> as the intro and
 #      /implement-story's merge guard do (dev-hac); its ticket check skips a child carrying
 #      needs-triage or wontfix, as the finished story does, and its refusal names each open
@@ -859,22 +860,31 @@ lacks "the retired run-the-gate-again wording" 'run the check gate again, and on
 # included, in place of the tests
 line_has '^> 4\. ' "the merger runs the story's checks, the lint command included, in the implementer's worktree" 'runs the story'"'"'s checks there, the lint command `<lint>` included'
 line_has '^> 4\. ' "the merger reruns the story's checks, the lint command included, on the merged result in <owner>" 'reruns the story'"'"'s checks on the merged result in `<owner>`, the lint command `<lint>` included'
-# the story review (step 7) runs the check gate on the integration branch tip before the
-# two-axis review, a matching marker jumping to the Evidence run; a second pre-review red stalls
-# with failed: <check> <command>; the Evidence is each check's command, exit and tail, cited so
-# in step 8, and the retired "the command and its output" is gone (dev-cq0.1.5)
-for need in 'skip the gate and the review and go to the Evidence run' 'the **check gate** on the integration branch tip' \
-  'a second red skips the review' '`failed: <check> <command>`'; do
-  line_has '^7\. ' "the story review (step 7)" "$need"
-done
-# on the first step 7 line, the gate comes before the review
-awk -v g='the **check gate** on the integration branch tip' -v r='mattpocock-skills:code-review' \
-  '/^7\. / { i = index($0, g); j = index($0, r); ok = (i && j && i < j); seen = 1; exit } END { exit !(seen && ok) }' "$f" \
-  || bad "missing: the story review (step 7) runs the check gate before the two-axis review"
-line_has '^   \*\*Evidence run\.\*\*' "the Evidence run paragraph cites each check's command, exit and tail" "each check's command, its exit and the last twenty lines of its log"
-line_has '^8\. ' "the deliver step (8) writes each check's command, exit and tail as Evidence" "each check's command, exit and twenty-line tail"
+# the story review (step 7) is the rules doc's Check gate loop on the integration branch tip
+# with the review marker as its exit: each iteration runs the checks first; a red goes to the
+# fix-up implementer and merger and the loop starts over; green and a tip matching the marker
+# exits, that iteration's run (each check's command, exit and tail) the PR's Evidence, cited so
+# in step 8; a tip off the marker is reviewed, fixed, marked and the loop starts over; the
+# fourth failure stalls with failed: <check> <command>; the separate Evidence run, the later
+# run that reviewed its fix and the second-red stall are gone (dev-cq0.1.5, dev-1xf.1.3)
+line_has '^7\. ' "the story review (step 7) is the rules doc's Check gate loop with the marker as its exit" "the rules doc's Check gate loop on the integration branch tip, with the **review marker** as its exit"
+line_has '^7\. ' "the story review (step 7) runs the checks first in each iteration" 'Each iteration runs the checks first'
+line_has '^7\. ' "a red at the story review starts the loop over" 'to the fix-up implementer below, then its merger, and the loop starts over'
+line_has '^7\. ' "a green tip matching the review marker exits the loop" 'the same SHA exits the loop'
+line_has '^7\. ' "the exit iteration's run is the PR's Evidence" "this iteration's run (each check's command, its exit and the last twenty lines of its log) is the PR's Evidence"
+line_has '^7\. ' "a reviewed tip is marked and the loop starts over" 'write the marker on the new tip, and the loop starts over'
+line_has '^7\. ' "the story loop's fourth failure skips delivery" 'the fourth failure skips step 8 and goes to step 9'
+line_has '^7\. ' "the story loop's stall line" '`failed: <check> <command>`'
+# on the first step 7 line, the checks come before the marker compare and the review
+awk -v g='Each iteration runs the checks first' -v m='the same SHA exits the loop' -v r='mattpocock-skills:code-review' \
+  '/^7\. / { i = index($0, g); k = index($0, m); j = index($0, r); ok = (i && k && j && i < k && k < j); seen = 1; exit } END { exit !(seen && ok) }' "$f" \
+  || bad "missing: the story review (step 7) runs the checks before the marker compare and the two-axis review"
+line_has '^8\. ' "the deliver step (8) takes its Evidence from step 7's exit iteration" "its Evidence from step 7's exit iteration (each check's command, exit and twenty-line tail)"
 hasc "report template's failed: line names the check" 'or <check> <command>'
 lacks "the retired Evidence phrase" 'the command and its output'
+lacks "the retired Evidence run" 'Evidence run'
+lacks "the retired later-run review of a fix" 'a later run reviews the fix'
+lacks "the retired second-red stall" 'a second red'
 
 fi
 
