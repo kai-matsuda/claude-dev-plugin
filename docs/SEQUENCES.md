@@ -25,7 +25,7 @@ where the rows differ most, and the diagram draws all three of its cases.
 sequenceDiagram
     autonumber
     participant O as Orchestrator (the row's)
-    participant BD as bd -C owner
+    participant BD as bd (the owner repo, the home database for the epic row)
     participant I as Builder (an implementer, or the orchestrators of the row below)
     participant V as Reviewer (review model, one tier up)
     participant F as Fix-up (per the row's Fix-up column)
@@ -41,7 +41,7 @@ sequenceDiagram
     I-->>O: ready for review
 
     loop the checks, then the review on green, three fix-ups per unit (the epic row, three per story)
-        O->>O: run the check command on the tip (the epic row reads the forge's status on the PR tip), unless its tree has a record, write the check record
+        O->>O: run the check command on the tip unless its tree has a record, and write the record (the epic row reads the forge's status on the PR tip)
         alt the checks are red
             O->>BD: note the failing command and its log
             O->>F: fix-up by pointer brief
@@ -71,7 +71,7 @@ sequenceDiagram
             O->>O: the tip moved, rerun the check command, the gate exits on the moved tip once green
         end
         opt minors out of scope
-            O->>IN: capture a retro item (needs-triage), never a bead of the unit
+            O->>IN: capture a retro item (needs-triage), never to a bead of the story
         end
         alt ticket row
             O->>O: wait on the owner checkout's lock
