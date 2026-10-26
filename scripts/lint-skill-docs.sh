@@ -320,6 +320,17 @@ has "epic reviewer's sub-agents' model" 'its sub-agents run at `<review model>`'
 has "fix-up description on stdin" '--body-file -'
 has "epic notes beside implement-story's lines" 'which `/dev:implement-story` ignores'
 has "pending-checks stall resume command" 'checks are pending, end with the resume command'
+# epic review 3 of dev-9k5.1.8: a story re-run this run enters the review set only on its
+# delivered tip and without a failed: report; plus the minors
+has "review set: the current tip is the delivered tip" 'its current tip equals the delivered tip'
+has "review set: no failed: report this run" 'its orchestrator did not report `failed:` this run'
+has "tea landed test reads the landed field" 'never its `state` alone'
+has "every forge read sandbox-disabled" 'every forge command of this step run with the sandbox disabled'
+has "a spent budget is not reviewed again" 'is failed and not reviewed again'
+has "Human stop reports epic-review failures" "step 6's \`failed:\` lines too"
+has "files fix-up tickets, implements none" 'files fix-up tickets and implements none'
+lacks "nothing touches a ticket" 'nothing below touches a ticket'
+has "red check ticket body" 'the check, its command and its log pointer'
 has "frontmatter" 'disable-model-invocation: true'
 has "legacy line" 'refused: flat epic (tickets directly under the epic bead); the story skills do not handle it — the small-bug path does: /mattpocock-skills:implement <ticket-id> per ticket, then bd close <epic-id>'
 has "add-dir refusal" '/add-dir <'

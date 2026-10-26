@@ -1402,10 +1402,24 @@ pin_case "the epic reviewer's sub-agent model" 'its sub-agents run at `<review m
 pin_case "the fix-up description on stdin" '--body-file -'
 pin_case "the epic notes clause" 'which `/dev:implement-story` ignores'
 pin_case "the pending-checks resume command" 'checks are pending, end with the resume command'
+# epic review 3 of dev-9k5.1.8: a re-run story is reviewed only on its delivered tip and
+# without a failed: report; plus the minors
+pin_case "the delivered-tip condition" 'its current tip equals the delivered tip'
+pin_case "the no-failed:-report condition" 'its orchestrator did not report `failed:` this run'
+pin_case "the tea landed field" 'never its `state` alone'
+pin_case "the sandbox-disabled forge reads" 'every forge command of this step run with the sandbox disabled'
+pin_case "the spent budget's skip" 'is failed and not reviewed again'
+pin_case "the Human stop's epic-review failures" "step 6's \`failed:\` lines too"
+pin_case "the fix-up filing clause" 'files fix-up tickets and implements none'
+pin_case "the red check's ticket body" 'the check, its command and its log pointer'
 
 fresh_spec
 echo "three blocking verdicts are fixed up" >> "$spec"
 expect "implement-spec counting only blocking verdicts fails" 1 "a budget of blocking verdicts only" "$spec" "$scratch/docs/WORKFLOW.md"
+
+fresh_spec
+echo "nothing below touches a ticket" >> "$spec"
+expect "implement-spec claiming it touches no ticket fails" 1 "nothing touches a ticket" "$spec" "$scratch/docs/WORKFLOW.md"
 
 fresh_spec
 echo "You are the driver, the feature-level session." >> "$spec"
