@@ -186,17 +186,18 @@ _Avoid_: pre-flight, verification step
 **Check gate**:
 The loop both levels run on a read-only branch tip: the story's checks, cheapest first,
 then the review. A red check or a blocking verdict sends the tip to a fresh fix-up
-implementer and the loop starts over; a clean verdict exits. A ticket runner runs it on each implementer's branch, the story orchestrator on the
-integration branch.
-_Avoid_: test gate, lint gate, seam gate
+implementer and the loop starts over. At the ticket level a clean verdict exits; at the
+story level the review marker does. A ticket runner runs it on each implementer's branch,
+the story orchestrator on the integration branch.
+_Avoid_: test gate, lint gate, seam gate, check and review loop
 
 **Review marker**:
 The `review: <tip SHA>` note the story orchestrator writes on the story bead once the
 story review's findings are merged, or it found none; it is the exit of the story level's
 check gate loop. An iteration whose checks are green on a tip that matches it exits, and
-its check run is the PR's Evidence: a matching tip runs the checks once and exits; a tip
-that has moved since, a check fix's move included, is reviewed again in the same run. Without
-it, whether a rerun re-reviewed an already reviewed tip was the orchestrator's guess.
+its check run is the PR's Evidence; a tip that has moved since, a check fix's move
+included, is reviewed again in the same run. Without it, whether a rerun re-reviewed an
+already reviewed tip was the orchestrator's guess.
 _Avoid_: review note, reviewed flag, review stamp
 
 **Review verdict**:
@@ -205,7 +206,8 @@ The line a reviewer's report ends on: `verdict: clean` when no finding is blocki
 unmet, a behaviour wrong, a test missing) or **minor** (wording, naming, a nit that changes
 no behaviour an acceptance criterion names). A clean round sends its minors to one last
 fix-up implementer or to the inbox and moves on; every fix-up, red or blocking, spends the
-check gate loop's budget; a clean round does not (`docs/agents/orchestration.md`, "Review").
+check gate loop's budget; at the ticket level a clean round's fix-up does not, while at the
+story level it does (`docs/agents/orchestration.md`, "Review").
 _Avoid_: zero findings, nit-free, pass/fail
 
 **Story orchestrator**:
@@ -317,9 +319,10 @@ _Avoid_: pause, handoff, blocked run
 **Stall**:
 The end of a run of `/dev:implement-spec` or `/dev:implement-story` whose frontier is empty, with
 nothing in flight and no `ready-for-human` ticket open, while some ticket the story still
-waits for is open (Finished story above), a check is still red after its fix-up round, or
-the push was refused. The run reports each stuck ticket with its open blocker, a red check
-as `failed: <check> <command>`, or the refused push with its command.
+waits for is open (Finished story above), the check gate loop has failed a fourth time,
+red or review, after its three fix-ups, or the push was refused. The run reports each
+stuck ticket with its open blocker, a red check as `failed: <check> <command>`, a review
+as `failed: review mattpocock-skills:code-review`, or the refused push with its command.
 _Avoid_: deadlock, hang
 
 **Repo manifest**:

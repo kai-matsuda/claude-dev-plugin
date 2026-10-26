@@ -98,8 +98,9 @@
 #      and its story review is the check gate loop with the review marker as its exit, a red
 #      or a reviewed tip starting it over, a fourth failure stalling with failed: <check>
 #      <command>, the exit iteration's run (each check's command, exit and tail) the Evidence
-#      cited in step 8, and the retired Evidence run, second-red stall and "the command and
-#      its output" gone (dev-cq0.1.5, dev-1xf.1.3); section 6 checks the rules doc's Check gate;
+#      cited in step 8, and "the command and its output" gone (section 5's sweep covers the
+#      Evidence run and the second-red stall) (dev-cq0.1.5, dev-1xf.1.3); section 6 checks the
+#      rules doc's Check gate;
 #   9. /close-story: its Forgejo/Gitea query carries --repo <path> as the intro and
 #      /implement-story's merge guard do (dev-hac); its ticket check skips a child carrying
 #      needs-triage or wontfix, as the finished story does, and its refusal names each open
@@ -634,8 +635,10 @@ para_has '**Review verdict.**' "a round with no blocking findings is clean" 'no 
 para_has '**Review verdict.**' "every fix-up, red or blocking, spends the loop's budget" "Every fix-up, red or blocking, spends the loop's budget"
 # the check gate, stated once as the loop (INFRA-32): at both levels; checks (lint first, then the test
 # seams, the first red stops); a red goes to a fresh fix-up implementer and the loop starts over; the
-# review; a blocking verdict likewise; a clean verdict exits; three fix-ups of either cause, a fourth
-# failure is failed. The Idle rule's command list names the checks
+# review; a blocking verdict likewise; a clean verdict exits at the ticket level, the review marker
+# at the story level; three fix-ups of either cause, a fourth failure is failed. Nothing carries the
+# story count across runs, so the rule claims no resume behaviour. The Idle rule's command list
+# names the checks
 hasc "Check gate rule" '**Check gate.**'
 para_has '**Check gate.**' "both levels" 'ticket level and the story level'
 para_has '**Check gate.**' "lint first, then the test seams" 'lint first, then the test seams'
@@ -643,10 +646,11 @@ para_has '**Check gate.**' "the first red stops" 'the first red stops'
 para_has '**Check gate.**' "a red goes to a fresh fix-up implementer and the loop starts over" 'A red goes to a fresh fix-up implementer, never to a reviewer, and the loop starts over'
 para_has '**Check gate.**' "a blocking verdict goes to a fresh fix-up implementer and the loop starts over" 'a blocking verdict goes to a fresh fix-up implementer and the loop starts over'
 para_has '**Check gate.**' "with the checks green, run the review" 'With the checks green, run the review:'
-para_has '**Check gate.**' "a clean verdict exits" 'a clean verdict exits'
+para_has '**Check gate.**' "a clean verdict exits at the ticket level" 'a clean verdict exits at the ticket level'
+para_has '**Check gate.**' "the review marker is the story level's exit" 'at the story level the review marker is the exit'
 para_has '**Check gate.**' "three fix-ups per ticket at the ticket level" 'three fix-ups per ticket at the ticket level'
-para_has '**Check gate.**' "three per story at the story level, of either cause" 'three per story at the story level, of either cause'
-para_has '**Check gate.**' "the story budget never resets on a resume" 'no reset when a run resumes'
+para_has '**Check gate.**' "three per story at the story level" 'three per story at the story level'
+para_has '**Check gate.**' "either cause spends the budget" 'Either cause spends the budget'
 para_has '**Check gate.**' "a fourth failure is failed" 'a fourth failure is `failed`'
 para_has '**Idle rule.**' "the Idle rule names the checks" "these are the story's checks"
 fi
@@ -847,13 +851,13 @@ line_lacks '^> 2\. ' "runner step 2 offers a list of lint commands to choose fro
 # blocking verdict both spawn a fresh fix-up implementer and start the loop over from the checks,
 # on one budget of three fix-ups; a low ticket exits on green; the implementer runs no checks
 # (dev-cq0.1.4, dev-1xf.1.2)
-G3='^> 3\. \*\*Check and review loop\*\*, every tier'
-hase "ticket runner step 3 opens with the check and review loop, every tier" "$G3"
+G3='^> 3\. \*\*Check gate\*\*, every tier'
+hase "ticket runner step 3 opens with the check gate, every tier" "$G3"
 line_has "$G3" "the loop step cites the rules doc's loop" "as the rules doc's Check gate says"
 line_has "$G3" "a red starts the loop over from the checks" 'A red spawns a fresh fix-up implementer and the loop starts over from the checks'
 line_has "$G3" "a blocking verdict starts the loop over from the checks, never straight to the reviewer" 'a blocking verdict spawns a fresh fix-up implementer and the loop starts over from the checks, never straight to the reviewer'
 line_has "$G3" "a clean verdict exits the loop" '**Clean** exits the loop'
-line_hase "$G3" "the check gate runs before step 3's reviewer" '\*\*Check and review loop\*\*.*Green:.*for `medium` and `high`, spawn a \*\*reviewer\*\*'
+line_hase "$G3" "the check gate runs before step 3's reviewer" '\*\*Check gate\*\*.*Green:.*for `medium` and `high`, spawn a \*\*reviewer\*\*'
 grep -E "$G3" "$f" | sed 's/Green: .*//' | grep -qF -- 'spawn a **reviewer**' && bad "present: ticket runner step 3 spawns a reviewer ahead of the checks' green"
 line_has "$G3" "a low ticket exits the loop on green checks" 'Green: a `low` ticket exits the loop, go to step 4'
 line_has '^> 2\. ' "runner step 2's implementer runs no gate and spawns no one" 'The implementer runs no gate and spawns no one'
@@ -864,7 +868,6 @@ line_has "$G3" "a green gate writes no note" 'a green writes no note'
 line_has "$G3" "the gate's fix-up brief points at the log path" 'the log path, and no pasted output'
 line_has "$G3" "red and blocking fix-ups share one budget of three, the fourth failure is failed" 'The budget is three fix-ups of either cause; the fourth red or blocking verdict is `failed`'
 line_has "$G3" "the minors fix-up after a clean verdict spends no budget and advances no round" 'The minors fix-up spends no budget and advances no round'
-lacks "the retired third-round wording" 'a third round of either kind'
 lacks "the retired run-the-gate-again wording" 'run the check gate again, and on green spawn a reviewer again'
 # the merger's two runs (step 4, dev-cq0.1.6): the implementer's worktree after the tip merge and
 # the owner checkout after the integration merge are runs of the story's checks, the lint command
@@ -898,9 +901,6 @@ awk -v g='Each iteration runs the checks first' -v m='the same SHA exits the loo
 line_has '^8\. ' "the deliver step (8) takes its Evidence from step 7's exit iteration" "its Evidence from step 7's exit iteration (each check's command, exit and twenty-line tail)"
 hasc "report template's failed: line names the check" 'or <check> <command>'
 lacks "the retired Evidence phrase" 'the command and its output'
-lacks "the retired Evidence run" 'Evidence run'
-lacks "the retired later-run review of a fix" 'a later run reviews the fix'
-lacks "the retired second-red stall" 'a second red'
 
 fi
 

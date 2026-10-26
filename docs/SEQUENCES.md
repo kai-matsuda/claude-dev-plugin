@@ -18,7 +18,7 @@ four skills answer to that name.
 
 ## Stage 1: per-ticket review
 
-Runner brief steps 2 to 4, every tier. Step 3 is the **check and review loop**: the checks run
+Runner brief steps 2 to 5, every tier. Step 3 is the **check gate**, one loop: the checks run
 for `low` too; only `medium` and `high` get a reviewer. A `low` ticket exits the loop on green
 checks and goes straight to the merger, and the **ticket runner** does not spawn a reviewer for
 it. A red or a blocking verdict spawns a fresh fix-up implementer and the loop starts over from

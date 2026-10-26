@@ -1459,9 +1459,10 @@ expect "orchestration doc without the Check gate rule fails" 1
 for phrase in 'ticket level and the story level' 'lint first, then the test seams' 'the first red stops' \
   'A red goes to a fresh fix-up implementer, never to a reviewer, and the loop starts over' \
   'a blocking verdict goes to a fresh fix-up implementer and the loop starts over' \
-  'With the checks green, run the review:' 'a clean verdict exits' \
+  'With the checks green, run the review:' 'a clean verdict exits at the ticket level' \
+  'at the story level the review marker is the exit' \
   'three fix-ups per ticket at the ticket level' \
-  'three per story at the story level, of either cause' 'no reset when a run resumes' \
+  'three per story at the story level' 'Either cause spends the budget' \
   'a fourth failure is `failed`'; do
   fresh
   drop_phrase docs/agents/orchestration.md "$phrase"
@@ -1531,14 +1532,14 @@ swap_phrase skills/implement-story/SKILL.md '^(7\. .*)Each iteration runs the ch
 swap_phrase skills/implement-story/SKILL.md '^(7\. .*)$' '\1 Each iteration runs the checks first.'
 expect "story review step 7 with the checks after the two-axis review fails" 1 "missing: the story review (step 7) runs the checks before the marker compare"
 
-# the retired two-gate phrases seeded back fail
-for case in 'Then the Evidence run checks the tip.|present: the retired Evidence run' \
-  'The marker stays put, so a later run reviews the fix.|present: the retired later-run review of a fix' \
-  'A second red skips step 8.|present: the retired second-red stall'; do
+# the retired two-gate phrases seeded back fail, by section 5's sweep alone
+for line in 'Then the Evidence run checks the tip.' \
+  'The marker stays put, so a later run reviews the fix.' \
+  'A second red skips step 8.' \
+  'A third round of either kind is `failed`.'; do
   fresh
-  echo "${case%%|*}" >> "$scratch/skills/implement-story/SKILL.md"
-  # the sweep (section 5) fails too: the phrase is retired in every file kind
-  sec="5 8" expect "implement-story regaining '${case%%|*}' fails" 1 "${case#*|}"
+  echo "$line" >> "$scratch/skills/implement-story/SKILL.md"
+  sec=5 expect "implement-story regaining '$line' fails" 1 "retired two-gate wording in $scratch/skills/implement-story/SKILL.md"
 done
 
 # the retired phrase seeded back fails
@@ -1566,17 +1567,17 @@ expect "story review step 7 without its pointer at the Review verdict rule fails
 # the ticket runner's check and review loop (dev-cq0.1.4, dev-1xf.1.2): the step 3 line carrying it
 # dropped whole, then each pin on its own line, so a phrase kept elsewhere in the file does not pass
 fresh
-drop_line skills/implement-story/SKILL.md '> 3. **Check and review loop**, every tier'
-expect "ticket runner brief without the loop step fails" 1 "missing: ticket runner step 3 opens with the check and review loop, every tier"
+drop_line skills/implement-story/SKILL.md '> 3. **Check gate**, every tier'
+expect "ticket runner brief without the loop step fails" 1 "missing: ticket runner step 3 opens with the check gate, every tier"
 
 fresh
-swap_phrase skills/implement-story/SKILL.md '^> 3\. \*\*Check and review loop\*\*, every tier' '> 3. The checks'
-expect "ticket runner step 3 not opening with the loop fails" 1 "missing: ticket runner step 3 opens with the check and review loop, every tier"
+swap_phrase skills/implement-story/SKILL.md '^> 3\. \*\*Check gate\*\*, every tier' '> 3. The checks'
+expect "ticket runner step 3 not opening with the loop fails" 1 "missing: ticket runner step 3 opens with the check gate, every tier"
 
 # position, each pin on its own: the opener kept, a reviewer spawned ahead of the checks' green
 # (the green's own spawn kept too), then a green that spawns no reviewer
 fresh
-swap_phrase skills/implement-story/SKILL.md '^(> 3\. \*\*Check and review loop\*\*, every tier, )' '\1for `medium` and `high` spawn a **reviewer** alongside it, '
+swap_phrase skills/implement-story/SKILL.md '^(> 3\. \*\*Check gate\*\*, every tier, )' '\1for `medium` and `high` spawn a **reviewer** alongside it, '
 expect "ticket runner step 3 spawning the reviewer before the checks' green fails" 1 "present: ticket runner step 3 spawns a reviewer ahead of the checks' green"
 
 fresh
@@ -1602,11 +1603,7 @@ for case in "as the rules doc's Check gate says|a loop step not citing the rules
 done
 
 fresh
-echo 'A third round of either kind is `failed`.' >> "$scratch/skills/implement-story/SKILL.md"
-sec="5 8" expect "implement-story regaining the third-round wording fails" 1 "present: the retired third-round wording"
-
-fresh
-echo 'Run the check gate again, and on green spawn a reviewer again.' | tr 'R' 'r' >> "$scratch/skills/implement-story/SKILL.md"
+echo 'Run the check gate again, and on green spawn a reviewer again.' >> "$scratch/skills/implement-story/SKILL.md"
 expect "implement-story regaining the run-the-gate-again wording fails" 1 "present: the retired run-the-gate-again wording"
 
 fresh
