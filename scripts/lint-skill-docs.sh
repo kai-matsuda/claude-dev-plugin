@@ -837,12 +837,12 @@ line_lacks '^> 2\. ' "runner step 2 offers a list of lint commands to choose fro
 # (dev-cq0.1.4, dev-1xf.1.2)
 G3='^> 3\. \*\*Check and review loop\*\*, every tier'
 hase "ticket runner step 3 opens with the check and review loop, every tier" "$G3"
-line_has "$G3" "the loop step cites the rules doc's loop" "as the rules doc's Check gate loop says"
-line_has "$G3" "a red starts the loop over from the checks" 'a red spawns a fresh fix-up implementer and the loop starts over from the checks'
+line_has "$G3" "the loop step cites the rules doc's loop" "as the rules doc's Check gate says"
+line_has "$G3" "a red starts the loop over from the checks" 'A red spawns a fresh fix-up implementer and the loop starts over from the checks'
 line_has "$G3" "a blocking verdict starts the loop over from the checks, never straight to the reviewer" 'a blocking verdict spawns a fresh fix-up implementer and the loop starts over from the checks, never straight to the reviewer'
 line_has "$G3" "a clean verdict exits the loop" '**Clean** exits the loop'
 line_hase "$G3" "the check gate runs before step 3's reviewer" '\*\*Check and review loop\*\*.*Green:.*for `medium` and `high`, spawn a \*\*reviewer\*\*'
-grep -E "$G3" "$f" | sed 's/Green: .*//' | grep -qF -- 'spawn a **reviewer**' && bad "present: ticket runner step 3 spawns a reviewer ahead of the check gate's green"
+grep -E "$G3" "$f" | sed 's/Green: .*//' | grep -qF -- 'spawn a **reviewer**' && bad "present: ticket runner step 3 spawns a reviewer ahead of the checks' green"
 line_has "$G3" "a low ticket exits the loop on green checks" 'Green: a `low` ticket exits the loop, go to step 4'
 line_has '^> 2\. ' "runner step 2's implementer runs no gate and spawns no one" 'The implementer runs no gate and spawns no one'
 line_has "$G3" "the check gate logs both streams under the worktree's .tmp/ and echoes the exit" 'mkdir -p <worktree path>/.tmp; export TMPDIR=<worktree path>/.tmp; <check> > <worktree path>/.tmp/checks-<round>-<k>.log 2>&1; echo exit=$?'
@@ -851,7 +851,9 @@ line_has "$G3" "a red gate's note form (checks <round>: red <command>)" '`bd -C 
 line_has "$G3" "a green gate writes no note" 'a green writes no note'
 line_has "$G3" "the gate's fix-up brief points at the log path" 'the log path, and no pasted output'
 line_has "$G3" "red and blocking fix-ups share one budget of three, the fourth failure is failed" 'The budget is three fix-ups of either cause; the fourth red or blocking verdict is `failed`'
+line_has "$G3" "the minors fix-up after a clean verdict spends no budget and advances no round" 'The minors fix-up spends no budget and advances no round'
 lacks "the retired third-round wording" 'a third round of either kind'
+lacks "the retired run-the-gate-again wording" 'run the check gate again, and on green spawn a reviewer again'
 # the merger's two runs (step 4, dev-cq0.1.6): the implementer's worktree after the tip merge and
 # the owner checkout after the integration merge are runs of the story's checks, the lint command
 # included, in place of the tests

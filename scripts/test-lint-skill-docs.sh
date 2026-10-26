@@ -1538,14 +1538,14 @@ expect "ticket runner step 3 not opening with the loop fails" 1 "missing: ticket
 # (the green's own spawn kept too), then a green that spawns no reviewer
 fresh
 swap_phrase skills/implement-story/SKILL.md '^(> 3\. \*\*Check and review loop\*\*, every tier, )' '\1for `medium` and `high` spawn a **reviewer** alongside it, '
-expect "ticket runner step 3 spawning the reviewer before the checks' green fails" 1 "present: ticket runner step 3 spawns a reviewer ahead of the check gate's green"
+expect "ticket runner step 3 spawning the reviewer before the checks' green fails" 1 "present: ticket runner step 3 spawns a reviewer ahead of the checks' green"
 
 fresh
 swap_phrase skills/implement-story/SKILL.md '^(> 3\. .*Green: a `low` ticket exits the loop, go to step 4; for `medium` and `high`, )spawn a \*\*reviewer\*\*' '\1hand the ticket to a **reviewer**'
 expect "ticket runner step 3 whose green spawns no reviewer fails" 1 "missing: the check gate runs before step 3's reviewer"
 
-for case in "as the rules doc's Check gate loop says|a loop step not citing the rules doc's loop|missing: the loop step cites the rules doc's loop" \
-  'a red spawns a fresh fix-up implementer and the loop starts over from the checks|a red not starting the loop over|missing: a red starts the loop over from the checks' \
+for case in "as the rules doc's Check gate says|a loop step not citing the rules doc's loop|missing: the loop step cites the rules doc's loop" \
+  'A red spawns a fresh fix-up implementer and the loop starts over from the checks|a red not starting the loop over|missing: a red starts the loop over from the checks' \
   'and the loop starts over from the checks, never straight to the reviewer|a blocking verdict not starting over from the checks|missing: a blocking verdict starts the loop over from the checks' \
   '**Clean** exits the loop|a clean verdict not exiting the loop|missing: a clean verdict exits the loop' \
   'Green: a `low` ticket exits the loop, go to step 4|a low ticket not exiting on green|missing: a low ticket exits the loop on green checks' \
@@ -1554,6 +1554,7 @@ for case in "as the rules doc's Check gate loop says|a loop step not citing the 
   '`bd -C <owner> note <ticket-id> "checks <round>: red <command>"`|a red without its note|missing: a red gate'"'"'s note form' \
   'a green writes no note|a green that may write a note|missing: a green gate writes no note' \
   'the log path, and no pasted output|a fix-up brief without the log path|missing: the gate'"'"'s fix-up brief points at the log path' \
+  'The minors fix-up spends no budget and advances no round|a minors fix-up that may spend budget|missing: the minors fix-up after a clean verdict spends no budget' \
   'The budget is three fix-ups of either cause; the fourth red or blocking verdict is `failed`|a loop without its shared budget|missing: red and blocking fix-ups share one budget of three'; do
   phrase=${case%%|*} rest=${case#*|}
   fresh
@@ -1564,6 +1565,10 @@ done
 fresh
 echo 'A third round of either kind is `failed`.' >> "$scratch/skills/implement-story/SKILL.md"
 expect "implement-story regaining the third-round wording fails" 1 "present: the retired third-round wording"
+
+fresh
+echo 'Run the check gate again, and on green spawn a reviewer again.' | tr 'R' 'r' >> "$scratch/skills/implement-story/SKILL.md"
+expect "implement-story regaining the run-the-gate-again wording fails" 1 "present: the retired run-the-gate-again wording"
 
 fresh
 drop_phrase skills/implement-story/SKILL.md 'The implementer runs no gate and spawns no one'
