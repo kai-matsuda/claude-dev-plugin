@@ -22,7 +22,7 @@ human is not a row: a ready PR is theirs to merge.
 
 | Row | Orchestrator | Builds | Checks | Review spec axis | Review standards axis | Reviewer and model | Fix-up | Lands by | Exits when | Budget |
 |---|---|---|---|---|---|---|---|---|---|---|
-| **Ticket** | ticket orchestrator | one implementer in a worktree | the check command | the ticket's body | the ticket diff | both axes, at the ticket's review model | an implementer by pointer brief, same worktree | merge onto the integration branch under the lock, after the stray-commit check | the checks green on the tip the review called clean | three fix-ups |
+| **Ticket** | ticket orchestrator | one implementer in a worktree | the check command | the ticket's body | the ticket diff | both axes, at the ticket's review model; none at `low` | an implementer by pointer brief, same worktree | merge onto the integration branch under the lock, after the stray-commit check | the checks green on the tip the review called clean | three fix-ups |
 | **Story** | story orchestrator | ticket orchestrators in parallel over the frontier | the check command | the story's body | what entered since the last standards review: conflict resolutions and cross-ticket coherence | both axes, at the review model of the story's max tier | an implementer by pointer brief in a fix-up worktree | push, the PR staying a draft | the checks green on the tip the review called clean | three fix-ups |
 | **Epic** | epic orchestrator | story orchestrators in parallel over the frontier | the check command as the forge runs it | the Jira Epic's spec | none, the axis is skipped | the spec axis only, at the review model of the epic's max tier | findings filed as `ready-for-agent` tickets under the story, that story re-run in add mode | the PR marked ready, the human merges, then `/dev:close-story` and `/dev:close-epic` | the checks green on the tip the review called clean | three per story |
 
@@ -169,7 +169,7 @@ the dev plugin, so every skill reaches them through the plugin root, `<plugin ro
 directory the harness names in its plugin-root variable `CLAUDE_PLUGIN_ROOT`. A skill
 resolves it once per session: its text writes `${CLAUDE_PLUGIN_ROOT}/docs/agents/<doc>.md`,
 which the harness fills in with the absolute path when it loads the skill (as it fills in
-`hooks/hooks.json`'s `guard-rm.sh` command). Bash never has the variable, in the main
+`hooks/hooks.json`'s `guard-rm.sh` command). Bash never has the variable, in the
 session or a subagent, so only if the text still shows it does the session fall back to the
 `Base directory for this skill: <path>` line the Skill tool prints on loading a plugin skill:
 that path is `<plugin root>/skills/<skill>`, so the root is two levels up (under

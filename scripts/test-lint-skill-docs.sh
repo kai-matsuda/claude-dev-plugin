@@ -1496,7 +1496,7 @@ for r in Ticket Story Epic; do
   sec=6 expect "orchestration doc without the $r row fails" 1 "missing: $r row: the one exit"
 done
 for case in "Ticket|| ticket orchestrator |" "Ticket|| one implementer in a worktree |" "Ticket|| the ticket's body |" \
-  "Ticket|| the ticket diff |" "Ticket|merge onto the integration branch under the lock, after the stray-commit check" \
+  "Ticket|| the ticket diff |" "Ticket|; none at \`low\`" "Ticket|merge onto the integration branch under the lock, after the stray-commit check" \
   "Ticket|| three fix-ups |" "Story|| story orchestrator |" "Story|| ticket orchestrators in parallel over the frontier |" \
   "Story|| the story's body |" "Story|what entered since the last standards review: conflict resolutions and cross-ticket coherence" \
   "Story|| push, the PR staying a draft |" "Story|| three fix-ups |" "Epic|| epic orchestrator |" \
@@ -1508,8 +1508,9 @@ for case in "Ticket|| ticket orchestrator |" "Ticket|| one implementer in a work
   "Epic|| the checks green on the tip the review called clean |"; do
   r=${case%%|*} cell=${case#*|}
   fresh
-  # the cell goes from its own row only; the pipes either side stay so the row keeps its shape
-  awk -v r="| **$r** |" -v c="$cell" 'index($0, r) == 1 { i = index($0, c); if (i) $0 = substr($0, 1, i) " x |" substr($0, i + length(c)) } { print }' \
+  # the phrase goes from its own row only, replaced by x; a piped cell keeps its pipes, so the row
+  # keeps its shape
+  awk -v r="| **$r** |" -v c="$cell" 'index($0, r) == 1 { i = index($0, c); x = substr(c, 1, 1) == "|" ? "| x |" : "x"; if (i) $0 = substr($0, 1, i - 1) x substr($0, i + length(c)) } { print }' \
     "$scratch/$orch" > "$scratch/$orch.new" && mv "$scratch/$orch.new" "$scratch/$orch"
   sec=6 expect "orchestration doc's $r row without '$cell' fails" 1
 done
@@ -1591,17 +1592,17 @@ expect "runner step 2 offering a list of lint commands fails" 1
 # the story review is the check gate loop with the review marker as its exit: each pin is proven
 # by dropping its phrase, the order by moving the checks after the review (dev-cq0.1.5,
 # dev-1xf.1.3)
-for case in "the rules doc's Check gate loop on the integration branch tip, with the **review marker** as its exit|a story review not the loop with the marker exit|the story review (step 7) is the rules doc's Check gate loop" \
-  'Each iteration runs the checks first|an iteration not running the checks first|the story review (step 7) runs the checks first in each iteration' \
-  'to the fix-up implementer below, then its merger, and the loop starts over|a story red not starting the loop over|a red at the story review starts the loop over' \
-  'the same SHA exits the loop|a matching marker not exiting the loop|a green tip matching the review marker exits the loop' \
-  "this iteration's run (each check's command, its exit and the last twenty lines of its log) is the PR's Evidence|Evidence not from the exit iteration|the exit iteration's run is the PR's Evidence" \
-  'write the marker on the new tip, and the loop starts over|a reviewed tip not starting the loop over|a reviewed tip is marked and the loop starts over' \
-  'the fourth failure skips step 8 and goes to step 9|a story loop without its fourth-failure stall|the story loop'"'"'s fourth failure skips delivery' \
-  'The budget is three fix-ups per story, red or review alike|a story loop without its one budget|red and review fix-ups share the story loop'"'"'s budget of three' \
-  'every fix-up in the story loop spends it, a minors-only review'"'"'s included|a story loop whose minors-only fix-up is unbudgeted|a minors-only review'"'"'s fix-up spends the story loop'"'"'s budget' \
-  '(a review'"'"'s as `failed: review mattpocock-skills:code-review`)|a story loop without the review'"'"'s stall form|the story loop'"'"'s stall line for a review' \
-  "its Evidence from step 7's exit iteration (each check's command, exit and twenty-line tail)|a deliver step not citing the exit iteration|the deliver step (8) takes its Evidence from step 7's exit iteration" \
+for case in "the rules doc's Check gate loop on the integration branch tip, with the **review marker** as its exit|a story review not the loop with the marker exit|missing: the story review (step 7) is the rules doc's Check gate loop" \
+  'Each iteration runs the checks first|an iteration not running the checks first|missing: the story review (step 7) runs the checks first in each iteration' \
+  'to the fix-up implementer below, then its merger, and the loop starts over|a story red not starting the loop over|missing: a red at the story review starts the loop over' \
+  'the same SHA exits the loop|a matching marker not exiting the loop|missing: a green tip matching the review marker exits the loop' \
+  "this iteration's run (each check's command, its exit and the last twenty lines of its log) is the PR's Evidence|Evidence not from the exit iteration|missing: the exit iteration's run is the PR's Evidence" \
+  'write the marker on the new tip, and the loop starts over|a reviewed tip not starting the loop over|missing: a reviewed tip is marked and the loop starts over' \
+  'the fourth failure skips step 8 and goes to step 9|a story loop without its fourth-failure stall|missing: the story loop'"'"'s fourth failure skips delivery' \
+  'The budget is three fix-ups per story, red or review alike|a story loop without its one budget|missing: red and review fix-ups share the story loop'"'"'s budget of three' \
+  'every fix-up in the story loop spends it, a minors-only review'"'"'s included|a story loop whose minors-only fix-up is unbudgeted|missing: a minors-only review'"'"'s fix-up spends the story loop'"'"'s budget' \
+  '(a review'"'"'s as `failed: review mattpocock-skills:code-review`)|a story loop without the review'"'"'s stall form|missing: the story loop'"'"'s stall line for a review' \
+  "its Evidence from step 7's exit iteration (each check's command, exit and twenty-line tail)|a deliver step not citing the exit iteration|missing: the deliver step (8) takes its Evidence from step 7's exit iteration" \
   'or <check> <command>|a report template without the check failed line|missing (case-sensitive): report template'"'"'s failed: line names the check'; do
   phrase=${case%%|*} rest=${case#*|}
   fresh
@@ -1672,18 +1673,18 @@ fresh
 swap_phrase skills/implement-story/SKILL.md '^(> 3\. .*Green: a `low` ticket exits the loop, go to step 4; for `medium` and `high`, )spawn a \*\*reviewer\*\*' '\1hand the ticket to a **reviewer**'
 expect "ticket runner step 3 whose green spawns no reviewer fails" 1 "missing: the check gate runs before step 3's reviewer"
 
-for case in "as the rules doc's Check gate says|a loop step not citing the rules doc's loop|the loop step cites the rules doc's loop" \
-  'A red spawns a fresh fix-up implementer and the loop starts over from the checks|a red not starting the loop over|a red starts the loop over from the checks' \
-  'and the loop starts over from the checks, never straight to the reviewer|a blocking verdict not starting over from the checks|a blocking verdict starts the loop over from the checks' \
-  '**Clean** exits the loop|a clean verdict not exiting the loop|a clean verdict exits the loop' \
-  'Green: a `low` ticket exits the loop, go to step 4|a low ticket not exiting on green|a low ticket exits the loop on green checks' \
-  'mkdir -p <worktree path>/.tmp; export TMPDIR=<worktree path>/.tmp; <check> > <worktree path>/.tmp/checks-<round>-<k>.log 2>&1; echo exit=$?|a check not logged under the worktree|the check gate logs both streams under the worktree' \
-  'tail -n 40 <log>|a red read without a forty-line tail|a red gate reads a forty-line tail' \
-  '`bd -C <owner> note <ticket-id> "checks <round>: red <command>"`|a red without its note|a red gate'"'"'s note form' \
-  'a green writes no note|a green that may write a note|a green gate writes no note' \
-  'the log path, and no pasted output|a fix-up brief without the log path|the gate'"'"'s fix-up brief points at the log path' \
-  'The minors fix-up spends no budget and advances no round|a minors fix-up that may spend budget|the minors fix-up after a clean verdict spends no budget' \
-  'The budget is three fix-ups of either cause; the fourth red or blocking verdict is `failed`|a loop without its shared budget|red and blocking fix-ups share one budget of three'; do
+for case in "as the rules doc's Check gate says|a loop step not citing the rules doc's loop|missing: the loop step cites the rules doc's loop" \
+  'A red spawns a fresh fix-up implementer and the loop starts over from the checks|a red not starting the loop over|missing: a red starts the loop over from the checks' \
+  'and the loop starts over from the checks, never straight to the reviewer|a blocking verdict not starting over from the checks|missing: a blocking verdict starts the loop over from the checks' \
+  '**Clean** exits the loop|a clean verdict not exiting the loop|missing: a clean verdict exits the loop' \
+  'Green: a `low` ticket exits the loop, go to step 4|a low ticket not exiting on green|missing: a low ticket exits the loop on green checks' \
+  'mkdir -p <worktree path>/.tmp; export TMPDIR=<worktree path>/.tmp; <check> > <worktree path>/.tmp/checks-<round>-<k>.log 2>&1; echo exit=$?|a check not logged under the worktree|missing: the check gate logs both streams under the worktree' \
+  'tail -n 40 <log>|a red read without a forty-line tail|missing: a red gate reads a forty-line tail' \
+  '`bd -C <owner> note <ticket-id> "checks <round>: red <command>"`|a red without its note|missing: a red gate'"'"'s note form' \
+  'a green writes no note|a green that may write a note|missing: a green gate writes no note' \
+  'the log path, and no pasted output|a fix-up brief without the log path|missing: the gate'"'"'s fix-up brief points at the log path' \
+  'The minors fix-up spends no budget and advances no round|a minors fix-up that may spend budget|missing: the minors fix-up after a clean verdict spends no budget' \
+  'The budget is three fix-ups of either cause; the fourth red or blocking verdict is `failed`|a loop without its shared budget|missing: red and blocking fix-ups share one budget of three'; do
   phrase=${case%%|*} rest=${case#*|}
   fresh
   drop_phrase skills/implement-story/SKILL.md "$phrase"

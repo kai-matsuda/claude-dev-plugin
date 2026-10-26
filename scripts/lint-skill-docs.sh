@@ -616,6 +616,7 @@ line_has "$row" "ticket row: the ticket orchestrator" '| ticket orchestrator |'
 line_has "$row" "ticket row: one implementer in a worktree" '| one implementer in a worktree |'
 line_has "$row" "ticket row: the ticket's body as spec" "| the ticket's body |"
 line_has "$row" "ticket row: the ticket diff as standards" '| the ticket diff |'
+line_has "$row" "ticket row: both axes at the review model, none at low" "| both axes, at the ticket's review model; none at \`low\` |"
 line_has "$row" "ticket row: lands by merge under the lock after the stray-commit check" 'merge onto the integration branch under the lock, after the stray-commit check'
 line_has "$row" "ticket row: three fix-ups" '| three fix-ups |'
 row='^[|] [*][*]Story[*][*] [|]'
