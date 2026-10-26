@@ -22,7 +22,7 @@ Your row of the rules doc's table: one story orchestrator builds each story, in 
 
 Follow `${CLAUDE_PLUGIN_ROOT}/docs/agents/orchestration.md`, read before step 1: the orchestrator role (you never implement), the table's epic row, the Review section's verdict rule, the tier-to-model table, and the frontier with **text blockers**. "Text blocker", "human stop" and "stall" mean those sections and `${CLAUDE_PLUGIN_ROOT}/GLOSSARY.md`.
 
-The harness mechanics (Waiting, the Idle rule, Cut-off agents, literal paths) are in `${CLAUDE_PLUGIN_ROOT}/docs/agents/harness.md`.
+The harness mechanics (Waiting, the Idle rule, Cut-off agents, literal paths, Commits) are in `${CLAUDE_PLUGIN_ROOT}/docs/agents/harness.md`.
 
 ## Names
 

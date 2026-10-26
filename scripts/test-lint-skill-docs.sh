@@ -66,7 +66,7 @@ fresh() {
   handed=0
 }
 # run the lint against the scratch copy, sealed to it; prints its output, then the exit code on
-# a last line. Extra arguments replace the lint's own ($1 driver, $2 runbook).
+# a last line. Extra arguments replace the lint's own ($1 implement-spec skill, $2 runbook).
 lint_scratch() {
   local out rc
   [ $# -gt 0 ] || set -- "" "$scratch/docs/WORKFLOW.md"
@@ -168,7 +168,7 @@ fresh
 expect "baseline copy passes" 0
 
 fresh
-expect "an explicit driver path that does not exist fails" 1 "missing document: $scratch/nope.md" "$scratch/nope.md" "$scratch/docs/WORKFLOW.md"
+expect "an explicit implement-spec path that does not exist fails" 1 "missing document: $scratch/nope.md" "$scratch/nope.md" "$scratch/docs/WORKFLOW.md"
 
 fresh
 expect "an explicit runbook path that does not exist fails" 1 "missing document: $scratch/nope.md" "" "$scratch/nope.md"
@@ -259,7 +259,7 @@ expect "namespaced references under docs/adr pass" 0
 
 fresh
 echo "run /story-to-tickets" > "$scratch/driver.md"
-expect "a driver passed as \$1 outside the skills dir gets the namespace check" 1 "$ns_msg in $scratch/driver.md" "$scratch/driver.md" "$scratch/docs/WORKFLOW.md"
+expect "an implement-spec skill passed as \$1 outside the skills dir gets the namespace check" 1 "$ns_msg in $scratch/driver.md" "$scratch/driver.md" "$scratch/docs/WORKFLOW.md"
 
 # paths after a placeholder, a substitution or a closing backtick are not commands
 fresh
@@ -611,7 +611,7 @@ echo 'Then the ticket gate (switch `/model` to the tier'"'"'s review model) runs
 expect "runbook copy with the seeded phrase ticket gate fails" 1 "retired ticket gate name in the runbook"
 
 # the retired row names seeded back into each doc, runbook and cut skills among them
-# (dev-9k5.1.10): the driver role, the ticket runner, the merger, the built-in review by name
+# (dev-9k5.1.10): the epic, ticket and landing roles, the built-in review by name
 # and the two-review-tools paragraph each fail in the runbook, /workflow, the story and ticket
 # cuts, close-epic and the tracker doc
 for doc in docs/WORKFLOW.md skills/workflow/SKILL.md skills/close-epic/SKILL.md skills/spec-to-stories/SKILL.md skills/spec-to-tickets/SKILL.md docs/agents/issue-tracker.md; do
@@ -781,7 +781,7 @@ expect "implement-story whose exploration subagent skips the design field fails"
 
 fresh
 drop_line skills/implement-story/SKILL.md 'first `bd -C <owner> unclaim <id>`'
-expect "implement-story leaving a failed runner's ticket claimed fails" 1
+expect "implement-story leaving a failed ticket claimed fails" 1
 
 fresh
 drop_line skills/implement-story/SKILL.md 'failed twice: <reason>; resume:'
@@ -1031,7 +1031,7 @@ expect "implement-story whose Gitignore step counts three entries fails" 1
 
 # there is no foreground spawn: an Agent call returns at once, a nested orchestrator ends its
 # turn and is resumed by the child's completion notification, and every subagent below the
-# driver runs Bash in the foreground only; no skill says run_in_background: false (chezmoi-p4q)
+# the epic orchestrator runs Bash in the foreground only; no skill says run_in_background: false (chezmoi-p4q)
 for skill in implement-spec implement-story spec-to-tickets retro; do
   fresh
   echo 'Agent calls with `run_in_background: false`, so the batch runs in the foreground' >> "$scratch/skills/$skill/SKILL.md"
@@ -1387,7 +1387,7 @@ for phrase in "walking up" "walk up" "one level up" "the home repo included" "th
   expect "$phrase in the runbook copy fails" 1
 done
 
-# section 1 lints the driver file it is handed, so these cases edit a scratch copy of it and
+# section 1 lints the implement-spec file it is handed, so these cases edit a scratch copy of it and
 # hand that copy to expect (chezmoi-9v4.1.6): the pinned story-closure lines, and "no merge
 # steps" narrowed to let the human-stop line through while a merge procedure still fails
 spec=$scratch/spec.md
@@ -1503,7 +1503,7 @@ expect "implement-spec claiming it touches no ticket fails" 1 "nothing touches a
 
 fresh_spec
 echo "You are the driver, the feature-level session." >> "$spec"
-expect "implement-spec naming the driver fails" 1 "the retired driver role" "$spec" "$scratch/docs/WORKFLOW.md"
+expect "implement-spec naming the old epic role fails" 1 "the retired driver role" "$spec" "$scratch/docs/WORKFLOW.md"
 
 fresh_spec
 echo "Run gh pr create --draft for the story." >> "$spec"
@@ -1638,7 +1638,7 @@ expect "a semicolon outside a mermaid block passes" 0
 
 # a reviewer tags every finding blocking or minor and ends on a verdict line; a round with no
 # blocking findings is clean; every fix-up, red or blocking, spends the check gate loop's budget
-# (chezmoi-49k): the rule lives in the orchestration doc, the runner brief and the story
+# (chezmoi-49k): the rule lives in the orchestration doc, the ticket orchestrator brief and the story
 # review point at it
 fresh
 drop_line docs/agents/orchestration.md '**Review verdict.**'
@@ -1817,7 +1817,7 @@ done
 
 fresh
 swap_phrase skills/implement-story/SKILL.md '^> You are the \*\*ticket orchestrator\*\*' '> You are the ticket runner'
-sec="5 8" expect "a brief opening on the ticket runner fails" 1 "missing: the brief opens on the ticket orchestrator"
+sec="5 8" expect "a brief opening on the old ticket role fails" 1 "missing: the brief opens on the ticket orchestrator"
 
 for case in 'Resolve the owner repo'"'"'s **lint command** once, here beside the forge.|present: the retired lint-command resolution' \
   '`make lint` when `<owner>`'"'"'s Makefile has a `lint` target|present: the retired lint-command resolution' \
@@ -1874,7 +1874,7 @@ swap_phrase skills/implement-story/SKILL.md '^> 4\. \*\*Land the ticket\*\*' '> 
 sec="5 8" expect "ticket orchestrator step 4 not landing the ticket fails" 1 "missing: step 4 lands the ticket"
 
 # the story gate (step 7) is the check gate loop at the story row: each pin is proven by
-# dropping its phrase, the order by moving the checks after the review, the retired merger,
+# dropping its phrase, the order by moving the checks after the review, the retired landing agent,
 # minors budget and review marker by seeding them back (dev-cq0.1.5, dev-1xf.1.3, dev-9k5.1.9)
 for case in "the story row of the rules doc's table|a story gate not naming its row|missing: the story gate names its row of the rules doc's table" \
   'it exits when the checks are green on the tip the review called clean|a story gate without its exit|missing: the story gate exits on green checks at the tip the review called clean' \
@@ -1938,7 +1938,7 @@ swap_phrase skills/implement-story/SKILL.md '^(7\. .*)Each pass runs the checks 
 swap_phrase skills/implement-story/SKILL.md '^(7\. .*)$' '\1 Each pass runs the checks first.'
 expect "story gate step 7 with the checks after the two-axis review fails" 1 "missing: the story gate (step 7) runs the checks before the reviewed-tip compare"
 
-# the retired story-gate wording seeded back on its own line fails: a merger, a budgeted minors
+# the retired story-gate wording seeded back on its own line fails: a landing agent, a budgeted minors
 # fix-up, the Running the checks paragraph, the review marker, a deliver step marking the PR ready
 for case in '^(7\. .*)$|\1 Then spawn a merger.|present: a merger at the story gate' \
   "^(7\\. .*)\$|\\1 Every fix-up spends it, a minors-only review's included.|present: the story gate's minors fix-up spending budget" \
@@ -1974,7 +1974,7 @@ fresh
 echo 'Then run the seams and keep the command and its output.' >> "$scratch/skills/implement-story/SKILL.md"
 expect "implement-story with 'the command and its output' seeded fails" 1 "the command and its output"
 
-# the brief's phrases are read on the runner's step 3 line alone: dropped there while step 7
+# the brief's phrases are read on the ticket orchestrator's step 3 line alone: dropped there while step 7
 # keeps them, the lint still fails (each phrase sits once on that line, so the swap hits it)
 for phrase in 'verdict: clean' 'verdict: blocking \(<n>\)' '\*\*blocking\*\* or \*\*minor\*\*' 'within the budget above'; do
   fresh
@@ -1982,7 +1982,7 @@ for phrase in 'verdict: clean' 'verdict: blocking \(<n>\)' '\*\*blocking\*\* or 
   expect "ticket orchestrator step 3 without '$phrase' fails" 1
 done
 
-# each pointer is checked on its own line: step 3 of the runner brief and step 7 of the skill
+# each pointer is checked on its own line: step 3 of the ticket orchestrator brief and step 7 of the skill
 fresh
 swap_phrase skills/implement-story/SKILL.md "^(> 3\. .*)the rules doc's Review verdict" '\1the rules doc'
 expect "ticket orchestrator step 3 without its pointer at the Review verdict rule fails" 1

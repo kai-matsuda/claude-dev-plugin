@@ -9,7 +9,7 @@
 #      a time, the default-branch diff, the Jira Epic's spec, no standards axis, the epic's max
 #      tier), draft until clean with the mark-ready commands, the add-mode fix-up (one ticket per
 #      blocking finding, three per story, the fourth failed) and the review: end-state line, with
-#      no "driver" and no PR opened here;
+#      no epic-row role and no PR opened here;
 #   2. the human runbook docs/WORKFLOW.md (chezmoi-0jp.25) and the /workflow skill:
 #      names only commands that exist, no stale cross-repo wording, the cut skills' argument
 #      written in the runbook and filled in on /workflow's next lines (chezmoi-nz0);
@@ -56,7 +56,7 @@
 #      and the check and review loop's retired two-gate wording ("Evidence run", "a later run
 #      reviews the fix", "a third round of either kind", "a second red") is absent from those,
 #      the root GLOSSARY.md and docs/SEQUENCES.md, never docs/specs (dev-1xf.1.4);
-#      and the retired vocabulary (dev-9k5.1.11): the driver, ticket runner and merger roles,
+#      and the retired vocabulary (dev-9k5.1.11): the epic, ticket and landing roles,
 #      the built-in review by name, the two-review-tools paragraph, the review marker, the lint
 #      command and the test seams as checks are absent from the skills, the agent docs, the
 #      project CLAUDE.md, the runbook and docs/SEQUENCES.md (the glossary lists them under
@@ -64,7 +64,7 @@
 #   6. the shared rules: orchestration.md's working-directory preflight, and harness.md's
 #      waiting rule (an Agent call returns at once, the orchestrator ends its turn and the
 #      completion notification resumes it, never a Bash poll loop; pgrep is dead in the
-#      sandbox) with its idle rule (Bash in the foreground only below the driver, chezmoi-p4q), the
+#      sandbox) with its idle rule (Bash in the foreground only below the epic orchestrator, chezmoi-p4q), the
 #      model (dev-9k5.1.3): the loop sentence, the table's header and each of its three rows, the
 #      two scoping rules, the six trust rules as a closed list, the check command, the check record
 #      and the one gate exit, the seam-test blocking case and the one review tool, with the two-level
@@ -90,14 +90,14 @@
 #      is a failed: line, so no step waits on the user, the Gitignore step commits a dirty
 #      .gitignore made of the rule's entries alone while an edit of the user's in it is a
 #      failed: line (chezmoi-hkn), its exploration subagent reads the story's design field
-#      and owns .spec-notes/<epic-id>/ (chezmoi-cdf), and a ticket whose runner failed is
+#      and owns .spec-notes/<epic-id>/ (chezmoi-cdf), and a ticket whose ticket orchestrator failed is
 #      unclaimed before the next frontier read, with the resume pointer noted on a second
 #      failure and step 9's resume: line naming when a human runs the unclaim (chezmoi-jvc;
 #      the Frontier's unclaim rule is checked in 6), its frontier read keeps ready-for-agent
 #      tickets only, its review step captures deferred findings in the inbox through the
 #      retro capture, its finished story tolerates an untriaged child (chezmoi-wgi), and its
-#      merger waits on the owner lock in one bounded until-loop, never a check-and-sleep loop
-#      by hand (chezmoi-sn1), and its frontier spawn and the ticket runner brief end the turn
+#      ticket orchestrator waits on the owner lock in one bounded until-loop, never a check-and-sleep loop
+#      by hand (chezmoi-sn1), and its frontier spawn and the ticket orchestrator brief end the turn
 #      after spawning and carry the idle rule (chezmoi-p4q), and its integration branch is
 #      feat/<story-id> keyed or not, a delivered story with an open agent ticket passes one
 #      merge guard (MERGED, CLOSED unmerged, OPEN, ask), a story-closure wait says to merge
@@ -106,16 +106,16 @@
 #      sweeps every worktree-agent-* and .worktrees/ worktree whose branch is merged into the
 #      integration branch, earlier runs' included, and reports a locked or unmerged one in the
 #      report's worktrees: line instead of forcing it (chezmoi-73d), and its implementer,
-#      fix-up implementer and merger briefs start with the TMPDIR line, whose rule section 6
+#      fix-up and conflict-resolution briefs start with the TMPDIR line, whose rule section 6
 #      checks in orchestration.md (chezmoi-3eg), and its reviewer brief tags every finding
-#      blocking or minor and ends on the verdict line, its runner step 3 and story review step 7
+#      blocking or minor and ends on the verdict line, its ticket orchestrator step 3 and story review step 7
 #      pointing at the rules doc's Review verdict, whose rule section 6 checks (chezmoi-49k),
 #      and its ticket orchestrator brief states the ticket row's parameters, the check command
 #      by Makefile convention (none: review-only) and the harness doc in one line, writes a check
 #      record per tree SHA, reviews with mattpocock-skills:code-review and lands its own ticket
 #      (lock wait, stray-commit check, merge; a conflict to an implementer in the ticket's
 #      worktree, then a fast-forward, the resolved tree checked and not reviewed again), with the
-#      lint-command resolution and the merger brief retired (dev-9k5.1.7),
+#      lint-command resolution and the separate landing brief retired (dev-9k5.1.7),
 #      and its story gate (step 7) is the rules doc's Check gate loop at the story row: it exits
 #      when the checks are green on the tip the review called clean, reads the checks from the
 #      check records, keeps the reviewed tip in the story's review: note, reviews the story's body
@@ -138,7 +138,7 @@
 #      repo-session story under the epic bead, and makes a deploy split wait on the
 #      earlier story's closure (ADR 0011).
 #  11. the namespace rule: in every .md file under the skills dir, docs/ (the agent docs, ADRs, specs),
-#      the runbook, the project CLAUDE.md, the root GLOSSARY.md and the driver passed as $1, a
+#      the runbook, the project CLAUDE.md, the root GLOSSARY.md and the implement-spec skill passed as $1, a
 #      /<command> is dev:<skill> or mattpocock-skills:<skill> naming a skill that exists, or a
 #      built-in or a path; a bare /<skill> or another namespace fails. The /command extraction
 #      (cmd_tokens) and the existence check (cmds) moved here from section 2, which no longer
@@ -150,7 +150,7 @@
 #      gone (dev-qfz, INFRA-30).
 #  13. the brief rule: in every .md file under the skills dir, a brief block (a markdown quote,
 #      from a line starting with `>`, indented or not, to the next blank line: the blocks the
-#      orchestration skills send to runners, cutters, implementers, reviewers and mergers) never
+#      orchestration skills send to ticket orchestrators, cutters, implementers and reviewers) never
 #      names the plugin-root variable CLAUDE_PLUGIN_ROOT, which Bash never has and the harness
 #      fills in only in the skill text it loads (the rules doc's Plugin root rule); the skill's
 #      path and the line are named. Outside a brief, where the skill itself resolves the
@@ -657,7 +657,7 @@ while IFS= read -r f; do
   lacks "retired two-gate wording in $f" "$retired_loop"
 done < <({ find "$agents" "$skills" -type f 2>/dev/null; echo "$user_claude_md"; echo "$runbook"; echo "$glossary_md"; echo "$docs/SEQUENCES.md"; } | sort)
 
-# the retired vocabulary (dev-9k5.1.11): the driver, ticket runner and merger roles, the built-in
+# the retired vocabulary (dev-9k5.1.11): the epic, ticket and landing roles, the built-in
 # review by name, the review marker, the lint command and the test seams as checks are absent from
 # the four file kinds and the sequence diagrams; the glossary lists them under _Avoid_, and
 # docs/adr/ keeps their historical sense through .glossary-allow, so neither is swept here
@@ -810,14 +810,14 @@ hasc "pgrep unusable in the sandbox" '`pgrep` cannot list processes in the sandb
 # an Agent call returns at once in this harness, so an orchestrator ends its turn after spawning
 # and the child's report arrives as the Agent tool's completion notification; run_in_background
 # is a JSON boolean the probe found ignored or absent for a nested agent; every subagent below
-# the driver runs Bash in the foreground only, since a child that ends a turn with background
+# the epic orchestrator runs Bash in the foreground only, since a child that ends a turn with background
 # work running counts as idle and its real report escapes to the top-level session (chezmoi-p4q)
 hasc "an Agent call returns at once" 'An Agent call returns at once'
 hasc "the completion notification carries the report" "the Agent tool's completion notification"
 hasc "a nested orchestrator ends its turn after spawning" 'ends its turn'
 hasc "run_in_background is a JSON boolean" '`run_in_background` is a JSON boolean'
 hasc "idle rule" '**Idle rule.**'
-hasc "Bash in the foreground only below the story orchestrator" 'in the foreground only'
+hasc "Bash in the foreground only below the epic orchestrator" 'in the foreground only'
 # the Bash tool backgrounds a call that outlives its 120 s default, which is the idle state the
 # rule forbids, so lint and test runs pass timeout: 600000 (dev-7k0, INFRA-30)
 hasc "the 120-second default backgrounds a longer call" '120-second default'
@@ -931,7 +931,7 @@ lacks "a gitignore hand-off from the story cut" 'the story cut appended|story cu
 hasc "a user edit in .gitignore is a failed: line, not absorbed" 'failed: <owner>/.gitignore has uncommitted edits'
 hasc "exploration subagent reads the design field" '.[0].design'
 hasc "exploration subagent owns the notes directory" '`<owner>/.spec-notes/<epic-id>/`'
-# a failed runner's ticket is unclaimed at once, a second failure leaves the resume pointer on
+# a failed ticket orchestrator's ticket is unclaimed at once, a second failure leaves the resume pointer on
 # it, and the resume section says when a human runs the unclaim instead (chezmoi-jvc)
 hasc "a failed ticket orchestrator's ticket is unclaimed" 'first `bd -C <owner> unclaim <id>`'
 hasc "second failure notes the resume pointer" 'failed twice: <reason>; resume:'
@@ -1014,7 +1014,7 @@ lacks "a locked or unmerged worktree forced" 'worktree remove[^`]* -(-force|f)'
 hasc "report template shows the worktrees: line" 'worktrees: <absolute path>'
 hasc "the worktrees: line appears only with content" '`waiting:` and `worktrees:` lines appear only when they have content'
 lacks "the resume: line printed only with content" '`resume:` lines appear only'
-# the implementer, fix-up implementer and conflict-resolving implementer briefs start with the
+# the implementer, fix-up and conflict-resolving briefs start with the
 # TMPDIR line, stated once in the Owner repo section with its two riders and named in the ticket
 # orchestrator brief's steps 2, 3 and 4 (the landing) and the story review's fix-up (step 7); the
 # Gitignore step counts the rule's four
@@ -1115,7 +1115,7 @@ lacksf "the retired merger brief" 'Spawn a **merger**'
 # story's body and its standards axis what entered since the ticket reviews; a red or a blocking
 # verdict goes to a fresh fix-up and the loop starts over, three per story, the fourth failed; the
 # minors fix-up reruns the checks and spends nothing; the story orchestrator lands its fix-up
-# itself, no merger; "Running the checks" and the review marker are gone. Step 8 leaves the PR a
+# itself, no separate landing agent; "Running the checks" and the review marker are gone. Step 8 leaves the PR a
 # draft, its Evidence the delivered tip's check record; step 9 removes the records
 G7='^7\. '
 hase "step 7 is the story gate" '^7\. \*\*Story gate\.\*\*'
@@ -1249,7 +1249,7 @@ fi
 # our skills are dev:<skill>, mattpocock's are mattpocock-skills:<skill>. A bare /<skill> or a
 # /<other>:<skill> in a skill doc, any doc under docs/, the runbook, the project CLAUDE.md or
 # the root glossary fails, and so does a namespaced one naming no skill; a path (/tmp/x) and a
-# built-in command do not count as skills. The driver passed as $1 is scanned too, wherever it
+# built-in command do not count as skills. The implement-spec skill passed as $1 is scanned too, wherever it
 # lives. In docs/specs/ only the existence check is skipped: a spec names the skills its
 # stories have yet to build.
 plugin=${PLUGIN_SKILLS:-$(ls -d "$HOME"/.claude/plugins/cache/claude-plugins-official/mattpocock-skills/*/skills 2>/dev/null | sort -V | tail -1)}

@@ -217,7 +217,7 @@ acceptance criterion unmet, a behaviour wrong, a test missing, or no test at a s
 exercising the criteria) or **minor** (wording, naming, a nit that changes no behaviour an
 acceptance criterion names). The spec axis judges the row's unit (ticket body, story body,
 Jira Epic spec); the standards axis judges what entered since the last standards review,
-and is skipped at the epic row. A clean round sends its minors to one last implementer
+and is skipped at the epic row. A clean round sends its minors to one last
 fix-up or to the inbox and moves on; a red or blocking fix-up spends the check gate's
 budget, a minors fix-up spends none (`docs/agents/orchestration.md`, "Review").
 _Avoid_: zero findings, nit-free, pass/fail
@@ -286,8 +286,9 @@ idle; that is how a nested orchestrator waits (ADR 0012).
 _Avoid_: foreground rule, no-background rule, sync rule
 
 **TMPDIR line**:
-The first line of every brief to an agent that works in a worktree (an implementer, whatever its brief): `mkdir -p <worktree>/.tmp && export TMPDIR=<worktree>/.tmp`, the
-worktree path spelled out literally, so `mktemp`, heredocs and the scripts that use them
+The first line of every brief to an agent that works in a worktree (an implementer, whatever
+its brief): `mkdir -p <worktree>/.tmp && export TMPDIR=<worktree>/.tmp`, the worktree path
+spelled out literally, so `mktemp`, heredocs and the scripts that use them
 write under a gitignored directory inside the worktree instead of a temp directory the
 sandbox denies. Its two riders: the `export` is repeated at the head of every Bash call,
 since shell state does not survive one, and `mktemp -d` takes a template under `.tmp`,
@@ -395,8 +396,8 @@ In a repo session an item whose fix lives outside the home is still filed there,
 _Avoid_: action item, suggestion
 
 **Deferred finding**:
-A story-review finding the story orchestrator puts off rather than sends to a fix-up
-brief: out of the story's scope, or a note with nothing to implement; one kind of
+A story-review finding the story orchestrator puts off rather than sends to a fix-up:
+out of the story's scope, or a note with nothing to implement; one kind of
 follow-up.
 It is captured as a retro item in the inbox and never as a child of the story, since a
 child is a ticket and `bd ready` would list it to the next run

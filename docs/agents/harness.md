@@ -97,8 +97,9 @@ starts over; what reached the integration branch stays.
 ## Scratch space
 
 **Worktrees.** Spawn each implementer with the Agent tool's `isolation: "worktree"` (an
-implementer on a fix-up is the exception: it is spawned without `isolation`, into the worktree
-and branch the first implementer reported, and reaches it with `git -C <path>`). The
+implementer on a fix-up or on a merge-conflict resolution is the exception: it is spawned
+without `isolation`, into the worktree and branch the first implementer reported, and reaches
+it with `git -C <path>`). The
 harness creates the worktree under `.claude/worktrees/agent-<id>/` on a branch named
 `worktree-agent-<id>`, registers it with the sandbox, and makes it the subagent's real
 working directory, so the brief carries no paths and the subagent runs plain commands with
