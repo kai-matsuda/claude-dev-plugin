@@ -38,7 +38,8 @@ row's standards axis sees it.
 delivered, one PR at a time in its owner repo: the diff from the default branch to the
 story's integration branch, the Jira Epic's spec as the spec axis. Every PR stays a draft
 until its verdict is clean, then is marked ready, so the human's review comes after the
-agents' loop. On a blocking verdict the epic orchestrator cuts the findings itself into
+agents' loop. There the checks are green when the forge reports them green on the PR's tip,
+and the delivered tip's check record is the PR's Evidence. On a blocking verdict the epic orchestrator cuts the findings itself into
 `ready-for-agent` tickets under the story, one per blocking finding, and re-runs that
 story's orchestrator in add mode; three such fix-ups per story.
 
@@ -142,7 +143,7 @@ sibling landing, a conflict resolution or a fix-up changes the tree, so it is ch
 Six rules hold at every row:
 
 1. The reviewer runs one tier of model above the implementer, since a same-tier reviewer shares its blind spots (Complexity tier).
-2. A fix-up is a fresh implementer in the same worktree, never a message back to the agent that built the unit.
+2. A fix-up is a fresh implementer in the unit's worktree, never a message back to the agent that built the unit.
 3. An implementer's own check runs never count: only a check record an orchestrator wrote does.
 4. The stray-commit check runs before every merge and every push.
 5. Only `ready-for-agent` tickets are claimed (Frontier).
@@ -218,7 +219,8 @@ Each pass runs the check command on the tip, unless its tree has a record, then 
 A red or a blocking verdict goes to a fresh implementer by pointer brief and the loop starts over;
 three such fix-ups per unit, and the fourth is `failed`, one line, the same words at every row.
 A minors fix-up and a conflict resolution move the tip, so the checks rerun, but no reviewer
-runs again and no budget is spent. The story orchestrator records the reviewed tip in its notes,
+runs again and no budget is spent: the gate exits on the moved tip once its checks are green,
+and the note records that tip. The story orchestrator records the reviewed tip in its notes,
 so a rerun knows the tip the review called clean and reviews only a tip that has moved past it.
 
 **Review verdict.** Every reviewer, at every row, tags every finding **blocking** or **minor** and ends its report on one verdict line. A
@@ -227,7 +229,7 @@ missing, or no test at a story seam exercises the criteria the unit names; it is
 no behaviour an acceptance criterion names (wording, naming, a nit). The last line is
 `verdict: clean` when no finding is blocking, else `verdict: blocking (<n>)`, `<n>` the
 count of blocking findings. A round with no blocking findings is **clean**, whatever its
-minors: they go to one last fix-up implementer, or to the inbox as a deferral when the
+minors: they go to one last fix-up, or to the inbox as a deferral when the
 orchestrator judges them out of the unit's scope (the tracker doc's "capture a retro item";
 Frontier, Deferrals, below), never to a bead of the story; then the unit lands, and no
 reviewer runs over that last fix-up. Every fix-up, red or blocking, spends the loop's budget

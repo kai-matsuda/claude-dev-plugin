@@ -618,12 +618,15 @@ line_has "$row" "ticket row: the ticket's body as spec" "| the ticket's body |"
 line_has "$row" "ticket row: the ticket diff as standards" '| the ticket diff |'
 line_has "$row" "ticket row: both axes at the review model, none at low" "| both axes, at the ticket's review model; none at \`low\` |"
 line_has "$row" "ticket row: lands by merge under the lock after the stray-commit check" 'merge onto the integration branch under the lock, after the stray-commit check'
+line_has "$row" "ticket row: a fix-up by pointer brief, same worktree" '| an implementer by pointer brief, same worktree |'
 line_has "$row" "ticket row: three fix-ups" '| three fix-ups |'
 row='^[|] [*][*]Story[*][*] [|]'
 line_has "$row" "story row: the story orchestrator" '| story orchestrator |'
 line_has "$row" "story row: ticket orchestrators over the frontier" '| ticket orchestrators in parallel over the frontier |'
 line_has "$row" "story row: the story's body as spec" "| the story's body |"
 line_has "$row" "story row: what entered since as standards" 'what entered since the last standards review: conflict resolutions and cross-ticket coherence'
+line_has "$row" "story row: both axes at the review model of the story's max tier" "| both axes, at the review model of the story's max tier |"
+line_has "$row" "story row: a fix-up by pointer brief in a fix-up worktree" '| an implementer by pointer brief in a fix-up worktree |'
 line_has "$row" "story row: lands by a push, the PR a draft" '| push, the PR staying a draft |'
 line_has "$row" "story row: three fix-ups" '| three fix-ups |'
 row='^[|] [*][*]Epic[*][*] [|]'
@@ -632,7 +635,8 @@ line_has "$row" "epic row: story orchestrators over the frontier" '| story orche
 line_has "$row" "epic row: the check command as the forge runs it" '| the check command as the forge runs it |'
 line_has "$row" "epic row: the Jira Epic's spec" "| the Jira Epic's spec |"
 line_has "$row" "epic row: no standards axis" '| none, the axis is skipped |'
-line_has "$row" "epic row: findings filed as tickets, the story re-run in add mode" 'findings filed as `ready-for-agent` tickets under the story, that story re-run in add mode'
+line_has "$row" "epic row: the spec axis only at the review model of the epic's max tier" "| the spec axis only, at the review model of the epic's max tier |"
+line_has "$row" "epic row: findings filed as tickets, the story re-run in add mode" '| findings filed as `ready-for-agent` tickets under the story, that story re-run in add mode |'
 line_has "$row" "epic row: the PR marked ready, the human merges" 'the PR marked ready, the human merges'
 line_has "$row" "epic row: three per story" '| three per story |'
 for r in Ticket Story Epic; do
@@ -649,7 +653,7 @@ para_has '**Check scope.**' "a tree with a check record counts as checked" 'a tr
 para_has '**Check scope.**' "a changed tree is checked again" 'changes the tree, so it is checked again'
 # the six trust rules, a closed list
 hasc "trust rule 1: reviewer one tier up" '1. The reviewer runs one tier of model above the implementer'
-hasc "trust rule 2: a fresh fix-up, never a message back" '2. A fix-up is a fresh implementer in the same worktree, never a message back'
+hasc "trust rule 2: a fresh fix-up, never a message back" "2. A fix-up is a fresh implementer in the unit's worktree, never a message back"
 hasc "trust rule 3: an implementer's own check runs never count" "3. An implementer's own check runs never count"
 hasc "trust rule 4: the stray-commit check before every merge and push" '4. The stray-commit check runs before every merge and every push'
 hasc "trust rule 5: only ready-for-agent tickets are claimed" '5. Only `ready-for-agent` tickets are claimed'
@@ -676,6 +680,9 @@ para_has '**Check gate.**' "a fourth failure is failed" 'the fourth is `failed`'
 para_has '**Check gate.**' "a minors fix-up and a conflict resolution rerun the checks" 'A minors fix-up and a conflict resolution move the tip, so the checks rerun'
 para_has '**Check gate.**' "and spend nothing" 'no budget is spent'
 para_has '**Check gate.**' "the reviewed tip noted on the story" 'records the reviewed tip in its notes'
+para_has '**Check gate.**' "the gate exits on the moved tip" 'the gate exits on the moved tip once its checks are green'
+para_has '**Check gate.**' "the note records the moved tip" 'the note records that tip'
+para_has '**The epic row.**' "the epic row's checks are the forge's status on the PR tip" "the forge reports them green on the PR's tip"
 lacks "the retired two-level check order" 'lint first, then the test seams'
 lacks "the retired review marker exit" 'the review marker is the exit'
 # the seam-test blocking case, and the one review tool

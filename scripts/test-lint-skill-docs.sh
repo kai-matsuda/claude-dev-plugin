@@ -1495,24 +1495,45 @@ for r in Ticket Story Epic; do
   drop_line $orch "| **$r** |"
   sec=6 expect "orchestration doc without the $r row fails" 1 "missing: $r row: the one exit"
 done
-for case in "Ticket|| ticket orchestrator |" "Ticket|| one implementer in a worktree |" "Ticket|| the ticket's body |" \
-  "Ticket|| the ticket diff |" "Ticket|; none at \`low\`" "Ticket|merge onto the integration branch under the lock, after the stray-commit check" \
-  "Ticket|| three fix-ups |" "Story|| story orchestrator |" "Story|| ticket orchestrators in parallel over the frontier |" \
-  "Story|| the story's body |" "Story|what entered since the last standards review: conflict resolutions and cross-ticket coherence" \
-  "Story|| push, the PR staying a draft |" "Story|| three fix-ups |" "Epic|| epic orchestrator |" \
-  "Epic|| story orchestrators in parallel over the frontier |" "Epic|| the check command as the forge runs it |" \
-  "Epic|| the Jira Epic's spec |" "Epic|| none, the axis is skipped |" \
-  'Epic|findings filed as `ready-for-agent` tickets under the story, that story re-run in add mode' \
-  "Epic|the PR marked ready, the human merges" "Epic|| three per story |" \
-  "Ticket|| the checks green on the tip the review called clean |" "Story|| the checks green on the tip the review called clean |" \
-  "Epic|| the checks green on the tip the review called clean |"; do
-  r=${case%%|*} cell=${case#*|}
+# each case is <row>@<cell>@<the lint's description>, so a case fails on its own pin
+for case in "Ticket@| ticket orchestrator |@ticket row: the ticket orchestrator" \
+  "Ticket@| one implementer in a worktree |@ticket row: one implementer in a worktree" \
+  "Ticket@| the check command |@Ticket row: the check command" \
+  "Ticket@| the ticket's body |@ticket row: the ticket's body as spec" \
+  "Ticket@| the ticket diff |@ticket row: the ticket diff as standards" \
+  "Ticket@; none at \`low\`@ticket row: both axes at the review model, none at low" \
+  "Ticket@| an implementer by pointer brief, same worktree |@ticket row: a fix-up by pointer brief, same worktree" \
+  "Ticket@merge onto the integration branch under the lock, after the stray-commit check@ticket row: lands by merge under the lock after the stray-commit check" \
+  "Ticket@| three fix-ups |@ticket row: three fix-ups" \
+  "Story@| story orchestrator |@story row: the story orchestrator" \
+  "Story@| ticket orchestrators in parallel over the frontier |@story row: ticket orchestrators over the frontier" \
+  "Story@| the check command |@Story row: the check command" \
+  "Story@| the story's body |@story row: the story's body as spec" \
+  "Story@what entered since the last standards review: conflict resolutions and cross-ticket coherence@story row: what entered since as standards" \
+  "Story@| both axes, at the review model of the story's max tier |@story row: both axes at the review model of the story's max tier" \
+  "Story@| an implementer by pointer brief in a fix-up worktree |@story row: a fix-up by pointer brief in a fix-up worktree" \
+  "Story@| push, the PR staying a draft |@story row: lands by a push, the PR a draft" \
+  "Story@| three fix-ups |@story row: three fix-ups" \
+  "Epic@| epic orchestrator |@epic row: the epic orchestrator" \
+  "Epic@| story orchestrators in parallel over the frontier |@epic row: story orchestrators over the frontier" \
+  "Epic@| the check command as the forge runs it |@epic row: the check command as the forge runs it" \
+  "Epic@| the Jira Epic's spec |@epic row: the Jira Epic's spec" \
+  "Epic@| none, the axis is skipped |@epic row: no standards axis" \
+  "Epic@| the spec axis only, at the review model of the epic's max tier |@epic row: the spec axis only at the review model of the epic's max tier" \
+  'Epic@| findings filed as `ready-for-agent` tickets under the story, that story re-run in add mode |@epic row: findings filed as tickets, the story re-run in add mode' \
+  "Epic@the PR marked ready, the human merges@epic row: the PR marked ready, the human merges" \
+  "Epic@| three per story |@epic row: three per story" \
+  "Ticket@| the checks green on the tip the review called clean |@Ticket row: the one exit" \
+  "Story@| the checks green on the tip the review called clean |@Story row: the one exit" \
+  "Epic@| the checks green on the tip the review called clean |@Epic row: the one exit"; do
+  r=${case%%@*} cell=${case#*@} desc=${case##*@}
+  cell=${cell%@*}
   fresh
-  # the phrase goes from its own row only, replaced by x; a piped cell keeps its pipes, so the row
-  # keeps its shape
+  # the cell goes from its own row only: a piped cell becomes "| x |", keeping the row's shape,
+  # an unpiped phrase becomes "x"
   awk -v r="| **$r** |" -v c="$cell" 'index($0, r) == 1 { i = index($0, c); x = substr(c, 1, 1) == "|" ? "| x |" : "x"; if (i) $0 = substr($0, 1, i - 1) x substr($0, i + length(c)) } { print }' \
     "$scratch/$orch" > "$scratch/$orch.new" && mv "$scratch/$orch.new" "$scratch/$orch"
-  sec=6 expect "orchestration doc's $r row without '$cell' fails" 1
+  sec=6 expect "orchestration doc's $r row without '$cell' fails" 1 "$desc"
 done
 # the two scoping rules, the six trust rules and the closed list, each dropped
 for case in '**Review scope.**|review scoping rule' "The spec axis takes the row's own unit|the spec axis takes the row's own unit" \
@@ -1521,7 +1542,7 @@ for case in '**Review scope.**|review scoping rule' "The spec axis takes the row
   'a tree with a check record counts as checked|a tree with a check record counts as checked' \
   'changes the tree, so it is checked again|a changed tree is checked again' \
   '1. The reviewer runs one tier of model above the implementer|trust rule 1' \
-  '2. A fix-up is a fresh implementer in the same worktree, never a message back|trust rule 2' \
+  "2. A fix-up is a fresh implementer in the unit's worktree, never a message back|trust rule 2" \
   "3. An implementer's own check runs never count|trust rule 3" \
   '4. The stray-commit check runs before every merge and every push|trust rule 4' \
   '5. Only `ready-for-agent` tickets are claimed|trust rule 5' \
@@ -1537,6 +1558,9 @@ for case in '**Review scope.**|review scoping rule' "The spec axis takes the row
   'three such fix-ups per unit|three fix-ups per unit' 'the fourth is `failed`|a fourth failure is failed' \
   'A minors fix-up and a conflict resolution move the tip, so the checks rerun|a minors fix-up and a conflict resolution rerun the checks' \
   'no budget is spent|and spend nothing' 'records the reviewed tip in its notes|the reviewed tip noted on the story' \
+  'the gate exits on the moved tip once its checks are green|the gate exits on the moved tip' \
+  'the note records that tip|the note records the moved tip' \
+  "the forge reports them green on the PR's tip|the epic row's checks are the forge's status on the PR tip" \
   'no test at a story seam exercises the criteria|no test at a story seam is blocking' \
   '`mattpocock-skills:code-review` at every row|the one review tool'; do
   phrase=${case%%|*}

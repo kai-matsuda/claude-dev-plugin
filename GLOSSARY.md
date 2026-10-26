@@ -205,7 +205,8 @@ The one gate every row (ticket, story, epic) runs: the check command, then the r
 exits when the checks are green on the tip the review called clean. A red or a blocking
 verdict goes to a fresh implementer by pointer brief and the loop starts over, three such
 fix-ups per unit and the fourth `failed`; a minors fix-up and a conflict resolution move
-the tip, so the checks rerun, but no reviewer runs again and no budget is spent. The story
+the tip, so the checks rerun, but no reviewer runs again and no budget is spent: the gate
+exits on the moved tip once its checks are green, and the note records that tip. The story
 orchestrator records the reviewed tip in its notes, so a rerun knows it.
 _Avoid_: test gate, lint gate, seam gate, check and review loop
 
