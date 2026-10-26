@@ -1389,6 +1389,19 @@ pin_case "the PR number placeholder" "the PR number from the story's \`pr:\` not
 pin_case "the cut-off reviewer rule" 'reviewer that returns an error instead of a report'
 pin_case "the tea check-record fallback" "the delivered tip's check record"
 pin_case "the batch clause's reason" 'reports no delivery this run'
+# epic review 2 of dev-9k5.1.8: fix-ups at the epic's max tier, the no-CI fallback tied to the
+# tip, Done reachable past closed or landed stories, sibling criteria out of scope, the PR head
+# checked against the tip, the reviewer's sub-agent model; plus the minors
+pin_case "the fix-up tickets' epic tier" "complexity:<the epic's max tier>"
+pin_case "the no-CI fallback's review: marker" "the story's \`review:\` note names this same tip"
+pin_case "Done past closed or landed stories" 'is `closed` or has its PR landed'
+pin_case "the Stall's PR closed without landing" 'closed without landing'
+pin_case "the sibling-criteria scope clause" 'criteria owned by sibling stories are out of scope'
+pin_case "the PR head check" 'headRefOid'
+pin_case "the epic reviewer's sub-agent model" 'its sub-agents run at `<review model>`'
+pin_case "the fix-up description on stdin" '--body-file -'
+pin_case "the epic notes clause" 'which `/dev:implement-story` ignores'
+pin_case "the pending-checks resume command" 'checks are pending, end with the resume command'
 
 fresh_spec
 echo "three blocking verdicts are fixed up" >> "$spec"

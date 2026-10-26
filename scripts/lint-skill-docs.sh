@@ -309,6 +309,17 @@ has "PR number placeholder defined" "the PR number from the story's \`pr:\` note
 has "cut-off reviewer rule" 'reviewer that returns an error instead of a report'
 has "tea fallback evidence" "the delivered tip's check record"
 has "batch clause's reason" 'reports no delivery this run'
+# epic review 2 of dev-9k5.1.8
+has "fix-up tickets at the epic's max tier" 'complexity:<the epic'"'"'s max tier>'
+has "no-CI fallback tied to the tip by the review: marker" 'the story'"'"'s `review:` note names this same tip'
+has "Done accepts closed or landed stories" 'is `closed` or has its PR landed'
+has "Stall names a PR closed without landing" 'closed without landing'
+has "sibling stories' criteria out of scope" 'criteria owned by sibling stories are out of scope'
+has "PR head compared with the reviewed tip" 'headRefOid'
+has "epic reviewer's sub-agents' model" 'its sub-agents run at `<review model>`'
+has "fix-up description on stdin" '--body-file -'
+has "epic notes beside implement-story's lines" 'which `/dev:implement-story` ignores'
+has "pending-checks stall resume command" 'checks are pending, end with the resume command'
 has "frontmatter" 'disable-model-invocation: true'
 has "legacy line" 'refused: flat epic (tickets directly under the epic bead); the story skills do not handle it — the small-bug path does: /mattpocock-skills:implement <ticket-id> per ticket, then bd close <epic-id>'
 has "add-dir refusal" '/add-dir <'
