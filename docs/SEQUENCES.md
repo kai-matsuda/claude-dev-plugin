@@ -12,18 +12,14 @@ texts disagree, the texts win and the diagram is the bug. Bold terms are defined
 
 The ticket, the story and the epic are one loop at three rows. The diagram draws the row
 in general, with `O` the row's orchestrator and the unit a ticket, a story or an epic. The
-table in the model doc gives each row its parameters, and they are the words in the
-diagram's notes.
+table is the model doc's table, copied whole so no column is lost: the Fix-up column is
+where the rows differ most, and the diagram draws all three of its cases.
 
-| Parameter | Ticket row | Story row | Epic row |
-|---|---|---|---|
-| Orchestrator | ticket orchestrator | story orchestrator | epic orchestrator |
-| Builds | one implementer in a worktree | ticket orchestrators in parallel over the frontier | story orchestrators in parallel over the frontier |
-| Checks | the check command | the check command | the check command as the forge runs it |
-| Reviewer | both axes, at the ticket's review model, none at `low` | both axes, at the review model of the story's max tier | the spec axis only, at the review model of the epic's max tier |
-| Lands by | merge onto the integration branch | push, the PR staying a draft | the PR marked ready, the human merges |
-| Exits when | the checks green on the tip the review called clean | the checks green on the tip the review called clean | the checks green on the tip the review called clean |
-| Budget | three fix-ups | three fix-ups | three per story |
+| Row | Orchestrator | Builds | Checks | Review spec axis | Review standards axis | Reviewer and model | Fix-up | Lands by | Exits when | Budget |
+|---|---|---|---|---|---|---|---|---|---|---|
+| **Ticket** | ticket orchestrator | one implementer in a worktree | the check command | the ticket's body | the ticket diff | both axes, at the ticket's review model, none at `low` | an implementer by pointer brief, same worktree | merge onto the integration branch under the lock, after the stray-commit check | the checks green on the tip the review called clean | three fix-ups |
+| **Story** | story orchestrator | ticket orchestrators in parallel over the frontier | the check command | the story's body | what entered since the last standards review: conflict resolutions and cross-ticket coherence | both axes, at the review model of the story's max tier | an implementer by pointer brief in a fix-up worktree | push, the PR staying a draft | the checks green on the tip the review called clean | three fix-ups |
+| **Epic** | epic orchestrator | story orchestrators in parallel over the frontier | the check command as the forge runs it | the Jira Epic's spec | none, the axis is skipped | the spec axis only, at the review model of the epic's max tier | findings filed as `ready-for-agent` tickets under the story, that story re-run in add mode | the PR marked ready, the human merges, then `/dev:close-story` and `/dev:close-epic` | the checks green on the tip the review called clean | three per story |
 
 ```mermaid
 sequenceDiagram
@@ -32,7 +28,7 @@ sequenceDiagram
     participant BD as bd -C owner
     participant I as Implementer (impl model)
     participant V as Reviewer (review model, one tier up)
-    participant F as Fix-up implementer (impl model, same worktree)
+    participant F as Fix-up (per the row's Fix-up column)
     participant IN as Inbox (plain bd, home)
     participant U as Row above (or the human)
 
@@ -41,19 +37,20 @@ sequenceDiagram
     I-->>O: ready for review
 
     loop the checks, then the review on green, reds and blocking verdicts share three fix-ups
-        O->>O: run the check command on the tip, write the check record
+        O->>O: run the check command on the tip, unless its tree has a record, write the check record
         alt the checks are red
             O->>BD: note the failing command and its log
-            O->>F: spawn a fresh fix-up with a pointer brief
+            O->>F: fix-up by pointer brief
             F-->>O: report, the loop starts over from the checks
         else checks green, no reviewer at this row or tier
             Note over O: the loop exits on green
         else checks green
-            O->>V: spawn the review, spec axis and standards axis
+            O->>V: spawn the review, the row's axes (the epic row, the spec axis only)
             V-->>O: findings tagged blocking or minor, last line the verdict
             O->>BD: note the review with the verdict line
+            Note over O: the story row also records the reviewed tip in its notes
             alt verdict blocking
-                O->>F: spawn a fresh fix-up pointed at that note
+                O->>F: fix-up pointed at that note
                 F-->>O: report, the loop starts over from the checks
             else verdict clean (minors or none)
                 Note over O: no reviewer runs again, the loop exits
@@ -61,17 +58,32 @@ sequenceDiagram
         end
     end
 
+    Note over F: ticket row, a fresh implementer in the same worktree
+    Note over F: story row, a fresh implementer in a fix-up worktree
+    Note over F: epic row, no implementer, O files the findings as ready-for-agent tickets under the story and re-runs that story in add mode
+
     alt fourth failure, a red or a blocking verdict after the budget
         O-->>U: report failed with the reason
     else clean
         opt minors in scope
             O->>F: one last fix-up for the minors (unreviewed, no budget spent)
             F-->>O: report
+            O->>O: the tip moved, rerun the check command, the gate exits on the moved tip once green
         end
         opt minors out of scope
             O->>IN: capture a retro item (needs-triage), never a bead of the unit
         end
-        O->>O: stray-commit check, then land the unit
+        O->>O: stray-commit check
+        alt ticket row
+            O->>O: wait on the owner checkout's lock, merge onto the integration branch
+            opt the merge conflicts
+                O->>I: implementer in the ticket worktree merges the integration tip in
+                I-->>O: report, O fast-forwards and reruns the check command on the new tree
+            end
+        else story or epic row
+            O->>U: push (story, draft PR) or mark the PR ready (epic)
+        end
+        O->>BD: close the unit's bead
         O->>U: landed, one line
     end
 ```
