@@ -30,7 +30,7 @@ ci_block=$(awk '/^ci:/{f=1;print;next} f&&!/^\t/{exit} f{print}' "$mk")
 fx_check "the Makefile lint target aliases check" grep -Eq '^lint:[[:space:]]*check([[:space:]]|$)' "$mk"
 fx_check "the lint help line says it aliases check" grep -Eq '^lint:.*##.*alias.*check' "$mk"
 check_block=$(awk '/^check:/{f=1;print;next} f&&!/^\t/{exit} f{print}' "$mk")
-fx_check "the check target runs ci, then the fixtures" bash -c 'head -1 <<<"$1" | grep -Eq "^check:[[:space:]]*ci" && grep -Fq fixtures <<<"$1"' _ "$check_block"
+fx_check "the check target runs ci, then the fixtures" bash -c 'head -1 <<<"$1" | grep -Eq "^check:[[:space:]]*ci" && tail -n +2 <<<"$1" | grep -Fq "\$(MAKE) fixtures"' _ "$check_block"
 fx_check "the ci target runs the workflow test" bash -c 'grep -Fq scripts/test-ci-workflow.sh <<<"$1"' _ "$ci_block"
 fx_check "the ci target runs no fixtures, direct or via make" bash -c '! tail -n +2 <<<"$1" | grep -Eq "fixture|MAKE"' _ "$ci_block"
 # Help text that enumerates scripts goes stale when one joins or leaves a target, so no help

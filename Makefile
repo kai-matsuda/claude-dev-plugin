@@ -25,10 +25,10 @@ ci: ## Lint the skill docs and run every script test that needs no beads databas
 	$(call timed,scripts/test-ci-workflow.sh)
 
 fixtures: ## Run the scripted fixture tests against throwaway beads databases (needs bd and cargo)
-	scripts/test-fixture-stage-boundary.sh
-	scripts/test-fixture-stories.sh
-	scripts/test-fixture-dag.sh
-	scripts/test-fixture-retro.sh
-	scripts/test-fixture-story-cut.sh
-	scripts/test-fixture-story-cutter.sh
-	scripts/test-fixture-triage.sh
+	$(call timed,scripts/test-fixture-stage-boundary.sh)
+	$(call timed,scripts/test-fixture-stories.sh)
+	$(call timed,scripts/test-fixture-dag.sh)
+	$(call timed,scripts/test-fixture-retro.sh)
+	$(call timed,scripts/test-fixture-story-cut.sh)
+	$(call timed,scripts/test-fixture-story-cutter.sh)
+	$(call timed,scripts/test-fixture-triage.sh)
