@@ -17,7 +17,7 @@ where the rows differ most, and the diagram draws all three of its cases.
 
 | Row | Orchestrator | Builds | Checks | Review spec axis | Review standards axis | Reviewer and model | Fix-up | Lands by | Exits when | Budget |
 |---|---|---|---|---|---|---|---|---|---|---|
-| **Ticket** | ticket orchestrator | one implementer in a worktree | the check command | the ticket's body | the ticket diff | both axes, at the ticket's review model, none at `low` | an implementer by pointer brief, same worktree | merge onto the integration branch under the lock, after the stray-commit check | the checks green on the tip the review called clean | three fix-ups |
+| **Ticket** | ticket orchestrator | one implementer in a worktree | the check command | the ticket's body | the ticket diff | both axes, at the ticket's review model; none at `low` | an implementer by pointer brief, same worktree | merge onto the integration branch under the lock, after the stray-commit check | the checks green on the tip the review called clean | three fix-ups |
 | **Story** | story orchestrator | ticket orchestrators in parallel over the frontier | the check command | the story's body | what entered since the last standards review: conflict resolutions and cross-ticket coherence | both axes, at the review model of the story's max tier | an implementer by pointer brief in a fix-up worktree | push, the PR staying a draft | the checks green on the tip the review called clean | three fix-ups |
 | **Epic** | epic orchestrator | story orchestrators in parallel over the frontier | the check command as the forge runs it | the Jira Epic's spec | none, the axis is skipped | the spec axis only, at the review model of the epic's max tier | findings filed as `ready-for-agent` tickets under the story, that story re-run in add mode | the PR marked ready, the human merges, then `/dev:close-story` and `/dev:close-epic` | the checks green on the tip the review called clean | three per story |
 
@@ -26,18 +26,22 @@ sequenceDiagram
     autonumber
     participant O as Orchestrator (the row's)
     participant BD as bd -C owner
-    participant I as Implementer (impl model)
+    participant I as Builder (an implementer, or the orchestrators of the row below)
     participant V as Reviewer (review model, one tier up)
     participant F as Fix-up (per the row's Fix-up column)
     participant IN as Inbox (plain bd, home)
     participant U as Row above (or the human)
+
+    Note over F: ticket row, a fresh implementer in the same worktree
+    Note over F: story row, a fresh implementer in a fix-up worktree
+    Note over F: epic row, no implementer, O files the findings as ready-for-agent tickets under the story and re-runs that story in add mode
 
     O->>BD: claim the unit, read its tier
     O->>I: spawn the builder (a worktree, or the row below)
     I-->>O: ready for review
 
     loop the checks, then the review on green, reds and blocking verdicts share three fix-ups
-        O->>O: run the check command on the tip, unless its tree has a record, write the check record
+        O->>O: run the check command on the tip (the epic row reads the forge's status on the PR tip), unless its tree has a record, write the check record
         alt the checks are red
             O->>BD: note the failing command and its log
             O->>F: fix-up by pointer brief
@@ -58,10 +62,6 @@ sequenceDiagram
         end
     end
 
-    Note over F: ticket row, a fresh implementer in the same worktree
-    Note over F: story row, a fresh implementer in a fix-up worktree
-    Note over F: epic row, no implementer, O files the findings as ready-for-agent tickets under the story and re-runs that story in add mode
-
     alt fourth failure, a red or a blocking verdict after the budget
         O-->>U: report failed with the reason
     else clean
@@ -77,13 +77,14 @@ sequenceDiagram
         alt ticket row
             O->>O: wait on the owner checkout's lock, merge onto the integration branch
             opt the merge conflicts
-                O->>I: implementer in the ticket worktree merges the integration tip in
-                I-->>O: report, O fast-forwards and reruns the check command on the new tree
+                O->>F: an implementer in the ticket worktree merges the integration tip in
+                F-->>O: report, O fast-forwards and reruns the check command on the new tree
             end
+            O->>BD: close the ticket's bead
         else story or epic row
             O->>U: push (story, draft PR) or mark the PR ready (epic)
+            Note over BD: the story and epic beads stay open, /dev:close-story and /dev:close-epic close them after the merge
         end
-        O->>BD: close the unit's bead
         O->>U: landed, one line
     end
 ```
