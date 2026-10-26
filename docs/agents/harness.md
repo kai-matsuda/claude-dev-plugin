@@ -3,8 +3,8 @@
 How an agent behaves inside this harness (Claude Code): how it waits, what it runs in the
 foreground, how it commits, where scratch files go and what to do when an agent is cut off.
 These are mechanics, not the orchestration model: the model, the review loop and the frontier
-are in `orchestration.md`, and every brief that sends a subagent to commit or run Bash cites
-this doc. The working-directory preflight stays in `orchestration.md`, where the skills that
+are in `orchestration.md`, and a brief that sends a subagent to commit or run Bash points
+at this doc for them. The working-directory preflight stays in `orchestration.md`, where the skills that
 run it pin it. Terms are those of `GLOSSARY.md` in the plugin repo.
 
 **Waiting.** An orchestrator waits for its subagent's report by ending its turn.

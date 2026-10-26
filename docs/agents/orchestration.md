@@ -4,11 +4,12 @@ How an agent that runs tickets behaves. Read by every orchestrating skill: `/dev
 (the driver), `/dev:implement-story` and the **story orchestrator** it stands for. A skill owns its
 own steps; the rules here are the ones it shares. Terms are those of `GLOSSARY.md` in the plugin repo.
 The cut skills, `/dev:spec-to-stories` and `/dev:spec-to-tickets`, read only the Orchestrator role's
-epic-level sentence and its "Working-directory preflight", and the ticket cut the Waiting
-rule for its cutter waves.
+epic-level sentence and its "Working-directory preflight", and the ticket cut also reads the
+Waiting rule in `harness.md` for its cutter waves.
 
 The harness mechanics (waiting, the Idle rule, commits, cut-off agents, scratch space, shell
-commands) are in `harness.md`; only the working-directory preflight stays here.
+commands) are in `harness.md`, which also carries the Waiting rule the ticket cut reads; the
+working-directory preflight is the one mechanic that stays here.
 
 ## Orchestrator role
 
@@ -95,12 +96,12 @@ that path is `<plugin root>/skills/<skill>`, so the root is two levels up (under
 `failed: plugin root unresolved` rather than guessing a path. From then on the session
 spells the absolute rules-doc path literally in every brief,
 `<plugin root>/docs/agents/orchestration.md` with `<plugin root>` replaced by the path it
-resolved, as the TMPDIR line spells `<worktree>`: never `$CLAUDE_PLUGIN_ROOT`, never a `~/`
+resolved, as the TMPDIR rule in `harness.md` spells `<worktree>`: never `$CLAUDE_PLUGIN_ROOT`, never a `~/`
 path. A subagent's Bash has no such variable (unset in this rule's own ticket run,
 2026-10-24) and the worktree guard refuses a path
 built from one (Literal paths in `harness.md`), so a brief that names a variable sends its subagent to a
-doc it cannot open. Every pointer a brief carries, "the rules doc's TMPDIR rule" or "the
-rules doc's Idle rule", names that doc by the same absolute path.
+doc it cannot open. Every pointer a brief carries, "the harness doc's TMPDIR rule" or "the
+harness doc's Idle rule", names that doc by its own absolute path, `<plugin root>/docs/agents/harness.md`.
 
 ## Complexity tier
 

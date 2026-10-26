@@ -50,10 +50,10 @@
 #      and the check and review loop's retired two-gate wording ("Evidence run", "a later run
 #      reviews the fix", "a third round of either kind", "a second red") is absent from those,
 #      the root GLOSSARY.md and docs/SEQUENCES.md, never docs/specs (dev-1xf.1.4);
-#   6. the shared rules: orchestration.md's working-directory preflight, its waiting rule
-#      (an Agent call returns at once, the orchestrator ends its turn and the completion
-#      notification resumes it, never a Bash poll loop; pgrep is dead in the sandbox) with its
-#      idle rule (Bash in the foreground only below the driver, chezmoi-p4q) and the
+#   6. the shared rules: orchestration.md's working-directory preflight, and harness.md's
+#      waiting rule (an Agent call returns at once, the orchestrator ends its turn and the
+#      completion notification resumes it, never a Bash poll loop; pgrep is dead in the
+#      sandbox) with its idle rule (Bash in the foreground only below the driver, chezmoi-p4q) and the
 #      merger's lock wait as its one shell wait (chezmoi-sn1), the
 #      Orchestrator role's beads-only principle for the epic-level stages (ADR 0010), the
 #      Frontier's unclaim rule (chezmoi-jvc) and its ready-for-agent-only admission with the

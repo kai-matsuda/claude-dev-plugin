@@ -452,7 +452,7 @@ sec=12 expect "section 12 fails alone: /retro without the transcript shape" 1
 # sections read fails both
 for case in '1 skills/implement-spec/SKILL.md' '2 skills/workflow/SKILL.md' '2 docs/WORKFLOW.md' \
   '3 skills/spec-to-stories/SKILL.md' '4 skills/spec-to-tickets/SKILL.md' '6 10 docs/agents/orchestration.md' \
-  '6 10 docs/agents/issue-tracker.md' '7 skills/story-to-tickets/SKILL.md' '8 skills/implement-story/SKILL.md' \
+  '6 docs/agents/harness.md' '6 10 docs/agents/issue-tracker.md' '7 skills/story-to-tickets/SKILL.md' '8 skills/implement-story/SKILL.md' \
   '9 skills/close-story/SKILL.md' '12 skills/retro/SKILL.md' '0 CLAUDE.md' '0 GLOSSARY.md'; do
   doc=${case##* }
   fresh
@@ -489,7 +489,7 @@ expect "harness doc without the waiting rule fails" 1
 
 fresh
 drop_line docs/agents/harness.md '`pgrep` cannot list processes in the sandbox'
-expect "orchestration doc without the pgrep warning fails" 1
+expect "harness doc without the pgrep warning fails" 1
 
 fresh
 drop_line docs/agents/orchestration.md '**Delivery.**'
