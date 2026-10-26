@@ -579,8 +579,28 @@ expect "runbook copy without the argument paragraph fails" 1
 # the flat path's checks-first wording and its ticket review name (dev-cq0.1.3): each phrase
 # dropped alone, the rest of its row kept, so each case fires its own pin
 fresh
-drop_phrase docs/WORKFLOW.md "then the checks (the owner repo's lint, then the agreed test seams), then \`/mattpocock-skills:code-review\`"
+drop_phrase docs/WORKFLOW.md "then the checks (the owner repo's check command), then \`/mattpocock-skills:code-review\`"
 expect "runbook copy without the checks-first flat path fails" 1 "flat path runs the checks before the review"
+
+# the row pins sit on their own row: the phrase kept on another line cannot stand in
+fresh
+drop_phrase docs/WORKFLOW.md '**ticket orchestrator**'
+echo 'a **ticket orchestrator** elsewhere' >> "$scratch/docs/WORKFLOW.md"
+expect "4a pin is anchored on its row" 1 "4a names the ticket orchestrators"
+
+fresh
+drop_phrase docs/WORKFLOW.md 'The epic orchestrator session'
+echo 'The epic orchestrator session elsewhere' >> "$scratch/docs/WORKFLOW.md"
+expect "session model 4a pin is anchored on its row" 1 "session model 4a: the epic orchestrator session"
+
+fresh
+drop_phrase docs/WORKFLOW.md 'One review tool, three rows'
+echo 'see One review tool, three rows' >> "$scratch/docs/WORKFLOW.md"
+expect "one review tool paragraph pin is anchored on its line" 1 "the one review tool paragraph"
+
+fresh
+swap_phrase docs/WORKFLOW.md "the owner repo's check command" "the owner repo's lint, then the agreed test seams"
+expect "runbook copy with the retired lint-then-seams wording fails" 1 "flat path runs the checks before the review"
 
 fresh
 drop_phrase docs/WORKFLOW.md 'the ticket review (switch'
@@ -594,7 +614,7 @@ expect "runbook copy with the seeded phrase ticket gate fails" 1 "retired ticket
 # (dev-9k5.1.10): the driver role, the ticket runner, the merger, the built-in review by name
 # and the two-review-tools paragraph each fail in the runbook, /workflow, the story and ticket
 # cuts and the tracker doc
-for doc in docs/WORKFLOW.md skills/workflow/SKILL.md skills/spec-to-stories/SKILL.md skills/spec-to-tickets/SKILL.md docs/agents/issue-tracker.md; do
+for doc in docs/WORKFLOW.md skills/workflow/SKILL.md skills/close-epic/SKILL.md skills/spec-to-stories/SKILL.md skills/spec-to-tickets/SKILL.md docs/agents/issue-tracker.md; do
   for case in 'A driver over the stories.|the retired driver role' \
     'Each ticket runner implements.|the retired ticket runner role' \
     'A merger folds it in.|the retired merger role' \
@@ -605,6 +625,10 @@ for doc in docs/WORKFLOW.md skills/workflow/SKILL.md skills/spec-to-stories/SKIL
     expect "$doc seeded with ${case##*|} fails" 1 "${case##*|}"
   done
 done
+
+fresh
+echo '`medium` and `high` tickets pass the check gate before merge.' >> "$scratch/docs/agents/issue-tracker.md"
+expect "tracker doc limiting the check gate to medium and high fails" 1 "medium and high tickets passing the check gate"
 
 fresh
 echo 'read `<owner>/.spec-notes/<epic-id>/story-cut.md` first' >> "$scratch/skills/spec-to-tickets/SKILL.md"

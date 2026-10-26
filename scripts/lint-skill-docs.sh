@@ -390,6 +390,9 @@ hasc "workflow prints the story cut's argument" 'next: `/dev:spec-to-stories <ar
 hasc "workflow prints the ticket cut's argument" 'next: `/dev:spec-to-tickets <arg>`'
 retired_row_names
 fi
+if doc 2 "/close-epic" "$skills/close-epic/SKILL.md"; then
+retired_row_names
+fi
 if doc 2 "runbook" "$runbook"; then
 # the cut skills take the feature as their one argument; the runbook has a paragraph on it and
 # writes it in the 3a and 3b rows below (chezmoi-nz0)
@@ -397,10 +400,10 @@ hasc "argument paragraph" '**The argument.**'
 # the flat path (row 4b) runs the checks before the one review tool, and its review is the
 # ticket review; "ticket gate" is retired so "gate" means the checks in every doc (dev-cq0.1.3)
 retired_row_names
-hasc "flat path runs the checks before the review" "then the checks (the owner repo's lint, then the agreed test seams), then \`/mattpocock-skills:code-review\`"
-hasc "4a names the ticket orchestrators" '**ticket orchestrator**'
-hasc "the one review tool paragraph" 'One review tool, three rows'
-hasc "session model 4a: the epic orchestrator session" 'The epic orchestrator session'
+line_has '^[|] 4b [|]' "flat path runs the checks before the review" "then the checks (the owner repo's check command), then \`/mattpocock-skills:code-review\`"
+line_has '^[|] 4a [|] `/dev:implement-spec`' "4a names the ticket orchestrators" '**ticket orchestrator**'
+line_has '^One review tool, three rows' "the one review tool paragraph" 'One review tool, three rows'
+line_has '^[|] 4a [|] opus [|]' "session model 4a: the epic orchestrator session" 'The epic orchestrator session'
 
 hasc "flat path's review is the ticket review" 'the ticket review (switch'
 lacks "retired ticket gate name in the runbook" 'ticket gate'
@@ -588,7 +591,7 @@ lacks "story-cut procedure" 'Resolve the spec to its repos|Draft the stories|Qui
 # the ticket cut cuts the story DAG (ADR 0011, chezmoi-9v4.1.8): a cycle is refused naming its
 # stories; cutters run in topological waves, one per DAG level, each dependent's brief carrying
 # every upstream breakdown, a story-closure edge ordering no wave; an already cut dependent of a
-# new publish ticket is re-cut by the driver in the same run, so the rerun hint drops that case
+# new publish ticket is re-cut inline in the same run, so the rerun hint drops that case
 has "cycle refusal names the stories" 'refused: dependency cycle ('
 has "topological waves" 'topological waves'
 has "one wave per DAG level" 'one wave per level of the story DAG'
@@ -832,6 +835,8 @@ hasc "the preflight stays in the rules doc" 'The working-directory preflight sta
 fi
 if doc 6 "tracker rules" "$agents/issue-tracker.md"; then
 retired_row_names
+# every ticket passes the check gate; only the review is medium/high (ADR 0014)
+lacks "medium and high tickets passing the check gate" '`medium` and `high` tickets pass the check gate'
 # the one test of the session mode (ADR 0008), stated once, in the opening before any section
 for need in '`<home>` is the session'"'"'s repo' '`<home>/repos.yaml`' '**workspace session**' '**repo session**' 'the only owner'; do
   opening_has "the tracker doc's one test" "$need"

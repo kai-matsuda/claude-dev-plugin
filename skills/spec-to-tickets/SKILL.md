@@ -5,7 +5,7 @@ disable-model-invocation: true
 ---
 
 <!-- Once a fork of mattpocock-skills 1.3.1 engineering/to-tickets, rewritten as the thin
-     ticket cut over story cutters, thin (INFRA-27, ADR 0007). The story cut moved to
+     ticket cut over story cutters (INFRA-27, ADR 0007). The story cut moved to
      /dev:spec-to-stories and the per-story cut is /dev:story-to-tickets; this file keeps only the
      story gather and its refusals, the working-directory preflight (shared, in orchestration.md), the
      story cutter spawn in topological waves with the inline re-cut of an already cut

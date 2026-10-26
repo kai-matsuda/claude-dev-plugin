@@ -438,13 +438,16 @@ The skill adds its own refusals after these.
    `complexity:<tier>` label first).
 2. Pick the implementation model from the bead's `complexity` tier (table below).
 3. Work it; `bd note <id>` for progress worth keeping across sessions.
-4. `medium` and `high` tickets pass the check gate before merge: the ticket orchestrator
-   runs the checks, then spawns a reviewer subagent at the tier's review model, briefed to
-   run the `mattpocock-skills:code-review` skill on the ticket's branch since the
-   integration tip; a red or a blocking verdict goes to a fresh fix-up implementer in the
-   same worktree, never back to the first one by `SendMessage` (`orchestration.md`,
-   Orchestrator role). The implementer never calls the skill itself — it would run at the
-   implementer's own model. Why: `docs/adr/0014-one-loop-at-three-rows.md` in the plugin repo.
+4. Under `/dev:implement-story` every ticket passes the check gate before merge: the ticket
+   orchestrator runs the checks, and only `medium` and `high` tickets add the review. It spawns
+   a reviewer subagent at the tier's review model, briefed to run the
+   `mattpocock-skills:code-review` skill on the ticket's branch since the integration tip; a
+   red or a blocking verdict goes to a fresh implementer in the same worktree, never back to
+   the first one by `SendMessage` (`orchestration.md`, Trust rules, rule 2). The implementer
+   never calls the skill itself: it would run at the implementer's own model. Under
+   `/mattpocock-skills:implement` there is no ticket orchestrator: the session is the
+   implementer and runs the checks and then the ticket review itself. Why:
+   `docs/adr/0014-one-loop-at-three-rows.md` in the plugin repo.
 5. On completion `bd close <id>`. Do not touch the Jira epic per ticket.
 
 Every `bd` call above runs in the ticket's owner repo (`-C <owner>` when that is not
