@@ -1791,20 +1791,29 @@ fresh
 swap_phrase skills/implement-story/SKILL.md '^> 4\. \*\*Land the ticket\*\*' '> 4. Spawn a merger'
 expect "ticket orchestrator step 4 not landing the ticket fails" 1 "missing: step 4 lands the ticket"
 
-# the story review is the check gate loop with the review marker as its exit: each pin is proven
-# by dropping its phrase, the order by moving the checks after the review (dev-cq0.1.5,
-# dev-1xf.1.3)
-for case in "the rules doc's Check gate loop on the integration branch tip, with the **review marker** as its exit|a story review not the loop with the marker exit|missing: the story review (step 7) is the rules doc's Check gate loop" \
-  'Each iteration runs the checks first|an iteration not running the checks first|missing: the story review (step 7) runs the checks first in each iteration' \
-  'to the fix-up implementer below, then its merger, and the loop starts over|a story red not starting the loop over|missing: a red at the story review starts the loop over' \
-  'the same SHA exits the loop|a matching marker not exiting the loop|missing: a green tip matching the review marker exits the loop' \
-  "this iteration's run (each check's command, its exit and the last twenty lines of its log) is the PR's Evidence|Evidence not from the exit iteration|missing: the exit iteration's run is the PR's Evidence" \
-  'write the marker on the new tip, and the loop starts over|a reviewed tip not starting the loop over|missing: a reviewed tip is marked and the loop starts over' \
-  'the fourth failure skips step 8 and goes to step 9|a story loop without its fourth-failure stall|missing: the story loop'"'"'s fourth failure skips delivery' \
-  'The budget is three fix-ups per story, red or review alike|a story loop without its one budget|missing: red and review fix-ups share the story loop'"'"'s budget of three' \
-  'every fix-up in the story loop spends it, a minors-only review'"'"'s included|a story loop whose minors-only fix-up is unbudgeted|missing: a minors-only review'"'"'s fix-up spends the story loop'"'"'s budget' \
-  '(a review'"'"'s as `failed: review mattpocock-skills:code-review`)|a story loop without the review'"'"'s stall form|missing: the story loop'"'"'s stall line for a review' \
-  "its Evidence from step 7's exit iteration (each check's command, exit and twenty-line tail)|a deliver step not citing the exit iteration|missing: the deliver step (8) takes its Evidence from step 7's exit iteration" \
+# the story gate (step 7) is the check gate loop at the story row: each pin is proven by
+# dropping its phrase, the order by moving the checks after the review, the retired merger,
+# minors budget and review marker by seeding them back (dev-cq0.1.5, dev-1xf.1.3, dev-9k5.1.9)
+for case in "the story row of the rules doc's table|a story gate not naming its row|missing: the story gate names its row of the rules doc's table" \
+  'it exits when the checks are green on the tip the review called clean|a story gate without its exit|missing: the story gate exits on green checks at the tip the review called clean' \
+  'Each pass runs the checks first|a pass not running the checks first|missing: the story gate runs the checks first in each pass' \
+  'confirm the owner checkout is clean, `git -C <owner> status --porcelain` prints nothing|a story gate without its clean-checkout guard|missing: the story gate reads the tree only of a clean owner checkout' \
+  '`git -C <owner> rev-parse <branch>^{tree}`|a story gate not keyed on the tree|missing: the story gate keys the check on the tip'"'"'s tree' \
+  'mkdir -p <owner>/.tmp/checks/<tree>; export TMPDIR=<owner>/.tmp; make -C <owner> check > <owner>/.tmp/checks/<tree>/log 2>&1; echo "command=make check exit=$?" > <owner>/.tmp/checks/<tree>/record; cat <owner>/.tmp/checks/<tree>/record|a story gate writing no check record|missing: the story gate writes the check record per tree' \
+  'The story keeps the reviewed tip in its notes: its `review:` note names the tip the review called clean, so a rerun reviews only a tip that has moved past it|a story gate without the reviewed-tip sentence|missing: the story keeps the reviewed tip in its notes' \
+  'the same SHA exits the gate|a reviewed tip not exiting the gate|missing: a green tip the review called clean exits the gate' \
+  "the spec axis is the story's body|a story review without its spec axis|missing: the story review's spec axis is the story's body" \
+  'the standards axis is what entered since the ticket reviews: the conflict resolutions and the coherence across tickets|a story review without its standards axis|missing: the story review'"'"'s standards axis is what entered since the ticket reviews' \
+  'A red or a blocking verdict goes to a fresh fix-up implementer by pointer brief and the loop starts over|a story red or blocking verdict not starting the loop over|missing: a red or a blocking verdict goes to a fresh fix-up and starts the loop over' \
+  'the minors fix-up reruns the checks and spends no budget|a story gate whose minors fix-up is budgeted|missing: the minors fix-up reruns the checks and spends no budget' \
+  'The budget is three fix-ups per story, red or blocking alike|a story gate without its one budget|missing: the story gate'"'"'s budget is three fix-ups, red or blocking' \
+  'the fourth failure skips step 8 and goes to step 9|a story gate without its fourth-failure stall|missing: the story gate'"'"'s fourth failure skips delivery' \
+  '(a review'"'"'s as `failed: review mattpocock-skills:code-review`)|a story gate without the review'"'"'s stall form|missing: the story gate'"'"'s stall line for a review' \
+  "you land its branch as the ticket orchestrator brief's step 4 lands a ticket|a story gate not landing its fix-up|missing: the story gate lands its fix-up itself" \
+  'the ten-minute limit on check and test runs|a story fix-up brief without its limit|missing: story fix-up brief names the check and test limit' \
+  'The PR stays a draft|a deliver step not leaving the PR a draft|missing: the deliver step leaves the PR a draft' \
+  "its Evidence the delivered tip's check record|a deliver step not citing the check record|missing: the deliver step's Evidence is the delivered tip's check record" \
+  '`rm -rf <owner>/.tmp/checks`|a clean-up step keeping the check records|missing: step 9 removes the check records' \
   'or <check> <command>|a report template without the check failed line|missing (case-sensitive): report template'"'"'s failed: line names the check'; do
   phrase=${case%%|*} rest=${case#*|}
   fresh
@@ -1812,16 +1821,38 @@ for case in "the rules doc's Check gate loop on the integration branch tip, with
   expect "implement-story with ${rest%%|*} fails" 1 "${rest#*|}"
 done
 
+# the recorded-tree phrase sits on step 3's line too: dropped from step 7's line alone, it fails
+fresh
+swap_phrase skills/implement-story/SKILL.md '^(7\. .*)a tree with a record is checked: read its exit and run nothing' '\1a tree is read'
+expect "story gate step 7 not reading a recorded tree's record fails" 1 "missing: the story gate reads a recorded tree's check record and runs nothing"
+
 # the stall line is read on step 7's line: dropped there while the report template keeps it
 fresh
 swap_phrase skills/implement-story/SKILL.md '^(7\. .*)`failed: <check> <command>`' '\1a failed line'
-expect "story review step 7 without its failed: <check> <command> stall line fails" 1 "missing: the story loop's stall line"
+expect "story gate step 7 without its failed: <check> <command> stall line fails" 1 "missing: the story gate's stall line"
 
 # the checks named after the review on step 7's line: the order pin fails
 fresh
-swap_phrase skills/implement-story/SKILL.md '^(7\. .*)Each iteration runs the checks first' '\1Each iteration begins'
-swap_phrase skills/implement-story/SKILL.md '^(7\. .*)$' '\1 Each iteration runs the checks first.'
-expect "story review step 7 with the checks after the two-axis review fails" 1 "missing: the story review (step 7) runs the checks before the marker compare"
+swap_phrase skills/implement-story/SKILL.md '^(7\. .*)Each pass runs the checks first' '\1Each pass begins'
+swap_phrase skills/implement-story/SKILL.md '^(7\. .*)$' '\1 Each pass runs the checks first.'
+expect "story gate step 7 with the checks after the two-axis review fails" 1 "missing: the story gate (step 7) runs the checks before the reviewed-tip compare"
+
+# the retired story-gate wording seeded back on its own line fails: a merger, a budgeted minors
+# fix-up, the Running the checks paragraph, the review marker, a deliver step marking the PR ready
+for case in '^(7\. .*)$|\1 Then spawn a merger.|present: a merger at the story gate' \
+  "^(7\\. .*)\$|\\1 Every fix-up spends it, a minors-only review's included.|present: the story gate's minors fix-up spending budget" \
+  '^(8\. .*)$|\1 Mark the PR ready (`gh pr ready <n> --repo <forge-slug>`).|present: the deliver step marking the PR ready'; do
+  anchor=${case%%|*} rest=${case#*|}
+  fresh
+  swap_phrase skills/implement-story/SKILL.md "$anchor" "${rest%%|*}"
+  expect "implement-story regaining '${rest%%|*}' fails" 1 "${rest#*|}"
+done
+for case in '   **Running the checks.** The checks are the lint command, then the test seams.|present: the retired Running the checks paragraph' \
+  'The exit is the review marker.|present: the retired review marker'; do
+  fresh
+  echo "${case%%|*}" >> "$scratch/skills/implement-story/SKILL.md"
+  expect "implement-story regaining '${case%%|*}' fails" 1 "${case#*|}"
+done
 
 # the retired two-gate phrases seeded back fail, by section 5's sweep alone
 for line in 'Then the Evidence run checks the tip.' \
