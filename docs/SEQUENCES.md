@@ -18,9 +18,11 @@ four skills answer to that name.
 
 ## Stage 1: per-ticket review
 
-Runner brief steps 2 to 5, every tier. The check gate runs for `low` too; only `medium` and
-`high` get a reviewer. A `low` ticket goes from a green gate straight to the merger, and the
-**ticket runner** does not spawn a reviewer for it.
+Runner brief steps 2 to 4, every tier. Step 3 is the **check and review loop**: the checks run
+for `low` too; only `medium` and `high` get a reviewer. A `low` ticket exits the loop on green
+checks and goes straight to the merger, and the **ticket runner** does not spawn a reviewer for
+it. A red or a blocking verdict spawns a fresh fix-up implementer and the loop starts over from
+the checks, on one budget of three fix-ups of either cause.
 
 ```mermaid
 sequenceDiagram
@@ -39,30 +41,30 @@ sequenceDiagram
     I-->>R: "ready for review" (branch, worktree path)
     Note over I: done, never messaged again
 
-    loop up to three rounds, red checks and blocking verdicts counted together
-        R->>R: check gate in the worktree, lint then the test seams, first red stops
-        alt gate red
+    loop the checks, then the review on green; reds and blocking verdicts share three fix-ups
+        R->>R: checks in the worktree, lint then the test seams, first red stops
+        alt a check is red
             R->>BD: note ticket "checks n: red" with the failing command
             R->>F: spawn a fresh fix-up pointed at the failing command and its log path, same worktree
             F->>F: fix, test, commit, merge the branch tip
-            F-->>R: report, the next round's gate runs first
-        else gate green, tier low
-            Note over R: no reviewer for low, the loop ends
-        else gate green, tier medium or high
+            F-->>R: report, the loop starts over from the checks
+        else checks green, tier low
+            Note over R: no reviewer for low, the loop exits on green
+        else checks green, tier medium or high
             R->>V: spawn, call the built-in code-review (effort = tier), standards sources spelled out
             V-->>R: findings tagged blocking or minor, last line verdict clean or blocking (n)
             R->>BD: note ticket "review n" with the findings and the verdict line
             alt verdict blocking
                 R->>F: spawn a fresh fix-up pointed at that note, no isolation
                 F->>F: fix, test, commit, merge the branch tip
-                F-->>R: report, the next round's gate runs first
+                F-->>R: report, the loop starts over from the checks
             else verdict clean (minors or none)
-                Note over R: no reviewer runs again, the loop ends
+                Note over R: no reviewer runs again, the loop exits
             end
         end
     end
 
-    alt third round red, or third verdict blocking
+    alt fourth failure, a red or a blocking verdict after three fix-ups
         R-->>R: report "ticket failed" with the reason
     else clean
         opt minors in scope
@@ -132,52 +134,50 @@ sequenceDiagram
     end
 
     O->>O: git rev-parse the integration branch tip
-    opt no review marker, or the tip has moved since
-        O->>O: check gate on the tip, lint then the test seams, read-only, first red stops
-        opt gate red
+    loop the checks, then the review on a tip off the marker; the review marker is the exit
+        O->>O: checks on the tip, lint then the test seams, read-only, first red stops
+        alt a check is red
             O->>F: fix-up with the failing command and its log path
             F-->>O: report
             O->>M: merger, its two runs (lint and seams in the worktree, then in owner)
             M-->>O: merged
-            O->>O: check gate again, a second red fails the story, no review and no delivery
+            Note over O: the loop starts over from the checks
+        else checks green, tip matches the review marker
+            Note over O: exit; this iteration's checks are the PR's Evidence, each command, exit and last twenty lines
+        else checks green, no marker or the tip has moved since
+            O->>CR: Skill call on the owner repo (diff and log against the default branch, standards paths, spec = story + tickets + Jira epic)
+            par two axes at the story tier's review model
+                CR->>S: repo standards plus the plugin's coding-standards.md
+                S-->>CR: findings, verdict line
+            and
+                CR->>P: fidelity to the story, its tickets and the epic
+                P-->>CR: findings, verdict line
+            end
+            CR-->>O: both reports (findings only, no beads), one review per tip, never fails on the verdict
+            opt findings to fix (blocking and minor alike)
+                O->>F: spawn the fix-up with the findings as its pointer
+                F->>F: fix, test, commit (Bead = story, Refs = epic)
+                F-->>O: report, unfixable items listed
+                O->>M: spawn the merger (ticket brief step 4)
+                M-->>O: merged
+            end
+            opt deferred findings (out of scope, follow-up)
+                O->>IN: capture a retro item, never a child of the story
+            end
+            O->>BD: note story "review" with the new tip SHA, the loop starts over from the checks
         end
-        O->>CR: Skill call on the owner repo (diff and log against the default branch, standards paths, spec = story + tickets + Jira epic)
-        par two axes at the story tier's review model
-            CR->>S: repo standards plus the plugin's coding-standards.md
-            S-->>CR: findings, verdict line
-        and
-            CR->>P: fidelity to the story, its tickets and the epic
-            P-->>CR: findings, verdict line
-        end
-        CR-->>O: both reports (findings only, no beads), one round, never fails on the verdict
-        opt findings to fix (blocking and minor alike)
-            O->>F: spawn the fix-up with the findings as its pointer
-            F->>F: fix, test, commit (Bead = story, Refs = epic)
-            F-->>O: report, unfixable items listed
-            O->>M: spawn the merger (ticket brief step 4)
-            M-->>O: merged
-        end
-        opt deferred findings (out of scope, follow-up)
-            O->>IN: capture a retro item, never a child of the story
-        end
-        O->>BD: note story "review" with the new tip SHA
     end
 
-    O->>O: Evidence run, the checks on the tip, lint then the test seams (read-only, timeout 600000)
-    Note over O: each check's command, exit and last twenty lines are the PR's Evidence
-    opt red
-        O->>F: fix-up (spawned here if the marker skipped the review)
-        F-->>O: report
-        O->>M: merger, its two runs (lint and seams in the worktree, then in owner)
-        M-->>O: merged
-        O->>O: rerun the checks, marker unchanged (a fix here is unreviewed), a second red run fails the story
+    alt fourth failure, a red or a review after three fix-ups per story
+        O->>O: report "failed" with the check and its command, or "failed: review", skip delivery
+        O->>O: clean up the worktrees, report
+    else exit on the marker
+        O->>O: stray-commit check on default branch..integration branch
+        O->>FG: push the branch, write the PR body (mattpocock-skills pr) with the exit iteration's Evidence, mark it ready
+        O->>BD: note story "pr" with the URL, the story bead stays open
+        O->>O: clean up the worktrees, report
+        H->>FG: review and merge the PR (stage 3)
     end
-
-    O->>O: stray-commit check on default branch..integration branch
-    O->>FG: push the branch, write the PR body (mattpocock-skills pr), mark it ready
-    O->>BD: note story "pr" with the URL, the story bead stays open
-    O->>O: clean up the worktrees, report
-    H->>FG: review and merge the PR (stage 3)
 ```
 
 ## Stage 3: the epic
@@ -244,6 +244,12 @@ sequenceDiagram
 - **Fresh fix-up, same worktree.** Findings never go back to the first implementer by
   message. Each round spawns a new **fix-up implementer** in the worktree the implementer
   left behind (the rules doc's Orchestrator role).
-- **Only blocking and red rounds count.** A clean round with minors ends the review loop. The
-  minors get one unreviewed fix-up or go to the inbox as a **deferred finding**, and the
-  story tier never fails on a verdict at all (the rules doc's Review verdict).
+- **One loop, one budget.** At both levels the checks run first and a red or a blocking
+  verdict each spawns a fresh fix-up and starts the loop over; the budget is three fix-ups of
+  either cause, and the fourth failure is `failed` (the rules doc's Check gate). A clean round
+  with minors exits: at the ticket level the minors get one unreviewed fix-up, which spends no
+  budget, or go to the inbox as a **deferred finding** (the rules doc's Review verdict). The
+  story level's review fix-up spends the budget, since its loop starts over after it.
+- **The review marker is the story's exit.** A green iteration whose tip matches the marker
+  exits, and its checks are the PR's Evidence; a reviewed tip gets the marker and the loop
+  starts over, so the exit iteration always runs the checks on a reviewed tip.

@@ -47,6 +47,9 @@
 #      That one list is the only walk-up check; sections 2-4 and 7 do not repeat it; the same
 #      four file kinds also lack the retired story-DAG wording ("one story per repo", feat/<key>-<n>,
 #      "chains are out of scope", "only text blocker", "two waves suffice"; ADR 0011);
+#      and the check and review loop's retired two-gate wording ("Evidence run", "a later run
+#      reviews the fix", "a third round of either kind", "a second red") is absent from those,
+#      the root GLOSSARY.md and docs/SEQUENCES.md, never docs/specs (dev-1xf.1.4);
 #   6. the shared rules: orchestration.md's working-directory preflight, its waiting rule
 #      (an Agent call returns at once, the orchestrator ends its turn and the completion
 #      notification resumes it, never a Bash poll loop; pgrep is dead in the sandbox) with its
@@ -540,6 +543,14 @@ while IFS= read -r f; do
   lacks "retired walk-up wording in $f" "$walkup"
   lacks "retired story-DAG wording in $f" "$retired_dag"
 done < <({ find "$agents" "$skills" -type f 2>/dev/null; echo "$user_claude_md"; echo "$runbook"; } | sort)
+# the check and review loop's retired two-gate wording (dev-1xf.1.4): the Evidence run, the later
+# run that reviews a fix, the third-round wording and the second-red stall are absent from every
+# file a reader meets, the four kinds above plus the root glossary and the sequence diagrams;
+# docs/specs keeps them, since a spec states the change it makes
+retired_loop='evidence run|a later run reviews the fix|a third round of either kind|a second red'
+while IFS= read -r f; do
+  lacks "retired two-gate wording in $f" "$retired_loop"
+done < <({ find "$agents" "$skills" -type f 2>/dev/null; echo "$user_claude_md"; echo "$runbook"; echo "$glossary_md"; echo "$docs/SEQUENCES.md"; } | sort)
 
 # the docs ship in the plugin: no path into the old dotfiles deployment (~/.claude/docs,
 # ~/.claude/hooks) or the chezmoi source remains in any doc under docs/, the skills, the agent

@@ -1410,6 +1410,28 @@ fresh
 echo 'Two waves suffice for any feature.' >> "$scratch/skills/close-story/SKILL.md"
 expect "skill saying 'two waves suffice' fails" 1
 
+# the check and review loop's retired two-gate wording is absent from every file kind the sweep
+# covers (one seeded case per phrase, each in its own kind); docs/specs keeps the words
+fresh
+echo 'Then the Evidence run checks the tip.' >> "$scratch/skills/sample/SKILL.md"
+expect "skill saying 'Evidence run' fails" 1 "retired two-gate wording in $scratch/skills/sample/SKILL.md"
+
+fresh
+echo 'The marker stays put, so a later run reviews the fix.' >> "$scratch/docs/agents/triage-labels.md"
+expect "agent doc saying 'a later run reviews the fix' fails" 1 "retired two-gate wording in $scratch/docs/agents/triage-labels.md"
+
+fresh
+echo 'Stop at a third round of either kind.' >> "$scratch/GLOSSARY.md"
+expect "glossary saying 'a third round of either kind' fails" 1 "retired two-gate wording in $scratch/GLOSSARY.md"
+
+fresh
+echo 'A second red fails the story, no review.' >> "$scratch/docs/SEQUENCES.md"
+expect "sequence diagrams saying 'a second red' fails" 1 "retired two-gate wording in $scratch/docs/SEQUENCES.md"
+
+fresh
+echo 'The retired Evidence run stays in the spec.' >> "$scratch/docs/specs/check-and-review-loop.md"
+expect "a spec keeping 'Evidence run' passes" 0
+
 # a reviewer tags every finding blocking or minor and ends on a verdict line; a round with no
 # blocking findings is clean; every fix-up, red or blocking, spends the check gate loop's budget
 # (chezmoi-49k): the rule lives in the orchestration doc, the runner brief and the story
@@ -1515,7 +1537,8 @@ for case in 'Then the Evidence run checks the tip.|present: the retired Evidence
   'A second red skips step 8.|present: the retired second-red stall'; do
   fresh
   echo "${case%%|*}" >> "$scratch/skills/implement-story/SKILL.md"
-  expect "implement-story regaining '${case%%|*}' fails" 1 "${case#*|}"
+  # the sweep (section 5) fails too: the phrase is retired in every file kind
+  sec="5 8" expect "implement-story regaining '${case%%|*}' fails" 1 "${case#*|}"
 done
 
 # the retired phrase seeded back fails
@@ -1580,7 +1603,7 @@ done
 
 fresh
 echo 'A third round of either kind is `failed`.' >> "$scratch/skills/implement-story/SKILL.md"
-expect "implement-story regaining the third-round wording fails" 1 "present: the retired third-round wording"
+sec="5 8" expect "implement-story regaining the third-round wording fails" 1 "present: the retired third-round wording"
 
 fresh
 echo 'Run the check gate again, and on green spawn a reviewer again.' | tr 'R' 'r' >> "$scratch/skills/implement-story/SKILL.md"
