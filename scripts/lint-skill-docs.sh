@@ -2,9 +2,14 @@
 # Reference lint for skill-facing docs (INFRA-26): named commands exist, stale phrases are absent.
 # Not the test seam for any skill; that is a subagent following the skill against the fixture.
 # One section per doc (INFRA-27 added 3-6):
-#   1. the /implement-spec driver text (chezmoi-0jp.24): no ticket-level procedure, names the
+#   1. the /implement-spec epic orchestrator text (chezmoi-0jp.24): no ticket-level procedure, names the
 #      refusals, the spawn with its pointer at the waiting rule (chezmoi-p4q) and the end states,
-#      the story-closure human stop and the add-mode stall hint pinned (chezmoi-9v4.1.6);
+#      the story-closure human stop and the add-mode stall hint pinned (chezmoi-9v4.1.6); the
+#      epic row (dev-9k5.1.8): the role named, the harness doc cited, the epic review (one PR at
+#      a time, the default-branch diff, the Jira Epic's spec, no standards axis, the epic's max
+#      tier), draft until clean with the mark-ready commands, the add-mode fix-up (one ticket per
+#      blocking finding, three per story, the fourth failed) and the review: end-state line, with
+#      no "driver" and no PR opened here;
 #   2. the human runbook docs/WORKFLOW.md (chezmoi-0jp.25) and the /workflow skill:
 #      names only commands that exist, no stale cross-repo wording, the cut skills' argument
 #      written in the runbook and filled in on /workflow's next lines (chezmoi-nz0);
@@ -249,8 +254,8 @@ for given in "$user_claude_md" "$glossary_md"; do
   [ -f "$given" ] || bad "no such file: $given"
 done
 
-# ---- 1. /implement-spec driver ----
-if doc 1 "/implement-spec driver" "${1:-$skills/implement-spec/SKILL.md}"; then
+# ---- 1. /implement-spec epic orchestrator ----
+if doc 1 "/implement-spec epic orchestrator" "${1:-$skills/implement-spec/SKILL.md}"; then
 lacks "worktree steps" 'worktree'
 # no merge steps; the one allowed use is the human stop naming "the PR to merge" for the user
 # (chezmoi-9v4.1.6), so that phrase is blanked before the scan
@@ -270,8 +275,25 @@ has "final report waiting: names a finished story" 'a finished story not yet clo
 hasc "report template shows the story-closure human: line" 'human:   <owner repo> <story-id> <pr url>'
 # the glossary avoids "human ticket" for the human gate ticket ("ready-for-human ticket" is fine)
 lacks "glossary's avoided term human ticket" '(^|[^-])human ticket'
-lacks "review steps" 'review'
-lacks "PR steps" 'gh pr|tea pr|draft PR|mark ready'
+# the epic row reviews and marks ready, but opening a PR stays the story orchestrator's
+lacks "PR-opening steps" 'draft PR|pr create'
+lacks "the retired driver role" '(^|[^a-z])driver'
+hasc "epic orchestrator role" '**epic orchestrator**'
+has "harness doc cited" 'docs/agents/harness.md'
+has "epic review, one PR at a time" 'one PR at a time'
+has "epic review diff" 'the diff from the default branch to the integration branch'
+has "epic review spec axis" "the Jira Epic's spec"
+has "epic review skips the standards axis" 'no standards axis'
+has "epic review model" "the review model of the epic's max tier"
+has "draft until clean" 'stays a draft until its verdict is clean'
+has "mark ready with gh" 'gh pr ready <n> --repo <forge-slug>'
+has "mark ready with tea" 'tea pr edit <n> --repo <owner> --ready'
+has "fix-up: one ready-for-agent ticket per blocking finding" 'one per blocking finding'
+has "fix-up: the story re-run in add mode" 'in add mode'
+has "fix-up budget" 'three per story'
+has "fix-up budget's fourth" 'the fourth is `failed`'
+hasc "report template's epic review line" 'review:  <verdict line>'
+has "Done needs a clean epic review" 'epic review clean'
 has "frontmatter" 'disable-model-invocation: true'
 has "legacy line" 'refused: flat epic (tickets directly under the epic bead); the story skills do not handle it — the small-bug path does: /mattpocock-skills:implement <ticket-id> per ticket, then bd close <epic-id>'
 has "add-dir refusal" '/add-dir <'
@@ -284,7 +306,7 @@ lacks "finished story keyed on ready-for-human alone" 'other than `ready-for-hum
 has "story orchestrator" 'story orchestrator'
 has "implement-story" 'implement-story'
 has "opus" 'opus'
-hasc "waiting rule pointer" "the rules doc's Waiting"
+hasc "waiting rule pointer" "the harness doc's Waiting"
 has "resume command" '/dev:implement-spec <KEY>-<n>'
 has "Jira step pointer" '"the spec is done"'
 has "Jira already-made read" 'getJiraIssue'

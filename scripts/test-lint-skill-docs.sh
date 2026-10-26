@@ -1356,6 +1356,33 @@ pin_case "the add-mode stall hint" '/dev:spec-to-stories <KEY>-<n>'
 pin_case "the add-mode hint for an epic with no external ref" '/dev:spec-to-stories <epic-id>'
 pin_case "the final report's finished-story waiting: wording" 'a finished story not yet closed'
 pin_case "the report template's story-closure human: line" 'human:   <owner repo> <story-id> <pr url>'
+# the epic row (dev-9k5.1.8): its role, its harness citation, the epic review, draft until
+# clean, the add-mode fix-up and its end-state outcome
+pin_case "the epic orchestrator role" '**epic orchestrator**'
+pin_case "the harness doc citation" 'docs/agents/harness.md'
+pin_case "the harness doc's waiting pointer" "the harness doc's Waiting"
+pin_case "the epic review's one PR at a time" 'one PR at a time'
+pin_case "the epic review's diff" 'the diff from the default branch to the integration branch'
+pin_case "the epic review's spec axis" "the Jira Epic's spec"
+pin_case "the epic review's skipped standards axis" 'no standards axis'
+pin_case "the epic review's model" "the review model of the epic's max tier"
+pin_case "the draft-until-clean rule" 'stays a draft until its verdict is clean'
+pin_case "the gh mark-ready command" 'gh pr ready <n> --repo <forge-slug>'
+pin_case "the tea mark-ready command" 'tea pr edit <n> --repo <owner> --ready'
+pin_case "one fix-up ticket per blocking finding" 'one per blocking finding'
+pin_case "the add-mode re-run" 'in add mode'
+pin_case "the per-story fix-up budget" 'three per story'
+pin_case "the fourth blocking verdict failing" 'the fourth is `failed`'
+pin_case "the report template's review: line" 'review:  <verdict line>'
+pin_case "Done's clean epic review" 'epic review clean'
+
+fresh_spec
+echo "You are the driver, the feature-level session." >> "$spec"
+expect "implement-spec naming the driver fails" 1 "the retired driver role" "$spec" "$scratch/docs/WORKFLOW.md"
+
+fresh_spec
+echo "Run gh pr create --draft for the story." >> "$spec"
+expect "implement-spec opening a PR fails" 1 "PR-opening steps" "$spec" "$scratch/docs/WORKFLOW.md"
 
 # the glossary's avoided term "human ticket" (a ready-for-human ticket is fine): the gate
 # ticket is a human gate ticket (story review 1)
