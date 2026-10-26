@@ -18,7 +18,8 @@ in step 4.
 2. **Explore.** Read, never write: whether `CLAUDE.md` exists and has a `## Agent skills`
    block with a `Jira project key:` line; whether `.beads/` exists; whether `GLOSSARY.md`
    and `docs/adr/` exist, and whether the repo is multi-context (a `GLOSSARY-MAP.md`);
-   `git config core.hooksPath`; and, if `.beads/` is missing, `git status --porcelain`,
+   `git config core.hooksPath`; whether the repo has a `Makefile` and whether it has a `check` target;
+   and, if `.beads/` is missing, `git status --porcelain`,
    because `bd init` commits and the later `git rm -r` and amend must not sweep up the
    owner's staged or modified files. Ask the owner for the Jira project key when the repo
    has none (a short uppercase key, such as `INFRA`).
@@ -48,6 +49,12 @@ in step 4.
      own glossary.
    - `docs/adr/`: if absent, create it with a `.gitkeep`. ADRs are numbered
      `NNNN-<slug>.md`.
+   - The `check` target: `make check` is the repo's check command. If the `Makefile` has
+     none, add a `check` target that runs the repo's own tests and linters, and tell the
+     owner what it runs. If the repo has no `Makefile`, write nothing there; document the
+     convention in `CLAUDE.md` instead (the repo's check command is `make check`, once
+     it has a `Makefile` with that target). A repo with no `check` target has no check
+     command, and its gate is review-only.
 6. **Report** what was written and what was left alone, and, if `core.hooksPath` was
    already set, whether the old hook was chained. Do not commit the CLAUDE.md,
    GLOSSARY.md or `docs/adr/` changes unless the owner asks; the `bd init` commit is the
