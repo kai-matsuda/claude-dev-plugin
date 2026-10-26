@@ -1356,6 +1356,101 @@ pin_case "the add-mode stall hint" '/dev:spec-to-stories <KEY>-<n>'
 pin_case "the add-mode hint for an epic with no external ref" '/dev:spec-to-stories <epic-id>'
 pin_case "the final report's finished-story waiting: wording" 'a finished story not yet closed'
 pin_case "the report template's story-closure human: line" 'human:   <owner repo> <story-id> <pr url>'
+# the epic row (dev-9k5.1.8): its role, its harness citation, the epic review, draft until
+# clean, the add-mode fix-up and its end-state outcome
+pin_case "the epic orchestrator role" '**epic orchestrator**'
+pin_case "the harness doc citation" 'docs/agents/harness.md'
+pin_case "the harness doc's waiting pointer" "the harness doc's Waiting"
+pin_case "the epic review's one PR at a time" 'one PR at a time'
+pin_case "the epic review's diff" 'the diff from the default branch to the integration branch'
+pin_case "the epic review's spec axis" "the Jira Epic's spec"
+pin_case "the epic review's skipped standards axis" 'no standards axis'
+pin_case "the epic review's model" "the review model of the epic's max tier"
+pin_case "the draft-until-clean rule" 'stays a draft until its verdict is clean'
+pin_case "the gh mark-ready command" 'gh pr ready <n> --repo <forge-slug>'
+pin_case "the tea mark-ready command" 'tea pr edit <n> --repo <owner> --ready'
+pin_case "one fix-up ticket per blocking finding" 'one per blocking finding'
+pin_case "the add-mode re-run" 'in add mode'
+pin_case "the per-story fix-up budget" 'three per story'
+pin_case "the fourth blocking verdict failing" 'the fourth is `failed`'
+pin_case "the report template's review: line" 'review:  <verdict line>'
+pin_case "Done's clean epic review" 'epic review clean'
+# epic review 1 of dev-9k5.1.8: the preflight covers the review set, the skip keys on a
+# recorded mark-ready, only open stories with an open PR are reviewed, every fix-up round
+# spends the budget, and Done reads the ready: note; plus the minors' placeholders, cut-off
+# reviewer and tea fallback
+pin_case "the preflight over the review set" 'every story step 6 reviews'
+pin_case "the ready: note recorded on mark-ready" 'ready: <tip SHA>'
+pin_case "the clean draft's checks re-polled" 're-poll its checks'
+pin_case "the review set's open stories and PRs" 'only open stories with an open PR'
+pin_case "every fix-up round spending the budget" 'every fix-up round, red or blocking'
+pin_case "Done read from the ready: note" 'its `ready:` note on its current tip'
+pin_case "the PR number placeholder" "the PR number from the story's \`pr:\` note"
+pin_case "the cut-off reviewer rule" 'reviewer that returns an error instead of a report'
+pin_case "the tea check-record fallback" "the delivered tip's check record"
+pin_case "the batch clause's reason" 'reports no delivery this run'
+# epic review 2 of dev-9k5.1.8: fix-ups at the epic's max tier, the no-CI fallback tied to the
+# tip, Done reachable past closed or landed stories, sibling criteria out of scope, the PR head
+# checked against the tip, the reviewer's sub-agent model; plus the minors
+pin_case "the fix-up tickets' epic tier" "complexity:<the epic's max tier>"
+pin_case "the no-CI fallback's review: marker" "the story's \`review:\` note names this same tip"
+pin_case "Done past closed or landed stories" 'is `closed` or has its PR landed'
+pin_case "the Stall's PR closed without landing" 'closed without landing'
+pin_case "the sibling-criteria scope clause" 'criteria owned by sibling stories are out of scope'
+pin_case "the PR head check" 'headRefOid'
+pin_case "the epic reviewer's sub-agent model" 'its sub-agents run at `<review model>`'
+pin_case "the fix-up description on stdin" '--body-file -'
+pin_case "the epic notes clause" 'which `/dev:implement-story` ignores'
+pin_case "the pending-checks resume command" 'checks are pending, end with the resume command'
+# epic review 3 of dev-9k5.1.8: a re-run story is reviewed only on its delivered tip and
+# without a failed: report; plus the minors
+pin_case "the delivered-tip condition" 'its current tip equals the delivered tip'
+pin_case "the no-failed:-report condition" 'its orchestrator did not report `failed:` this run'
+pin_case "the tea landed field" 'never its `state` alone'
+pin_case "the sandbox-disabled forge reads" 'every forge command of this step run with the sandbox disabled'
+pin_case "the spent budget's skip" 'is failed and not reviewed again'
+pin_case "the Human stop's epic-review failures" "step 6's \`failed:\` lines too"
+pin_case "the fix-up filing clause" 'files fix-up tickets and implements none'
+pin_case "the red check's ticket body" 'the check, its command and its log pointer'
+# epic review 4 of dev-9k5.1.8: the minors
+pin_case "the Stall's tip mismatch" 'current tip is not its delivered tip'
+pin_case "the reviewer's story bead" 'bd -C <owner> show <story-id>` to tell them apart'
+pin_case "the reviewer's findings-only rule" 'create no bead'
+pin_case "the fix-up edge onto the publish ticket" 'dep add <publish ticket id> <new id>'
+pin_case "gh's no checks reported" '`no checks reported`'
+pin_case "the replaced reviewer's stop sweep" 'the stop sweep, then spawn a fresh one'
+pin_case "the end state's forge reads" "step 6's forge reads"
+pin_case "the red-check budget failure line" 'checks red after three fix-ups'
+pin_case "the pending checks re-polled after a fix-up batch" 'any whose checks were pending'
+pin_case "the end state's checks pending outcome" 'clean with checks pending'
+
+fresh_spec
+echo "tea pr list --repo <owner> --state open lists it" >> "$spec"
+expect "implement-spec listing open PRs with tea pr list fails" 1 "the paginated tea pr list" "$spec" "$scratch/docs/WORKFLOW.md"
+
+fresh_spec
+echo "Then open a PR for the story." >> "$spec"
+expect "implement-spec opening a PR in prose fails" 1 "PR-opening steps" "$spec" "$scratch/docs/WORKFLOW.md"
+
+fresh_spec
+echo "Run tea pulls create for the story." >> "$spec"
+expect "implement-spec opening a PR with tea pulls create fails" 1 "PR-opening steps" "$spec" "$scratch/docs/WORKFLOW.md"
+
+fresh_spec
+echo "three blocking verdicts are fixed up" >> "$spec"
+expect "implement-spec counting only blocking verdicts fails" 1 "a budget of blocking verdicts only" "$spec" "$scratch/docs/WORKFLOW.md"
+
+fresh_spec
+echo "nothing below touches a ticket" >> "$spec"
+expect "implement-spec claiming it touches no ticket fails" 1 "nothing touches a ticket" "$spec" "$scratch/docs/WORKFLOW.md"
+
+fresh_spec
+echo "You are the driver, the feature-level session." >> "$spec"
+expect "implement-spec naming the driver fails" 1 "the retired driver role" "$spec" "$scratch/docs/WORKFLOW.md"
+
+fresh_spec
+echo "Run gh pr create --draft for the story." >> "$spec"
+expect "implement-spec opening a PR fails" 1 "PR-opening steps" "$spec" "$scratch/docs/WORKFLOW.md"
 
 # the glossary's avoided term "human ticket" (a ready-for-human ticket is fine): the gate
 # ticket is a human gate ticket (story review 1)

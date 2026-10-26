@@ -2,9 +2,14 @@
 # Reference lint for skill-facing docs (INFRA-26): named commands exist, stale phrases are absent.
 # Not the test seam for any skill; that is a subagent following the skill against the fixture.
 # One section per doc (INFRA-27 added 3-6):
-#   1. the /implement-spec driver text (chezmoi-0jp.24): no ticket-level procedure, names the
+#   1. the /implement-spec epic orchestrator text (chezmoi-0jp.24): no ticket-level procedure, names the
 #      refusals, the spawn with its pointer at the waiting rule (chezmoi-p4q) and the end states,
-#      the story-closure human stop and the add-mode stall hint pinned (chezmoi-9v4.1.6);
+#      the story-closure human stop and the add-mode stall hint pinned (chezmoi-9v4.1.6); the
+#      epic row (dev-9k5.1.8): the role named, the harness doc cited, the epic review (one PR at
+#      a time, the default-branch diff, the Jira Epic's spec, no standards axis, the epic's max
+#      tier), draft until clean with the mark-ready commands, the add-mode fix-up (one ticket per
+#      blocking finding, three per story, the fourth failed) and the review: end-state line, with
+#      no "driver" and no PR opened here;
 #   2. the human runbook docs/WORKFLOW.md (chezmoi-0jp.25) and the /workflow skill:
 #      names only commands that exist, no stale cross-repo wording, the cut skills' argument
 #      written in the runbook and filled in on /workflow's next lines (chezmoi-nz0);
@@ -256,8 +261,8 @@ for given in "$user_claude_md" "$glossary_md"; do
   [ -f "$given" ] || bad "no such file: $given"
 done
 
-# ---- 1. /implement-spec driver ----
-if doc 1 "/implement-spec driver" "${1:-$skills/implement-spec/SKILL.md}"; then
+# ---- 1. /implement-spec epic orchestrator ----
+if doc 1 "/implement-spec epic orchestrator" "${1:-$skills/implement-spec/SKILL.md}"; then
 lacks "worktree steps" 'worktree'
 # no merge steps; the one allowed use is the human stop naming "the PR to merge" for the user
 # (chezmoi-9v4.1.6), so that phrase is blanked before the scan
@@ -277,8 +282,71 @@ has "final report waiting: names a finished story" 'a finished story not yet clo
 hasc "report template shows the story-closure human: line" 'human:   <owner repo> <story-id> <pr url>'
 # the glossary avoids "human ticket" for the human gate ticket ("ready-for-human ticket" is fine)
 lacks "glossary's avoided term human ticket" '(^|[^-])human ticket'
-lacks "review steps" 'review'
-lacks "PR steps" 'gh pr|tea pr|draft PR|mark ready'
+# the epic row reviews and marks ready, but opening a PR stays the story orchestrator's
+lacks "PR-opening steps" 'draft PR|pr create|pulls create|open(s|ing)? (a|the) PR'
+lacks "the retired driver role" '(^|[^a-z])driver'
+hasc "epic orchestrator role" '**epic orchestrator**'
+has "harness doc cited" 'docs/agents/harness.md'
+has "epic review, one PR at a time" 'one PR at a time'
+has "epic review diff" 'the diff from the default branch to the integration branch'
+has "epic review spec axis" "the Jira Epic's spec"
+has "epic review skips the standards axis" 'no standards axis'
+has "epic review model" "the review model of the epic's max tier"
+has "draft until clean" 'stays a draft until its verdict is clean'
+has "mark ready with gh" 'gh pr ready <n> --repo <forge-slug>'
+has "mark ready with tea" 'tea pr edit <n> --repo <owner> --ready'
+has "fix-up: one ready-for-agent ticket per blocking finding" 'one per blocking finding'
+has "fix-up: the story re-run in add mode" 'in add mode'
+has "fix-up budget" 'three per story'
+has "fix-up budget's fourth" 'the fourth is `failed`'
+hasc "report template's epic review line" 'review:  <verdict line>'
+has "Done needs a clean epic review" 'epic review clean'
+# epic review 1 of dev-9k5.1.8
+has "preflight covers the review set" 'every story step 6 reviews'
+has "mark-ready recorded as a ready: note" 'ready: <tip SHA>'
+has "a clean draft's checks are re-polled" 're-poll its checks'
+has "review set: open stories with an open PR" 'only open stories with an open PR'
+has "every fix-up round spends the budget" 'every fix-up round, red or blocking'
+lacks "a budget of blocking verdicts only" 'three blocking verdicts'
+has "Done reads the ready: note" 'its `ready:` note on its current tip'
+has "PR number placeholder defined" "the PR number from the story's \`pr:\` note"
+has "cut-off reviewer rule" 'reviewer that returns an error instead of a report'
+has "tea fallback evidence" "the delivered tip's check record"
+has "batch clause's reason" 'reports no delivery this run'
+# epic review 2 of dev-9k5.1.8
+has "fix-up tickets at the epic's max tier" 'complexity:<the epic'"'"'s max tier>'
+has "no-CI fallback tied to the tip by the review: marker" 'the story'"'"'s `review:` note names this same tip'
+has "Done accepts closed or landed stories" 'is `closed` or has its PR landed'
+has "Stall names a PR closed without landing" 'closed without landing'
+has "sibling stories' criteria out of scope" 'criteria owned by sibling stories are out of scope'
+has "PR head compared with the reviewed tip" 'headRefOid'
+has "epic reviewer's sub-agents' model" 'its sub-agents run at `<review model>`'
+has "fix-up description on stdin" '--body-file -'
+has "epic notes beside implement-story's lines" 'which `/dev:implement-story` ignores'
+has "pending-checks stall resume command" 'checks are pending, end with the resume command'
+# epic review 3 of dev-9k5.1.8: a story re-run this run enters the review set only on its
+# delivered tip and without a failed: report; plus the minors
+has "review set: the current tip is the delivered tip" 'its current tip equals the delivered tip'
+has "review set: no failed: report this run" 'its orchestrator did not report `failed:` this run'
+has "tea landed test reads the landed field" 'never its `state` alone'
+has "every forge read sandbox-disabled" 'every forge command of this step run with the sandbox disabled'
+has "a spent budget is not reviewed again" 'is failed and not reviewed again'
+has "Human stop reports epic-review failures" "step 6's \`failed:\` lines too"
+has "files fix-up tickets, implements none" 'files fix-up tickets and implements none'
+lacks "nothing touches a ticket" 'nothing below touches a ticket'
+has "red check ticket body" 'the check, its command and its log pointer'
+# epic review 4 of dev-9k5.1.8: the minors
+has "Stall names a tip mismatch" 'current tip is not its delivered tip'
+has "reviewer reads the story bead" 'bd -C <owner> show <story-id>` to tell them apart'
+has "reviewer reports findings only" 'create no bead'
+has "fix-up blocks the publish ticket" 'dep add <publish ticket id> <new id>'
+has "gh's no checks reported is none configured" '`no checks reported`'
+has "replaced reviewer's stop sweep" 'the stop sweep, then spawn a fresh one'
+has "end state reads step 6's forge reads" "step 6's forge reads"
+has "red-check budget failure line" 'checks red after three fix-ups'
+has "pending checks re-polled after a fix-up batch" 'any whose checks were pending'
+has "end state's checks pending outcome" 'clean with checks pending'
+lacks "the paginated tea pr list" 'tea pr list'
 has "frontmatter" 'disable-model-invocation: true'
 has "legacy line" 'refused: flat epic (tickets directly under the epic bead); the story skills do not handle it — the small-bug path does: /mattpocock-skills:implement <ticket-id> per ticket, then bd close <epic-id>'
 has "add-dir refusal" '/add-dir <'
@@ -291,7 +359,7 @@ lacks "finished story keyed on ready-for-human alone" 'other than `ready-for-hum
 has "story orchestrator" 'story orchestrator'
 has "implement-story" 'implement-story'
 has "opus" 'opus'
-hasc "waiting rule pointer" "the rules doc's Waiting"
+hasc "waiting rule pointer" "the harness doc's Waiting"
 has "resume command" '/dev:implement-spec <KEY>-<n>'
 has "Jira step pointer" '"the spec is done"'
 has "Jira already-made read" 'getJiraIssue'
