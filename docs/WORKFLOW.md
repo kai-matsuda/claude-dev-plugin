@@ -167,9 +167,9 @@ Assigned per ticket at the ticket cut (`/dev:spec-to-tickets`, or `/dev:story-to
 is cheap work to hand off.
 
 One review tool, three rows: at the ticket, the story and the epic, `/mattpocock-skills:code-review`
-is run by a reviewer: at the ticket (`medium` and `high` only) on both axes (repo standards,
-fidelity to the spec) at the ticket's review model; at the story on both axes, and at the epic
-on the spec axis only, each at the review model of the max tier beneath it. Why: the plugin's `docs/adr/0014-one-loop-at-three-rows.md`. Never write bare
+is run by a reviewer: at the ticket on both axes (repo standards, fidelity to the spec) at the
+ticket's review model, for `medium` and `high` and for `low` with no check command; at the story
+on both axes, and at the epic on the spec axis only, each at the review model of the max tier beneath it. Why: the plugin's `docs/adr/0014-one-loop-at-three-rows.md`. Never write bare
 `/code-review` in a doc — four skills answer to that name.
 
 ## Session model per stage

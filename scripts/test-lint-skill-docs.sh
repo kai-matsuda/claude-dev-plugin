@@ -737,6 +737,16 @@ drop_phrase docs/WORKFLOW.md 'One review tool, three rows'
 echo 'see One review tool, three rows' >> "$scratch/docs/WORKFLOW.md"
 expect "one review tool paragraph pin is anchored on its line" 1 "the one review tool paragraph"
 
+# the ticket review of a low ticket with no check command, dropped, and the medium-and-high-only
+# wording seeded back (dev-5e4)
+fresh
+drop_phrase docs/WORKFLOW.md 'for `medium` and `high` and for `low` with no check command'
+expect "runbook copy without the low ticket's review fails" 1 "the runbook reviews a low ticket with no check command"
+
+fresh
+echo 'at the ticket (`medium` and `high` only) on both axes' >> "$scratch/docs/WORKFLOW.md"
+expect "runbook copy limiting the ticket review to medium and high fails" 1 "the runbook's ticket review limited to medium and high"
+
 fresh
 swap_phrase docs/WORKFLOW.md "the owner repo's check command" "the owner repo's lint, then the agreed test seams"
 expect "runbook copy with the retired lint-then-seams wording fails" 1 "flat path runs the checks before the review"
@@ -756,6 +766,16 @@ expect "tracker doc limiting the check gate to medium and high fails" 1 "medium 
 fresh
 drop_phrase docs/agents/issue-tracker.md 'every ticket passes the check gate'
 expect "tracker doc without every ticket passing the check gate fails" 1 "every ticket passes the check gate"
+
+# the review of a low ticket with no check command, dropped, and the medium-and-high-only wording
+# seeded back (dev-5e4)
+fresh
+drop_phrase docs/agents/issue-tracker.md 'a `low` ticket is reviewed only when its repo has no check command'
+expect "tracker doc without the low ticket's review fails" 1 "the tracker doc reviews a low ticket with no check command"
+
+fresh
+echo 'and only `medium` and `high` tickets add the review.' >> "$scratch/docs/agents/issue-tracker.md"
+expect "tracker doc limiting the review to medium and high fails" 1 "the tracker doc's review limited to medium and high"
 
 fresh
 echo 'read `<owner>/.spec-notes/<epic-id>/story-cut.md` first' >> "$scratch/skills/spec-to-tickets/SKILL.md"
@@ -1881,7 +1901,7 @@ for case in "A \`low\` ticket's gate is the checks alone when its owner repo has
   "and the review at the \`low\` tier's review model when it has none|a low ticket with no check command is reviewed"; do
   fresh
   drop_line $orch "${case%%|*}"
-  sec=6 expect "orchestration doc without the line '${case%%|*}' fails" 1 "${case#*|}"
+  sec=6 expect "orchestration doc without '${case%%|*}' fails" 1 "${case#*|}"
 done
 # the Check gate naming the epic row as the budget's exception, seeded back
 fresh
@@ -2178,7 +2198,7 @@ for case in "as the rules doc's Check gate says|a loop step not citing the rules
   'A red spawns a fresh implementer on the fix-up and the loop starts over from the checks|a red not starting the loop over|missing: a red starts the loop over from the checks' \
   'and the loop starts over from the checks, never straight to the reviewer|a blocking verdict not starting over from the checks|missing: a blocking verdict starts the loop over from the checks' \
   '**Clean** exits the loop|a clean verdict not exiting the loop|missing: a clean verdict exits the loop' \
-  'Green: a `low` ticket with a check command exits the loop, go to step 4|a low ticket not exiting on green|missing: a low ticket exits the loop on green checks' \
+  'Green: a `low` ticket with a check command exits the loop, go to step 4|a low ticket not exiting on green|missing: a low ticket with a check command exits the loop on green checks' \
   'tail -n 40 <log>|a red read without a forty-line tail|missing: a red gate reads a forty-line tail' \
   '`bd -C <owner> note <ticket-id> "checks <round>: red <command>"`|a red without its note|missing: a red gate'"'"'s note form' \
   'a green writes no note|a green that may write a note|missing: a green gate writes no note' \

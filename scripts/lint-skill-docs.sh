@@ -429,6 +429,9 @@ hasc "argument paragraph" '**The argument.**'
 line_has '^[|] 4b [|]' "flat path runs the checks before the review" "then the checks (the owner repo's check command), then \`/mattpocock-skills:code-review\`"
 line_has '^[|] 4a [|] `/dev:implement-spec`' "4a names the ticket orchestrators" '**ticket orchestrator**'
 hase "the one review tool paragraph" '^One review tool, three rows'
+# a low ticket is reviewed at the ticket only with no check command (dev-5e4)
+hasc "the runbook reviews a low ticket with no check command" 'for `medium` and `high` and for `low` with no check command'
+lacks "the runbook's ticket review limited to medium and high" '(`medium` and `high` only)'
 line_has '^[|] 4a [|] opus [|]' "session model 4a: the epic orchestrator session" 'The epic orchestrator session'
 
 hasc "flat path's review is the ticket review" 'the ticket review (switch'
@@ -904,6 +907,9 @@ if doc 6 "tracker rules" "$agents/issue-tracker.md"; then
 # every ticket passes the check gate; only the review is medium/high (ADR 0014)
 lacks "medium and high tickets passing the check gate" '`medium` and `high` tickets pass the check gate'
 hasc "every ticket passes the check gate" 'every ticket passes the check gate'
+# a low ticket adds the review only with no check command (dev-5e4)
+hasc "the tracker doc reviews a low ticket with no check command" 'a `low` ticket is reviewed only when its repo has no check command'
+lacks "the tracker doc's review limited to medium and high" 'only `medium` and `high` tickets add the review'
 # the one test of the session mode (ADR 0008), stated once, in the opening before any section
 for need in '`<home>` is the session'"'"'s repo' '`<home>/repos.yaml`' '**workspace session**' '**repo session**' 'the only owner'; do
   opening_has "the tracker doc's one test" "$need"
@@ -1136,7 +1142,7 @@ line_has "$G3" "a blocking verdict starts the loop over from the checks, never s
 line_has "$G3" "a clean verdict exits the loop" '**Clean** exits the loop'
 line_hase "$G3" "the check gate runs before step 3's reviewer" '\*\*Check gate\*\*.*Green:.*for `medium` and `high`, and for a `low` ticket with no check command, spawn a \*\*reviewer\*\*'
 unchanged_file || ! grep -E "$G3" "$f" | sed 's/Green: .*//' | grep -qF -- 'spawn a **reviewer**' || bad "present: ticket orchestrator step 3 spawns a reviewer ahead of the checks' green"
-line_has "$G3" "a low ticket exits the loop on green checks" 'Green: a `low` ticket with a check command exits the loop, go to step 4'
+line_has "$G3" "a low ticket with a check command exits the loop on green checks" 'Green: a `low` ticket with a check command exits the loop, go to step 4'
 line_has "$G3" "a low ticket with no check command goes on to the reviewer" 'the gate is review-only, so a `low` ticket goes on to the reviewer as `medium` and `high` do (the rules doc'"'"'s Check gate)'
 line_has '^> 2\. ' "ticket orchestrator step 2's implementer runs no gate and spawns no one" 'The implementer runs no gate and spawns no one'
 # the check record (dev-9k5.1.7): keyed by the tree SHA under the owner checkout's .tmp/checks/,
