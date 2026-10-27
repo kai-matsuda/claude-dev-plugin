@@ -655,7 +655,7 @@ has "epic gather pointer" '"gather the epic bead"'
 hasc "usage line" 'usage: /dev:spec-to-tickets <KEY>-<n>|<epic-id>'
 lacks "no-argument epic recovery" 'ended on in the conversation|ask the user for it'
 has "already cut line" '<repo> <story-id> already cut'
-hasc "waiting rule pointer" 'the "Waiting" rule of `orchestration.md`'
+hasc "waiting rule pointer" 'the "Waiting" rule of `harness.md`'
 has "no model override" 'no `model:` override'
 has "waiting line" 'waiting on <dep repo> cut'
 has "closed story line" '<repo> <story-id> closed'
@@ -734,10 +734,12 @@ retired_dag='one story per repo|feat/<key>-<n>|chains are out of scope|only text
 # the check and review loop's retired two-gate wording (dev-1xf.1.4): the Evidence run, the later
 # run that reviews a fix, the third-round wording and the second-red stall
 retired_loop='evidence run|a later run reviews the fix|a third round of either kind|a second red'
-# a rule that moved to harness.md (dev-9k5.1.2) cited at the rules doc, as "the rules doc's
-# Worktrees", "the rules doc's Scratch space says (Literal paths)" or "(`orchestration.md`,
-# Commits)"; the worktree fallback moved too, so the rules doc holds no fallback (dev-zra)
-moved_rule='(rules doc|orchestration\.md)(`?, |'\''s (([a-z-]+ ){1,3}says \(|scratch space \()?)(waiting|idle rule|commits|cut-off agents|worktrees|hand-rolled|fallback|literal paths|tmpdir|diff two files|python'\''s cache line|recursive deletes|shell commands)([^a-z]|$)'
+# a rule that moved to harness.md (dev-9k5.1.2) cited at the rules doc, doc first as "the rules
+# doc's Worktrees", "the rules doc's worktree fallback", "the rules doc's Scratch space says
+# (Literal paths)" or "(`orchestration.md`, Commits)", or rule first as 'the "Waiting" rule of
+# `orchestration.md`'; the worktree fallback moved too, so the rules doc holds no fallback (dev-zra)
+moved_names='(waiting|idle rule|commits|cut-off agents|worktrees|hand-rolled|fallback|literal paths|tmpdir|diff two files|python'\''s cache line|recursive deletes|shell commands)'
+moved_rule='(rules doc|orchestration\.md)`?(, |'\''s (([a-z-]+ ){1,3}says \(|scratch space \(|[a-z-]+ )?)'"$moved_names"'([^a-z]|$)|'"$moved_names"'"?( rule)? (of|in) (the )?`?(rules doc|orchestration\.md)'
 while IFS= read -r f; do
   lacksw "retired phrase in $f" "$retired"
   # no foreground spawn instruction: an Agent call returns at once whatever run_in_background

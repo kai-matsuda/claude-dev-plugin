@@ -1151,7 +1151,7 @@ drop_line skills/implement-story/SKILL.md "the harness doc's Idle rule"
 expect "implement-story without the harness doc's Idle rule fails" 1
 
 fresh
-drop_line skills/spec-to-tickets/SKILL.md 'the "Waiting" rule of `orchestration.md`'
+drop_line skills/spec-to-tickets/SKILL.md 'the "Waiting" rule of `harness.md`'
 expect "spec-to-tickets without its waiting rule pointer fails" 1
 
 fresh
@@ -1729,6 +1729,11 @@ for case in "skills/implement-story/SKILL.md|as the rules doc's Scratch space sa
   "docs/agents/issue-tracker.md|see orchestration.md's TMPDIR rule" \
   "docs/agents/triage-labels.md|(\`orchestration.md\`, Commits)" \
   "skills/sample/SKILL.md|re-add it as the rules doc's fallback says" \
+  "skills/sample/SKILL.md|as the rules doc's Scratch space (Literal paths) says" \
+  "skills/sample/SKILL.md|hand-rolled, as the rules doc's worktree fallback says" \
+  "skills/spec-to-tickets/SKILL.md|as the \"Waiting\" rule of \`orchestration.md\` says" \
+  "docs/agents/triage-labels.md|the idle rule in the rules doc" \
+  "docs/agents/triage-labels.md|see \`orchestration.md\`'s TMPDIR rule" \
   "docs/WORKFLOW.md|the rules doc's\nWorktrees"; do
   fresh
   printf '%b\n' "${case#*|}" >> "$scratch/${case%%|*}"
