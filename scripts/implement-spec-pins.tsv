@@ -62,6 +62,7 @@ has	step 6 writes epic review 1 on an invocation's first review	epic review 1: <
 has	the review and fix-up <k> are this invocation's ordinals	this invocation's ordinal for that story
 has	spent budget is the fix-up notes after the last epic review 1	the number of `epic fix-up` notes after its last `epic review 1` note, nothing held in context
 has	Stall's two exits for a failed story	amend the spec and type <resume command> for three more rounds, or close the PR to drop the story
+has	Stall prints the two exits only after the epic-review failed: lines	After the `failed:` line of a story whose epic review failed (`epic review not clean after three fix-ups` or `checks red after three fix-ups`), print
 has	Human stop reports epic-review failures	step 6's `failed:` lines too
 has	files fix-up tickets, implements none	files fix-up tickets and implements none
 has	red check ticket body	the check, its command and its log pointer
