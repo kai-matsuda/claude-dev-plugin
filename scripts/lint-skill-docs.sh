@@ -824,6 +824,16 @@ para_has '**Check gate.**' "the gate exits on the moved tip" 'the gate exits on 
 para_has '**Check gate.**' "the reviewed-tip note names the moved tip" 'the reviewed-tip note on the story bead'
 para_has '**Check gate.**' "the ticket row writes no reviewed-tip note" 'the ticket row writes no such note'
 para_has '**The epic row.**' "the epic row's checks are the forge's status on the PR tip" "the forge reports them green on the PR's tip"
+# the epic row settles its own red check and minors (dev-bwh): a red check is filed like a
+# blocking finding, a ticket under the story, and spends the budget; a clean verdict's minors
+# take no last fix-up, which the epic orchestrator cannot run, and go to the inbox
+para_has '**The epic row.**' "a red check at the epic row is filed like a blocking verdict" 'On a blocking verdict or a red check'
+para_has '**The epic row.**' "the red check's ticket carries its check, command and log" 'carries its check, its command and its log pointer'
+para_has '**The epic row.**' "a red check spends the epic row's budget" 'three such fix-ups per story, red or blocking alike'
+para_has '**The epic row.**' "a pending check leaves the PR a draft" 'the PR stays a draft and a later run reads it again'
+para_has '**The epic row.**' "the epic row's minors take no last fix-up" 'minors take no last fix-up at this row'
+para_has '**The epic row.**' "the epic row's minors go to the inbox" 'the inbox as deferrals'
+para_has '**Review verdict.**' "the Review verdict sends the epic row's minors to the inbox" 'always to the inbox (The epic row, above)'
 lacks "the retired two-level check order" 'lint first, then the test seams'
 # the seam-test blocking case, and the one review tool
 para_has '**Review verdict.**' "no test at a story seam is blocking" 'no test at a story seam exercises the criteria'

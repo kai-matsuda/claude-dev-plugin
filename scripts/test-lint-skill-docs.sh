@@ -1797,6 +1797,13 @@ for case in '**Review scope.**|review scoping rule' "The spec axis takes the row
   'at the epic row, three per story|the epic row budgets per story' \
   "the story gate's own fix-up commits|the story row's standards axis takes the gate's fix-up commits" \
   "the forge reports them green on the PR's tip|the epic row's checks are the forge's status on the PR tip" \
+  'On a blocking verdict or a red check|a red check at the epic row is filed like a blocking verdict' \
+  "carries its check, its command and its log pointer|the red check's ticket carries its check, command and log" \
+  "three such fix-ups per story, red or blocking alike|a red check spends the epic row's budget" \
+  'the PR stays a draft and a later run reads it again|a pending check leaves the PR a draft' \
+  "minors take no last fix-up at this row|the epic row's minors take no last fix-up" \
+  "the inbox as deferrals|the epic row's minors go to the inbox" \
+  "always to the inbox (The epic row, above)|the Review verdict sends the epic row's minors to the inbox" \
   'no test at a story seam exercises the criteria|no test at a story seam is blocking' \
   '`mattpocock-skills:code-review` at every row|the one review tool'; do
   phrase=${case%%|*}

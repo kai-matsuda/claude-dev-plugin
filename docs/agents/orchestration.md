@@ -39,9 +39,15 @@ delivered, one PR at a time in its owner repo: the diff from the default branch 
 story's integration branch, the Jira Epic's spec as the spec axis. Every PR stays a draft
 until its verdict is clean, then is marked ready, so the human's review comes after the
 agents' loop. There the checks are green when the forge reports them green on the PR's tip,
-and the delivered tip's check record is the PR's Evidence. On a blocking verdict the epic orchestrator cuts the findings itself into
-`ready-for-agent` tickets under the story, one per blocking finding, and re-runs that
-story's orchestrator in add mode; three such fix-ups per story.
+and the delivered tip's check record is the PR's Evidence. On a blocking verdict or a red check the epic orchestrator cuts the findings itself into
+`ready-for-agent` tickets under the story, one per blocking finding, a red check being one
+finding that carries its check, its command and its log pointer, and re-runs that story's
+orchestrator in add mode; three such fix-ups per story, red or blocking alike. A pending
+check is neither: the PR stays a draft and a later run reads it again. A clean verdict's
+minors take no last fix-up at this row, since the epic orchestrator implements nothing and
+its one fix-up is a ticket under the story, where no minor goes (Review verdict): they go to
+the inbox as deferrals, the tracker doc's "capture a retro item", and the PR is marked ready
+once its checks are green.
 
 ## Orchestrator role
 
@@ -216,7 +222,8 @@ implementer's own runs never count (trust rule 3). The PR's Evidence is the reco
 
 **Check gate.** At every row the gate exits when the checks are green on the tip the review called clean.
 Each pass runs the check command on the tip, unless its tree has a record, then the review.
-A red or a blocking verdict goes to a fresh implementer by pointer brief and the loop starts over;
+A red or a blocking verdict goes to a fresh implementer by pointer brief and the loop starts over
+(at the epic row, to `ready-for-agent` tickets under the story, The epic row above);
 three such fix-ups per unit (at the epic row, three per story), and the fourth is `failed`,
 one line, the same words at every row.
 A minors fix-up and a conflict resolution move the tip, so the checks rerun, but no reviewer
@@ -235,7 +242,8 @@ no behaviour an acceptance criterion names (wording, naming, a nit). The last li
 count of blocking findings. A round with no blocking findings is **clean**, whatever its
 minors: they go to one last fix-up, or to the inbox as a deferral when the
 orchestrator judges them out of the unit's scope (the tracker doc's "capture a retro item";
-Frontier, Deferrals, below), never to a bead of the story; then the unit lands, and no
+Frontier, Deferrals, below), never to a bead of the story, and at the epic row, which has
+no last fix-up, always to the inbox (The epic row, above); then the unit lands, and no
 reviewer runs over that last fix-up. Every fix-up, red or blocking, spends the loop's budget
 (the Check gate rule above); a minors fix-up spends none, at any row. A round that reports
 every acceptance criterion met plus three wording nits is clean, and the ticket lands after

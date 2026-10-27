@@ -205,7 +205,8 @@ _Avoid_: check stamp, check cache, run log
 **Check gate**:
 The one gate every row (ticket, story, epic) runs: the check command, then the review. It
 exits when the checks are green on the tip the review called clean. A red or a blocking
-verdict goes to a fresh implementer by pointer brief and the loop starts over, three such
+verdict goes to a fresh implementer by pointer brief (at the epic row, to `ready-for-agent`
+tickets under the story) and the loop starts over, three such
 fix-ups per unit (per story at the epic row) and the fourth `failed`; a minors fix-up and
 a conflict resolution move the tip, so the checks rerun, but no reviewer runs again and no
 budget is spent: the gate exits on the moved tip once its checks are green. The story
@@ -221,7 +222,7 @@ exercising the criteria) or **minor** (wording, naming, a nit that changes no be
 acceptance criterion names). The spec axis judges the row's unit (ticket body, story body,
 Jira Epic spec); the standards axis judges what entered since the last standards review,
 and is skipped at the epic row. A clean round sends its minors to one last
-fix-up or to the inbox and moves on; a red or blocking fix-up spends the check gate's
+fix-up or to the inbox (at the epic row, always the inbox) and moves on; a red or blocking fix-up spends the check gate's
 budget, a minors fix-up spends none (`docs/agents/orchestration.md`, "Review").
 _Avoid_: zero findings, nit-free, pass/fail
 

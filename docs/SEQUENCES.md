@@ -59,12 +59,12 @@ sequenceDiagram
     alt fourth failure, a red or a blocking verdict after the budget
         O-->>U: report failed with the reason
     else clean
-        opt minors in scope
+        opt minors in scope, never at the epic row
             O->>F: one last fix-up for the minors (unreviewed, no budget spent)
             F-->>O: report
             O->>O: the tip moved, rerun the check command, the gate exits on the moved tip once green
         end
-        opt minors out of scope
+        opt minors out of scope, and every minor at the epic row
             O->>IN: capture a retro item (needs-triage), never to a bead of the story
         end
         alt ticket row
