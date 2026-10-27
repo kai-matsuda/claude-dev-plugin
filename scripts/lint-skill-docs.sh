@@ -832,6 +832,12 @@ para_has '**Check gate.**' "the reviewed-tip note names the moved tip" 'the revi
 para_has '**Check gate.**' "the ticket row writes no reviewed-tip note" 'the ticket row writes no such note'
 # a low ticket in a repo with no check command is reviewed, so no tier and no repo leaves a
 # ticket ungated (dev-5e4)
+# a review-only gate takes no minors fix-up, so its reviewed tip lands; a ticket's conflict
+# resolution there waits for the story row's standards axis (dev-2p5)
+para_has '**Check gate.**' "a review-only gate takes no minors fix-up" 'so a review-only gate takes no minors fix-up'
+para_has '**Check gate.**' "a review-only gate lands its reviewed tip" "a clean round's minors all go to the inbox, at every row, and the tip the review called clean is the tip that lands (dev-2p5)"
+para_has '**Check gate.**' "a review-only ticket's conflict resolution is reviewed at the story row" "and the story row's standards axis reviews it before delivery (Review scope)"
+para_has '**Review verdict.**' "the Review verdict sends a review-only gate's minors to the inbox" 'or to the inbox as a deferral when the gate is review-only (Check gate, above)'
 para_has '**Check gate.**' "a low ticket with a check command is gated by the checks" 'A `low` ticket'"'"'s gate is the checks alone when its owner repo has a check command'
 para_has '**Check gate.**' "no ticket lands with neither a check nor a review" 'so no ticket lands with neither a check nor a review (dev-5e4)'
 para_has '**Check gate.**' "a low ticket with no check command is reviewed" 'and the review at the `low` tier'"'"'s review model when it has none'
@@ -1183,6 +1189,7 @@ line_has "$G3" "a red gate's note form (checks <round>: red <command>)" '`bd -C 
 line_has "$G3" "a green gate writes no note" 'a green writes no note'
 line_has "$G3" "the gate's fix-up brief points at the log path" 'the log path, and no pasted output'
 line_has "$G3" "red and blocking fix-ups share one budget of three, the fourth failure is failed" 'The budget is three fix-ups of either cause; the fourth red or blocking verdict is `failed`'
+line_has "$G3" "a review-only ticket gate sends every minor to the inbox" 'With no check command the gate is review-only and takes no minors fix-up: every minor goes to the inbox as below'
 line_has "$G3" "the minors fix-up after a clean verdict spends no budget and advances no round" 'The minors fix-up spends no budget and advances no round'
 lacks "the retired run-the-gate-again wording" 'run the check gate again, and on green spawn a reviewer again'
 # the ticket orchestrator lands its own ticket (step 4): lock wait, stray-commit check, merge; a
@@ -1194,6 +1201,7 @@ line_has "$L4" "a conflict goes to an implementer in the ticket's worktree" 'A c
 line_has "$L4" "the conflict implementer merges the integration tip into the ticket branch" 'briefed to merge `<branch>`'"'"'s tip into the ticket branch'
 line_has "$L4" "a conflicted merge is aborted, never resolved by the orchestrator" '`git -C <owner> merge --abort`'
 line_has "$L4" "the orchestrator then fast-forwards" '`git -C <owner> merge --ff-only <ticket branch>`'
+line_has "$L4" "a review-only resolution lands for the story row's review" 'with no check command nothing runs, and the resolution lands for that review'
 line_has "$L4" "the resolved tree is checked and not reviewed again" 'step 3'"'"'s checks run on the resolved tree and no reviewer runs'
 # a red on the resolved tree goes to a fix-up that spends budget and restarts the whole loop,
 # review included: the rules doc exempts only the minors fix-up and the resolution (story
@@ -1243,6 +1251,7 @@ line_has "$G7" "the story review names the base SHA" '`<base>`, `git -C <owner> 
 line_has "$G7" "the standards axis gets each merge's resolution" '`git -C <owner> show --remerge-diff <merge>`'
 line_has "$G7" "the standards axis gets the fix-up commits since the last story review" "\`git -C <owner> log --no-merges --grep='^Bead: <story-id>\$' <since>..<branch>\`"
 line_has "$G7" "a red or a blocking verdict goes to a fresh fix-up and starts the loop over" 'A red or a blocking verdict goes to a fresh implementer by pointer brief and the loop starts over'
+line_has "$G7" "a review-only story gate sends every minor to the inbox" 'with none the gate is review-only and takes no minors fix-up, so every minor goes to the inbox'
 line_has "$G7" "the minors fix-up reruns the checks and spends no budget" 'the minors fix-up reruns the checks and spends no budget'
 line_has "$G7" "the story gate's budget is three fix-ups, red or blocking" 'The budget is three fix-ups per story, red or blocking alike'
 line_has "$G7" "the story gate's fourth failure skips delivery" 'the fourth failure skips step 8 and goes to step 9'

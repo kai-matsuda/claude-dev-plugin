@@ -1913,6 +1913,16 @@ for case in "A \`low\` ticket's gate is the checks alone when its owner repo has
   drop_line $orch "${case%%|*}"
   sec=6 expect "orchestration doc without '${case%%|*}' fails" 1 "${case#*|}"
 done
+# a review-only gate takes no minors fix-up and a ticket's conflict resolution waits for the
+# story row's standards axis, each line dropped whole (dev-2p5)
+for case in 'so a review-only gate takes no minors fix-up|a review-only gate takes no minors fix-up' \
+  "a clean round's minors all go to the inbox, at every row, and the tip the review called clean is the tip that lands (dev-2p5)|a review-only gate lands its reviewed tip" \
+  "and the story row's standards axis reviews it before delivery (Review scope)|a review-only ticket's conflict resolution is reviewed at the story row" \
+  'or to the inbox as a deferral when the gate is review-only (Check gate, above)|the Review verdict sends a review-only gate'"'"'s minors to the inbox'; do
+  fresh
+  drop_line $orch "${case%%|*}"
+  sec=6 expect "orchestration doc without '${case%%|*}' fails" 1 "${case#*|}"
+done
 # the Check gate naming the epic row as the budget's exception, seeded back
 fresh
 printf '\nThe epic row is the exception: it counts from notes.\n' >> "$scratch/$orch"
@@ -2043,11 +2053,16 @@ for case in '`git -C <worktree path> rev-parse HEAD^{tree}`|missing: the gate ke
   'With no check command the checks are skipped and the gate is review-only|missing: no check command makes the gate review-only' \
   'the gate is review-only, so a `low` ticket goes on to the reviewer as `medium` and `high` do (the rules doc'"'"'s Check gate)|missing: a low ticket with no check command goes on to the reviewer' \
   '`mattpocock-skills:code-review`|missing: the gate reviews with mattpocock-skills:code-review' \
-  '`git -C <worktree path> diff <branch>...HEAD`|missing: the reviewer brief names the harness-route diff'; do
+  '`git -C <worktree path> diff <branch>...HEAD`|missing: the reviewer brief names the harness-route diff' \
+  'With no check command the gate is review-only and takes no minors fix-up: every minor goes to the inbox as below|missing: a review-only ticket gate sends every minor to the inbox'; do
   fresh
   drop_phrase skills/implement-story/SKILL.md "${case%%|*}"
   expect "ticket orchestrator step 3 without '${case%%|*}' fails" 1 "${case#*|}"
 done
+# step 4: with no check command a resolution lands for the story row's review (dev-2p5)
+fresh
+drop_phrase skills/implement-story/SKILL.md 'with no check command nothing runs, and the resolution lands for that review'
+expect "ticket orchestrator step 4 without its review-only resolution fails" 1 "missing: a review-only resolution lands for the story row's review"
 
 # the clean-worktree guard regaining --untracked-files=no fails (untracked files the check sees
 # but the tree lacks would pass a dirty worktree)
@@ -2110,6 +2125,7 @@ for case in "the story row of the rules doc's table|a story gate not naming its 
   'the standards axis is what entered since the ticket reviews: the conflict resolutions and the coherence across tickets|a story review without its standards axis|missing: the story review'"'"'s standards axis is what entered since the ticket reviews' \
   'A red or a blocking verdict goes to a fresh implementer by pointer brief and the loop starts over|a story red or blocking verdict not starting the loop over|missing: a red or a blocking verdict goes to a fresh fix-up and starts the loop over' \
   'the minors fix-up reruns the checks and spends no budget|a story gate whose minors fix-up is budgeted|missing: the minors fix-up reruns the checks and spends no budget' \
+  'with none the gate is review-only and takes no minors fix-up, so every minor goes to the inbox|a review-only story gate with a minors fix-up|missing: a review-only story gate sends every minor to the inbox' \
   'The budget is three fix-ups per story, red or blocking alike|a story gate without its one budget|missing: the story gate'"'"'s budget is three fix-ups, red or blocking' \
   'the fourth failure skips step 8 and goes to step 9|a story gate without its fourth-failure stall|missing: the story gate'"'"'s fourth failure skips delivery' \
   '(a review'"'"'s as `failed: review mattpocock-skills:code-review`)|a story gate without the review'"'"'s stall form|missing: the story gate'"'"'s stall line for a review' \

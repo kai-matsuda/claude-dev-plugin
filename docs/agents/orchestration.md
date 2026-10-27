@@ -239,6 +239,10 @@ and a replaced ticket orchestrator's ticket starts over from the integration bra
 so neither the ticket row nor the story row records spent fix-ups for a later invocation to count from.
 A minors fix-up and a conflict resolution move the tip, so the checks rerun, but no reviewer
 runs again and no budget is spent: the gate exits on the moved tip once its checks are green.
+With no check command there are no checks to rerun, so a review-only gate takes no minors fix-up:
+a clean round's minors all go to the inbox, at every row, and the tip the review called clean is the tip that lands (dev-2p5).
+A ticket's conflict resolution there lands unchecked and unreviewed at the ticket row,
+and the story row's standards axis reviews it before delivery (Review scope).
 The story orchestrator records the reviewed tip in its notes, the reviewed-tip note on the story bead
 (`review: <tip SHA>`), which names that moved tip, so a rerun knows the tip the review called
 clean and reviews only a tip that has moved past it; the ticket row writes no such note.
@@ -251,7 +255,7 @@ missing, or no test at a story seam exercises the criteria the unit names; it is
 no behaviour an acceptance criterion names (wording, naming, a nit). The last line is
 `verdict: clean` when no finding is blocking, else `verdict: blocking (<n>)`, `<n>` the
 count of blocking findings. A round with no blocking findings is **clean**, whatever its
-minors: they go to one last fix-up, or to the inbox as a deferral when the
+minors: they go to one last fix-up, or to the inbox as a deferral when the gate is review-only (Check gate, above) or when the
 orchestrator judges them out of the unit's scope (the tracker doc's "capture a retro item";
 Frontier, Deferrals, below), never to a bead of the story, and at the epic row, which has
 no last fix-up, always to the inbox (The epic row, above); then the unit lands, and no
