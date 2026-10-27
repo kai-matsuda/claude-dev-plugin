@@ -1226,6 +1226,10 @@ line_lacks '^8\. ' "the deliver step marking the PR ready" 'gh pr ready'
 line_lacks '^8\. ' "the deliver step marking the PR ready with tea" 'tea pr edit <n> --repo <owner> --ready'
 line_has '^8\. ' "the deliver step's Evidence is the delivered tip's check record" "its Evidence the delivered tip's check record"
 line_has '^9\. ' "step 9 removes the check records" '`rm -rf <owner>/.tmp/checks`'
+# a run that ends failed on a red keeps the red tree's log in place for the human, the
+# failed: line's words unchanged, while every other run still removes the records (dev-15s)
+line_has '^9\. ' "step 9 keeps the red check's log on a failed: check run" 'skips the removal and keeps the red check'"'"'s log in place'
+line_has '^9\. ' "step 9 still removes the records on every other run" 'Every other run, a green delivery or one failed for any other reason, removes the records'
 hasc "report template's failed: line names the check" 'or <check> <command>'
 # the report marks the PR a draft and always carries the resume line (dev-9k5.1.9 review 1)
 hasc "report template marks the PR a draft" 'PR:      <url> (draft)'

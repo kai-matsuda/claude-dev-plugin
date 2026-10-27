@@ -2002,6 +2002,8 @@ for case in "the story row of the rules doc's table|a story gate not naming its 
   'The PR stays a draft|a deliver step not leaving the PR a draft|missing: the deliver step leaves the PR a draft' \
   "its Evidence the delivered tip's check record|a deliver step not citing the check record|missing: the deliver step's Evidence is the delivered tip's check record" \
   '`rm -rf <owner>/.tmp/checks`|a clean-up step keeping the check records|missing: step 9 removes the check records' \
+  'skips the removal and keeps the red check'"'"'s log in place|a clean-up step deleting a red check'"'"'s log|missing: step 9 keeps the red check'"'"'s log on a failed: check run' \
+  'Every other run, a green delivery or one failed for any other reason, removes the records|a clean-up step keeping the records after a green run|missing: step 9 still removes the records on every other run' \
   'or <check> <command>|a report template without the check failed line|missing (case-sensitive): report template'"'"'s failed: line names the check'; do
   phrase=${case%%|*} rest=${case#*|}
   fresh
