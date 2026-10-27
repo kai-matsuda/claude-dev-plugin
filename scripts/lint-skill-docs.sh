@@ -42,25 +42,24 @@
 #      its publish ticket, and no two-wave cap (ADR 0011);
 #   (3, 4 and 1 point at the shared preflight and epic gather that section 6 checks; 3, 4 and 7
 #   cite the "epic bead writes" convention that section 6 checks)
-#   5. the agent docs and every file under the skills dir: no retired "cut one", "cut two" or
-#      <spec-slug>, as whole words, and no story-cut.md (the notes moved to the story bead's
-#      design field, chezmoi-cdf); and across those, the project CLAUDE.md and the runbook:
-#      none of the retired walk-up phrases ("nearest ancestor", "walking up", "walk up",
-#      "one level up", "the home repo included", "the workspace root included",
-#      "no repos.yaml above", "workspace inbox", "workspace's inbox", the "home repo <home repo>"
-#      Parent form), and no "run_in_background: false" in any skill or agent doc, since no
-#      foreground spawn exists (chezmoi-p4q).
-#      That one list is the only walk-up check; sections 2-4 and 7 do not repeat it; the same
-#      four file kinds also lack the retired story-DAG wording ("one story per repo", feat/<key>-<n>,
-#      "chains are out of scope", "only text blocker", "two waves suffice"; ADR 0011);
-#      and the check and review loop's retired two-gate wording ("Evidence run", "a later run
-#      reviews the fix", "a third round of either kind", "a second red") is absent from those,
-#      the root GLOSSARY.md and docs/SEQUENCES.md, never docs/specs (dev-1xf.1.4);
-#      and the retired vocabulary (dev-9k5.1.11): the epic, ticket and landing roles,
-#      the built-in review by name, the two-review-tools paragraph, the review marker, the lint
-#      command and the test seams as checks are absent from the skills, the agent docs, the
-#      project CLAUDE.md, the runbook and docs/SEQUENCES.md (the glossary lists them under
-#      _Avoid_, docs/adr/ keeps them through .glossary-allow);
+#   5. one sweep over one file list: every file under the agent docs and the skills dir, the
+#      project CLAUDE.md, the runbook, docs/SEQUENCES.md and the implement-spec skill passed as
+#      $1, each read as one line so a phrase wrapped across a line break is caught (dev-86j):
+#      no retired "cut one", "cut two" or <spec-slug>, as whole words, and no story-cut.md (the
+#      notes moved to the story bead's design field, chezmoi-cdf); none of the retired walk-up
+#      phrases ("nearest ancestor", "walking up", "walk up", "one level up", "the home repo
+#      included", "the workspace root included", "no repos.yaml above", "workspace inbox",
+#      "workspace's inbox", the "home repo <home repo>" Parent form); no "run_in_background:
+#      false", since no foreground spawn exists (chezmoi-p4q); none of the retired story-DAG
+#      wording ("one story per repo", feat/<key>-<n>, "chains are out of scope", "only text
+#      blocker", "two waves suffice"; ADR 0011); none of the check and review loop's retired
+#      two-gate wording ("Evidence run", "a later run reviews the fix", "a third round of
+#      either kind", "a second red"; dev-1xf.1.4), which the root GLOSSARY.md lacks too; and
+#      none of the retired vocabulary (dev-9k5.1.11): the epic, ticket and landing roles, the
+#      built-in review by name, the two-review-tools paragraph, the review marker, the lint
+#      command and the test seams as checks (the glossary lists them under _Avoid_, docs/adr/
+#      keeps them through .glossary-allow). docs/specs keeps every list. No other section
+#      repeats a phrase this sweep covers, so a seeded one fails here alone;
 #   6. the shared rules: orchestration.md's working-directory preflight, and harness.md's
 #      waiting rule (an Agent call returns at once, the orchestrator ends its turn and the
 #      completion notification resumes it, never a Bash poll loop; pgrep is dead in the
@@ -68,7 +67,8 @@
 #      model (dev-9k5.1.3): the loop sentence, the table's header and each of its three rows, the
 #      two scoping rules, the six trust rules as a closed list, the check command, the check record
 #      and the one gate exit, the seam-test blocking case and the one review tool, with the two-level
-#      loop's lint-first order, its review-marker exit and the built-in code-review retired; ADR 0014 (its
+#      loop's lint-first order retired (section 5 sweeps the review marker and the built-in
+#      code-review); ADR 0014 (its
 #      frontmatter status line accepted, Supersedes ADR 0001, its considered options and
 #      decisions) and ADR 0001 (its status superseded by ADR 0014, its pointer at 0014), and
 #      the Review scope's pointer to ADR 0014; the
@@ -122,16 +122,17 @@
 #      (spec) and what entered since the ticket reviews (standards), sends a red or a blocking
 #      verdict to a fresh fix-up, three per story, the fourth failed, and spends nothing on the
 #      minors fix-up; its deliver step (8) leaves the PR a draft, its Evidence the delivered tip's
-#      check record, and step 9 removes the records; "Running the checks", the "review marker"
-#      and "the command and its output" are gone (section 5's sweep covers the Evidence run and the
-#      second-red stall) (dev-cq0.1.5, dev-1xf.1.3, dev-9k5.1.9); section 6 checks the
+#      check record, and step 9 removes the records; "Running the checks" and "the command and
+#      its output" are gone (section 5's sweep covers the review marker, the merger, the keyed
+#      branch, the Evidence run and the second-red stall) (dev-cq0.1.5, dev-1xf.1.3, dev-9k5.1.9); section 6 checks the
 #      rules doc's Check gate;
 #   9. /close-story: its Forgejo/Gitea query carries --repo <path> as the intro and
 #      /implement-story's merge guard do (dev-hac); its ticket check skips a child carrying
 #      needs-triage or wontfix, as the finished story does, and its refusal names each open
 #      child's status and label (chezmoi-afn);
 #  10. the tracker and orchestration docs: both name the story DAG and the human gate ticket,
-#      and neither says "only text blocker" nor puts chains out of scope; the orchestration
+#      and neither puts chains out of scope in any wording (section 5 sweeps "only text
+#      blocker" and "chains are out of scope"); the orchestration
 #      doc ends a story-closure wait as a human stop and readies a publish ticket on its
 #      story's tickets; the tracker doc's story body shows no unfillable gate ticket line
 #      and orders a middle story of a chain in one topological pass, creates every
@@ -184,7 +185,9 @@ root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 fail=0
 bad() { echo "FAIL: $*"; fail=1; }
 # has (grep -iF), hasc (-F), hase (-E), lacks (-iE), lacksf (-iF) and lackse (-E) check <pattern>
-# against $f line by line, as those greps would; line_has (-F), line_hase (-E) and line_lacks (-F) check it
+# against $f line by line, as those greps would; lacksw (-iE) against $f read as one line, each
+# line's leading blanks and quote markers dropped and a space joining it to the next, so a
+# phrase wrapped across a line break matches too; line_has (-F), line_hase (-E) and line_lacks (-F) check it
 # on the lines matching <anchor> (-E), as a grep -E <anchor> | grep -q pipeline would; para_has
 # (-iF) on the first paragraph opening with <heading> (that line to the next empty one), and
 # opening_has (-F) on the lines before the first "## ". Each only queues its check: a section's
@@ -220,6 +223,7 @@ hase() { enqueue "e	$f	$1	$2"; }
 lacks() { [ -f "$f" ] || return 0; enqueue "x	$f	$1	$2"; }
 lacksf() { [ -f "$f" ] || return 0; enqueue "f	$f	$1	$2"; }
 lackse() { [ -f "$f" ] || return 0; enqueue "y	$f	$1	$2"; }
+lacksw() { [ -f "$f" ] || return 0; enqueue "w	$f	$1	$2"; }
 line_has() { enqueue "a	$f	$2	$3	$1"; }   # <anchor> <description> <phrase>
 line_hase() { enqueue "A	$f	$2	$3	$1"; }   # <anchor> <description> <pattern>
 line_lacks() { [ -f "$f" ] || return 0; enqueue "X	$f	$2	$3	$1"; }   # <anchor> <description> <phrase>
@@ -227,15 +231,15 @@ para_has() { enqueue "p	$f	$2	$3	$1"; }   # <heading> <description> <phrase>
 opening_has() { enqueue "o	$f	$1	$2"; }
 # the roles and review tools the three-row restatement retired (INFRA-33), swept in section 5
 retired_row_names() {
-  lacks "the retired driver role in $f" '(^|[^a-z])[Dd]rivers?([^a-z]|$)'
-  lacks "the retired ticket runner role in $f" '[Tt]icket runners?'
-  lacks "the retired merger role in $f" '(^|[^a-z])[Mm]ergers?([^a-z]|$)'
-  lacks "the retired fix-up implementer role in $f" '[Ff]ix-up implementers?'
-  lacks "the built-in code-review named in $f" 'built-in `code-review`'
-  lacks "the two review tools paragraph in $f" 'Two review tools'
+  lacksw "the retired driver role in $f" '(^|[^a-z])[Dd]rivers?([^a-z]|$)'
+  lacksw "the retired ticket runner role in $f" '[Tt]icket runners?'
+  lacksw "the retired merger role in $f" '(^|[^a-z])[Mm]ergers?([^a-z]|$)'
+  lacksw "the retired fix-up implementer role in $f" '[Ff]ix-up implementers?'
+  lacksw "the built-in code-review named in $f" 'built-in `code-review`'
+  lacksw "the two review tools paragraph in $f" 'Two review tools'
 }
-# run the queued checks: a missing pattern or a present lacks one is a FAIL line; a lacks, lacksf
-# or lackse one is followed by its first three matching lines, numbered as grep -n numbers them,
+# run the queued checks: a missing pattern or a present lacks one is a FAIL line; a lacks, lacksf,
+# lackse or lacksw one is followed by its first three matching lines, numbered as grep -n numbers them,
 # an anchored one names its anchor, a paragraph or opening one the scope it searched
 checks_run() {
   local out
@@ -271,6 +275,33 @@ checks_run() {
       # match)
       for (gi = 1; gi <= ng; gi++) for (gm = 1; gm <= gn[gs[gi]]; gm++) {
         i = G[gs[gi], gm]; t = k[i]; fn = f[i]; n = N[fn]
+        # a wrapped (lacksw) check matches the file read as one line, every line trimmed of its
+        # blanks and quote markers and joined to the last at JO[fn, ln] by one space, or by
+        # two where a block starts (a blank line, a heading, list item, table row or fence, and
+        # the line after a heading, table row or fence), which no phrase spans; a hit names the
+        # line it starts on, and the next search starts on the line after it
+        if (t == "w") {
+          if (!(fn in J)) {
+            s = ""; pblk = 0
+            for (ln = 1; ln <= n; ln++) {
+              x = LO[fn, ln]; sub(/^[ \t>]+/, "", x); sub(/[ \t]+$/, "", x)
+              blk = (x == "" || x ~ /^(#|\||```|[-*+] |[0-9]+\. )/)
+              JO[fn, ln] = length(s) + 1
+              s = s (ln == 1 ? "" : (blk || pblk ? "  " : " ")) x
+              pblk = (x ~ /^(#|\||```)/)
+            }
+            J[fn] = s
+          }
+          ln = 1; pos = 1
+          while (match(substr(J[fn], pos), lp[i])) {
+            at0 = pos + RSTART - 1
+            while (ln < n && JO[fn, ln + 1] <= at0) ln++
+            shown[i] = shown[i] ln ":" L[fn, ln] "\n"
+            if (++hit[i] == 3 || ln == n) break
+            ln++; pos = JO[fn, ln]
+          }
+          continue
+        }
         if (nw[i]) {
           for (ln = 1; ln <= n; ln++) {
             for (q = 1; q <= nw[i]; q++) if (index(LO[fn, ln], W[i, q])) break
@@ -299,7 +330,7 @@ checks_run() {
       }
       for (i = 1; i <= NR; i++) {
         t = k[i]
-        if (t == "x" || t == "f" || t == "y") { if (hit[i]) printf "FAIL: present: %s (%s)\n%s", d[i], p[i], shown[i] }
+        if (t == "x" || t == "f" || t == "y" || t == "w") { if (hit[i]) printf "FAIL: present: %s (%s)\n%s", d[i], p[i], shown[i] }
         else if (t == "X") { if (hit[i]) printf "FAIL: present: %s (%s on a line matching %s)\n", d[i], p[i], a[i] }
         else if (hit[i]) continue
         else if (t == "a" || t == "A") printf "FAIL: missing: %s (%s on a line matching %s)\n", d[i], p[i], a[i]
@@ -359,7 +390,6 @@ hasc "report template shows the story-closure human: line" 'human:   <owner repo
 lacks "glossary's avoided term human ticket" '(^|[^-])human ticket'
 # the epic row reviews and marks ready, but opening a PR stays the story orchestrator's
 lacks "PR-opening steps" 'draft PR|pr create|pulls create|open(s|ing)? (a|the) PR'
-lacks "the retired driver role in $f" '(^|[^a-z])driver'
 hasc "epic orchestrator role" '**epic orchestrator**'
 has "harness doc cited" 'docs/agents/harness.md'
 has "epic review, one PR at a time" 'one PR at a time'
@@ -495,7 +525,6 @@ hase "3a row" '^\| 3a \| `/dev:spec-to-stories <KEY>-<n>`'
 hase "3b row" '^\| 3b \| `/dev:spec-to-tickets <KEY>-<n>`'
 hase "1-3b session model is fable" '^\| 1–3b \| fable'
 hasc "exploration notes path" '`<repo>/.spec-notes/<epic-id>/`'
-lacks "story-cut.md in the runbook (the notes are the story bead's design field)" 'story-cut\.md'
 for need in '/dev:implement-story <story-id>' '/dev:close-story' 'story bead' 'GLOSSARY.md'; do
   hasc "runbook content" "$need"
 done
@@ -562,7 +591,6 @@ hasc "end report names a story-closure edge" 'blocked by: <repo> <story-id>'
 hasc "orientation names every edge" 'every edge of the story'
 # the frontmatter says one story per PR (ADR 0011)
 has "frontmatter: one story per PR" 'one story per PR, usually one per repo it changes'
-lacks "frontmatter: one story per repo" 'one story per repo it changes'
 # the deprecate-then-remove split's full shape, so it cannot trip its own cycle refusal: the
 # removing half waits on each migrating story's closure, each migrating repo gets a second
 # story bumping to the removal, and an importer's edge names the half it needs
@@ -631,7 +659,7 @@ has "no model override" 'no `model:` override'
 has "waiting line" 'waiting on <dep repo> cut'
 has "closed story line" '<repo> <story-id> closed'
 has "skipped dependent gets explicit crate and version" 'Dependent: <repo>, skipped: no beads database, crate <crate>, version <version>.'
-lacks "crate and version deferred to the notes" 'as story-cut.md has them|as the design field has them'
+lacks "crate and version deferred to the notes" 'as the design field has them'
 has "skipped dependent's crate and version read from the design field" 'design field'
 lacks "owner-repo notes file" '\.spec-notes'
 has "already-cut block carries What to build" '`## What to build` paragraph'
@@ -679,69 +707,51 @@ has "re-cut line is a progress line" 'a step-1 progress line'
 # all-closed refusal gives the live reason, not the retired stories-exist one (story review 1)
 has "finished dependent re-cut on its recut: note" 'a `recut:` line for that edge'
 lacks "retired stories-exist reason" 'since stories exist'
-lacks "two-wave cap or chain refusal" 'two (dependency )?waves suffice|two suffice|at most two( dependency)? waves|chains are out of scope'
+lacks "two-wave cap or chain refusal" 'two dependency waves suffice|two suffice|at most two( dependency)? waves'
 lacks "rerun hint covering an already cut dependent" 'rerun this skill for the dependent'
 
 fi
 
 # ---- 5. agent docs and skills: retired phrases ----
-section "5. retired phrases: $agents, $skills"
-# every file under the agent docs and the skills (less those LINT_UNCHANGED lists), listed once
-# for the sweeps below, each of which reads them and then its own extra files
-swept=$(find "$agents" "$skills" -type f 2>/dev/null | sort | drop_unchanged)
+section "5. retired phrases"
+# the files a reader meets, listed once for every sweep below: every file under the agent docs
+# and the skills, the project CLAUDE.md, the runbook, the sequence diagrams and the
+# implement-spec skill passed as $1, wherever it lives (less those LINT_UNCHANGED lists). Each
+# sweep reads a file as one line (lacksw), so a phrase wrapped across a line break is caught,
+# and no other section repeats one: a seeded retired phrase fails here alone.
+# docs/specs keeps every list, since a spec states the change it makes
+swept=$({ find "$agents" "$skills" -type f 2>/dev/null
+  printf '%s\n' "$user_claude_md" "$runbook" "$docs/SEQUENCES.md" "${1:-}"; } | grep . | sort -u | drop_unchanged)
 # whole words only ("shortcut one", "cut ones" pass); "re-cut one" is the spec's wording, not the retired name
 retired='(^|[^-A-Za-z0-9_])cut (one|two)([^-A-Za-z0-9_]|$)|<spec-slug>|story-cut\.md'
-# and no foreground spawn instruction: an Agent call returns at once whatever run_in_background
-# says, so skills and agent docs point at the waiting rule instead (chezmoi-p4q)
-while IFS= read -r f; do
-  unchanged_file && continue
-  lacks "retired phrase in $f" "$retired"
-  lacks "foreground spawn instruction in $f" 'run_in_background: false'
-done <<<"$swept"
-
-# two lists are retired everywhere a reader meets them, the four file kinds: the skills, the
-# agent docs, the project CLAUDE.md and the runbook (section 2's file).
 # Session mode (ADR 0008): the walk-up wording.
 walkup='nearest ancestor|walking up|walk up|one level up|the home repo included|the workspace root included|no repos\.yaml above|workspace inbox|workspace'\''s inbox|home repo <home repo>'
 # The story-DAG wording (ADR 0011): one story per repo (now one per PR), the keyed branch
 # feat/<key>-<n> (now feat/<story-id>), chains out of scope and the one text blocker (now a
 # DAG), and the two-wave cap (now topological waves).
 retired_dag='one story per repo|feat/<key>-<n>|chains are out of scope|only text blocker|two waves suffice'
-while IFS= read -r f; do
-  unchanged_file && continue
-  lacks "retired walk-up wording in $f" "$walkup"
-  lacks "retired story-DAG wording in $f" "$retired_dag"
-done <<<"$swept
-$user_claude_md
-$runbook"
 # the check and review loop's retired two-gate wording (dev-1xf.1.4): the Evidence run, the later
-# run that reviews a fix, the third-round wording and the second-red stall are absent from every
-# file a reader meets, the four kinds above plus the root glossary and the sequence diagrams;
-# docs/specs keeps them, since a spec states the change it makes
+# run that reviews a fix, the third-round wording and the second-red stall
 retired_loop='evidence run|a later run reviews the fix|a third round of either kind|a second red'
 while IFS= read -r f; do
-  unchanged_file && continue
-  lacks "retired two-gate wording in $f" "$retired_loop"
-done <<<"$swept
-$user_claude_md
-$runbook
-$glossary_md
-$docs/SEQUENCES.md"
-
-# the retired vocabulary (dev-9k5.1.11): the epic, ticket and landing roles, the built-in
-# review by name, the review marker, the lint command and the test seams as checks are absent from
-# the four file kinds and the sequence diagrams; the glossary lists them under _Avoid_, and
-# docs/adr/ keeps their historical sense through .glossary-allow, so neither is swept here
-while IFS= read -r f; do
-  unchanged_file && continue
+  lacksw "retired phrase in $f" "$retired"
+  # no foreground spawn instruction: an Agent call returns at once whatever run_in_background
+  # says, so skills and agent docs point at the waiting rule instead (chezmoi-p4q)
+  lacksw "foreground spawn instruction in $f" 'run_in_background: false'
+  lacksw "retired walk-up wording in $f" "$walkup"
+  lacksw "retired story-DAG wording in $f" "$retired_dag"
+  lacksw "retired two-gate wording in $f" "$retired_loop"
+  # the retired vocabulary (dev-9k5.1.11): the epic, ticket and landing roles, the built-in
+  # review by name, the review marker, the lint command and the test seams as checks
   retired_row_names
-  lacks "the retired review marker in $f" 'review markers?'
-  lacks "the retired lint command in $f" 'the lint command'
-  lacks "the retired test seams as checks in $f" 'test seams? as (the )?checks?'
-done <<<"$swept
-$user_claude_md
-$runbook
-$docs/SEQUENCES.md"
+  lacksw "the retired review marker in $f" 'review markers?'
+  lacksw "the retired lint command in $f" 'the lint command'
+  lacksw "the retired test seams as checks in $f" 'test seams? as (the )?checks?'
+done <<<"$swept"
+# the root glossary lists the retired vocabulary under _Avoid_ (and docs/adr/ keeps its
+# historical sense through .glossary-allow), so only the two-gate wording is swept there
+f=$glossary_md
+lacksw "retired two-gate wording in $f" "$retired_loop"
 
 # the docs ship in the plugin: no path into the old dotfiles deployment (~/.claude/docs,
 # ~/.claude/hooks) or the chezmoi source remains in any doc under docs/, the skills, the agent
@@ -874,11 +884,9 @@ para_has '**Check gate.**' "the reviewed-tip note names the moved tip" 'the revi
 para_has '**Check gate.**' "the ticket row writes no reviewed-tip note" 'the ticket row writes no such note'
 para_has '**The epic row.**' "the epic row's checks are the forge's status on the PR tip" "the forge reports them green on the PR's tip"
 lacks "the retired two-level check order" 'lint first, then the test seams'
-lacks "the retired review marker exit" 'the review marker is the exit'
 # the seam-test blocking case, and the one review tool
 para_has '**Review verdict.**' "no test at a story seam is blocking" 'no test at a story seam exercises the criteria'
 hasc "the one review tool" '`mattpocock-skills:code-review` at every row'
-lacks "the built-in code-review in the model" 'built-in `code-review`'
 fi
 if doc 6 "harness rules" "$agents/harness.md"; then
 # the mechanics live in the harness doc (dev-9k5.1.2): the rules above moved out of the
@@ -1051,7 +1059,6 @@ done
 # ticket is guarded by one forge query; a story-closure wait says to merge and close; the
 # sibling line carries the story id (chezmoi-9v4.1.5, ADR 0011)
 hasc "integration branch is feat/<story-id> for keyed and keyless stories" 'named `feat/<story-id>`, keyed or not'
-lacks "the keyed branch form feat/<key>-<n>" 'feat/<key>-<n>'
 hasc "merge guard names the delivered story with an open agent ticket" 'a delivered story with an open `ready-for-agent` ticket'
 hasc "merge guard covers a pr: line, a URL or the branch form" 'whose notes carry a `pr:` line'
 hasc "merge guard's MERGED refusal says add mode" 'in add mode (or /dev:spec-to-stories'
@@ -1170,7 +1177,6 @@ line_has "$G3" "no check command makes the gate review-only" 'With no check comm
 line_has "$G3" "the gate reviews with mattpocock-skills:code-review" '`mattpocock-skills:code-review`'
 line_has "$G3" "the reviewer brief names the harness-route diff" '`git -C <worktree path> diff <branch>...HEAD`'
 line_lacks "$G3" "the per-round check log" 'checks-<round>-<k>.log'
-line_lacks "$G3" "the built-in code-review" 'the built-in `code-review`'
 line_has "$G3" "a red gate reads a forty-line tail of the log, never the whole output" 'tail -n 40 <log>'
 line_has "$G3" "a red gate's note form (checks <round>: red <command>)" '`bd -C <owner> note <ticket-id> "checks <round>: red <command>"`'
 line_has "$G3" "a green gate writes no note" 'a green writes no note'
@@ -1193,7 +1199,6 @@ line_has "$L4" "the resolved tree is checked and not reviewed again" 'step 3'"'"
 # dev-9k5.1 review)
 line_has "$L4" "a red after a resolution restarts the whole loop, review included" 'restarts step 3'"'"'s whole loop, review included'
 line_lacks "$L4" "a red fix-up after a resolution skipping its review" 'starts over from the checks only'
-lacksf "the retired merger brief" 'Spawn a **merger**'
 # the story gate (step 7) is the rules doc's Check gate loop on the integration branch tip, the
 # story row of its table (dev-9k5.1.9): it exits when the checks are green on the tip the review
 # called clean; each pass reads the checks from the check records first (a recorded tree runs
@@ -1202,7 +1207,7 @@ lacksf "the retired merger brief" 'Spawn a **merger**'
 # story's body and its standards axis what entered since the ticket reviews; a red or a blocking
 # verdict goes to a fresh fix-up and the loop starts over, three per story, the fourth failed; the
 # minors fix-up reruns the checks and spends nothing; the story orchestrator lands its fix-up
-# itself, no separate landing agent; "Running the checks" and the review marker are gone. Step 8 leaves the PR a
+# itself, no separate landing agent (section 5 sweeps the merger); "Running the checks" is gone. Step 8 leaves the PR a
 # draft, its Evidence the delivered tip's check record; step 9 removes the records
 G7='^7\. '
 hase "step 7 is the story gate" '^7\. \*\*Story gate\.\*\*'
@@ -1243,10 +1248,8 @@ line_has "$G7" "the story gate's fourth failure skips delivery" 'the fourth fail
 line_has "$G7" "the story gate's stall line" '`failed: <check> <command>`'
 line_has "$G7" "the story gate's stall line for a review" "(a review's as \`failed: review mattpocock-skills:code-review\`)"
 line_has "$G7" "the story gate lands its fix-up itself" "you land its branch as the ticket orchestrator brief's step 4 lands a ticket"
-line_lacks "$G7" "a merger at the story gate" 'merger'
 line_lacks "$G7" "the story gate's minors fix-up spending budget" "a minors-only review's included"
 lacksf "the retired Running the checks paragraph" '**Running the checks.**'
-lacks "the retired review marker" 'review marker'
 # on the first step 7 line, the checks come before the reviewed-tip compare and the review
 unchanged_file || awk -v g='Each pass runs the checks first' -v m='the same SHA exits the gate' -v r='mattpocock-skills:code-review' \
   '/^7\. / { i = index($0, g); k = index($0, m); j = index($0, r); ok = (i && k && j && i < k && k < j); seen = 1; exit } END { exit !(seen && ok) }' "$f" \
@@ -1282,17 +1285,17 @@ fi
 
 # ---- 10. the story DAG in the tracker and orchestration docs (ADR 0011) ----
 # a feature's stories form a DAG of text blockers, each naming a human gate ticket or a story;
-# the one-text-blocker and no-chains rules are retired. The skills and the runbook get their
-# own checks in their sections, so the forbidden phrases are scoped to these two docs.
+# the one-text-blocker and no-chains rules are retired. Section 5 sweeps "only text blocker"
+# and "chains are out of scope"; the wider chains wording is scoped to these two docs.
 for d in "$agents/issue-tracker.md" "$agents/orchestration.md"; do
   doc 10 "story DAG" "$d" || continue
   has "story DAG" 'story DAG'
   has "human gate ticket" 'human gate ticket'
-  # read as one line, so a phrase wrapped across a line break is still caught; the chains
-  # match is bounded so it cannot run across paragraphs
-  for pat in 'only text blocker' 'chains[^.]{0,120}out of scope'; do
-    unchanged_file || ! tr '\n' ' ' < "$f" | grep -qiE -- "$pat" || bad "present: retired story-DAG wording in $f ($pat)"
-  done
+  # read as one line, so a phrase wrapped across a line break is still caught; the match stops
+  # at a period, so it spans a paragraph break only where a paragraph ends without one. Section
+  # 5's "chains are out of scope" is blanked first, so a seed of it fails there alone
+  unchanged_file || ! tr -s '[:space:]' ' ' < "$f" | tr '[:upper:]' '[:lower:]' | sed 's/chains are out of scope//g' \
+    | grep -qE -- 'chains[^.]{0,120}out of scope' || bad "present: retired story-DAG wording in $f (chains[^.]{0,120}out of scope)"
 done
 # a story held only by a story-closure blocker ends the run as a human stop naming the merge
 # and the /close-story; a publish ticket waits on its story's tickets, not its repo's
