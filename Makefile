@@ -35,6 +35,7 @@ ci: ## Lint the skill docs and run every script test that needs no beads databas
 	$(call timed,scripts/test-setup-repo-skill.sh)
 	$(call timed,scripts/test-readme.sh)
 	$(call timed,scripts/test-ci-workflow.sh)
+	$(call timed,scripts/test-check-target.sh)
 
 # a fixture build mostly waits on bd, so the fixture tests, each on its own scratch paths, run
 # side by side

@@ -1990,11 +1990,17 @@ done
 for case in 'check command `make check` when `<owner>`'"'"'s Makefile has a `check` target, else none and the gate is review-only|missing: the brief'"'"'s check command by Makefile convention' \
   'The harness mechanics are in `<plugin root>/docs/agents/harness.md`|missing: the brief cites the harness doc in one line' \
   'every brief you send cites it in one line|missing: every brief it sends cites the harness doc' \
-  "a missing Makefile (grep's exit 2) reads as no check command|missing: a missing Makefile reads as no check command"; do
+  'Ask make which, never grep a Makefile|missing: the brief asks make for the check target' \
+  '`make -C <owner> -pRrq : 2>/dev/null|missing: the brief reads the check target from make'"'"'s database' \
+  'a missing Makefile prints no database and exits 1, so both read as no check command|missing: a missing Makefile reads as no check command'; do
   fresh
   drop_phrase skills/implement-story/SKILL.md "${case%%|*}"
   expect "ticket orchestrator brief without '${case%%|*}' fails" 1 "${case#*|}"
 done
+
+fresh
+swap_phrase skills/implement-story/SKILL.md 'Ask make which, never grep a Makefile' "grep -q '^check:' <owner>/Makefile tells which"
+expect "a brief that greps the Makefile for the check target fails" 1 "present: the retired grep for the check target"
 
 fresh
 swap_phrase skills/implement-story/SKILL.md '^> You are the \*\*ticket orchestrator\*\*' '> You are the ticket runner'
