@@ -774,8 +774,8 @@ for phrase in 'in at most two dependency waves' 'in at most two waves' 'two depe
   '(/dev:spec-to-stories would refuse too, since stories exist)'; do
   fresh
   echo "x $phrase y" >> "$scratch/skills/spec-to-tickets/SKILL.md"
-  # two of them are also section 5's retired story-DAG wording
-  case $phrase in "two waves suffice"|"chains are out of scope") s="4 5" ;; *) s=4 ;; esac
+  # two of them are section 5's retired story-DAG wording, which section 4 does not repeat
+  case $phrase in "two waves suffice"|"chains are out of scope") s=5 ;; *) s=4 ;; esac
   sec=$s expect "spec-to-tickets saying '$phrase' fails" 1
 done
 # the ban is on the cap, not on the words: two waves named without a cap pass, and so does
@@ -854,7 +854,7 @@ expect "implement-story without the feat/<story-id> branch name fails" 1
 
 fresh
 echo 'switch -c feat/<key>-<n> main' >> "$scratch/skills/implement-story/SKILL.md"
-sec="5 8" expect "implement-story with the keyed branch form fails" 1
+sec=5 expect "implement-story with the keyed branch form fails" 1
 
 fresh
 drop_phrase skills/implement-story/SKILL.md 'a delivered story with an open `ready-for-agent` ticket'
@@ -1220,7 +1220,7 @@ for doc in issue-tracker orchestration; do
   done
   fresh
   echo "That one line is the feature's only text blocker." >> "$scratch/docs/agents/$doc.md"
-  sec="5 10" expect "$doc doc saying 'only text blocker' fails" 1
+  sec=5 expect "$doc doc saying 'only text blocker' fails" 1
   fresh
   printf 'Chains (A depends on B depends on C) are also\nout of scope.\n' >> "$scratch/docs/agents/$doc.md"
   expect "$doc doc putting chains out of scope across a line break fails" 1
@@ -1369,7 +1369,7 @@ expect "spec-to-stories without one story per PR in its frontmatter fails" 1
 
 fresh
 echo 'description: "resolve a spec to one story per repo it changes"' >> "$scratch/skills/spec-to-stories/SKILL.md"
-sec="3 5" expect "spec-to-stories with one story per repo in its frontmatter fails" 1
+sec=5 expect "spec-to-stories with one story per repo in its frontmatter fails" 1
 
 fresh
 echo 'written `<repo> <story title> (not created: no beads database)`' >> "$scratch/skills/spec-to-stories/SKILL.md"
@@ -1565,7 +1565,7 @@ expect "implement-spec claiming it touches no ticket fails" 1 "nothing touches a
 
 fresh_spec
 echo "You are the driver, the feature-level session." >> "$spec"
-expect "implement-spec naming the old epic role fails" 1 "the retired driver role" "$spec" "$scratch/docs/WORKFLOW.md"
+sec=5 expect "implement-spec naming the old epic role fails" 1 "the retired driver role in $spec" "$spec" "$scratch/docs/WORKFLOW.md"
 
 fresh_spec
 echo "Run gh pr create --draft for the story." >> "$spec"
@@ -1688,6 +1688,37 @@ done
 fresh
 echo 'The driver and the review marker are retired.' >> "$scratch/GLOSSARY.md"
 expect "glossary naming the retired words passes the lint" 0
+
+# section 5 reads each file as one line: a retired phrase wrapped across a line break, indented
+# or inside a quote block, fails there alone; the same words a blank line apart pass (dev-86j)
+for case in 'Each ticket\nrunner implements.|the retired ticket runner role' \
+  '> Run the lint\n>    command, then the tip.|the retired lint command' \
+  'Then the Evidence\n  run checks the tip.|retired two-gate wording' \
+  'A feature is one story\nper repo.|retired story-DAG wording' \
+  'The Evidence  \nrun goes.|retired two-gate wording'; do
+  fresh
+  printf "${case%%|*}\n" >> "$scratch/docs/WORKFLOW.md"
+  sec=5 expect "runbook with '${case%%|*}' wrapped fails section 5" 1 "${case##*|} in $scratch/docs/WORKFLOW.md"
+done
+fresh
+printf 'One ticket\n\nrunner notes follow.\n' >> "$scratch/docs/WORKFLOW.md"
+expect "a phrase's words a paragraph apart pass section 5" 0
+for block in '## One ticket\nrunner notes follow.' '| a ticket |\nrunner notes follow.' 'One ticket\n- runner notes follow.'; do
+  fresh
+  printf "\n$block\n" >> "$scratch/docs/WORKFLOW.md"
+  expect "a phrase's words across a block boundary ('$block') pass section 5" 0
+done
+# section 10's wider chains wording leaves section 5's phrase to section 5
+for doc in issue-tracker orchestration; do
+  fresh
+  echo 'Chains are out of scope.' >> "$scratch/docs/agents/$doc.md"
+  sec=5 expect "$doc doc saying 'chains are out of scope' fails section 5 alone" 1 "retired story-DAG wording"
+done
+
+# the implement-spec skill passed as $1 outside the skills dir is swept like the default
+fresh_spec
+echo 'Then the Evidence run checks the tip.' >> "$spec"
+sec=5 expect "implement-spec passed as \$1 with a retired phrase fails section 5" 1 "retired two-gate wording in $spec" "$spec" "$scratch/docs/WORKFLOW.md"
 
 # a semicolon ends a mermaid statement, so one inside a ```mermaid block fails; the same ';' in prose passes
 fresh
@@ -1841,13 +1872,14 @@ fresh
 drop_phrase $orch 'Every tree is checked once'
 printf '\nEvery tree is checked once.\n' >> "$scratch/$orch"
 sec=6 expect "the check scoping rule's phrase outside its paragraph fails" 1 "every tree is checked once"
-# the retired two-level loop and the built-in review, seeded back
+# the retired two-level loop and the built-in review, seeded back; section 5 alone sweeps the
+# review marker and the built-in review
 for case in 'lint first, then the test seams|present: the retired two-level check order' \
-  'at the story level the review marker is the exit|present: the retired review marker exit' \
-  'reviewers run the built-in `code-review`|present: the built-in code-review in the model'; do
+  'at the story level the review marker is the exit|present: the retired review marker' \
+  'reviewers run the built-in `code-review`|present: the built-in code-review named'; do
   fresh
   echo "${case%%|*}" >> "$scratch/$orch"
-  s=6; case ${case%%|*} in *"review marker"*|*built-in*) s="5 6";; esac   # section 5 sweeps the retired word too
+  s=6; case ${case%%|*} in *"review marker"*|*built-in*) s=5;; esac
   sec=$s expect "orchestration doc with '${case%%|*}' fails" 1 "${case#*|}"
 done
 fresh
@@ -1892,10 +1924,10 @@ sec="5 8" expect "a brief opening on the old ticket role fails" 1 "missing: the 
 for case in 'Resolve the owner repo'"'"'s **lint command** once, here beside the forge.|present: the retired lint-command resolution' \
   '`make lint` when `<owner>`'"'"'s Makefile has a `lint` target|present: the retired lint-command resolution' \
   'The brief'"'"'s header carries it as `<lint>`.|present: the retired lint placeholder' \
-  '> 4. Spawn a **merger** at the tier'"'"'s implementation model.|present: the retired merger brief'; do
+  '> 4. Spawn a **merger** at the tier'"'"'s implementation model.|present: the retired merger role'; do
   fresh
   echo "${case%%|*}" >> "$scratch/skills/implement-story/SKILL.md"
-  s=one; case ${case%%|*} in *merger*|*"the lint command"*|*"review marker"*) s="5 8";; esac   # section 5 sweeps the retired word too
+  s=one; case ${case%%|*} in *merger*) s=5;; esac   # section 5 alone sweeps the retired role
   sec=$s expect "implement-story regaining '${case%%|*}' fails" 1 "${case#*|}"
 done
 
@@ -1921,10 +1953,10 @@ swap_phrase skills/implement-story/SKILL.md '^(> 3\. .*)`git -C <worktree path> 
 expect "the clean-worktree guard regaining --untracked-files=no fails" 1 "present: the clean-worktree guard that hides untracked files"
 
 for case in ' Each check logs to <worktree path>/.tmp/checks-<round>-<k>.log.|present: the per-round check log' \
-  ' Spawn a reviewer briefed to call the built-in `code-review`.|present: the built-in code-review'; do
+  ' Spawn a reviewer briefed to call the built-in `code-review`.|present: the built-in code-review named'; do
   fresh
   swap_phrase skills/implement-story/SKILL.md '^(> 3\. .*)$' "\\1${case%%|*}"
-  s=one; case ${case%%|*} in *built-in*) s="5 8";; esac
+  s=one; case ${case%%|*} in *built-in*) s=5;; esac   # section 5 alone sweeps the built-in review
   sec=$s expect "ticket orchestrator step 3 regaining '${case%%|*}' fails" 1 "${case#*|}"
 done
 
@@ -2018,7 +2050,7 @@ expect "story gate step 7 with the checks after the two-axis review fails" 1 "mi
 
 # the retired story-gate wording seeded back on its own line fails: a landing agent, a budgeted minors
 # fix-up, the Running the checks paragraph, the review marker, a deliver step marking the PR ready
-for case in '^(7\. .*)$|\1 Then spawn a merger.|present: a merger at the story gate' \
+for case in '^(7\. .*)$|\1 Then spawn a merger.|present: the retired merger role' \
   "^(7\\. .*)\$|\\1 Every fix-up spends it, a minors-only review's included.|present: the story gate's minors fix-up spending budget" \
   '^(8\. .*)$|\1 Mark the PR ready (`gh pr ready <n> --repo <forge-slug>`).|present: the deliver step marking the PR ready' \
   '^(8\. .*)$|\1 Mark it ready (`tea pr edit <n> --repo <owner> --ready`).|present: the deliver step marking the PR ready with tea' \
@@ -2026,14 +2058,15 @@ for case in '^(7\. .*)$|\1 Then spawn a merger.|present: a merger at the story g
   anchor=${case%%|*} rest=${case#*|}
   fresh
   swap_phrase skills/implement-story/SKILL.md "$anchor" "${rest%%|*}"
-  s=one; case ${rest%%|*} in *merger*) s="5 8";; esac
+  s=one; case ${rest%%|*} in *merger*) s=5;; esac   # section 5 alone sweeps the retired role
   sec=$s expect "implement-story regaining '${rest%%|*}' fails" 1 "${rest#*|}"
 done
 for case in '   **Running the checks.** The checks are the lint command, then the test seams.|present: the retired Running the checks paragraph' \
   'The exit is the review marker.|present: the retired review marker'; do
   fresh
   echo "${case%%|*}" >> "$scratch/skills/implement-story/SKILL.md"
-  s=one; case ${case%%|*} in *merger*|*"the lint command"*|*"review marker"*) s="5 8";; esac   # section 5 sweeps the retired word too
+  # the Running the checks seed also names the lint command, which section 5 sweeps
+  s=one; case ${case%%|*} in *"the lint command"*) s="5 8";; *"review marker"*) s=5;; esac
   sec=$s expect "implement-story regaining '${case%%|*}' fails" 1 "${case#*|}"
 done
 
