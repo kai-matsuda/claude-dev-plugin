@@ -377,84 +377,18 @@ if ! unchanged_file; then
     bad "present: merge steps (merge)"; grep -ni 'merge' <<<"$merge_scan" | head -3
   fi
 fi
-has "story-closure blocker is open until closed" 'open until that story is closed'
-has "story-closure human stop line" 'the PR to merge and the /dev:close-story <story-id> to run'
-has "human stop line carries the PR url" '<owner repo> <story-id> <pr url>'
-has "human stop trigger covers story closures" 'held only by blockers naming finished stories not yet closed'
-has "chain of story closures counts toward the human stop" 'itself waits only on story closures'
-has "add-mode hint keyed on the failed twice: note" 'carries a `failed twice:` note'
-has "add-mode stall hint" '/dev:spec-to-stories <KEY>-<n>'
-has "add-mode stall hint without an external ref" '/dev:spec-to-stories <epic-id>'
-has "final report waiting: names a finished story" 'a finished story not yet closed'
-hasc "report template shows the story-closure human: line" 'human:   <owner repo> <story-id> <pr url>'
+# the phrases pinned one by one, shared with the regression test's pin cases (dev-47z)
+while IFS=$'\t' read -r check d phrase; do
+  case $check in has|hasc) "$check" "$d" "$phrase" ;; '#'*|'') ;; *) bad "implement-spec-pins.tsv: unknown check $check" ;; esac
+done < "$root/scripts/implement-spec-pins.tsv"
 # the glossary avoids "human ticket" for the human gate ticket ("ready-for-human ticket" is fine)
 lacks "glossary's avoided term human ticket" '(^|[^-])human ticket'
 # the epic row reviews and marks ready, but opening a PR stays the story orchestrator's
 lacks "PR-opening steps" 'draft PR|pr create|pulls create|open(s|ing)? (a|the) PR'
-hasc "epic orchestrator role" '**epic orchestrator**'
-has "harness doc cited" 'docs/agents/harness.md'
-has "epic review, one PR at a time" 'one PR at a time'
-has "epic review diff" 'the diff from the default branch to the integration branch'
-has "epic review spec axis" "the Jira Epic's spec"
-has "epic review skips the standards axis" 'no standards axis'
-has "epic review model" "the review model of the epic's max tier"
-has "draft until clean" 'stays a draft until its verdict is clean'
-has "mark ready with gh" 'gh pr ready <n> --repo <forge-slug>'
-has "mark ready with tea" 'tea pr edit <n> --repo <owner> --ready'
-has "fix-up: one ready-for-agent ticket per blocking finding" 'one per blocking finding'
-has "fix-up: the story re-run in add mode" 'in add mode'
-has "fix-up budget" 'three per story'
-# the story orchestrator brief names the harness doc's Commits rule, as that rule asks of every
-# brief to an agent that commits or merges (story dev-9k5.1 review)
-has "the story orchestrator brief names the Commits rule" 'commit under the Commits rule of `<plugin root>/docs/agents/harness.md`'
-has "fix-up budget's fourth" 'the fourth is `failed`'
-hasc "report template's epic review line" 'review:  <verdict line>'
-has "Done needs a clean epic review" 'epic review clean'
-# epic review 1 of dev-9k5.1.8
-has "preflight covers the review set" 'every story step 6 reviews'
-has "mark-ready recorded as a ready: note" 'ready: <tip SHA>'
-has "a clean draft's checks are re-polled" 're-poll its checks'
-has "review set: open stories with an open PR" 'only open stories with an open PR'
-has "every fix-up round spends the budget" 'every fix-up round, red or blocking'
 lacks "a budget of blocking verdicts only" 'three blocking verdicts'
-has "Done reads the ready: note" 'its `ready:` note on its current tip'
-has "PR number placeholder defined" "the PR number from the story's \`pr:\` note"
-has "cut-off reviewer rule" 'reviewer that returns an error instead of a report'
-has "tea fallback evidence" "the delivered tip's check record"
-has "batch clause's reason" 'reports no delivery this run'
-# epic review 2 of dev-9k5.1.8
-has "fix-up tickets at the epic's max tier" 'complexity:<the epic'"'"'s max tier>'
-has "no-CI fallback tied to the tip by the review: marker" 'the story'"'"'s `review:` note names this same tip'
-has "Done accepts closed or landed stories" 'is `closed` or has its PR landed'
-has "Stall names a PR closed without landing" 'closed without landing'
-has "sibling stories' criteria out of scope" 'criteria owned by sibling stories are out of scope'
-has "PR head compared with the reviewed tip" 'headRefOid'
-has "epic reviewer's sub-agents' model" 'its sub-agents run at `<review model>`'
-has "fix-up description on stdin" '--body-file -'
-has "epic notes beside implement-story's lines" 'which `/dev:implement-story` ignores'
-has "pending-checks stall resume command" 'checks are pending, end with the resume command'
-# epic review 3 of dev-9k5.1.8: a story re-run this run enters the review set only on its
-# delivered tip and without a failed: report; plus the minors
-has "review set: the current tip is the delivered tip" 'its current tip equals the delivered tip'
-has "review set: no failed: report this run" 'its orchestrator did not report `failed:` this run'
-has "tea landed test reads the landed field" 'never its `state` alone'
-has "every forge read sandbox-disabled" 'every forge command of this step run with the sandbox disabled'
-has "a spent budget is not reviewed again" 'is failed and not reviewed again'
-has "Human stop reports epic-review failures" "step 6's \`failed:\` lines too"
-has "files fix-up tickets, implements none" 'files fix-up tickets and implements none'
 lacks "nothing touches a ticket" 'nothing below touches a ticket'
-has "red check ticket body" 'the check, its command and its log pointer'
-# epic review 4 of dev-9k5.1.8: the minors
-has "Stall names a tip mismatch" 'current tip is not its delivered tip'
-has "reviewer reads the story bead" 'bd -C <owner> show <story-id>` to tell them apart'
-has "reviewer reports findings only" 'create no bead'
-has "fix-up blocks the publish ticket" 'dep add <publish ticket id> <new id>'
-has "gh's no checks reported is none configured" '`no checks reported`'
-has "replaced reviewer's stop sweep" 'the stop sweep, then spawn a fresh one'
-has "end state reads step 6's forge reads" "step 6's forge reads"
-has "red-check budget failure line" 'checks red after three fix-ups'
-has "pending checks re-polled after a fix-up batch" 'any whose checks were pending'
-has "end state's checks pending outcome" 'clean with checks pending'
+# dev-47z: the review set reads the delivered: note, not a failed: report this run
+lacks "review set keyed on a failed: report this run" 'did not report `failed:` this run'
 lacks "the paginated tea pr list" 'tea pr list'
 has "frontmatter" 'disable-model-invocation: true'
 has "legacy line" 'refused: flat epic (tickets directly under the epic bead); the story skills do not handle it — the small-bug path does: /mattpocock-skills:implement <ticket-id> per ticket, then bd close <epic-id>'
@@ -468,7 +402,6 @@ lacks "finished story keyed on ready-for-human alone" 'other than `ready-for-hum
 has "story orchestrator" 'story orchestrator'
 has "implement-story" 'implement-story'
 has "opus" 'opus'
-hasc "waiting rule pointer" "the harness doc's Waiting"
 has "resume command" '/dev:implement-spec <KEY>-<n>'
 has "Jira step pointer" '"the spec is done"'
 has "Jira already-made read" 'getJiraIssue'
@@ -1021,6 +954,10 @@ hasc "refused push is a failed line" 'failed: push'
 hasc "deliver step's stray-commit check" 'First the **stray-commit check**, before any push'
 hasc "the ticket orchestrator's landing runs the stray-commit check" 'run the **stray-commit check** on what the merge brings in'
 hasc "stray-commit failed: line" 'failed: stray commit <sha> <subject>'
+# the delivery records its tip and check record, which /dev:implement-spec's review set reads (dev-47z)
+hasc "deliver step's delivered: note" 'note <story-id> "delivered: <tip SHA> <check record>"'
+hasc "delivered: note ahead of the pr: note" 'It goes ahead of the `pr:` note'
+hasc "finished story backfills a missing delivered: note" 'a finished story with no `delivered:` line'
 lacks "profile-gated push" 'when the active profile permits|ask the user to run that exact command|give the user that exact command'
 hasc "gitignore commit keyed on a dirty file" 'git -C <owner> status --porcelain -- .gitignore'
 lacks "a gitignore hand-off from the story cut" 'the story cut appended|story cut could not commit'

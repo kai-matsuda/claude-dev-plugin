@@ -197,7 +197,9 @@ _Avoid_: pre-flight, verification step
 The command, its exit and its log of one check, written by the orchestrator that ran it
 under the owner checkout's scratch directory, keyed by the tree SHA. Only an orchestrator
 writes one, an implementer's own runs never count, and the PR's Evidence is the record of
-the delivered tip's tree.
+the delivered tip's tree. The story orchestrator names that tip and its record in the
+delivered-tip note on the story bead (`delivered: <tip SHA> <check record>`), the one tip
+the epic review reads.
 _Avoid_: check stamp, check cache, run log
 
 **Check gate**:

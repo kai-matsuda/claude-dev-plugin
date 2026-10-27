@@ -224,6 +224,8 @@ runs again and no budget is spent: the gate exits on the moved tip once its chec
 The story orchestrator records the reviewed tip in its notes, the reviewed-tip note on the story bead
 (`review: <tip SHA>`), which names that moved tip, so a rerun knows the tip the review called
 clean and reviews only a tip that has moved past it; the ticket row writes no such note.
+On delivery it records the delivered tip and its check record, `delivered: <tip SHA> <check record>`,
+which the epic row reads as the story's delivered tip.
 
 **Review verdict.** Every reviewer, at every row, tags every finding **blocking** or **minor** and ends its report on one verdict line. A
 finding is blocking when an acceptance criterion is unmet, a behaviour is wrong, a test is

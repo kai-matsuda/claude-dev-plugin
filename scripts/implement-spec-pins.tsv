@@ -1,0 +1,81 @@
+# The phrases /dev:implement-spec must hold, one per line as <check>	<description>	<phrase>,
+# tab-separated: <check> is has (case-insensitive) or hasc (case-sensitive). Shared by
+# lint-skill-docs.sh, whose section 1 checks each one, and test-lint-skill-docs.sh, whose
+# pin cases drop each one from a copy and expect that section to fail (dev-47z). A line
+# opening with # and an empty line are skipped; the lint fails on any other check, the test
+# skips it.
+has	story-closure blocker is open until closed	open until that story is closed
+has	story-closure human stop line	the PR to merge and the /dev:close-story <story-id> to run
+has	human stop line carries the PR url	<owner repo> <story-id> <pr url>
+has	human stop trigger covers story closures	held only by blockers naming finished stories not yet closed
+has	chain of story closures counts toward the human stop	itself waits only on story closures
+has	add-mode hint keyed on the failed twice: note	carries a `failed twice:` note
+has	add-mode stall hint	/dev:spec-to-stories <KEY>-<n>
+has	add-mode stall hint without an external ref	/dev:spec-to-stories <epic-id>
+has	final report waiting: names a finished story	a finished story not yet closed
+hasc	report template shows the story-closure human: line	human:   <owner repo> <story-id> <pr url>
+hasc	epic orchestrator role	**epic orchestrator**
+has	harness doc cited	docs/agents/harness.md
+has	epic review, one PR at a time	one PR at a time
+has	epic review diff	the diff from the default branch to the integration branch
+has	epic review spec axis	the Jira Epic's spec
+has	epic review skips the standards axis	no standards axis
+has	epic review model	the review model of the epic's max tier
+has	draft until clean	stays a draft until its verdict is clean
+has	mark ready with gh	gh pr ready <n> --repo <forge-slug>
+has	mark ready with tea	tea pr edit <n> --repo <owner> --ready
+has	fix-up: one ready-for-agent ticket per blocking finding	one per blocking finding
+has	fix-up: the story re-run in add mode	in add mode
+has	fix-up budget	three per story
+# the story orchestrator brief names the harness doc's Commits rule, as that rule asks of every
+# brief to an agent that commits or merges (story dev-9k5.1 review)
+has	the story orchestrator brief names the Commits rule	commit under the Commits rule of `<plugin root>/docs/agents/harness.md`
+has	fix-up budget's fourth	the fourth is `failed`
+hasc	report template's epic review line	review:  <verdict line>
+has	Done needs a clean epic review	epic review clean
+# epic review 1 of dev-9k5.1.8
+has	preflight covers the review set	every story step 6 reviews
+has	mark-ready recorded as a ready: note	ready: <tip SHA>
+has	a clean draft's checks are re-polled	re-poll its checks
+has	review set: open stories with an open PR	only open stories with an open PR
+has	every fix-up round spends the budget	every fix-up round, red or blocking
+has	Done reads the ready: note	its `ready:` note on its current tip
+has	PR number placeholder defined	the PR number from the story's `pr:` note
+has	cut-off reviewer rule	reviewer that returns an error instead of a report
+has	tea fallback evidence	the delivered tip's check record
+has	batch clause's reason	reports no delivery this run
+# epic review 2 of dev-9k5.1.8
+has	fix-up tickets at the epic's max tier	complexity:<the epic's max tier>
+has	no-CI fallback tied to the tip by the review: marker	the story's `review:` note names this same tip
+has	Done accepts closed or landed stories	is `closed` or has its PR landed
+has	Stall names a PR closed without landing	closed without landing
+has	sibling stories' criteria out of scope	criteria owned by sibling stories are out of scope
+has	PR head compared with the reviewed tip	headRefOid
+has	epic reviewer's sub-agents' model	its sub-agents run at `<review model>`
+has	fix-up description on stdin	--body-file -
+has	epic notes beside implement-story's lines	which `/dev:implement-story` ignores
+has	pending-checks stall resume command	checks are pending, end with the resume command
+# epic review 3 of dev-9k5.1.8: the minors (its review-set rule is dev-47z's below)
+has	tea landed test reads the landed field	never its `state` alone
+has	every forge read sandbox-disabled	every forge command of this step run with the sandbox disabled
+has	a spent budget is not reviewed again	is failed and not reviewed again
+has	Human stop reports epic-review failures	step 6's `failed:` lines too
+has	files fix-up tickets, implements none	files fix-up tickets and implements none
+has	red check ticket body	the check, its command and its log pointer
+# epic review 4 of dev-9k5.1.8: the minors
+has	Stall names a tip mismatch	current tip is not its delivered tip
+has	reviewer reads the story bead	bd -C <owner> show <story-id>` to tell them apart
+has	reviewer reports findings only	create no bead
+has	fix-up blocks the publish ticket	dep add <publish ticket id> <new id>
+has	gh's no checks reported is none configured	`no checks reported`
+has	replaced reviewer's stop sweep	the stop sweep, then spawn a fresh one
+has	end state reads step 6's forge reads	step 6's forge reads
+has	red-check budget failure line	checks red after three fix-ups
+has	pending checks re-polled after a fix-up batch	any whose checks were pending
+has	end state's checks pending outcome	clean with checks pending
+hasc	waiting rule pointer	the harness doc's Waiting
+# dev-47z: a story enters the review set on the tip its last delivered: note names, and Stall
+# names one left out over a tip mismatch
+has	review set: the last delivered: note names the current tip	its last `delivered:` note names its current tip
+has	the delivered: note's shape	delivered: <tip SHA> <check record>
+has	Stall names a story with no delivered: note	no delivered: note
