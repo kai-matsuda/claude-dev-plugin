@@ -5,7 +5,7 @@
 #   scripts/test-fixture-story-cut.sh seed <case>     build the fixture, seed the spec and the epic
 #                                                     bead in the case's home, print the brief
 #   scripts/test-fixture-story-cut.sh assert <case>   check the bead state and the saved end block
-#   scripts/test-fixture-story-cut.sh                 assert every case whose fixture is seeded
+#   scripts/test-fixture-story-cut.sh                 assert every case whose fixture is seeded and run
 # Cases:
 #   workspace     typed at the fixture root (a workspace session): the epic bead stays in the root,
 #                 one parentless story each in lib and consumer with FIX-1, ## Parent naming the root,

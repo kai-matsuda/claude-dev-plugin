@@ -5,7 +5,7 @@
 #   scripts/test-fixture-retro.sh seed <case>     build the fixture, print the brief: the survivors
 #                                                 of steps 1-4 are given, the run does step 5
 #   scripts/test-fixture-retro.sh assert <case>   check the bead state and the saved end block
-#   scripts/test-fixture-retro.sh                 assert every case whose fixture is seeded
+#   scripts/test-fixture-retro.sh                 assert every case whose fixture is seeded and run
 # Cases:
 #   root      typed at the fixture root (a workspace session): a fix in lib files in the root's
 #             inbox as target:lib

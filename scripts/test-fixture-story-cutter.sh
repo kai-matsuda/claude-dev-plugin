@@ -7,7 +7,7 @@
 #                                                        state, print the story cutter brief
 #   scripts/test-fixture-story-cutter.sh assert <case>   check the saved block's shape and that no
 #                                                        fixture database or checkout changed
-#   scripts/test-fixture-story-cutter.sh                 assert every case whose fixture is seeded
+#   scripts/test-fixture-story-cutter.sh                 assert every case whose fixture is seeded and run
 # Cases, both typed at the fixture root (a workspace session, the only one with a pair):
 #   lib        the dependency story, briefed with its dependent: the block ends on the publish
 #              ticket, after at least one implementation ticket

@@ -29,6 +29,7 @@ ci: ## Lint the skill docs and run every script test that needs no beads databas
 	$(call timed,scripts/check-test-git-init.sh)
 	$(call timed,scripts/test-lint-skill-docs.sh)
 	$(call timed,scripts/test-guard-rm.sh)
+	$(call timed,scripts/test-phases.sh)
 	$(call timed,scripts/test-glossary-lint.sh)
 	$(call timed,scripts/test-setup-skill.sh)
 	$(call timed,scripts/test-setup-repo-skill.sh)

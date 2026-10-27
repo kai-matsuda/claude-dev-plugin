@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Helpers shared by the fixture tests (scripts/test-fixture-*.sh, test-lint-skill-docs.sh,
-# test-guard-rm.sh, test-glossary-lint.sh, test-setup-skill.sh, test-setup-repo-skill.sh,
-# test-ci-workflow.sh, test-readme.sh).
+# test-guard-rm.sh, test-phases.sh, test-glossary-lint.sh, test-setup-skill.sh,
+# test-setup-repo-skill.sh, test-ci-workflow.sh, test-readme.sh).
 # Every helper is fx_-prefixed, so it neither shadows nor is shadowed by a sourcing script's own
 # functions. The bead helpers read $out, the fixture workspace, when called; sets fails=0, which
 # fx_check counts up and fx_report_fails ends the run on.

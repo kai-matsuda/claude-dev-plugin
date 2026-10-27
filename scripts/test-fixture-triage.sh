@@ -6,7 +6,7 @@
 #                                            file in consumer alone (no manifest in that session),
 #                                            answer "accept", plain bd only
 #   scripts/test-fixture-triage.sh assert triage check the bead state the run must leave behind
-#   scripts/test-fixture-triage.sh           assert when a seeded fixture exists, else print a note
+#   scripts/test-fixture-triage.sh           assert when the fixture is seeded and run, else print a note
 set -uo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 cases="triage"
@@ -33,11 +33,12 @@ Add a check to a CI workflow outside this repo. layer: check. file: ../lib/.gith
 consumer, 2026-10-20
 T
   echo "seeded $out/consumer"
-  echo "brief: the session repo is $out/consumer alone; follow $skill and the branch's tracker doc $repo_root/docs/agents/issue-tracker.md (this repo's skills/ loaded as the plugin: claude --plugin-dir $repo_root, the skill typed dev:triage); answer step 4 with accept; plain bd only, never bd -C"
+  echo "brief: the session repo is $out/consumer alone; follow $skill and the branch's tracker doc $repo_root/docs/agents/issue-tracker.md (this repo's skills/ loaded as the plugin: claude --plugin-dir $repo_root, the skill typed dev:triage); answer step 4 with accept; plain bd only, never bd -C; save the skill's final report, verbatim, to $out/report.txt"
   echo "if the subagent's cwd is elsewhere, point plain bd at consumer: BEADS_DIR=$out/consumer/.beads bd <args> (verified with this bd)"
 }
 
 assert() {
+  fx_check "the run saved its end block" test -s "$out/report.txt"
   inbox=$(fx_one consumer '.title=="Reviewer misses unused imports" and (.labels|index("needs-triage"))')
   routed=$(fx_one consumer '(.labels // [] | index("retro")) and ((.labels // [] | index("needs-triage")) | not)')
   fx_check "one inbox bead and one routed bead in consumer" fx_eq "$([ -n "$inbox" ] && [ -n "$routed" ] && echo yes)" yes
