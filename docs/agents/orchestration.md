@@ -22,7 +22,7 @@ human is not a row: a ready PR is theirs to merge.
 
 | Row | Orchestrator | Builds | Checks | Review spec axis | Review standards axis | Reviewer and model | Fix-up | Lands by | Exits when | Budget |
 |---|---|---|---|---|---|---|---|---|---|---|
-| **Ticket** | ticket orchestrator | one implementer in a worktree | the check command | the ticket's body | the ticket diff | both axes, at the ticket's review model; none at `low` with a check command | an implementer by pointer brief, same worktree | merge onto the integration branch under the lock, after the stray-commit check | the checks green on the tip the review called clean | three fix-ups |
+| **Ticket** | ticket orchestrator | one implementer in a worktree | the check command | the ticket's body | the ticket diff | both axes, at the ticket's review model; none at `low` | an implementer by pointer brief, same worktree | merge onto the integration branch under the lock, after the stray-commit check | the checks green on the tip the review called clean | three fix-ups |
 | **Story** | story orchestrator | ticket orchestrators in parallel over the frontier | the check command | the story's body | what entered since the last standards review: conflict resolutions, cross-ticket coherence and the story gate's fix-up commits | both axes, at the review model of the story's max tier | an implementer by pointer brief in a fix-up worktree | push, the PR staying a draft | the checks green on the tip the review called clean | three fix-ups |
 | **Epic** | epic orchestrator | story orchestrators in parallel over the frontier | the check command as the forge runs it | the Jira Epic's spec | none, the axis is skipped | the spec axis only, at the review model of the epic's max tier | findings filed as `ready-for-agent` tickets under the story, that story re-run in add mode | the PR marked ready, the human merges, then `/dev:close-story` and `/dev:close-epic` | the checks green on the tip the review called clean | three per story |
 
@@ -207,10 +207,11 @@ model, fix-up at its implementation model.
 
 ## Review
 
-**Check command.** One command per owner repo: `make check` when its Makefile has a `check` target,
-otherwise none, and the gate is review-only, so a repo opts in by adding the target. Every
-row runs the same command; nothing else is a check. The story orchestrator resolves it once per
-run and hands it to each ticket orchestrator in its brief, so the parallel tickets of one run
+**Check command.** One command per owner repo, `make check`, and every owner repo has a `check`
+target (ADR 0015): `/dev:setup-repo` adds one, and a story run in a repo with none ends at once
+with `failed: no check target`. So every tree is checked, and a commit that moves the tip after
+the review always has its new tree checked. Every row runs the same command; nothing else is a
+check. The story orchestrator resolves it once per run and hands it to each ticket orchestrator in its brief, so the parallel tickets of one run
 share one gate (dev-yyu). Test seams are not checks: no order
 among them and no log per seam. A test seam stays the story's testing boundary, named in its
 body: the implementer's brief names the seams as where its tests go, and the reviewer's as
@@ -224,9 +225,7 @@ implementer's own runs never count (trust rule 3). The PR's Evidence is the reco
 
 **Check gate.** At every row the gate exits when the checks are green on the tip the review called clean.
 Each pass runs the check command on the tip, unless its tree has a record, then the review.
-A `low` ticket's gate is the checks alone when its owner repo has a check command,
-and the review at the `low` tier's review model when it has none,
-so no ticket lands with neither a check nor a review (dev-5e4).
+A `low` ticket's gate is the checks alone, with no review.
 A red or a blocking verdict goes to a fresh implementer by pointer brief and the loop starts over
 (at the epic row, to `ready-for-agent` tickets under the story, The epic row above);
 three such fix-ups per unit (at the epic row, three per story), and the fourth is `failed`,
@@ -239,10 +238,6 @@ and a replaced ticket orchestrator's ticket starts over from the integration bra
 so neither the ticket row nor the story row records spent fix-ups for a later invocation to count from.
 A minors fix-up and a conflict resolution move the tip, so the checks rerun, but no reviewer
 runs again and no budget is spent: the gate exits on the moved tip once its checks are green.
-With no check command there are no checks to rerun, so a review-only gate takes no minors fix-up:
-a clean round's minors all go to the inbox, at every row, and the tip the review called clean is the tip that lands (dev-2p5).
-A ticket's conflict resolution there lands unchecked and unreviewed at the ticket row,
-and the story row's standards axis reviews it before delivery (Review scope).
 The story orchestrator records the reviewed tip in its notes, the reviewed-tip note on the story bead
 (`review: <tip SHA>`), which names that moved tip, so a rerun knows the tip the review called
 clean and reviews only a tip that has moved past it; the ticket row writes no such note.
@@ -255,7 +250,7 @@ missing, or no test at a story seam exercises the criteria the unit names; it is
 no behaviour an acceptance criterion names (wording, naming, a nit). The last line is
 `verdict: clean` when no finding is blocking, else `verdict: blocking (<n>)`, `<n>` the
 count of blocking findings. A round with no blocking findings is **clean**, whatever its
-minors: they go to one last fix-up, or to the inbox as a deferral when the gate is review-only (Check gate, above) or when the
+minors: they go to one last fix-up, or to the inbox as a deferral when the
 orchestrator judges them out of the unit's scope (the tracker doc's "capture a retro item";
 Frontier, Deferrals, below), never to a bead of the story, and at the epic row, which has
 no last fix-up, always to the inbox (The epic row, above); then the unit lands, and no

@@ -439,8 +439,7 @@ The skill adds its own refusals after these.
 2. Pick the implementation model from the bead's `complexity` tier (table below).
 3. Work it; `bd note <id>` for progress worth keeping across sessions.
 4. Under `/dev:implement-story` every ticket passes the check gate before merge: the ticket
-   orchestrator runs the checks, and `medium` and `high` tickets add the review;
-   a `low` ticket is reviewed only when its owner repo has no check command. It spawns
+   orchestrator runs the checks, and only `medium` and `high` tickets add the review. It spawns
    a reviewer subagent at the tier's review model, briefed to run the
    `mattpocock-skills:code-review` skill on the ticket's branch since the integration tip; a
    red or a blocking verdict goes to a fresh implementer in the same worktree, never back to

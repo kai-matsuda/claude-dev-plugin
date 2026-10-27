@@ -111,8 +111,8 @@
 #      checks in orchestration.md (chezmoi-3eg), and its reviewer brief tags every finding
 #      blocking or minor and ends on the verdict line, its ticket orchestrator step 3 and story review step 7
 #      pointing at the rules doc's Review verdict, whose rule section 6 checks (chezmoi-49k),
-#      and its ticket orchestrator brief states the ticket row's parameters, the check command
-#      by Makefile convention (none: review-only) and the harness doc in one line, writes a check
+#      and its ticket orchestrator brief states the ticket row's parameters, the run's check
+#      command (step 3 fails a run with no check target) and the harness doc in one line, writes a check
 #      record per tree SHA, reviews with mattpocock-skills:code-review and lands its own ticket
 #      (lock wait, stray-commit check, merge; a conflict to an implementer in the ticket's
 #      worktree, then a fast-forward, the resolved tree checked and not reviewed again), with the
@@ -428,12 +428,11 @@ hasc "argument paragraph" '**The argument.**'
 # ticket review; "ticket gate" is retired so "gate" means the checks in every doc (dev-cq0.1.3)
 line_has '^[|] 4b [|]' "flat path runs the checks before the review" "then the checks (the owner repo's check command), then \`/mattpocock-skills:code-review\`"
 line_has '^[|] 4a [|] `/dev:implement-spec`' "4a names the ticket orchestrators" '**ticket orchestrator**'
-# 4a's check gate reviews a low ticket with no check command (dev-5e4)
-line_has '^[|] 4a [|] `/dev:implement-spec`' "4a reviews a low ticket with no check command" 'for `medium` and `high`, and for `low` with no check command, a review one tier up'
-lacks "4a's review limited to medium and high" 'then for `medium`/`high` a review'
+# 4a's check gate reviews medium and high tickets, a low ticket's gate being its checks (ADR 0015)
+line_has '^[|] 4a [|] `/dev:implement-spec`' "4a reviews medium and high tickets" '(the checks, then, for `medium` and `high`, a review one tier up'
 hase "the one review tool paragraph" '^One review tool, three rows'
-# a low ticket is reviewed at the ticket only with no check command (dev-5e4)
-hasc "the runbook reviews a low ticket with no check command" 'for `medium` and `high` and for `low` with no check command'
+# the ticket review is medium and high only, every owner repo having a check command (ADR 0015)
+hasc "the runbook reviews medium and high tickets" "ticket's review model, for \`medium\` and \`high\`; at the story"
 lacks "the runbook's ticket review limited to medium and high" '(`medium` and `high` only)'
 line_has '^[|] 4a [|] opus [|]' "session model 4a: the epic orchestrator session" 'The epic orchestrator session'
 
@@ -674,6 +673,9 @@ retired_dag='one story per repo|feat/<key>-<n>|chains are out of scope|only text
 # the check and review loop's retired two-gate wording (dev-1xf.1.4): the Evidence run, the later
 # run that reviews a fix, the third-round wording and the second-red stall
 retired_loop='evidence run|a later run reviews the fix|a third round of either kind|a second red'
+# the gate with no check command (ADR 0015): every owner repo has a check target, so no doc names
+# a review-only gate or a repo, ticket or gate without a check command
+retired_gate='review-only|no check command|with(out)? a check command'
 # a rule that moved to harness.md (dev-9k5.1.2) cited at the rules doc, doc first as "the rules
 # doc's Worktrees", "the rules doc's worktree fallback", "the rules doc's Scratch space says
 # (Literal paths)" or "(`orchestration.md`, Commits)", or rule first as 'the "Waiting" rule of
@@ -688,6 +690,7 @@ while IFS= read -r f; do
   lacksw "retired walk-up wording in $f" "$walkup"
   lacksw "retired story-DAG wording in $f" "$retired_dag"
   lacksw "retired two-gate wording in $f" "$retired_loop"
+  lacksw "retired review-only gate wording in $f" "$retired_gate"
   # the retired vocabulary (dev-9k5.1.11): the epic, ticket and landing roles, the built-in
   # review by name, the review marker, the lint command and the test seams as checks
   retired_row_names
@@ -700,6 +703,7 @@ done <<<"$swept"
 # historical sense through .glossary-allow), so only the two-gate wording is swept there
 f=$glossary_md
 lacksw "retired two-gate wording in $f" "$retired_loop"
+lacksw "retired review-only gate wording in $f" "$retired_gate"
 
 # the docs ship in the plugin: no path into the old dotfiles deployment (~/.claude/docs,
 # ~/.claude/hooks) or the chezmoi source remains in any doc under docs/, the skills, the agent
@@ -760,7 +764,7 @@ line_has "$row" "ticket row: the ticket orchestrator" '| ticket orchestrator |'
 line_has "$row" "ticket row: one implementer in a worktree" '| one implementer in a worktree |'
 line_has "$row" "ticket row: the ticket's body as spec" "| the ticket's body |"
 line_has "$row" "ticket row: the ticket diff as standards" '| the ticket diff |'
-line_has "$row" "ticket row: both axes at the review model, none at low with a check command" "| both axes, at the ticket's review model; none at \`low\` with a check command |"
+line_has "$row" "ticket row: both axes at the review model, none at low" "| both axes, at the ticket's review model; none at \`low\` |"
 line_has "$row" "ticket row: lands by merge under the lock after the stray-commit check" 'merge onto the integration branch under the lock, after the stray-commit check'
 line_has "$row" "ticket row: a fix-up by pointer brief, same worktree" '| an implementer by pointer brief, same worktree |'
 line_has "$row" "ticket row: three fix-ups" '| three fix-ups |'
@@ -805,11 +809,13 @@ hasc "trust rule 4: the stray-commit check before every merge and push" '4. The 
 hasc "trust rule 5: only ready-for-agent tickets are claimed" '5. Only `ready-for-agent` tickets are claimed'
 hasc "trust rule 6: the typed command authorises delivery" '6. The typed command authorises delivery'
 hasc "the trust rules are a closed list" 'The list is closed: a rule that wants to join needs an ADR'
-# one check command by Makefile convention, review-only without one; the check record keyed by
-# tree SHA, written only by an orchestrator, the delivered tip's record the PR's Evidence
+# one check command, make check, every owner repo having the target and a story run failing in
+# a repo without it (ADR 0015); the check record keyed by tree SHA, written only by an
+# orchestrator, the delivered tip's record the PR's Evidence
 hasc "Check command rule" '**Check command.**'
-para_has '**Check command.**' "make check by Makefile convention" '`make check` when its Makefile has a `check` target'
-para_has '**Check command.**' "review-only without one" 'the gate is review-only'
+para_has '**Check command.**' "make check is the one check command" 'One command per owner repo, `make check`'
+para_has '**Check command.**' "every owner repo has a check target" 'every owner repo has a `check`'
+para_has '**Check command.**' "a story run with no check target fails" 'with `failed: no check target`'
 hasc "Check record rule" '**Check record.**'
 para_has '**Check record.**' "keyed by the tree SHA" 'keyed by the tree SHA'
 para_has '**Check record.**' "only an orchestrator writes a record" 'Only an orchestrator writes a check record'
@@ -830,17 +836,8 @@ para_has '**Check gate.**' "the reviewed tip noted on the story" 'records the re
 para_has '**Check gate.**' "the gate exits on the moved tip" 'the gate exits on the moved tip once its checks are green'
 para_has '**Check gate.**' "the reviewed-tip note names the moved tip" 'the reviewed-tip note on the story bead'
 para_has '**Check gate.**' "the ticket row writes no reviewed-tip note" 'the ticket row writes no such note'
-# a low ticket in a repo with no check command is reviewed, so no tier and no repo leaves a
-# ticket ungated (dev-5e4)
-# a review-only gate takes no minors fix-up, so its reviewed tip lands; a ticket's conflict
-# resolution there waits for the story row's standards axis (dev-2p5)
-para_has '**Check gate.**' "a review-only gate takes no minors fix-up" 'so a review-only gate takes no minors fix-up'
-para_has '**Check gate.**' "a review-only gate lands its reviewed tip" "a clean round's minors all go to the inbox, at every row, and the tip the review called clean is the tip that lands (dev-2p5)"
-para_has '**Check gate.**' "a review-only ticket's conflict resolution is reviewed at the story row" "and the story row's standards axis reviews it before delivery (Review scope)"
-para_has '**Review verdict.**' "the Review verdict sends a review-only gate's minors to the inbox" 'or to the inbox as a deferral when the gate is review-only (Check gate, above)'
-para_has '**Check gate.**' "a low ticket with a check command is gated by the checks" 'A `low` ticket'"'"'s gate is the checks alone when its owner repo has a check command'
-para_has '**Check gate.**' "no ticket lands with neither a check nor a review" 'so no ticket lands with neither a check nor a review (dev-5e4)'
-para_has '**Check gate.**' "a low ticket with no check command is reviewed" 'and the review at the `low` tier'"'"'s review model when it has none'
+# a low ticket's gate is its checks, every owner repo having a check command (ADR 0015)
+para_has '**Check gate.**' "a low ticket is gated by the checks alone" 'A `low` ticket'"'"'s gate is the checks alone, with no review'
 # the fix-up budget is bounded per invocation at every row (dev-gi1): a fresh orchestrator at any
 # row starts its unit's budget at three whatever notes earlier invocations left, the epic
 # orchestrator counts a story's spent budget from the notes after this invocation's epic review 1,
@@ -913,13 +910,10 @@ hasc "the -C discipline" 'This section binds every session and subagent'
 hasc "the preflight stays in the rules doc" 'The working-directory preflight stays in `orchestration.md`'
 fi
 if doc 6 "tracker rules" "$agents/issue-tracker.md"; then
-# every ticket passes the check gate; the review is medium and high, and low with no check command
-# (ADR 0014, dev-5e4)
+# every ticket passes the check gate; only the review is medium and high (ADR 0014, ADR 0015)
 lacks "medium and high tickets passing the check gate" '`medium` and `high` tickets pass the check gate'
 hasc "every ticket passes the check gate" 'every ticket passes the check gate'
-# a low ticket adds the review only with no check command (dev-5e4)
-hasc "the tracker doc reviews a low ticket with no check command" 'a `low` ticket is reviewed only when its owner repo has no check command'
-lacks "the tracker doc's review limited to medium and high" 'only `medium` and `high` tickets add the review'
+hasc "the tracker doc reviews medium and high tickets" 'only `medium` and `high` tickets add the review'
 # the one test of the session mode (ADR 0008), stated once, in the opening before any section
 for need in '`<home>` is the session'"'"'s repo' '`<home>/repos.yaml`' '**workspace session**' '**repo session**' 'the only owner'; do
   opening_has "the tracker doc's one test" "$need"
@@ -1117,7 +1111,7 @@ hase "ticket orchestrator step 3 points at the rules doc's Review verdict" "^> 3
 hase "the story review (step 7) points at the rules doc's Review verdict" "^7\. .*the rules doc's Review verdict"
 lacks "the zero-findings bar" 'not clean after three rounds|no findings at all|clean means zero findings'
 # the brief states its row of the rules doc's table, the run's check command in its header
-# (none: review-only) and cites the harness doc in one line; step 3's lint-command resolution,
+# and cites the harness doc in one line; step 3's lint-command resolution,
 # the old brief's lint header and its step 2 lint list are retired (dev-9k5.1.7). Each row
 # parameter is its own pin, with its own description
 H='^> You are the \*\*ticket orchestrator\*\*'
@@ -1125,7 +1119,7 @@ hase "the brief opens on the ticket orchestrator" "$H"
 for pin in "your row is the ticket row of the rules doc's table|the brief names its row of the rules doc's table" \
   'you build with one implementer in a worktree|the row builds with one implementer in a worktree' \
   'check with the check command|the row checks with the check command' \
-  "review the ticket's body as the spec axis and the ticket diff as the standards axis, one tier up, none at \`low\` with a check command|the row reviews the ticket body and diff one tier up, none at low with a check command" \
+  "review the ticket's body as the spec axis and the ticket diff as the standards axis, one tier up, none at \`low\`, fix up|the row reviews the ticket body and diff one tier up, none at low" \
   'fix up by pointer brief in the same worktree|the row fixes up by pointer brief in the same worktree' \
   'land by merging onto `<branch>` under the lock after the stray-commit check|the row lands by merging under the lock after the stray-commit check' \
   'exit when the checks are green on the tip the review called clean|the row exits on green checks at the tip the review called clean' \
@@ -1144,15 +1138,17 @@ line_lacks "$H" "the per-ticket check command by Makefile convention" "Makefile 
 C='^   \*\*Check command\.\*\* Resolve'
 hase "step 3 resolves the check command" "$C"
 line_has "$C" "the check command is resolved once per run" 'Resolve the check command **once per run**'
-line_has "$C" "the check command by Makefile convention" '`make check` when `<owner>`'"'"'s Makefile has a `check` target, else none and the gate is review-only'
+line_has "$C" "the check command is make check" '`make check`, since every owner repo has a `check` target (the rules doc'"'"'s Check command)'
+# a repo with no check target ends the run before any ticket orchestrator starts (ADR 0015)
+line_has "$C" "step 3 fails a run with no check target" 'with none, end the run now with `failed: no check target in <owner>; run /dev:setup-repo there, then re-run`, before any ticket orchestrator starts'
 line_has "$C" "the run's check command goes in every brief's header" 'every ticket orchestrator brief carries it in its header'
 # the check target comes from make's own database, never a grep of the Makefile, which missed
 # GNUmakefile, makefile, included files and multi-target rules and took check:= for a target
 # (dev-de4), or a .PHONY: check with no rule (dev-b3p); scripts/test-check-target.sh runs the
 # pinned query on scratch repos
-line_has "$C" "step 3 asks make for the check target" 'Ask make which, never grep a Makefile'
+line_has "$C" "step 3 asks make for the check target" 'Ask make whether it has one, never grep a Makefile'
 line_has "$C" "step 3 reads the check target from make's database" '`make -C <owner> -pRrq : 2>/dev/null | awk '"'"'/^# Not a target:/{n=1;next} /^check::?([^=:]|$)/&&!n{c=1; if (/^check::? *[^ :]/) f=1} c&&/^#  (commands|recipe) to execute/{f=1} /^$/{c=0} {n=0} END{exit !f}'"'"'`'
-line_has "$C" "a missing Makefile reads as no check command" 'a missing Makefile prints no database and exits 1, so all three read as no check command'
+line_has "$C" "a missing Makefile reads as no check target" 'a missing Makefile prints no database and exits 1, so all three read as no check target'
 lacks "the retired grep for the check target" "grep -q .\\^check:"
 lacks "the retired lint-command resolution" 'resolve the owner repo.s \*\*lint command\*\*|`make lint` when `<owner>`.s makefile has a `lint` target'
 lacksf "the retired lint placeholder" '`<lint>`'
@@ -1168,10 +1164,9 @@ line_has "$G3" "the loop step cites the rules doc's loop" "as the rules doc's Ch
 line_has "$G3" "a red starts the loop over from the checks" 'A red spawns a fresh implementer on the fix-up and the loop starts over from the checks'
 line_has "$G3" "a blocking verdict starts the loop over from the checks, never straight to the reviewer" 'a blocking verdict spawns a fresh implementer on the fix-up and the loop starts over from the checks, never straight to the reviewer'
 line_has "$G3" "a clean verdict exits the loop" '**Clean** exits the loop'
-line_hase "$G3" "the check gate runs before step 3's reviewer" '\*\*Check gate\*\*.*Green:.*for `medium` and `high`, and for a `low` ticket with no check command, spawn a \*\*reviewer\*\*'
+line_hase "$G3" "the check gate runs before step 3's reviewer" '\*\*Check gate\*\*.*Green:.*for `medium` and `high`, spawn a \*\*reviewer\*\*'
 unchanged_file || ! grep -E "$G3" "$f" | sed 's/Green: .*//' | grep -qF -- 'spawn a **reviewer**' || bad "present: ticket orchestrator step 3 spawns a reviewer ahead of the checks' green"
-line_has "$G3" "a low ticket with a check command exits the loop on green checks" 'Green: a `low` ticket with a check command exits the loop, go to step 4'
-line_has "$G3" "a low ticket with no check command goes on to the reviewer" 'the gate is review-only, so a `low` ticket goes on to the reviewer as `medium` and `high` do (the rules doc'"'"'s Check gate)'
+line_has "$G3" "a low ticket exits the loop on green checks" 'Green: a `low` ticket exits the loop, go to step 4'
 line_has '^> 2\. ' "ticket orchestrator step 2's implementer runs no gate and spawns no one" 'The implementer runs no gate and spawns no one'
 # the check record (dev-9k5.1.7): keyed by the tree SHA under the owner checkout's .tmp/checks/,
 # written only by the ticket orchestrator, a tree with a record not checked again
@@ -1180,7 +1175,6 @@ line_has "$G3" "the gate reads the tree only of a clean worktree" 'First confirm
 line_lacks "$G3" "the clean-worktree guard that hides untracked files" '`git -C <worktree path> status --porcelain --untracked-files=no`'
 line_has "$G3" "a tree with a check record is not checked again" 'a tree with a record is checked: read its exit and run nothing'
 line_has "$G3" "the gate writes the check record per tree" 'mkdir -p <worktree path>/.tmp; mkdir -p <owner>/.tmp/checks/<tree>; export TMPDIR=<worktree path>/.tmp; make -C <worktree path> check > <owner>/.tmp/checks/<tree>/log 2>&1; echo "command=make check exit=$?" > <owner>/.tmp/checks/<tree>/record; cat <owner>/.tmp/checks/<tree>/record'
-line_has "$G3" "no check command makes the gate review-only" 'With no check command the checks are skipped and the gate is review-only'
 line_has "$G3" "the gate reviews with mattpocock-skills:code-review" '`mattpocock-skills:code-review`'
 line_has "$G3" "the reviewer brief names the harness-route diff" '`git -C <worktree path> diff <branch>...HEAD`'
 line_lacks "$G3" "the per-round check log" 'checks-<round>-<k>.log'
@@ -1189,7 +1183,6 @@ line_has "$G3" "a red gate's note form (checks <round>: red <command>)" '`bd -C 
 line_has "$G3" "a green gate writes no note" 'a green writes no note'
 line_has "$G3" "the gate's fix-up brief points at the log path" 'the log path, and no pasted output'
 line_has "$G3" "red and blocking fix-ups share one budget of three, the fourth failure is failed" 'The budget is three fix-ups of either cause; the fourth red or blocking verdict is `failed`'
-line_has "$G3" "a review-only ticket gate sends every minor to the inbox" 'With no check command the gate is review-only and takes no minors fix-up: every minor goes to the inbox as below'
 line_has "$G3" "the minors fix-up after a clean verdict spends no budget and advances no round" 'The minors fix-up spends no budget and advances no round'
 lacks "the retired run-the-gate-again wording" 'run the check gate again, and on green spawn a reviewer again'
 # the ticket orchestrator lands its own ticket (step 4): lock wait, stray-commit check, merge; a
@@ -1201,7 +1194,6 @@ line_has "$L4" "a conflict goes to an implementer in the ticket's worktree" 'A c
 line_has "$L4" "the conflict implementer merges the integration tip into the ticket branch" 'briefed to merge `<branch>`'"'"'s tip into the ticket branch'
 line_has "$L4" "a conflicted merge is aborted, never resolved by the orchestrator" '`git -C <owner> merge --abort`'
 line_has "$L4" "the orchestrator then fast-forwards" '`git -C <owner> merge --ff-only <ticket branch>`'
-line_has "$L4" "a review-only resolution lands for the story row's review" 'with no check command nothing runs, and the resolution lands for that review'
 line_has "$L4" "the resolved tree is checked and not reviewed again" 'step 3'"'"'s checks run on the resolved tree and no reviewer runs'
 # a red on the resolved tree goes to a fix-up that spends budget and restarts the whole loop,
 # review included: the rules doc exempts only the minors fix-up and the resolution (story
@@ -1251,7 +1243,6 @@ line_has "$G7" "the story review names the base SHA" '`<base>`, `git -C <owner> 
 line_has "$G7" "the standards axis gets each merge's resolution" '`git -C <owner> show --remerge-diff <merge>`'
 line_has "$G7" "the standards axis gets the fix-up commits since the last story review" "\`git -C <owner> log --no-merges --grep='^Bead: <story-id>\$' <since>..<branch>\`"
 line_has "$G7" "a red or a blocking verdict goes to a fresh fix-up and starts the loop over" 'A red or a blocking verdict goes to a fresh implementer by pointer brief and the loop starts over'
-line_has "$G7" "a review-only story gate sends every minor to the inbox" 'with none the gate is review-only and takes no minors fix-up, so every minor goes to the inbox'
 line_has "$G7" "the minors fix-up reruns the checks and spends no budget" 'the minors fix-up reruns the checks and spends no budget'
 line_has "$G7" "the story gate's budget is three fix-ups, red or blocking" 'The budget is three fix-ups per story, red or blocking alike'
 line_has "$G7" "the story gate's fourth failure skips delivery" 'the fourth failure skips step 8 and goes to step 9'

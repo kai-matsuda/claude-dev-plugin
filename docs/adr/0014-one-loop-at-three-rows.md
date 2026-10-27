@@ -4,6 +4,10 @@ status: accepted
 
 > Supersedes ADR 0001 (two review tools, one tier up, at two stages).
 
+> Amended by ADR 0015 (`docs/adr/0015-every-owner-repo-has-a-check-target.md`, dev-0l6,
+> INFRA-33, 2026-10-27): every owner repo has a `check` target, so the review-only gate below is retired,
+> with the two amendments that patched it.
+>
 > Amended by dev-5e4 (INFRA-33, 2026-10-27): a `low` ticket in a repo with no check command
 > is reviewed, so no ticket lands with neither a check nor a review. The why is in
 > `docs/agents/orchestration.md`, Check gate.

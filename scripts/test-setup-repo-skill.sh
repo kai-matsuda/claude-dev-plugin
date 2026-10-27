@@ -19,44 +19,49 @@ fx_check "description names the check target write" grep -q '^description: .*che
 # One numbered step of a doc: from "<n>. **" to the next numbered step.
 step() { awk -v n="$2" '$0 ~ "^" n "\\. \\*\\*"{p=1; print; next} /^[0-9]+\. \*\*/{p=0} p' "$1"; }
 
-# The check target step: the explore step reads the Makefile and CLAUDE.md, the present and
-# confirm steps name the proposed recipe or note, the write step adds `check` or documents
-# the convention, and the skill names `make check` as the repo's check command with the
-# review-only fallback. It names no lint-command alternative.
+# The check target step: the explore step reads the Makefile and what the repo can be checked
+# with, the present and confirm steps name the proposed recipe, the write step always adds
+# `check` (creating the Makefile, never an empty or `true` recipe), and the skill names
+# `make check` as the repo's check command, which every owner repo has (ADR 0015). It names no
+# lint-command alternative, no CLAUDE.md note in place of the target and no review-only gate.
 pin_explore_makefile() { step "$1" 2 | grep -q 'GNUmakefile' && step "$1" 2 | grep -q '`check` target'; }
 # it asks make's database, never a grep of the Makefile (dev-b3p); test-check-target.sh runs the query
 pin_explore_make_db() { step "$1" 2 | grep -q 'never grep a Makefile: `make -pRrq :'; }
-pin_explore_claude_note() { step "$1" 2 | grep -q '`make check` note'; }
+pin_explore_checkable() { step "$1" 2 | grep -q 'what the repo can be checked with'; }
 pin_present_recipe() { step "$1" 3 | grep -q '`check` target'; }
-pin_present_note() { step "$1" 3 | grep -q 'CLAUDE.md'; }
-pin_confirm_recipe() { step "$1" 4 | grep -q '`check` recipe' && step "$1" 4 | grep -q '`CLAUDE.md` note'; }
+pin_present_ask() { step "$1" 3 | grep -q 'ask the owner what the'; }
+pin_confirm_recipe() { step "$1" 4 | grep -q '`check` recipe included'; }
 pin_write_target() { step "$1" 5 | grep -q '`check` target:'; }
 pin_write_phony() { step "$1" 5 | grep -q '\.PHONY'; }
 pin_write_not_default() { step "$1" 5 | grep -q 'default goal'; }
 pin_write_wraps() { step "$1" 5 | grep -q 'wrap'; }
-pin_write_note() { step "$1" 5 | grep -q 'note on the convention'; }
+pin_write_new_makefile() { step "$1" 5 | grep -q 'create one holding that target'; }
+pin_write_every_repo() { step "$1" 5 | grep -q 'every owner repo'; }
+pin_write_never_true() { step "$1" 5 | grep -q 'never an'; }
 pin_make_check() { grep -q '`make check`' "$1"; }
-pin_review_only() { grep -qi 'review-only' "$1"; }
 pin_report_runs() { step "$1" 6 | grep -q 'what the .check. target runs'; }
 pin_no_commit_makefile() { step "$1" 6 | grep -q 'commit the CLAUDE.md, Makefile'; }
 fails_on() { ! "$@"; }
 pin_no_lint_alt() { ! grep -qi 'lint command\|make lint' "$1"; }
+pin_no_review_only() { ! grep -qi 'review-only' "$1"; }
+pin_no_claude_note() { ! grep -qi 'note on the convention\|`make check` note\|`CLAUDE.md` note' "$1"; }
 
 # name | pin | regex of the lines the pin rests on (the drop-line case removes them)
 pins=(
   "explore step reads the Makefile check target|pin_explore_makefile|GNUmakefile"
   "explore step asks make's database for the check target|pin_explore_make_db|never grep a Makefile"
-  "explore step reads the CLAUDE.md check note|pin_explore_claude_note|make check. note"
+  "explore step reads what the repo can be checked with|pin_explore_checkable|can be checked with"
   "present step names the proposed check recipe|pin_present_recipe|check. target"
-  "present step names the CLAUDE.md note when no Makefile|pin_present_note|CLAUDE.md"
-  "confirm step covers the check recipe and the note|pin_confirm_recipe|recipe"
+  "present step asks the owner when nothing gives a check|pin_present_ask|ask the owner what"
+  "confirm step covers the check recipe|pin_confirm_recipe|recipe"
   "write step adds the check target|pin_write_target|check. target:"
   "write step declares the target .PHONY|pin_write_phony|PHONY"
   "write step keeps check off the default goal|pin_write_not_default|default goal"
   "write step wraps the existing test and lint targets|pin_write_wraps|wrap"
-  "write step documents a note on the convention|pin_write_note|note on the convention"
+  "write step creates the Makefile when there is none|pin_write_new_makefile|create one holding"
+  "write step says every owner repo has the target|pin_write_every_repo|every owner repo"
+  "write step never writes an empty or true recipe|pin_write_never_true|never an"
   "skill names make check as the check command|pin_make_check|make check"
-  "skill states the review-only fallback|pin_review_only|review-only"
   "report step says what the target runs|pin_report_runs|target runs"
   "report step keeps the Makefile edit uncommitted|pin_no_commit_makefile|commit the CLAUDE.md, Makefile"
 )
@@ -70,4 +75,7 @@ for p in "${pins[@]}"; do
   rm -f "$dropped"
 done
 fx_check "skill names no lint-command alternative" pin_no_lint_alt "$doc"
+fx_check "skill names no review-only gate" pin_no_review_only "$doc"
+fx_check "skill writes no CLAUDE.md note in place of the target" pin_no_claude_note "$doc"
+fx_check "description names no CLAUDE.md note" fails_on grep -q '^description: .*note' <<<"$fm"
 fx_report_fails

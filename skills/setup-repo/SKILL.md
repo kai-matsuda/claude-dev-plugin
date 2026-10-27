@@ -1,6 +1,6 @@
 ---
 name: setup-repo
-description: Repo setup for the dev plugin. Records the Jira project key in the repo's CLAUDE.md, runs bd init when .beads/ is missing, lays out GLOSSARY.md and docs/adr/, and adds a `make check` target to the Makefile (or a note on it to CLAUDE.md). Use once per repo, after /dev:setup.
+description: Repo setup for the dev plugin. Records the Jira project key in the repo's CLAUDE.md, runs bd init when .beads/ is missing, lays out GLOSSARY.md and docs/adr/, and adds a `make check` target to the Makefile, creating the Makefile when there is none. Use once per repo, after /dev:setup.
 disable-model-invocation: true
 ---
 
@@ -19,8 +19,9 @@ in step 4.
    block with a `Jira project key:` line; whether `.beads/` exists; whether `GLOSSARY.md`
    and `docs/adr/` exist, and whether the repo is multi-context (a `GLOSSARY-MAP.md`);
    `git config core.hooksPath`; whether the repo has a `Makefile` (or `GNUmakefile` or
-   `makefile`) and whether it has a `check` target; whether `CLAUDE.md` already holds a
-   `make check` note;
+   `makefile`) and whether it has a `check` target; what the repo can be checked with
+   (its test and lint targets, its test runner, its linters, or failing those its scripts,
+   build, configs and docs);
    and, if `.beads/` is missing, `git status --porcelain`,
    because `bd init` commits and the later `git rm -r` and amend must not sweep up the
    owner's staged or modified files. Ask the owner for the Jira project key when the repo
@@ -36,11 +37,12 @@ in step 4.
    name any staged or modified files from the explore step: stop, or ask the owner to
    commit or stash them, before `bd init`. If the repo already has a `Jira project key:`
    line that would change, name the old and new value. Name the `check` target the write
-   step would add: the recipe it would put in the `Makefile`, or, when the repo has no
-   `Makefile`, the note on the convention it would put in `CLAUDE.md`. A repo that already
+   step would add: the recipe it would put in the `Makefile`, and say when the write creates
+   the `Makefile`. When nothing in the repo gives a useful check, ask the owner what the
+   recipe should run; never offer an empty or `true` one. A repo that already
    has everything gets a report and no writes.
 4. **Confirm.** Wait for the owner's explicit yes, to the plan as presented, the
-   `check` recipe or `CLAUDE.md` note included. On a no, change nothing.
+   `check` recipe included. On a no, change nothing.
 5. **Write**, in this order, skipping what exists:
    - `.beads/`: if missing, run `bd init --non-interactive --agents-file CLAUDE.md`. It
      also generates `AGENTS.md`, `.codex/`, `.cursor/` and `.agents/` and makes a commit.
@@ -60,16 +62,16 @@ in step 4.
      own glossary.
    - `docs/adr/`: if absent, create it with a `.gitkeep`. ADRs are numbered
      `NNNN-<slug>.md`.
-   - The `check` target: `make check` is the repo's check command. If the `Makefile` has
+   - The `check` target: `make check` is the repo's check command, and every owner repo
+     has one (ADR 0015, `${CLAUDE_PLUGIN_ROOT}/docs/adr/0015-every-owner-repo-has-a-check-target.md`:
+     `/dev:implement-story` fails a story run in a repo without it). If the `Makefile` has
      none, add a `check` target that wraps the repo's existing test and lint targets (or
      runs its own tests and linters), declare it `.PHONY`, and place it so it is not the
-     default goal. A repo with no tests or linters gets no `check` target (never an empty
-     or `true` one), and its gate is review-only. If the repo has no `Makefile`, write
-     nothing there; add a one-line note on the convention to `CLAUDE.md` instead (the
-     repo's check command is `make check`, once it has a `Makefile` with that target),
-     worded as a note, not a `Check command:` setting, and skipped when `CLAUDE.md`
-     already holds it. A repo with no `check` target has no check command, and its gate is
-     review-only.
+     default goal. If the repo has no `Makefile`, create one holding that target. A repo
+     with no tests or linters still gets a `check` target, the most useful check that can
+     be inferred from what it holds (a syntax check of its scripts, a build, a parse of its
+     configs, a lint of its docs) or the one the owner named in step 3, and never an
+     empty or `true` one.
 6. **Report** what was written and what was left alone, and, if `core.hooksPath` was
    already set, whether the old hook was chained, and what the `check` target runs. Do not
    commit the CLAUDE.md, Makefile, GLOSSARY.md or `docs/adr/` changes unless the owner asks; the `bd init` commit is the

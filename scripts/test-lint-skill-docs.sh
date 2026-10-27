@@ -737,21 +737,14 @@ drop_phrase docs/WORKFLOW.md 'One review tool, three rows'
 echo 'see One review tool, three rows' >> "$scratch/docs/WORKFLOW.md"
 expect "one review tool paragraph pin is anchored on its line" 1 "the one review tool paragraph"
 
-# 4a's review of a low ticket with no check command, dropped from its row, and the
-# medium/high-only wording seeded back (dev-5e4)
+# 4a's review of medium and high tickets, and the ticket review's tiers, each dropped (ADR 0015)
 fresh
-drop_phrase docs/WORKFLOW.md 'for `medium` and `high`, and for `low` with no check command, a review one tier up'
-expect "runbook copy without 4a's low ticket review fails" 1 "4a reviews a low ticket with no check command"
+drop_phrase docs/WORKFLOW.md '(the checks, then, for `medium` and `high`, a review one tier up'
+expect "runbook copy without 4a's medium and high review fails" 1 "4a reviews medium and high tickets"
 
 fresh
-echo 'the checks, then for `medium`/`high` a review one tier up' >> "$scratch/docs/WORKFLOW.md"
-expect "runbook copy limiting 4a's review to medium and high fails" 1 "4a's review limited to medium and high"
-
-# the ticket review of a low ticket with no check command, dropped, and the medium-and-high-only
-# wording seeded back (dev-5e4)
-fresh
-drop_phrase docs/WORKFLOW.md 'for `medium` and `high` and for `low` with no check command'
-expect "runbook copy without the low ticket's review fails" 1 "the runbook reviews a low ticket with no check command"
+drop_phrase docs/WORKFLOW.md "ticket's review model, for \`medium\` and \`high\`; at the story"
+expect "runbook copy without the ticket review's tiers fails" 1 "the runbook reviews medium and high tickets"
 
 fresh
 echo 'at the ticket (`medium` and `high` only) on both axes' >> "$scratch/docs/WORKFLOW.md"
@@ -777,15 +770,10 @@ fresh
 drop_phrase docs/agents/issue-tracker.md 'every ticket passes the check gate'
 expect "tracker doc without every ticket passing the check gate fails" 1 "every ticket passes the check gate"
 
-# the review of a low ticket with no check command, dropped, and the medium-and-high-only wording
-# seeded back (dev-5e4)
+# the review of medium and high tickets only, dropped (ADR 0015)
 fresh
-drop_phrase docs/agents/issue-tracker.md 'a `low` ticket is reviewed only when its owner repo has no check command'
-expect "tracker doc without the low ticket's review fails" 1 "the tracker doc reviews a low ticket with no check command"
-
-fresh
-echo 'and only `medium` and `high` tickets add the review.' >> "$scratch/docs/agents/issue-tracker.md"
-expect "tracker doc limiting the review to medium and high fails" 1 "the tracker doc's review limited to medium and high"
+drop_phrase docs/agents/issue-tracker.md 'only `medium` and `high` tickets add the review'
+expect "tracker doc without its medium and high review fails" 1 "the tracker doc reviews medium and high tickets"
 
 fresh
 echo 'read `<owner>/.spec-notes/<epic-id>/story-cut.md` first' >> "$scratch/skills/spec-to-tickets/SKILL.md"
@@ -1693,6 +1681,21 @@ fresh
 echo 'The retired Evidence run stays in the spec.' >> "$scratch/docs/specs/check-and-review-loop.md"
 expect "a spec keeping 'Evidence run' passes" 0
 
+# the gate with no check command (ADR 0015) is absent from every file kind the sweep covers, the
+# glossary included (one seeded case per phrase, each in its own kind); docs/specs keeps the words
+for case in 'skills/sample/SKILL.md|With no check target the gate is review-only.' \
+  'docs/agents/triage-labels.md|A low ticket in a repo with no check command is reviewed.' \
+  'GLOSSARY.md|A ticket without a check command lands on its review.' \
+  'docs/SEQUENCES.md|checks green, the ticket row at low with a check command' \
+  'docs/WORKFLOW.md|A repo with no\ncheck command is reviewed.'; do
+  fresh
+  printf "${case#*|}\n" >> "$scratch/${case%%|*}"
+  expect "${case%%|*} naming a gate with no check command fails" 1 "retired review-only gate wording in $scratch/${case%%|*}"
+done
+fresh
+echo 'A repo with no check command gets a review-only gate.' >> "$scratch/docs/specs/one-loop-three-rows.md"
+expect "a spec keeping the review-only gate passes" 0
+
 # the retired vocabulary (dev-9k5.1.10, dev-9k5.1.11): every retired word or phrase seeded
 # together into each file section 5 sweeps (skills, agent docs, the project CLAUDE.md, the
 # runbook, the sequence diagrams) fails by section 5 alone, the output naming each phrase's
@@ -1822,7 +1825,7 @@ for case in "Ticket@| ticket orchestrator |@ticket row: the ticket orchestrator"
   "Ticket@| the check command |@Ticket row: the check command" \
   "Ticket@| the ticket's body |@ticket row: the ticket's body as spec" \
   "Ticket@| the ticket diff |@ticket row: the ticket diff as standards" \
-  "Ticket@; none at \`low\` with a check command@ticket row: both axes at the review model, none at low with a check command" \
+  "Ticket@; none at \`low\` |@ticket row: both axes at the review model, none at low" \
   "Ticket@| an implementer by pointer brief, same worktree |@ticket row: a fix-up by pointer brief, same worktree" \
   "Ticket@merge onto the integration branch under the lock, after the stray-commit check@ticket row: lands by merge under the lock after the stray-commit check" \
   "Ticket@| three fix-ups |@ticket row: three fix-ups" \
@@ -1869,8 +1872,9 @@ for case in '**Review scope.**|review scoping rule' "The spec axis takes the row
   '5. Only `ready-for-agent` tickets are claimed|trust rule 5' \
   '6. The typed command authorises delivery|trust rule 6' \
   'The list is closed: a rule that wants to join needs an ADR|the trust rules are a closed list' \
-  '**Check command.**|Check command rule' '`make check` when its Makefile has a `check` target|make check by Makefile convention' \
-  'the gate is review-only|review-only without one' '**Check record.**|Check record rule' \
+  '**Check command.**|Check command rule' 'One command per owner repo, `make check`|make check is the one check command' \
+  'every owner repo has a `check`|every owner repo has a check target' \
+  'with `failed: no check target`|a story run with no check target fails' '**Check record.**|Check record rule' \
   'keyed by the tree SHA|keyed by the tree SHA' 'Only an orchestrator writes a check record|only an orchestrator writes a record' \
   "the record of the delivered tip's tree|the delivered tip's record is the Evidence" \
   '**Check gate.**|Check gate rule' \
@@ -1905,24 +1909,10 @@ for case in '**Review scope.**|review scoping rule' "The spec axis takes the row
   drop_phrase $orch "$phrase"
   sec=6 expect "orchestration doc without '$phrase' fails" 1 "${case#*|}"
 done
-# the Check gate's three lines on a low ticket's gate, each dropped whole (dev-5e4)
-for case in "A \`low\` ticket's gate is the checks alone when its owner repo has a check command|a low ticket with a check command is gated by the checks" \
-  'so no ticket lands with neither a check nor a review|no ticket lands with neither a check nor a review' \
-  "and the review at the \`low\` tier's review model when it has none|a low ticket with no check command is reviewed"; do
-  fresh
-  drop_line $orch "${case%%|*}"
-  sec=6 expect "orchestration doc without '${case%%|*}' fails" 1 "${case#*|}"
-done
-# a review-only gate takes no minors fix-up and a ticket's conflict resolution waits for the
-# story row's standards axis, each line dropped whole (dev-2p5)
-for case in 'so a review-only gate takes no minors fix-up|a review-only gate takes no minors fix-up' \
-  "a clean round's minors all go to the inbox, at every row, and the tip the review called clean is the tip that lands (dev-2p5)|a review-only gate lands its reviewed tip" \
-  "and the story row's standards axis reviews it before delivery (Review scope)|a review-only ticket's conflict resolution is reviewed at the story row" \
-  'or to the inbox as a deferral when the gate is review-only (Check gate, above)|the Review verdict sends a review-only gate'"'"'s minors to the inbox'; do
-  fresh
-  drop_line $orch "${case%%|*}"
-  sec=6 expect "orchestration doc without '${case%%|*}' fails" 1 "${case#*|}"
-done
+# the Check gate's line on a low ticket's gate, dropped whole (ADR 0015)
+fresh
+drop_line $orch "A \`low\` ticket's gate is the checks alone, with no review"
+sec=6 expect "orchestration doc without the low ticket's gate fails" 1 "a low ticket is gated by the checks alone"
 # the Check gate naming the epic row as the budget's exception, seeded back
 fresh
 printf '\nThe epic row is the exception: it counts from notes.\n' >> "$scratch/$orch"
@@ -1986,7 +1976,7 @@ expect "harness doc regaining the story's-checks clause fails" 1 "present: the I
 for case in "your row is the ticket row of the rules doc's table|the brief names its row of the rules doc's table" \
   'you build with one implementer in a worktree|the row builds with one implementer in a worktree' \
   'check with the check command|the row checks with the check command' \
-  "review the ticket's body as the spec axis and the ticket diff as the standards axis, one tier up, none at \`low\` with a check command|the row reviews the ticket body and diff one tier up, none at low with a check command" \
+  "review the ticket's body as the spec axis and the ticket diff as the standards axis, one tier up, none at \`low\`, fix up|the row reviews the ticket body and diff one tier up, none at low" \
   'fix up by pointer brief in the same worktree|the row fixes up by pointer brief in the same worktree' \
   'land by merging onto `<branch>` under the lock after the stray-commit check|the row lands by merging under the lock after the stray-commit check' \
   'exit when the checks are green on the tip the review called clean|the row exits on green checks at the tip the review called clean' \
@@ -2002,11 +1992,12 @@ for case in 'The harness mechanics are in `<plugin root>/docs/agents/harness.md`
   ', check command `<check command>`|missing: the brief'"'"'s header carries the run'"'"'s check command' \
   'never resolve it yourself|missing: the brief never resolves the check command itself' \
   '**once per run**|missing: the check command is resolved once per run' \
-  '`make check` when `<owner>`'"'"'s Makefile has a `check` target, else none and the gate is review-only|missing: the check command by Makefile convention' \
+  '`make check`, since every owner repo has a `check` target|missing: the check command is make check' \
+  'with none, end the run now with `failed: no check target in <owner>; run /dev:setup-repo there, then re-run`|missing: step 3 fails a run with no check target' \
   'every ticket orchestrator brief carries it in its header|missing: the run'"'"'s check command goes in every brief'"'"'s header' \
-  'Ask make which, never grep a Makefile|missing: step 3 asks make for the check target' \
+  'Ask make whether it has one, never grep a Makefile|missing: step 3 asks make for the check target' \
   '`make -C <owner> -pRrq : 2>/dev/null|missing: step 3 reads the check target from make'"'"'s database' \
-  'a missing Makefile prints no database and exits 1, so all three read as no check command|missing: a missing Makefile reads as no check command'; do
+  'a missing Makefile prints no database and exits 1, so all three read as no check target|missing: a missing Makefile reads as no check target'; do
   fresh
   drop_phrase skills/implement-story/SKILL.md "${case%%|*}"
   expect "implement-story without '${case%%|*}' fails" 1 "${case#*|}"
@@ -2017,7 +2008,7 @@ swap_phrase skills/implement-story/SKILL.md '^   \*\*Check command\.\*\* Resolve
 expect "a step 3 without its check command paragraph fails" 1 "missing: step 3 resolves the check command"
 
 fresh
-swap_phrase skills/implement-story/SKILL.md 'Ask make which, never grep a Makefile' "grep -q '^check:' <owner>/Makefile tells which"
+swap_phrase skills/implement-story/SKILL.md 'Ask make whether it has one, never grep a Makefile' "grep -q '^check:' <owner>/Makefile tells which"
 expect "a step 3 that greps the Makefile for the check target fails" 1 "present: the retired grep for the check target"
 
 # a brief that resolves the check command per ticket again fails, so parallel tickets share one gate (dev-yyu)
@@ -2044,25 +2035,18 @@ for case in 'Resolve the owner repo'"'"'s **lint command** once, here beside the
 done
 
 # the check record on step 3's line: keyed by the tree SHA, a recorded tree not run again, the
-# record written per tree, review-only with no check command, the one review tool; the per-round
+# record written per tree, the one review tool; the per-round
 # log and the built-in review seeded back on that line fail
 for case in '`git -C <worktree path> rev-parse HEAD^{tree}`|missing: the gate keys the check on the tree SHA' \
   'First confirm the worktree is clean, `git -C <worktree path> status --porcelain` prints nothing; a dirty worktree goes to a fresh implementer as a red does|missing: the gate reads the tree only of a clean worktree' \
   'a tree with a record is checked: read its exit and run nothing|missing: a tree with a check record is not checked again' \
   'mkdir -p <worktree path>/.tmp; mkdir -p <owner>/.tmp/checks/<tree>; export TMPDIR=<worktree path>/.tmp; make -C <worktree path> check > <owner>/.tmp/checks/<tree>/log 2>&1; echo "command=make check exit=$?" > <owner>/.tmp/checks/<tree>/record; cat <owner>/.tmp/checks/<tree>/record|missing: the gate writes the check record per tree' \
-  'With no check command the checks are skipped and the gate is review-only|missing: no check command makes the gate review-only' \
-  'the gate is review-only, so a `low` ticket goes on to the reviewer as `medium` and `high` do (the rules doc'"'"'s Check gate)|missing: a low ticket with no check command goes on to the reviewer' \
   '`mattpocock-skills:code-review`|missing: the gate reviews with mattpocock-skills:code-review' \
-  '`git -C <worktree path> diff <branch>...HEAD`|missing: the reviewer brief names the harness-route diff' \
-  'With no check command the gate is review-only and takes no minors fix-up: every minor goes to the inbox as below|missing: a review-only ticket gate sends every minor to the inbox'; do
+  '`git -C <worktree path> diff <branch>...HEAD`|missing: the reviewer brief names the harness-route diff'; do
   fresh
   drop_phrase skills/implement-story/SKILL.md "${case%%|*}"
   expect "ticket orchestrator step 3 without '${case%%|*}' fails" 1 "${case#*|}"
 done
-# step 4: with no check command a resolution lands for the story row's review (dev-2p5)
-fresh
-drop_phrase skills/implement-story/SKILL.md 'with no check command nothing runs, and the resolution lands for that review'
-expect "ticket orchestrator step 4 without its review-only resolution fails" 1 "missing: a review-only resolution lands for the story row's review"
 
 # the clean-worktree guard regaining --untracked-files=no fails (untracked files the check sees
 # but the tree lacks would pass a dirty worktree)
@@ -2125,7 +2109,6 @@ for case in "the story row of the rules doc's table|a story gate not naming its 
   'the standards axis is what entered since the ticket reviews: the conflict resolutions and the coherence across tickets|a story review without its standards axis|missing: the story review'"'"'s standards axis is what entered since the ticket reviews' \
   'A red or a blocking verdict goes to a fresh implementer by pointer brief and the loop starts over|a story red or blocking verdict not starting the loop over|missing: a red or a blocking verdict goes to a fresh fix-up and starts the loop over' \
   'the minors fix-up reruns the checks and spends no budget|a story gate whose minors fix-up is budgeted|missing: the minors fix-up reruns the checks and spends no budget' \
-  'with none the gate is review-only and takes no minors fix-up, so every minor goes to the inbox|a review-only story gate with a minors fix-up|missing: a review-only story gate sends every minor to the inbox' \
   'The budget is three fix-ups per story, red or blocking alike|a story gate without its one budget|missing: the story gate'"'"'s budget is three fix-ups, red or blocking' \
   'the fourth failure skips step 8 and goes to step 9|a story gate without its fourth-failure stall|missing: the story gate'"'"'s fourth failure skips delivery' \
   '(a review'"'"'s as `failed: review mattpocock-skills:code-review`)|a story gate without the review'"'"'s stall form|missing: the story gate'"'"'s stall line for a review' \
@@ -2240,14 +2223,14 @@ swap_phrase skills/implement-story/SKILL.md '^(> 3\. \*\*Check gate\*\*, every t
 expect "ticket orchestrator step 3 spawning the reviewer before the checks' green fails" 1 "present: ticket orchestrator step 3 spawns a reviewer ahead of the checks' green"
 
 fresh
-swap_phrase skills/implement-story/SKILL.md '^(> 3\. .*Green: a `low` ticket with a check command exits the loop, go to step 4; for `medium` and `high`, and for a `low` ticket with no check command, )spawn a \*\*reviewer\*\*' '\1hand the ticket to a **reviewer**'
+swap_phrase skills/implement-story/SKILL.md '^(> 3\. .*Green: a `low` ticket exits the loop, go to step 4; for `medium` and `high`, )spawn a \*\*reviewer\*\*' '\1hand the ticket to a **reviewer**'
 expect "ticket orchestrator step 3 whose green spawns no reviewer fails" 1 "missing: the check gate runs before step 3's reviewer"
 
 for case in "as the rules doc's Check gate says|a loop step not citing the rules doc's loop|missing: the loop step cites the rules doc's loop" \
   'A red spawns a fresh implementer on the fix-up and the loop starts over from the checks|a red not starting the loop over|missing: a red starts the loop over from the checks' \
   'and the loop starts over from the checks, never straight to the reviewer|a blocking verdict not starting over from the checks|missing: a blocking verdict starts the loop over from the checks' \
   '**Clean** exits the loop|a clean verdict not exiting the loop|missing: a clean verdict exits the loop' \
-  'Green: a `low` ticket with a check command exits the loop, go to step 4|a low ticket not exiting on green|missing: a low ticket with a check command exits the loop on green checks' \
+  'Green: a `low` ticket exits the loop, go to step 4|a low ticket not exiting on green|missing: a low ticket exits the loop on green checks' \
   'tail -n 40 <log>|a red read without a forty-line tail|missing: a red gate reads a forty-line tail' \
   '`bd -C <owner> note <ticket-id> "checks <round>: red <command>"`|a red without its note|missing: a red gate'"'"'s note form' \
   'a green writes no note|a green that may write a note|missing: a green gate writes no note' \

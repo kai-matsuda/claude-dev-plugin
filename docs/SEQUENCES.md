@@ -40,9 +40,9 @@ sequenceDiagram
             O->>BD: note the failing command and its log
             O->>F: fix-up by pointer brief
             F-->>O: report, the loop starts over from the checks
-        else checks green, the ticket row at low with a check command, no reviewer
+        else checks green, the ticket row at low, no reviewer
             Note over O: the loop exits on green
-        else checks green, or no check command (the gate review-only)
+        else checks green, any other row or tier
             O->>V: spawn the review, the row's axes (the epic row, the spec axis only)
             V-->>O: findings tagged blocking or minor, last line the verdict
             O->>BD: note the review with the verdict line
@@ -59,12 +59,12 @@ sequenceDiagram
     alt fourth failure, a red or a blocking verdict after the budget
         O-->>U: report failed with the reason
     else clean
-        opt minors in scope with a check command, never at the epic row
+        opt minors in scope, never at the epic row
             O->>F: one last fix-up for the minors (unreviewed, no budget spent)
             F-->>O: report
             O->>O: the tip moved, rerun the check command, the gate exits on the moved tip once green
         end
-        opt minors out of scope, every minor with no check command, and every minor at the epic row
+        opt minors out of scope, and every minor at the epic row
             O->>IN: capture a retro item (needs-triage), never to a bead of the story
         end
         alt ticket row
@@ -73,7 +73,7 @@ sequenceDiagram
             O->>O: merge onto the integration branch
             opt the merge conflicts
                 O->>F: an implementer in the ticket worktree merges the integration tip in
-                F-->>O: report, O runs the check command on the resolved tree (none when review-only, the story row reviews it), then fast-forwards
+                F-->>O: report, O runs the check command on the resolved tree, then fast-forwards
             end
             O->>BD: close the ticket's bead
         else story or epic row
