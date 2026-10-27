@@ -754,7 +754,7 @@ line_has "$row" "ticket row: the ticket orchestrator" '| ticket orchestrator |'
 line_has "$row" "ticket row: one implementer in a worktree" '| one implementer in a worktree |'
 line_has "$row" "ticket row: the ticket's body as spec" "| the ticket's body |"
 line_has "$row" "ticket row: the ticket diff as standards" '| the ticket diff |'
-line_has "$row" "ticket row: both axes at the review model, none at low" "| both axes, at the ticket's review model; none at \`low\` |"
+line_has "$row" "ticket row: both axes at the review model, none at low with a check command" "| both axes, at the ticket's review model; none at \`low\` with a check command |"
 line_has "$row" "ticket row: lands by merge under the lock after the stray-commit check" 'merge onto the integration branch under the lock, after the stray-commit check'
 line_has "$row" "ticket row: a fix-up by pointer brief, same worktree" '| an implementer by pointer brief, same worktree |'
 line_has "$row" "ticket row: three fix-ups" '| three fix-ups |'
@@ -824,6 +824,10 @@ para_has '**Check gate.**' "the reviewed tip noted on the story" 'records the re
 para_has '**Check gate.**' "the gate exits on the moved tip" 'the gate exits on the moved tip once its checks are green'
 para_has '**Check gate.**' "the reviewed-tip note names the moved tip" 'the reviewed-tip note on the story bead'
 para_has '**Check gate.**' "the ticket row writes no reviewed-tip note" 'the ticket row writes no such note'
+# a low ticket in a repo with no check command is reviewed, so no tier and no repo leaves a
+# ticket ungated (dev-5e4)
+para_has '**Check gate.**' "no ticket lands with neither a check nor a review" 'No ticket lands with neither a check nor a review (dev-5e4)'
+para_has '**Check gate.**' "a low ticket with no check command is reviewed" 'and the review at the `low` tier'"'"'s review model when it has none'
 # the fix-up budget is bounded per invocation at every row (dev-gi1): a fresh orchestrator at any
 # row starts its unit's budget at three whatever notes earlier invocations left, the epic
 # orchestrator counts a story's spent budget from the notes after this invocation's epic review 1,
@@ -1104,7 +1108,7 @@ hase "the brief opens on the ticket orchestrator" "$H"
 for pin in "your row is the ticket row of the rules doc's table|the brief names its row of the rules doc's table" \
   'you build with one implementer in a worktree|the row builds with one implementer in a worktree' \
   'check with the check command|the row checks with the check command' \
-  "review the ticket's body as the spec axis and the ticket diff as the standards axis, one tier up, none at \`low\`|the row reviews the ticket body and diff one tier up, none at low" \
+  "review the ticket's body as the spec axis and the ticket diff as the standards axis, one tier up, none at \`low\` with a check command|the row reviews the ticket body and diff one tier up, none at low with a check command" \
   'fix up by pointer brief in the same worktree|the row fixes up by pointer brief in the same worktree' \
   'land by merging onto `<branch>` under the lock after the stray-commit check|the row lands by merging under the lock after the stray-commit check' \
   'exit when the checks are green on the tip the review called clean|the row exits on green checks at the tip the review called clean' \
@@ -1132,6 +1136,7 @@ line_has "$G3" "a clean verdict exits the loop" '**Clean** exits the loop'
 line_hase "$G3" "the check gate runs before step 3's reviewer" '\*\*Check gate\*\*.*Green:.*for `medium` and `high`, spawn a \*\*reviewer\*\*'
 unchanged_file || ! grep -E "$G3" "$f" | sed 's/Green: .*//' | grep -qF -- 'spawn a **reviewer**' || bad "present: ticket orchestrator step 3 spawns a reviewer ahead of the checks' green"
 line_has "$G3" "a low ticket exits the loop on green checks" 'Green: a `low` ticket exits the loop, go to step 4'
+line_has "$G3" "a low ticket with no check command goes on to the reviewer" 'the gate is review-only, so a `low` ticket goes on to the reviewer as `medium` and `high` do (the rules doc'"'"'s Check gate)'
 line_has '^> 2\. ' "ticket orchestrator step 2's implementer runs no gate and spawns no one" 'The implementer runs no gate and spawns no one'
 # the check record (dev-9k5.1.7): keyed by the tree SHA under the owner checkout's .tmp/checks/,
 # written only by the ticket orchestrator, a tree with a record not checked again

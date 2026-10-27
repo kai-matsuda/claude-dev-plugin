@@ -40,7 +40,7 @@ sequenceDiagram
             O->>BD: note the failing command and its log
             O->>F: fix-up by pointer brief
             F-->>O: report, the loop starts over from the checks
-        else checks green, the ticket row at low, no reviewer
+        else checks green, the ticket row at low with a check command, no reviewer
             Note over O: the loop exits on green
         else checks green
             O->>V: spawn the review, the row's axes (the epic row, the spec axis only)

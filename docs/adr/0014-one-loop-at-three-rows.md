@@ -4,6 +4,9 @@ status: accepted
 
 > Supersedes ADR 0001 (two review tools, one tier up, at two stages).
 
+> Amended by dev-5e4 (2026-10-27): a `low` ticket in a repo with no check command is reviewed,
+> so no ticket lands with neither a check nor a review (`docs/agents/orchestration.md`, Check gate).
+
 # One loop at three rows, one check command, one review tool
 
 The orchestration had two check-and-review loops that were almost the same, a different
@@ -64,7 +67,8 @@ holds the table of each row's parameters; this ADR holds why the loop is one.
   a fix-up is a brief shape of the implementer.
 - A repo with no `check` target gets a review-only gate, so adding the target is how a repo
   opts in to checks.
-- `low` tickets still have no review; their checks are the gate.
+- `low` tickets still have no review; their checks are the gate. Amended: with no check
+  command their gate is the review (see the note above).
 - The reviewer's blocking cases gain one: no test at a story seam exercises the unit's
   criteria. That is where TDD is enforced now that the gate does not run seams one by one.
 - Docs must never name the review skill bare, `code-review` with no namespace: four skills

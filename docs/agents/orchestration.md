@@ -22,7 +22,7 @@ human is not a row: a ready PR is theirs to merge.
 
 | Row | Orchestrator | Builds | Checks | Review spec axis | Review standards axis | Reviewer and model | Fix-up | Lands by | Exits when | Budget |
 |---|---|---|---|---|---|---|---|---|---|---|
-| **Ticket** | ticket orchestrator | one implementer in a worktree | the check command | the ticket's body | the ticket diff | both axes, at the ticket's review model; none at `low` | an implementer by pointer brief, same worktree | merge onto the integration branch under the lock, after the stray-commit check | the checks green on the tip the review called clean | three fix-ups |
+| **Ticket** | ticket orchestrator | one implementer in a worktree | the check command | the ticket's body | the ticket diff | both axes, at the ticket's review model; none at `low` with a check command | an implementer by pointer brief, same worktree | merge onto the integration branch under the lock, after the stray-commit check | the checks green on the tip the review called clean | three fix-ups |
 | **Story** | story orchestrator | ticket orchestrators in parallel over the frontier | the check command | the story's body | what entered since the last standards review: conflict resolutions, cross-ticket coherence and the story gate's fix-up commits | both axes, at the review model of the story's max tier | an implementer by pointer brief in a fix-up worktree | push, the PR staying a draft | the checks green on the tip the review called clean | three fix-ups |
 | **Epic** | epic orchestrator | story orchestrators in parallel over the frontier | the check command as the forge runs it | the Jira Epic's spec | none, the axis is skipped | the spec axis only, at the review model of the epic's max tier | findings filed as `ready-for-agent` tickets under the story, that story re-run in add mode | the PR marked ready, the human merges, then `/dev:close-story` and `/dev:close-epic` | the checks green on the tip the review called clean | three per story |
 
@@ -239,6 +239,8 @@ The story orchestrator records the reviewed tip in its notes, the reviewed-tip n
 clean and reviews only a tip that has moved past it; the ticket row writes no such note.
 On delivery it records the delivered tip and its check record, `delivered: <tip SHA> <check record>`,
 which the epic row reads as the story's delivered tip.
+No ticket lands with neither a check nor a review (dev-5e4): a `low` ticket's gate is the checks alone when its owner repo has a check command,
+and the review at the `low` tier's review model when it has none, the gate review-only at every tier.
 
 **Review verdict.** Every reviewer, at every row, tags every finding **blocking** or **minor** and ends its report on one verdict line. A
 finding is blocking when an acceptance criterion is unmet, a behaviour is wrong, a test is

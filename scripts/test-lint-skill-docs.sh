@@ -1792,7 +1792,7 @@ for case in "Ticket@| ticket orchestrator |@ticket row: the ticket orchestrator"
   "Ticket@| the check command |@Ticket row: the check command" \
   "Ticket@| the ticket's body |@ticket row: the ticket's body as spec" \
   "Ticket@| the ticket diff |@ticket row: the ticket diff as standards" \
-  "Ticket@; none at \`low\`@ticket row: both axes at the review model, none at low" \
+  "Ticket@; none at \`low\` with a check command@ticket row: both axes at the review model, none at low with a check command" \
   "Ticket@| an implementer by pointer brief, same worktree |@ticket row: a fix-up by pointer brief, same worktree" \
   "Ticket@merge onto the integration branch under the lock, after the stray-commit check@ticket row: lands by merge under the lock after the stray-commit check" \
   "Ticket@| three fix-ups |@ticket row: three fix-ups" \
@@ -1875,6 +1875,13 @@ for case in '**Review scope.**|review scoping rule' "The spec axis takes the row
   drop_phrase $orch "$phrase"
   sec=6 expect "orchestration doc without '$phrase' fails" 1 "${case#*|}"
 done
+# the Check gate's two lines on a low ticket's gate, each dropped whole (dev-5e4)
+for case in 'No ticket lands with neither a check nor a review|no ticket lands with neither a check nor a review' \
+  "and the review at the \`low\` tier's review model when it has none|a low ticket with no check command is reviewed"; do
+  fresh
+  drop_line $orch "${case%%|*}"
+  sec=6 expect "orchestration doc without the line '${case%%|*}' fails" 1 "${case#*|}"
+done
 # the Check gate naming the epic row as the budget's exception, seeded back
 fresh
 printf '\nThe epic row is the exception: it counts from notes.\n' >> "$scratch/$orch"
@@ -1938,7 +1945,7 @@ expect "harness doc regaining the story's-checks clause fails" 1 "present: the I
 for case in "your row is the ticket row of the rules doc's table|the brief names its row of the rules doc's table" \
   'you build with one implementer in a worktree|the row builds with one implementer in a worktree' \
   'check with the check command|the row checks with the check command' \
-  "review the ticket's body as the spec axis and the ticket diff as the standards axis, one tier up, none at \`low\`|the row reviews the ticket body and diff one tier up, none at low" \
+  "review the ticket's body as the spec axis and the ticket diff as the standards axis, one tier up, none at \`low\` with a check command|the row reviews the ticket body and diff one tier up, none at low with a check command" \
   'fix up by pointer brief in the same worktree|the row fixes up by pointer brief in the same worktree' \
   'land by merging onto `<branch>` under the lock after the stray-commit check|the row lands by merging under the lock after the stray-commit check' \
   'exit when the checks are green on the tip the review called clean|the row exits on green checks at the tip the review called clean' \
@@ -1980,6 +1987,7 @@ for case in '`git -C <worktree path> rev-parse HEAD^{tree}`|missing: the gate ke
   'a tree with a record is checked: read its exit and run nothing|missing: a tree with a check record is not checked again' \
   'mkdir -p <worktree path>/.tmp; mkdir -p <owner>/.tmp/checks/<tree>; export TMPDIR=<worktree path>/.tmp; make -C <worktree path> check > <owner>/.tmp/checks/<tree>/log 2>&1; echo "command=make check exit=$?" > <owner>/.tmp/checks/<tree>/record; cat <owner>/.tmp/checks/<tree>/record|missing: the gate writes the check record per tree' \
   'With no check command the checks are skipped and the gate is review-only|missing: no check command makes the gate review-only' \
+  'the gate is review-only, so a `low` ticket goes on to the reviewer as `medium` and `high` do (the rules doc'"'"'s Check gate)|missing: a low ticket with no check command goes on to the reviewer' \
   '`mattpocock-skills:code-review`|missing: the gate reviews with mattpocock-skills:code-review' \
   '`git -C <worktree path> diff <branch>...HEAD`|missing: the reviewer brief names the harness-route diff'; do
   fresh
