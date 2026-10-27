@@ -207,7 +207,7 @@ The one gate every row (ticket, story, epic) runs: the check command, then the r
 exits when the checks are green on the tip the review called clean. A red or a blocking
 verdict goes to a fresh implementer by pointer brief (at the epic row, to `ready-for-agent`
 tickets under the story) and the loop starts over, three such
-fix-ups per unit (per story at the epic row) and the fourth `failed`; a minors fix-up and
+fix-ups per unit (per story at the epic row) per invocation and the fourth `failed`; a minors fix-up and
 a conflict resolution move the tip, so the checks rerun, but no reviewer runs again and no
 budget is spent: the gate exits on the moved tip once its checks are green. The story
 orchestrator records that tip in the reviewed-tip note on the story bead
@@ -334,6 +334,16 @@ since a claim outlives its orchestrator and hides the ticket from `bd ready`; a 
 twice in a run is off that run's frontier though `bd ready` lists it. (The grilling skill uses the
 same word for askable questions; in this repo it means tickets.)
 _Avoid_: ready list, todo, backlog
+
+**Invocation**:
+One typed `/dev:implement-spec` or `/dev:implement-story`, from the command to its end
+state. It includes everything the command does before it reports: its re-polls of pending
+checks, and its continuation from the person's next message after a session limit cut it
+off. Every fix-up budget is bounded per invocation: three fix-ups per unit, and only a
+person typing the command again grants more. A later invocation reads what earlier ones
+left in the beads as history, never as spent budget, so a story whose epic review failed
+is reviewed again by every invocation until it is clean or a person closes its PR.
+_Avoid_: typed run, fresh run (and "attempt" for one invocation)
 
 **Human stop**:
 The end of a run of `/dev:implement-spec` or `/dev:implement-story` whose frontier is empty, with
