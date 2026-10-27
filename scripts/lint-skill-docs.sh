@@ -831,10 +831,10 @@ para_has '**Check gate.**' "the ticket row writes no reviewed-tip note" 'the tic
 para_has '**Check gate.**' "a fresh orchestrator starts its unit's budget at three" "starts its unit's budget at three whatever notes earlier invocations left"
 para_has '**Check gate.**' "the fresh budget holds at any row" 'A fresh orchestrator at any row'
 para_has '**Check gate.**' "a resumed agent keeps its own count" 'an agent resumed with its context keeps its own count'
-para_has '**Check gate.**' "neither row records spent fix-ups" 'neither row records spent fix-ups'
+para_has '**Check gate.**' "neither the ticket row nor the story row records spent fix-ups" 'neither the ticket row nor the story row records spent fix-ups'
 para_has '**Check gate.**' "the epic orchestrator counts from the notes after this invocation's epic review 1" "counts a story's spent budget from the story's \`epic fix-up\` notes after this invocation's \`epic review 1\` note"
 para_has '**Check gate.**' "the bound is per invocation, citing dev-l4j" 'bound a person wants is per invocation (dev-l4j)'
-lacks "present: the epic row named as the budget's exception" 'The epic row is the exception'
+lacks "the epic row named as the budget's exception" 'The epic row is the exception'
 para_has '**The epic row.**' "the epic row's checks are the forge's status on the PR tip" "the forge reports them green on the PR's tip"
 # the epic row settles its own red check and minors (dev-bwh): a red check is filed like a
 # blocking finding, a ticket under the story, and spends the budget; a clean verdict's minors
@@ -842,7 +842,7 @@ para_has '**The epic row.**' "the epic row's checks are the forge's status on th
 para_has '**The epic row.**' "a red check at the epic row is filed like a blocking verdict" 'On a blocking verdict or a red check'
 para_has '**The epic row.**' "the red check's ticket carries its check, command and log" 'carries its check, its command and its log pointer'
 para_has '**The epic row.**' "a red check spends the epic row's budget" 'three such fix-ups per story per invocation, red or blocking alike'
-para_has '**The epic row.**' "a pending check leaves the PR a draft" 'the PR stays a draft and a later run reads it again'
+para_has '**The epic row.**' "a pending check leaves the PR a draft" 'the PR stays a draft and a later invocation reads it again'
 para_has '**The epic row.**' "the epic row's minors take no last fix-up" 'minors take no last fix-up at this row'
 para_has '**The epic row.**' "the epic row's minors go to the inbox" 'the inbox as deferrals'
 para_has '**Review verdict.**' "the Review verdict sends the epic row's minors to the inbox" 'always to the inbox (The epic row, above)'

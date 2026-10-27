@@ -43,7 +43,7 @@ and the delivered tip's check record is the PR's Evidence. On a blocking verdict
 `ready-for-agent` tickets under the story, one per blocking finding, a red check being one
 finding that carries its check, its command and its log pointer, and re-runs that story's
 orchestrator in add mode; three such fix-ups per story per invocation, red or blocking alike. A pending
-check is neither: the PR stays a draft and a later run reads it again. A clean verdict's
+check is neither: the PR stays a draft and a later invocation reads it again. A clean verdict's
 minors take no last fix-up at this row, since the epic orchestrator implements nothing and
 its one fix-up is a ticket under the story, where no minor goes (Review verdict): they go to
 the inbox as deferrals, the tracker doc's "capture a retro item", and the PR is marked ready
@@ -229,9 +229,9 @@ one line, the same words at every row.
 A fresh orchestrator at any row starts its unit's budget at three whatever notes earlier invocations left,
 and an agent resumed with its context keeps its own count (Cut-off agents in `harness.md`).
 The epic orchestrator counts a story's spent budget from the story's `epic fix-up` notes after this invocation's `epic review 1` note (The epic row, above).
-The bound a person wants is per invocation (dev-l4j): a person who types `/dev:implement-spec` or `/dev:implement-story` again makes a deliberate new attempt,
+The bound a person wants is per invocation (dev-l4j): a person who types `/dev:implement-spec` or `/dev:implement-story` again starts a new invocation,
 and a replaced ticket orchestrator's ticket starts over from the integration branch tip,
-so neither row records spent fix-ups for a later invocation to count from.
+so neither the ticket row nor the story row records spent fix-ups for a later invocation to count from.
 A minors fix-up and a conflict resolution move the tip, so the checks rerun, but no reviewer
 runs again and no budget is spent: the gate exits on the moved tip once its checks are green.
 The story orchestrator records the reviewed tip in its notes, the reviewed-tip note on the story bead
@@ -330,7 +330,7 @@ closed. Re-evaluate the frontier after every close: a closed ticket may release 
 text blockers, and each newly released ticket goes to a ticket orchestrator at once.
 
 When nothing is in flight (ticket orchestrator, implementer, reviewer) and the frontier is
-empty, the run ends. It is a **human stop** if a `ready-for-human` ticket is open, or if a story
+empty, the invocation ends. It is a **human stop** if a `ready-for-human` ticket is open, or if a story
 is held only by text blockers naming finished stories (each with its `pr:` note, waiting on
 a merge and a `/dev:close-story`; `GLOSSARY.md`'s Human stop), and a **stall** otherwise. A
 human stop's report names the open ticket, and for each such blocker the blocking story,

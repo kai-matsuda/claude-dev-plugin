@@ -1801,7 +1801,7 @@ for case in '**Review scope.**|review scoping rule' "The spec axis takes the row
   "starts its unit's budget at three whatever notes earlier invocations left|a fresh orchestrator starts its unit's budget at three" \
   'A fresh orchestrator at any row|the fresh budget holds at any row' \
   'an agent resumed with its context keeps its own count|a resumed agent keeps its own count' \
-  'neither row records spent fix-ups|neither row records spent fix-ups' \
+  'neither the ticket row nor the story row records spent fix-ups|neither the ticket row nor the story row records spent fix-ups' \
   "counts a story's spent budget from the story's \`epic fix-up\` notes after this invocation's \`epic review 1\` note|the epic orchestrator counts from the notes after this invocation's epic review 1" \
   'bound a person wants is per invocation (dev-l4j)|the bound is per invocation, citing dev-l4j' \
   'at the epic row, three per story|the epic row budgets per story' \
@@ -1810,7 +1810,7 @@ for case in '**Review scope.**|review scoping rule' "The spec axis takes the row
   'On a blocking verdict or a red check|a red check at the epic row is filed like a blocking verdict' \
   "carries its check, its command and its log pointer|the red check's ticket carries its check, command and log" \
   "three such fix-ups per story per invocation, red or blocking alike|a red check spends the epic row's budget" \
-  'the PR stays a draft and a later run reads it again|a pending check leaves the PR a draft' \
+  'the PR stays a draft and a later invocation reads it again|a pending check leaves the PR a draft' \
   "minors take no last fix-up at this row|the epic row's minors take no last fix-up" \
   "the inbox as deferrals|the epic row's minors go to the inbox" \
   "always to the inbox (The epic row, above)|the Review verdict sends the epic row's minors to the inbox" \

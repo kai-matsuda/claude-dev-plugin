@@ -467,7 +467,7 @@ name goes on the same bead as `branch: <name>`. That makes it a **finished story
 PR or branch.
 
 The Jira side belongs to `/dev:implement-spec` alone; `/dev:implement-story` has no Jira step,
-whoever runs it. `/dev:implement-spec` does it once, in the first run that ends with every
+whoever runs it. `/dev:implement-spec` does it once, in the first invocation that ends with every
 story finished (`ready-for-human` tickets aside): `addCommentToJiraIssue` on the Jira
 epic listing every story's link once, with a one-paragraph summary, then
 `transitionJiraIssue` to the project's in-review state — an In-Progress-category status
