@@ -1794,6 +1794,11 @@ for case in '**Review scope.**|review scoping rule' "The spec axis takes the row
   'the gate exits on the moved tip once its checks are green|the gate exits on the moved tip' \
   'the reviewed-tip note on the story bead|the reviewed-tip note names the moved tip' \
   'the ticket row writes no such note|the ticket row writes no reviewed-tip note' \
+  "starts its unit's budget at three whatever notes earlier runs left|a fresh orchestrator starts its unit's budget at three" \
+  'A fresh orchestrator at the ticket or story row|the fresh budget holds at the ticket and story rows' \
+  'an agent resumed with its context keeps its own count|a resumed agent keeps its own count' \
+  'neither row records spent fix-ups|neither row records spent fix-ups' \
+  "story's budget from the story's \`epic fix-up\` notes|the epic row counts from its epic fix-up notes" \
   'at the epic row, three per story|the epic row budgets per story' \
   "the story gate's own fix-up commits|the story row's standards axis takes the gate's fix-up commits" \
   "the forge reports them green on the PR's tip|the epic row's checks are the forge's status on the PR tip" \

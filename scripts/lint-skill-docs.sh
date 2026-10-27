@@ -823,6 +823,14 @@ para_has '**Check gate.**' "the reviewed tip noted on the story" 'records the re
 para_has '**Check gate.**' "the gate exits on the moved tip" 'the gate exits on the moved tip once its checks are green'
 para_has '**Check gate.**' "the reviewed-tip note names the moved tip" 'the reviewed-tip note on the story bead'
 para_has '**Check gate.**' "the ticket row writes no reviewed-tip note" 'the ticket row writes no such note'
+# a fresh run's budget (dev-94a): a fresh ticket or story orchestrator starts at three whatever
+# earlier runs noted, a resumed agent keeps its own count, so neither row records spent fix-ups;
+# the epic row, which spans runs, counts from its epic fix-up notes
+para_has '**Check gate.**' "a fresh orchestrator starts its unit's budget at three" "starts its unit's budget at three whatever notes earlier runs left"
+para_has '**Check gate.**' "the fresh budget holds at the ticket and story rows" 'A fresh orchestrator at the ticket or story row'
+para_has '**Check gate.**' "a resumed agent keeps its own count" 'an agent resumed with its context keeps its own count'
+para_has '**Check gate.**' "neither row records spent fix-ups" 'neither row records spent fix-ups'
+para_has '**Check gate.**' "the epic row counts from its epic fix-up notes" "story's budget from the story's \`epic fix-up\` notes"
 para_has '**The epic row.**' "the epic row's checks are the forge's status on the PR tip" "the forge reports them green on the PR's tip"
 # the epic row settles its own red check and minors (dev-bwh): a red check is filed like a
 # blocking finding, a ticket under the story, and spends the budget; a clean verdict's minors
