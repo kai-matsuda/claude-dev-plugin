@@ -79,3 +79,4 @@ hasc	waiting rule pointer	the harness doc's Waiting
 has	review set: the last delivered: note names the current tip	its last `delivered:` note names its current tip
 has	the delivered: note's shape	delivered: <tip SHA> <check record>
 has	Stall names a story with no delivered: note	no delivered: note
+has	Done keeps a failed: line raised after delivery	a `failed:` line a story orchestrator raised after its `delivered:` note
