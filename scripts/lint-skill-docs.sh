@@ -386,6 +386,7 @@ lacks "glossary's avoided term human ticket" '(^|[^-])human ticket'
 # the epic row reviews and marks ready, but opening a PR stays the story orchestrator's
 lacks "PR-opening steps" 'draft PR|pr create|pulls create|open(s|ing)? (a|the) PR'
 lacks "a budget of blocking verdicts only" 'three blocking verdicts'
+lacks "a spent budget skipping the review" 'is failed and not reviewed again'
 lacks "nothing touches a ticket" 'nothing below touches a ticket'
 # dev-47z: the review set reads the delivered: note, not a failed: report this run
 lacks "review set keyed on a failed: report this run" 'did not report `failed:` this run'

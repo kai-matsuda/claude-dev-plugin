@@ -1494,6 +1494,10 @@ echo "three blocking verdicts are fixed up" >> "$spec"
 expect "implement-spec counting only blocking verdicts fails" 1 "a budget of blocking verdicts only" "$spec" "$scratch/docs/WORKFLOW.md"
 
 fresh_spec
+echo "one with three fix-ups is failed and not reviewed again" >> "$spec"
+expect "implement-spec skipping a spent budget fails" 1 "a spent budget skipping the review" "$spec" "$scratch/docs/WORKFLOW.md"
+
+fresh_spec
 echo "it enters the set when its orchestrator did not report \`failed:\` this run" >> "$spec"
 expect "implement-spec keying the review set on a failed: report fails" 1 "review set keyed on a failed: report this run" "$spec" "$scratch/docs/WORKFLOW.md"
 
