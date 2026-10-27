@@ -2,6 +2,11 @@
 status: accepted
 ---
 
+> Amended 2026-10-26 (dev-iyr, INFRA-33): the fixture tests no longer stay local. With
+> `0014-one-loop-at-three-rows.md`'s single check command, GitHub Actions calls `make check`,
+> which runs `make ci` and the fixture tests side by side; `make lint` is a deprecated alias
+> of `make check`. The last consequence below describes the setup before that change.
+
 # The feature workflow ships as a Claude Code plugin, not as dotfiles
 
 The feature workflow lived in the chezmoi source of `vangogh500/dotfiles` and reached a machine with `make apply`.
