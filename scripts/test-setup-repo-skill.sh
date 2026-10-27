@@ -24,6 +24,8 @@ step() { awk -v n="$2" '$0 ~ "^" n "\\. \\*\\*"{p=1; print; next} /^[0-9]+\. \*\
 # the convention, and the skill names `make check` as the repo's check command with the
 # review-only fallback. It names no lint-command alternative.
 pin_explore_makefile() { step "$1" 2 | grep -q 'GNUmakefile' && step "$1" 2 | grep -q '`check` target'; }
+# it asks make's database, never a grep of the Makefile (dev-b3p); test-check-target.sh runs the query
+pin_explore_make_db() { step "$1" 2 | grep -q 'never grep a Makefile: `make -pRrq :'; }
 pin_explore_claude_note() { step "$1" 2 | grep -q '`make check` note'; }
 pin_present_recipe() { step "$1" 3 | grep -q '`check` target'; }
 pin_present_note() { step "$1" 3 | grep -q 'CLAUDE.md'; }
@@ -43,6 +45,7 @@ pin_no_lint_alt() { ! grep -qi 'lint command\|make lint' "$1"; }
 # name | pin | regex of the lines the pin rests on (the drop-line case removes them)
 pins=(
   "explore step reads the Makefile check target|pin_explore_makefile|GNUmakefile"
+  "explore step asks make's database for the check target|pin_explore_make_db|never grep a Makefile"
   "explore step reads the CLAUDE.md check note|pin_explore_claude_note|make check. note"
   "present step names the proposed check recipe|pin_present_recipe|check. target"
   "present step names the CLAUDE.md note when no Makefile|pin_present_note|CLAUDE.md"

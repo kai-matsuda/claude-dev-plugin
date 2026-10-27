@@ -1142,10 +1142,11 @@ line_has "$C" "the check command by Makefile convention" '`make check` when `<ow
 line_has "$C" "the run's check command goes in every brief's header" 'every ticket orchestrator brief carries it in its header'
 # the check target comes from make's own database, never a grep of the Makefile, which missed
 # GNUmakefile, makefile, included files and multi-target rules and took check:= for a target
-# (dev-de4); scripts/test-check-target.sh runs the pinned query on scratch repos
+# (dev-de4), or a .PHONY: check with no rule (dev-b3p); scripts/test-check-target.sh runs the
+# pinned query on scratch repos
 line_has "$C" "step 3 asks make for the check target" 'Ask make which, never grep a Makefile'
-line_has "$C" "step 3 reads the check target from make's database" '`make -C <owner> -pRrq : 2>/dev/null | awk '"'"'/^# Not a target:/{n=1;next} /^check:([^=]|$)/&&!n{f=1} {n=0} END{exit !f}'"'"'`'
-line_has "$C" "a missing Makefile reads as no check command" 'a missing Makefile prints no database and exits 1, so both read as no check command'
+line_has "$C" "step 3 reads the check target from make's database" '`make -C <owner> -pRrq : 2>/dev/null | awk '"'"'/^# Not a target:/{n=1;next} /^check::?([^=:]|$)/&&!n{c=1; if (/^check::? *[^ :]/) f=1} c&&/^#  (commands|recipe) to execute/{f=1} /^$/{c=0} {n=0} END{exit !f}'"'"'`'
+line_has "$C" "a missing Makefile reads as no check command" 'a missing Makefile prints no database and exits 1, so all three read as no check command'
 lacks "the retired grep for the check target" "grep -q .\\^check:"
 lacks "the retired lint-command resolution" 'resolve the owner repo.s \*\*lint command\*\*|`make lint` when `<owner>`.s makefile has a `lint` target'
 lacksf "the retired lint placeholder" '`<lint>`'

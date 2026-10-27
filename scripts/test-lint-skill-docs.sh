@@ -1996,7 +1996,7 @@ for case in 'The harness mechanics are in `<plugin root>/docs/agents/harness.md`
   'every ticket orchestrator brief carries it in its header|missing: the run'"'"'s check command goes in every brief'"'"'s header' \
   'Ask make which, never grep a Makefile|missing: step 3 asks make for the check target' \
   '`make -C <owner> -pRrq : 2>/dev/null|missing: step 3 reads the check target from make'"'"'s database' \
-  'a missing Makefile prints no database and exits 1, so both read as no check command|missing: a missing Makefile reads as no check command'; do
+  'a missing Makefile prints no database and exits 1, so all three read as no check command|missing: a missing Makefile reads as no check command'; do
   fresh
   drop_phrase skills/implement-story/SKILL.md "${case%%|*}"
   expect "implement-story without '${case%%|*}' fails" 1 "${case#*|}"

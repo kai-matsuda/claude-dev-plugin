@@ -24,7 +24,13 @@ in step 4.
    and, if `.beads/` is missing, `git status --porcelain`,
    because `bd init` commits and the later `git rm -r` and amend must not sweep up the
    owner's staged or modified files. Ask the owner for the Jira project key when the repo
-   has none (a short uppercase key, such as `INFRA`).
+   has none (a short uppercase key, such as `INFRA`). Ask make whether there is a `check`
+   target, never grep a Makefile: `make -pRrq : 2>/dev/null | awk '/^# Not a target:/{n=1;next} /^check::?([^=:]|$)/&&!n{c=1; if (/^check::? *[^ :]/) f=1} c&&/^#  (commands|recipe) to execute/{f=1} /^$/{c=0} {n=0} END{exit !f}'`
+   prints GNU make's database without running the `check` recipe and exits 0 when there is a
+   `check` target with prerequisites or a recipe. It is the query `/dev:implement-story` step
+   3 resolves its check command with: it finds a `check` target in an included file or as one
+   of several targets in a rule, and takes neither a `check:=` variable, a `check` named only
+   in `.PHONY` nor a missing Makefile for one.
 3. **Present.** List what each write below would do and what is already in place and left
    alone. If `bd init` will run, say it makes a commit and that the pruning amends it, and
    name any staged or modified files from the explore step: stop, or ask the owner to
