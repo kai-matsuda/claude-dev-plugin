@@ -19,6 +19,14 @@
 # verdicts are read and tallied with builtins. Every case but the baseline lints with
 # LINT_UNCHANGED listing its files still byte-identical to the pristine tree, whose queued checks
 # the baseline shows pass, so a run checks only what its case seeded.
+# No wait in the pool is unbounded (dev-1ef): each lint run (under perl, which macOS and the
+# ubuntu runner ship) is killed, its whole process group, after LINT_CASE_TIMEOUT seconds
+# (default 120) and its case fails naming the timeout; a case's slot token goes back from an
+# EXIT trap, so a case that dies early, short of a SIGKILL, still frees its slot; and a wait for
+# a slot, or for every slot at the end, gives up after the case timeout plus 30 seconds, failing
+# the run with the cases still holding one. For checking those bounds by hand,
+# LINT_TEST_SEED=hang:<n> (case n's lint never returns) or drop:<n> (case n keeps its token)
+# seeds a stall; no target runs them.
 # Usage: scripts/test-lint-skill-docs.sh
 set -uo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
@@ -33,7 +41,26 @@ njobs=0 shown=0 nl=$'\n'
 # a rolling pool of one run per CPU: a case takes a slot token from this FIFO before it starts
 # and puts it back when it ends (bash 3.2 has no wait -n to wait on any one job)
 mkfifo "$jobs/slots" && exec 3<>"$jobs/slots" || exit 1
-for _ in $(seq "$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)"); do printf x >&3; done
+# slots_put <n>: puts n tokens in the pool
+slots_put() { local i; for ((i = 0; i < $1; i++)); do printf x >&3; done; }
+nslots=$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)
+slots_put "$nslots"
+case_timeout=${LINT_CASE_TIMEOUT:-120}
+# a slot frees within a case timeout of being taken, plus the case's setup and judging, which
+# the 30 seconds over it leave room for; a longer wait means a case hung outside its lint run
+# or a token is lost
+slot_timeout=$((case_timeout + 30))
+case_desc=()   # each case's description by number, for a stall to name the cases holding a slot
+# bounded <seconds> <command...>: runs the command in its own process group and kills the group
+# after <seconds>, exiting 124 then, or else with the command's own exit code; an INT or TERM
+# to it kills the group too, since the group is out of reach of the terminal's signals
+bounded() {
+  perl -e 'my $t = shift; my $pid = fork; defined $pid or exit 126;
+    if (!$pid) { setpgrp(0, 0); exec @ARGV or exit 127 }
+    setpgrp($pid, $pid); $SIG{ALRM} = sub { kill "KILL", -$pid; exit 124 }; alarm $t;
+    $SIG{$_} = sub { kill "KILL", -$pid; exit 130 } for qw(INT TERM);
+    waitpid $pid, 0; exit($? & 127 ? 128 + ($? & 127) : $? >> 8)' "$@"
+}
 
 # the stand-in for the installed plugin: every name the tree's /commands resolve to, and the
 # ones the cases below name; listed once, since every fresh copy holds the same tree
@@ -103,17 +130,21 @@ fresh() {
 # run the lint against the scratch copy, sealed to it; prints its output, then the exit code on
 # a last line. Extra arguments replace the lint's own ($1 implement-spec skill, $2 runbook).
 lint_scratch() {
-  local out rc
+  local out rc cmd
   [ $# -gt 0 ] || set -- "" "$scratch/docs/WORKFLOW.md"
   # diff_base is the lint's VERSION_BUMP_BASE: HEAD by default (an empty diff), a ref to diff
   # against, or the word "derive", which leaves it unset so the lint derives the merge-base
   if [ "${diff_base:-HEAD}" = derive ]; then unset VERSION_BUMP_BASE
   else export VERSION_BUMP_BASE=${diff_base:-HEAD}; fi
+  # a seeded hang swaps in a lint that never returns
+  cmd=("$lint")
+  [ "${LINT_TEST_SEED:-}" != "hang:$njobs" ] || cmd=(/bin/sh -c 'sleep 86400' sh)
   out=$(SKILLS_DIR=${skills_dir:-$scratch/skills} AGENT_DOCS=${agent_docs:-$scratch/docs/agents} DOCS_DIR=$scratch/docs \
     USER_CLAUDE_MD=${claude_md:-$scratch/CLAUDE.md} GLOSSARY_MD=${glossary_md:-$scratch/GLOSSARY.md} \
     PLUGIN_SKILLS=$scratch/plugin VERSION_BUMP_REPO=${bump_repo_dir:-$scratch/no-repo} \
-    LINT_UNCHANGED=${unchanged_list:-} "$lint" "$@" 2>&1)
+    LINT_UNCHANGED=${unchanged_list:-} bounded "$case_timeout" "${cmd[@]}" "$@" 2>&1)
   rc=$?
+  [ "$rc" != 124 ] || out+="${out:+$nl}FAIL the lint run timed out after ${case_timeout}s"
   printf '%s\n%s\n' "$out" "$rc"
 }
 # the lines of messages $2 that output $1 lacks, "; "-joined, in $missing, with no process
@@ -151,10 +182,28 @@ judge() {
   echo "FAIL $1 ($why)"
   grep '^FAIL' <<<"$4" | head -5 | sed 's/^/       /'
 }
+# a wait for a slot outlasted $slot_timeout: print what has finished, then a FAIL naming each case
+# still holding a slot (one with no .freed marker), and end the run red
+pool_stall() { # <what was waiting>
+  local i held=
+  expect_flush
+  for ((i = 1; i <= njobs; i++)); do [ -e "$jobs/$i.freed" ] || held+="$nl       case $i: ${case_desc[i]}"; done
+  echo "FAIL $1: no slot came free in ${slot_timeout}s; holding a slot:${held:- no case, so a token was lost}"
+  kill $(jobs -p) 2>/dev/null   # each case's lint group, a grandchild, ends at its own bound
+  exit 1
+}
 # print the finished cases' lines in order, as far as they have finished, counting their FAILs;
-# with "all", wait for every case first
+# with "all", wait for every case first: take back every slot within one $slot_timeout, then
+# put them back
 expect_flush() {
-  [ "${1:-}" != all ] || wait
+  local i deadline=$((SECONDS + slot_timeout))
+  if [ "${1:-}" = all ]; then
+    for ((i = 0; i < nslots; i++)); do
+      read -t "$(( deadline > SECONDS ? deadline - SECONDS : 1 ))" -r -n 1 -u 3 _ || pool_stall "the wait for every case"
+    done
+    slots_put "$nslots"
+    wait
+  fi
   while [ "$shown" -lt "$njobs" ]; do
     if [ ! -f "$jobs/$((shown+1)).out" ]; then
       [ "${1:-}" = all ] || return 0
@@ -179,15 +228,17 @@ expect() {
   shift 3 2>/dev/null || shift $#
   if [ -n "${bump_repo_dir:-}" ]; then
     expect_flush all
-    njobs=$((njobs+1))
+    njobs=$((njobs+1)) case_desc[njobs]=$d
+    : > "$jobs/$njobs.freed"   # it runs here and takes no slot
     judge "$d" "$want" "$msg" "$(lint_scratch "$@")" > "$jobs/$njobs.out"
     expect_flush all
     return
   fi
-  njobs=$((njobs+1)) dir=$jobs/$njobs
+  njobs=$((njobs+1)) dir=$jobs/$njobs case_desc[njobs]=$d
   # fresh builds a tree for one expect: a second one on it would lint an empty dir
   if [ "$handed" = 1 ]; then
     echo "FAIL $d (no fresh since the previous expect)" > "$dir.out"
+    : > "$dir.freed"
     expect_flush
     return
   fi
@@ -196,8 +247,12 @@ expect() {
   scratch_entries
   mv ${entries[@]+"${entries[@]}"} "$dir/"   # the tree moves, nothing is copied
   for a in "$@"; do a=${a//"$scratch"/"$dir"}; args+=("$a"); done
-  read -r -n 1 -u 3 _   # wait for a free slot
+  read -t "$slot_timeout" -r -n 1 -u 3 _ || pool_stall "case $njobs ($d)"   # wait for a free slot
   (
+    # the token goes back however the case ends (a seeded drop keeps it), then the .freed marker
+    # says so; a case that died before its verdict gets one
+    trap '[ -e "$dir.out" ] || echo "FAIL $d (its run died before judging it)" > "$dir.out"
+      [ "${LINT_TEST_SEED:-}" = "drop:$njobs" ] || { printf x >&3; : > "$dir.freed"; }' EXIT
     for v in skills_dir agent_docs claude_md glossary_md; do
       [ -z "${!v:-}" ] || eval "$v=\${$v//\"\$scratch\"/\"\$dir\"}"
     done
@@ -220,7 +275,6 @@ expect() {
     rm -rf "${dir:?}" "${dir:?}.same" "${dir:?}.roles"   # the case's tree goes here, off the parent's path
     # the .out appears whole or not at all, so expect_flush never prints half a verdict
     mv "$dir.part" "$dir.out"
-    printf x >&3
   ) &
   expect_flush
 }
