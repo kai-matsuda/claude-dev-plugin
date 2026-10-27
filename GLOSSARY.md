@@ -184,7 +184,8 @@ _Avoid_: merge check, PR check, seal check
 **Check command**:
 The one command an owner repo's check runs: `make check` when its Makefile has a `check`
 target, otherwise none, and the check gate is review-only. Every row runs the same one,
-resolved by that convention alone (`docs/agents/orchestration.md`, "Review").
+resolved by that convention alone (`docs/agents/orchestration.md`, "Review"), once per
+story run by the story orchestrator, which hands it to each ticket orchestrator.
 _Avoid_: gate command, CI command, lint command
 
 **Check**:

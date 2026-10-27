@@ -1987,20 +1987,37 @@ for case in "your row is the ticket row of the rules doc's table|the brief names
   expect "ticket orchestrator brief without its row parameter '$phrase' fails" 1 "missing: ${case#*|} ($phrase"
 done
 
-for case in 'check command `make check` when `<owner>`'"'"'s Makefile has a `check` target, else none and the gate is review-only|missing: the brief'"'"'s check command by Makefile convention' \
-  'The harness mechanics are in `<plugin root>/docs/agents/harness.md`|missing: the brief cites the harness doc in one line' \
+for case in 'The harness mechanics are in `<plugin root>/docs/agents/harness.md`|missing: the brief cites the harness doc in one line' \
   'every brief you send cites it in one line|missing: every brief it sends cites the harness doc' \
-  'Ask make which, never grep a Makefile|missing: the brief asks make for the check target' \
-  '`make -C <owner> -pRrq : 2>/dev/null|missing: the brief reads the check target from make'"'"'s database' \
+  ', check command `<check command>`|missing: the brief'"'"'s header carries the run'"'"'s check command' \
+  'never resolve it yourself|missing: the brief never resolves the check command itself' \
+  '**once per run**|missing: the check command is resolved once per run' \
+  '`make check` when `<owner>`'"'"'s Makefile has a `check` target, else none and the gate is review-only|missing: the check command by Makefile convention' \
+  'every ticket orchestrator brief carries it in its header|missing: the run'"'"'s check command goes in every brief'"'"'s header' \
+  'Ask make which, never grep a Makefile|missing: step 3 asks make for the check target' \
+  '`make -C <owner> -pRrq : 2>/dev/null|missing: step 3 reads the check target from make'"'"'s database' \
   'a missing Makefile prints no database and exits 1, so both read as no check command|missing: a missing Makefile reads as no check command'; do
   fresh
   drop_phrase skills/implement-story/SKILL.md "${case%%|*}"
-  expect "ticket orchestrator brief without '${case%%|*}' fails" 1 "${case#*|}"
+  expect "implement-story without '${case%%|*}' fails" 1 "${case#*|}"
 done
 
 fresh
+swap_phrase skills/implement-story/SKILL.md '^   \*\*Check command\.\*\* Resolve' '   Resolve'
+expect "a step 3 without its check command paragraph fails" 1 "missing: step 3 resolves the check command"
+
+fresh
 swap_phrase skills/implement-story/SKILL.md 'Ask make which, never grep a Makefile' "grep -q '^check:' <owner>/Makefile tells which"
-expect "a brief that greps the Makefile for the check target fails" 1 "present: the retired grep for the check target"
+expect "a step 3 that greps the Makefile for the check target fails" 1 "present: the retired grep for the check target"
+
+# a brief that resolves the check command per ticket again fails, so parallel tickets share one gate (dev-yyu)
+fresh
+swap_phrase skills/implement-story/SKILL.md '^(> You are the \*\*ticket orchestrator\*\*.*)never resolve it yourself' '\1find it with `make -C <owner> -pRrq :`'
+expect "a brief that looks up the check target per ticket fails" 1 "present: the per-ticket check target lookup"
+
+fresh
+swap_phrase skills/implement-story/SKILL.md '^(> You are the \*\*ticket orchestrator\*\*.*)never resolve it yourself' '\1use `make check` when `<owner>`'"'"'s Makefile has a `check` target'
+expect "a brief that applies the Makefile convention per ticket fails" 1 "present: the per-ticket check command by Makefile convention"
 
 fresh
 swap_phrase skills/implement-story/SKILL.md '^> You are the \*\*ticket orchestrator\*\*' '> You are the ticket runner'

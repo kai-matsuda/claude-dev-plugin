@@ -209,7 +209,9 @@ model, fix-up at its implementation model.
 
 **Check command.** One command per owner repo: `make check` when its Makefile has a `check` target,
 otherwise none, and the gate is review-only, so a repo opts in by adding the target. Every
-row runs the same command; nothing else is a check. Test seams are not checks: no order
+row runs the same command; nothing else is a check. The story orchestrator resolves it once per
+run and hands it to each ticket orchestrator in its brief, so the parallel tickets of one run
+share one gate (dev-yyu). Test seams are not checks: no order
 among them and no log per seam. A test seam stays the story's testing boundary, named in its
 body: the implementer's brief names the seams as where its tests go, and the reviewer's as
 where the unit's criteria must be exercised.

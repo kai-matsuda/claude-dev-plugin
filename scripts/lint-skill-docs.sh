@@ -1110,7 +1110,7 @@ done
 hase "ticket orchestrator step 3 points at the rules doc's Review verdict" "^> 3\. .*the rules doc's Review verdict"
 hase "the story review (step 7) points at the rules doc's Review verdict" "^7\. .*the rules doc's Review verdict"
 lacks "the zero-findings bar" 'not clean after three rounds|no findings at all|clean means zero findings'
-# the brief states its row of the rules doc's table, the check command by Makefile convention
+# the brief states its row of the rules doc's table, the run's check command in its header
 # (none: review-only) and cites the harness doc in one line; step 3's lint-command resolution,
 # the old brief's lint header and its step 2 lint list are retired (dev-9k5.1.7). Each row
 # parameter is its own pin, with its own description
@@ -1126,15 +1126,26 @@ for pin in "your row is the ticket row of the rules doc's table|the brief names 
   'three fix-ups|the row budgets three fix-ups'; do
   line_has "$H" "${pin#*|}" "${pin%%|*}"
 done
-line_has "$H" "the brief's check command by Makefile convention" 'check command `make check` when `<owner>`'"'"'s Makefile has a `check` target, else none and the gate is review-only'
 line_has "$H" "the brief cites the harness doc in one line" 'The harness mechanics are in `<plugin root>/docs/agents/harness.md`'
 line_has "$H" "every brief it sends cites the harness doc" 'every brief you send cites it in one line'
+# the story orchestrator resolves the check command once per run, in step 3, and the brief's header
+# carries it, so parallel tickets of one run share one gate even when a ticket adds a check target
+# mid-run; the brief never resolves it itself (dev-yyu)
+line_has "$H" "the brief's header carries the run's check command" 'integration branch `<branch>`, check command `<check command>`'
+line_has "$H" "the brief never resolves the check command itself" 'never resolve it yourself'
+line_lacks "$H" "the per-ticket check target lookup" 'make -C <owner> -pRrq'
+line_lacks "$H" "the per-ticket check command by Makefile convention" "Makefile has a \`check\` target"
+C='^   \*\*Check command\.\*\* Resolve'
+hase "step 3 resolves the check command" "$C"
+line_has "$C" "the check command is resolved once per run" 'Resolve the check command **once per run**'
+line_has "$C" "the check command by Makefile convention" '`make check` when `<owner>`'"'"'s Makefile has a `check` target, else none and the gate is review-only'
+line_has "$C" "the run's check command goes in every brief's header" 'every ticket orchestrator brief carries it in its header'
 # the check target comes from make's own database, never a grep of the Makefile, which missed
 # GNUmakefile, makefile, included files and multi-target rules and took check:= for a target
 # (dev-de4); scripts/test-check-target.sh runs the pinned query on scratch repos
-line_has "$H" "the brief asks make for the check target" 'Ask make which, never grep a Makefile'
-line_has "$H" "the brief reads the check target from make's database" '`make -C <owner> -pRrq : 2>/dev/null | awk '"'"'/^# Not a target:/{n=1;next} /^check:([^=]|$)/&&!n{f=1} {n=0} END{exit !f}'"'"'`'
-line_has "$H" "a missing Makefile reads as no check command" 'a missing Makefile prints no database and exits 1, so both read as no check command'
+line_has "$C" "step 3 asks make for the check target" 'Ask make which, never grep a Makefile'
+line_has "$C" "step 3 reads the check target from make's database" '`make -C <owner> -pRrq : 2>/dev/null | awk '"'"'/^# Not a target:/{n=1;next} /^check:([^=]|$)/&&!n{f=1} {n=0} END{exit !f}'"'"'`'
+line_has "$C" "a missing Makefile reads as no check command" 'a missing Makefile prints no database and exits 1, so both read as no check command'
 lacks "the retired grep for the check target" "grep -q .\\^check:"
 lacks "the retired lint-command resolution" 'resolve the owner repo.s \*\*lint command\*\*|`make lint` when `<owner>`.s makefile has a `lint` target'
 lacksf "the retired lint placeholder" '`<lint>`'
