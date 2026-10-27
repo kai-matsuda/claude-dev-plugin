@@ -1722,6 +1722,23 @@ fresh_spec
 echo 'Then the Evidence run checks the tip.' >> "$spec"
 sec=5 expect "implement-spec passed as \$1 with a retired phrase fails section 5" 1 "retired two-gate wording in $spec" "$spec" "$scratch/docs/WORKFLOW.md"
 
+# a rule that moved to harness.md, cited at the rules doc in either form, fails section 5 alone,
+# wrapped included; a rule the rules doc still holds, and the harness doc's citation, pass (dev-zra)
+for case in "skills/implement-story/SKILL.md|as the rules doc's Scratch space says (Literal paths)" \
+  "skills/sample/SKILL.md|the rules doc's Cut-off agents" \
+  "docs/agents/issue-tracker.md|see orchestration.md's TMPDIR rule" \
+  "docs/agents/triage-labels.md|(\`orchestration.md\`, Commits)" \
+  "skills/sample/SKILL.md|re-add it as the rules doc's fallback says" \
+  "docs/WORKFLOW.md|the rules doc's\nWorktrees"; do
+  fresh
+  printf '%b\n' "${case#*|}" >> "$scratch/${case%%|*}"
+  sec=5 expect "${case%%|*} citing '${case#*|}' fails section 5" 1 "a moved harness rule cited at the rules doc in $scratch/${case%%|*}"
+done
+fresh
+printf "%s\n" "the rules doc's Scratch space (Gitignore)" "the harness doc's Scratch space says (Literal paths)" \
+  "(\`orchestration.md\`, Trust rules, rule 2)" "the rules doc's Frontier (waiting tickets stay open)" >> "$scratch/skills/sample/SKILL.md"
+expect "the rules doc's own rule and the harness doc's citation pass section 5" 0
+
 # a semicolon ends a mermaid statement, so one inside a ```mermaid block fails; the same ';' in prose passes
 fresh
 printf '\n```mermaid\nsequenceDiagram\n    A->>B: one; two\n```\n' >> "$scratch/docs/SEQUENCES.md"

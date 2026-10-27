@@ -58,8 +58,9 @@
 #      none of the retired vocabulary (dev-9k5.1.11): the epic, ticket and landing roles, the
 #      built-in review by name, the two-review-tools paragraph, the review marker, the lint
 #      command and the test seams as checks (the glossary lists them under _Avoid_, docs/adr/
-#      keeps them through .glossary-allow). docs/specs keeps every list. No other section
-#      repeats a phrase this sweep covers, so a seeded one fails here alone;
+#      keeps them through .glossary-allow); and no rule that moved to harness.md cited at the
+#      rules doc (dev-zra). docs/specs keeps every list. No other section repeats a phrase this
+#      sweep covers, so a seeded one fails here alone;
 #   6. the shared rules: orchestration.md's working-directory preflight, and harness.md's
 #      waiting rule (an Agent call returns at once, the orchestrator ends its turn and the
 #      completion notification resumes it, never a Bash poll loop; pgrep is dead in the
@@ -733,6 +734,10 @@ retired_dag='one story per repo|feat/<key>-<n>|chains are out of scope|only text
 # the check and review loop's retired two-gate wording (dev-1xf.1.4): the Evidence run, the later
 # run that reviews a fix, the third-round wording and the second-red stall
 retired_loop='evidence run|a later run reviews the fix|a third round of either kind|a second red'
+# a rule that moved to harness.md (dev-9k5.1.2) cited at the rules doc, as "the rules doc's
+# Worktrees", "the rules doc's Scratch space says (Literal paths)" or "(`orchestration.md`,
+# Commits)"; the worktree fallback moved too, so the rules doc holds no fallback (dev-zra)
+moved_rule='(rules doc|orchestration\.md)(`?, |'\''s (([a-z-]+ ){1,3}says \(|scratch space \()?)(waiting|idle rule|commits|cut-off agents|worktrees|hand-rolled|fallback|literal paths|tmpdir|diff two files|python'\''s cache line|recursive deletes|shell commands)([^a-z]|$)'
 while IFS= read -r f; do
   lacksw "retired phrase in $f" "$retired"
   # no foreground spawn instruction: an Agent call returns at once whatever run_in_background
@@ -747,6 +752,7 @@ while IFS= read -r f; do
   lacksw "the retired review marker in $f" 'review markers?'
   lacksw "the retired lint command in $f" 'the lint command'
   lacksw "the retired test seams as checks in $f" 'test seams? as (the )?checks?'
+  lacksw "a moved harness rule cited at the rules doc in $f" "$moved_rule"
 done <<<"$swept"
 # the root glossary lists the retired vocabulary under _Avoid_ (and docs/adr/ keeps its
 # historical sense through .glossary-allow), so only the two-gate wording is swept there

@@ -123,7 +123,7 @@ repo already had `core.hooksPath` set, chain the old hook from the new one in
   prose, since git parses only a last paragraph made of trailer lines as trailers. A
   machine may enforce the mechanical parts with a commit-msg hook (a dotfiles-managed
   `commit-lint.sh`, when the machine has one); a commit it rejects is fixed and retried
-  (`orchestration.md`, Commits).
+  (`harness.md`, Commits).
 
 ## When a skill says "publish the spec to the issue tracker" (`/mattpocock-skills:to-spec`)
 
