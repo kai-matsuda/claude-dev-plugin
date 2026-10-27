@@ -16,7 +16,9 @@
 # own dir (one tree per expect: fresh builds it, expect takes it), one per CPU, and the results
 # print in case order. Every fresh and snapshot runs in this shell, one after another, so each
 # is one process: fresh is a cp of a pristine tree built once, the snapshot is a mv, and the
-# verdicts are read and tallied with builtins.
+# verdicts are read and tallied with builtins. Every case but the baseline lints with
+# LINT_UNCHANGED listing its files still byte-identical to the pristine tree, whose queued checks
+# the baseline shows pass, so a run checks only what its case seeded.
 # Usage: scripts/test-lint-skill-docs.sh
 set -uo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
@@ -44,6 +46,39 @@ cp -R "$repo_root/skills" "$repo_root/docs" "$repo_root/CLAUDE.md" "$repo_root/G
 cp -R "$fixtures/skills/sample" "$pristine/skills/"
 cp "$fixtures/agents/sample.md" "$pristine/docs/agents/"
 (cd "$pristine" && sort -u <<<"$plugin_names" | sed 's|^|plugin/|' | xargs mkdir -p)
+# tree_listing <tree>: every entry under <tree>, a dir as "D <path>", a file as its cksum line
+# ("<crc> <size> <path>"), anything else as "O <path>"
+tree_listing() {
+  find "$1" \( -type d -exec printf 'D %s\n' {} + \) -o \( -type f -exec cksum {} + \) -o -exec printf 'O %s\n' {} +
+}
+# the pristine tree's listing: a case lints with LINT_UNCHANGED naming what still matches it,
+# so the lint skips those files' checks, which the baseline case (run in full) shows pass, and
+# a case pays only for what it seeded
+tree_listing "$pristine" > "$jobs/pristine.list"
+# unchanged_files <tree>: the files under <tree> whose size and checksum match the pristine
+# copy's, then as "<path>/" the dirs whose layout does: the same paths under it, each of the
+# same kind (a file's content aside)
+unchanged_files() {
+  tree_listing "$1" | awk -v pre="$pristine/" -v dir="$1/" '
+    # sets K, the entry kind ("D", "O", or "F <crc> <size>"), and P, its path
+    function parse(line) {
+      K = substr(line, 1, 2)
+      if (K == "D " || K == "O ") { K = substr(K, 1, 1); P = substr(line, 3); return }
+      split(line, w, " "); K = "F " w[1] " " w[2]; P = line; sub(/^[^ ]+ [^ ]+ /, "", P)
+    }
+    # marks every dir above <r> as laid out anew
+    function off(r) { while (sub(/\/[^\/]*$/, "", r)) moved[r] = 1 }
+    NR == FNR { parse($0); r = substr(P, length(pre) + 1); if (r != "") ref[r] = K; next }
+    { parse($0); r = substr(P, length(dir) + 1); if (r != "") got[r] = K }
+    END {
+      for (r in ref) if (substr(got[r], 1, 1) != substr(ref[r], 1, 1)) off(r)
+      for (r in got) {
+        if (substr(got[r], 1, 1) != substr(ref[r], 1, 1)) { off(r); moved[r] = 1 }
+        else if (got[r] == ref[r] && got[r] ~ /^F/) print dir r
+      }
+      for (r in got) if (got[r] == "D" && !(r in moved)) print dir r "/"
+    }' "$jobs/pristine.list" -
+}
 # the scratch dir's top-level entries in $entries, dotfiles included and .jobs left out, with
 # no process: the sweep below and expect's move both start from it, so a dotfile a case writes
 # at the top level moves with the tree and never leaks into a later case
@@ -77,7 +112,7 @@ lint_scratch() {
   out=$(SKILLS_DIR=${skills_dir:-$scratch/skills} AGENT_DOCS=${agent_docs:-$scratch/docs/agents} DOCS_DIR=$scratch/docs \
     USER_CLAUDE_MD=${claude_md:-$scratch/CLAUDE.md} GLOSSARY_MD=${glossary_md:-$scratch/GLOSSARY.md} \
     PLUGIN_SKILLS=$scratch/plugin VERSION_BUMP_REPO=${bump_repo_dir:-$scratch/no-repo} \
-    "$lint" "$@" 2>&1)
+    LINT_UNCHANGED=${unchanged_list:-} "$lint" "$@" 2>&1)
   rc=$?
   printf '%s\n%s\n' "$out" "$rc"
 }
@@ -155,8 +190,22 @@ expect() {
       [ -z "${!v:-}" ] || eval "$v=\${$v//\"\$scratch\"/\"\$dir\"}"
     done
     msg=${msg//"$scratch"/"$dir"} scratch=$dir
+    # with $full set the case lints every file, as the baseline must
+    # the list vouches for a file only in the role the baseline linted it in, so every path the
+    # case hands the lint (an argument or an override) leaves it, with everything under it,
+    # unless it names the very path that role defaults to
+    if [ -z "${full:-}" ]; then
+      a1=${args[0]:-} a2=${args[1]:-}
+      [ "$a1" != "$dir/skills/implement-spec/SKILL.md" ] || a1=
+      [ "$a2" != "$dir/docs/WORKFLOW.md" ] || a2=
+      printf '%s\n' "$a1" "$a2" "${skills_dir:-}" "${agent_docs:-}" "${claude_md:-}" "${glossary_md:-}" > "$dir.roles"
+      unchanged_files "$dir" | awk 'NR == FNR { if ($0 != "") role[$0]; next }
+        { for (r in role) if ($0 == r || $0 == r "/" || index($0, r "/") == 1) next; print }' \
+        "$dir.roles" - > "$dir.same"
+      unchanged_list=$dir.same
+    fi
     judge "$d" "$want" "$msg" "$(lint_scratch ${args[@]+"${args[@]}"})" > "$dir.part" 2>&1
-    rm -rf "${dir:?}"   # the case's tree goes here, off the parent's path
+    rm -rf "${dir:?}" "${dir:?}.same" "${dir:?}.roles"   # the case's tree goes here, off the parent's path
     # the .out appears whole or not at all, so expect_flush never prints half a verdict
     mv "$dir.part" "$dir.out"
     printf x >&3
@@ -165,13 +214,17 @@ expect() {
 }
 
 fresh
-expect "baseline copy passes" 0
+full=1 expect "baseline copy passes" 0
 
 fresh
 expect "an explicit implement-spec path that does not exist fails" 1 "missing document: $scratch/nope.md" "$scratch/nope.md" "$scratch/docs/WORKFLOW.md"
 
 fresh
 expect "an explicit runbook path that does not exist fails" 1 "missing document: $scratch/nope.md" "" "$scratch/nope.md"
+
+# an unchanged doc handed in another doc's role is linted in that role, never skipped as unchanged
+fresh
+sec=1 expect "an unchanged skill passed as the implement-spec skill fails section 1" 1 "" "$scratch/skills/workflow/SKILL.md"
 
 for var in skills_dir agent_docs claude_md glossary_md; do
   fresh
@@ -340,6 +393,14 @@ fresh
 mkdir "$scratch/skills/old-guide"; mv "$scratch/skills/old-guide" "$scratch/skills/guide"
 echo "run /dev:guide" >> "$scratch/docs/agents/sample.md"
 expect "a /dev:<x> for a renamed skill's new name passes" 0
+# a skills or plugin dir laid out anew drops out of LINT_UNCHANGED, so the namespace rule rereads
+# the docs it lists, which name the skill byte for byte as before
+fresh
+mv "$scratch/skills/close-story" "$scratch/skills/close-story-old"
+expect "a renamed shipped skill fails the unchanged docs naming it" 1 "/dev:close-story names no skill"
+fresh
+rmdir "$scratch/plugin/grill-with-docs"
+expect "a dropped plugin skill fails the unchanged docs naming it" 1 "/mattpocock-skills:grill-with-docs names no skill"
 
 fresh
 mkdir -p "$scratch/skills/new-skill"; touch "$scratch/skills/new-skill/SKILL.md"
@@ -2098,6 +2159,21 @@ make_bump_repo() {
 }
 bump_repo() { fresh; make_bump_repo "$1" || { echo "FAIL make the throwaway repo"; exit 1; }; }
 bump_commit() { git -C "$bump_repo_dir" add -A; git -C "$bump_repo_dir" commit -q -m "$1"; }
+
+# LINT_UNCHANGED, which every case but the baseline lints with: a seeded failure in a file it
+# lists is skipped, while the same seed unlisted fails, as the retired-phrase cases show
+expect_flush all
+fresh
+echo "cut one" >> "$scratch/skills/sample/SKILL.md"
+printf '%s\n' "$scratch/skills/sample/SKILL.md" > "$jobs/unchanged"
+fx_check "a seeded file LINT_UNCHANGED lists is not checked" \
+  eval 'result_is 0 "" "$(unchanged_list=$jobs/unchanged lint_scratch)"'
+# an empty list skips nothing, the sweeps over many files included
+fresh
+printf '```mermaid\nA->>B: one; two\n```\n' >> "$scratch/docs/agents/sample.md"
+: > "$jobs/unchanged"
+fx_check "an empty LINT_UNCHANGED skips no sweep" \
+  eval 'result_is 1 "semicolon in a mermaid block" "$(unchanged_list=$jobs/unchanged lint_scratch)"'
 
 # a failed init commits nothing, here or in the enclosing checkout
 expect_flush all

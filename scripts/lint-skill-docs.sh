@@ -172,6 +172,13 @@
 # needs a changed version in .claude-plugin/plugin.json. VERSION_BUMP_REPO overrides the repo it
 # reads (default: the repo root); VERSION_BUMP_BASE overrides the diff base (default: the
 # merge-base with origin/HEAD, else origin/main).
+# LINT_UNCHANGED names a file listing paths, one per line, unchanged from a tree every check
+# passed on (the regression test's pristine copy): a file byte-identical to its copy there, or as
+# "<dir>/" a dir laid out as there (the same paths under it, each of the same kind). A check on
+# such a file is skipped wherever its verdict depends on nothing the list leaves out: that file
+# and its fixed pattern for most, plus the skills and plugin dirs' layout for the namespace
+# rule. The list vouches for a file only in the role it had there, so a caller leaves out every
+# path it passes as an argument or override. Unset, every check runs.
 set -u
 root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 fail=0
@@ -186,17 +193,38 @@ bad() { echo "FAIL: $*"; fail=1; }
 # section rather than one or two per check (the regression test runs the lint a few hundred
 # times, and its pool is CPU-bound).
 queue=
-has() { queue+="i	$f	$1	$2"$'\n'; }
-hasc() { queue+="c	$f	$1	$2"$'\n'; }
-hase() { queue+="e	$f	$1	$2"$'\n'; }
-lacks() { [ -f "$f" ] || return 0; queue+="x	$f	$1	$2"$'\n'; }
-lacksf() { [ -f "$f" ] || return 0; queue+="f	$f	$1	$2"$'\n'; }
-lackse() { [ -f "$f" ] || return 0; queue+="y	$f	$1	$2"$'\n'; }
-line_has() { queue+="a	$f	$2	$3	$1"$'\n'; }   # <anchor> <description> <phrase>
-line_hase() { queue+="A	$f	$2	$3	$1"$'\n'; }   # <anchor> <description> <pattern>
-line_lacks() { [ -f "$f" ] || return 0; queue+="X	$f	$2	$3	$1"$'\n'; }   # <anchor> <description> <phrase>
-para_has() { queue+="p	$f	$2	$3	$1"$'\n'; }   # <heading> <description> <phrase>
-opening_has() { queue+="o	$f	$1	$2"$'\n'; }
+unchanged=$'\n'
+[ -z "${LINT_UNCHANGED:-}" ] || unchanged+="$(<"$LINT_UNCHANGED")"$'\n'
+# unchanged_file: true when $f is a file LINT_UNCHANGED lists; a sweep skips such a file whole.
+# The last answer is kept: a section asks about one $f for check after check, and the match
+# against the whole list costs as much as the rest of the run
+unchanged_f=/ unchanged_rc=1
+unchanged_file() {
+  if [ "$f" != "$unchanged_f" ]; then
+    unchanged_f=$f unchanged_rc=1
+    case $unchanged in *$'\n'"$f"$'\n'*) unchanged_rc=0 ;; esac
+  fi
+  return $unchanged_rc
+}
+# drop_unchanged: stdin's paths, one per line, less the ones LINT_UNCHANGED lists, in one pass,
+# for a sweep over many files (where unchanged_file would match the list once per file)
+drop_unchanged() {
+  # -s: an empty list would leave NR == FNR true on stdin too, and the sweep would print nothing
+  if [ -s "${LINT_UNCHANGED:-}" ]; then awk 'NR == FNR { u[$0]; next } !($0 in u)' "$LINT_UNCHANGED" -; else cat; fi
+}
+# enqueue <check line>: queues it unless $f is a file LINT_UNCHANGED lists
+enqueue() { unchanged_file || queue+="$1"$'\n'; }
+has() { enqueue "i	$f	$1	$2"; }
+hasc() { enqueue "c	$f	$1	$2"; }
+hase() { enqueue "e	$f	$1	$2"; }
+lacks() { [ -f "$f" ] || return 0; enqueue "x	$f	$1	$2"; }
+lacksf() { [ -f "$f" ] || return 0; enqueue "f	$f	$1	$2"; }
+lackse() { [ -f "$f" ] || return 0; enqueue "y	$f	$1	$2"; }
+line_has() { enqueue "a	$f	$2	$3	$1"; }   # <anchor> <description> <phrase>
+line_hase() { enqueue "A	$f	$2	$3	$1"; }   # <anchor> <description> <pattern>
+line_lacks() { [ -f "$f" ] || return 0; enqueue "X	$f	$2	$3	$1"; }   # <anchor> <description> <phrase>
+para_has() { enqueue "p	$f	$2	$3	$1"; }   # <heading> <description> <phrase>
+opening_has() { enqueue "o	$f	$1	$2"; }
 # the roles and review tools the three-row restatement retired (INFRA-33), swept in section 5
 retired_row_names() {
   lacks "the retired driver role in $f" '(^|[^a-z])[Dd]rivers?([^a-z]|$)'
@@ -213,35 +241,61 @@ checks_run() {
   local out
   [ -n "$queue" ] || return 0
   out=$(printf '%s' "$queue" | LC_ALL=C awk -F '\t' '
-    { k[NR] = $1; d[NR] = $3; p[NR] = $4; lp[NR] = tolower($4); a[NR] = $5
+    BEGIN { meta = "^$.[]()*+?{}\\" }
+    { k[NR] = $1; f[NR] = $2; d[NR] = $3; p[NR] = $4; lp[NR] = tolower($4); a[NR] = $5
       if (!($2 in nat)) files[++nf] = $2
-      at[$2, ++nat[$2]] = NR }
+      at[$2, ++nat[$2]] = NR
+      # a lacks (-iE) pattern of plain words, or of alternatives of them, is matched with index
+      # rather than as a regex: cheap in every awk, where the regex is slow in gawk
+      if ($1 == "x") {
+        s = lp[NR]; gsub(/\\\./, "", s)
+        for (c = 1; c <= length(meta); c++) if (index(s, substr(meta, c, 1))) break
+        if (c > length(meta)) {
+          nw[NR] = split(lp[NR], w, "|")
+          for (q = 1; q <= nw[NR]; q++) { gsub(/\\\./, ".", w[q]); W[NR, q] = w[q] }
+        }
+      }
+      # the checks sharing a kind, pattern and anchor run back to back (below)
+      g = $1 SUBSEP $4 SUBSEP $5
+      if (!(g in gn)) gs[++ng] = g
+      G[g, ++gn[g]] = NR }
     END {
       for (j = 1; j <= nf; j++) {
-        fn = files[j]; ln = 0
-        while ((getline line < fn) > 0) {
-          ln++; low = tolower(line)
-          for (m = 1; m <= nat[fn]; m++) {
-            i = at[fn, m]; t = k[i]
-            if (t == "i") { if (index(low, lp[i])) hit[i] = 1 }
-            else if (t == "c") { if (index(line, p[i])) hit[i] = 1 }
-            else if (t == "e") { if (line ~ p[i]) hit[i] = 1 }
-            else if (t == "x") { if (low ~ lp[i] && ++hit[i] <= 3) shown[i] = shown[i] ln ":" line "\n" }
-            else if (t == "f") { if (index(low, lp[i]) && ++hit[i] <= 3) shown[i] = shown[i] ln ":" line "\n" }
-            else if (t == "y") { if (line ~ p[i] && ++hit[i] <= 3) shown[i] = shown[i] ln ":" line "\n" }
-            else if (t == "a" || t == "X") { if (line ~ a[i] && index(line, p[i])) hit[i] = 1 }
-            else if (t == "A") { if (line ~ a[i] && line ~ p[i]) hit[i] = 1 }
-            else if (t == "p") {
-              # the paragraph opens on its heading line and closes for good at the next empty line
-              if (!closed[i]) {
-                if (index(line, a[i]) == 1) on[i] = 1
-                if (on[i]) { if (line == "") closed[i] = 1; else if (index(low, lp[i])) hit[i] = 1 }
-              }
-            }
-            else if (t == "o") { if (index(line, "## ") == 1) closed[i] = 1; if (!closed[i] && index(line, p[i])) hit[i] = 1 }
+        fn = files[j]; n = 0
+        while ((getline line < fn) > 0) { n++; L[fn, n] = line; LO[fn, n] = tolower(line) }
+        close(fn); N[fn] = n
+      }
+      # each check scans its file start to end, stopping at its first hit (its third for a
+      # lacks), and the checks run grouped by pattern, so a dynamic regex is compiled once per
+      # pattern rather than once per line or per file (gawk caches only the last one at each
+      # match)
+      for (gi = 1; gi <= ng; gi++) for (gm = 1; gm <= gn[gs[gi]]; gm++) {
+        i = G[gs[gi], gm]; t = k[i]; fn = f[i]; n = N[fn]
+        if (nw[i]) {
+          for (ln = 1; ln <= n; ln++) {
+            for (q = 1; q <= nw[i]; q++) if (index(LO[fn, ln], W[i, q])) break
+            if (q <= nw[i]) { shown[i] = shown[i] ln ":" L[fn, ln] "\n"; if (++hit[i] == 3) break }
           }
+          continue
         }
-        close(fn)
+        on = 0
+        for (ln = 1; ln <= n; ln++) {
+          line = L[fn, ln]
+          if (t == "i") { if (index(LO[fn, ln], lp[i])) { hit[i] = 1; break } }
+          else if (t == "x") { if (LO[fn, ln] ~ lp[i]) { shown[i] = shown[i] ln ":" line "\n"; if (++hit[i] == 3) break } }
+          else if (t == "c") { if (index(line, p[i])) { hit[i] = 1; break } }
+          else if (t == "e") { if (line ~ p[i]) { hit[i] = 1; break } }
+          else if (t == "f") { if (index(LO[fn, ln], lp[i])) { shown[i] = shown[i] ln ":" line "\n"; if (++hit[i] == 3) break } }
+          else if (t == "y") { if (line ~ p[i]) { shown[i] = shown[i] ln ":" line "\n"; if (++hit[i] == 3) break } }
+          else if (t == "a" || t == "X") { if (index(line, p[i]) && line ~ a[i]) { hit[i] = 1; break } }
+          else if (t == "A") { if (line ~ a[i] && line ~ p[i]) { hit[i] = 1; break } }
+          else if (t == "p") {
+            # the paragraph opens on its heading line and closes for good at the next empty line
+            if (index(line, a[i]) == 1) on = 1
+            if (on) { if (line == "") break; if (index(LO[fn, ln], lp[i])) { hit[i] = 1; break } }
+          }
+          else if (t == "o") { if (index(line, "## ") == 1) break; if (index(line, p[i])) { hit[i] = 1; break } }
+        }
       }
       for (i = 1; i <= NR; i++) {
         t = k[i]
@@ -285,9 +339,11 @@ if doc 1 "/implement-spec epic orchestrator" "${1:-$skills/implement-spec/SKILL.
 lacks "worktree steps" 'worktree'
 # no merge steps; the one allowed use is the human stop naming "the PR to merge" for the user
 # (chezmoi-9v4.1.6), so that phrase is blanked before the scan
-merge_scan=$(sed 's/the PR to merge//gI' "$f")
-if grep -qi 'merge' <<<"$merge_scan"; then
-  bad "present: merge steps (merge)"; grep -ni 'merge' <<<"$merge_scan" | head -3
+if ! unchanged_file; then
+  merge_scan=$(sed 's/the PR to merge//gI' "$f")
+  if grep -qi 'merge' <<<"$merge_scan"; then
+    bad "present: merge steps (merge)"; grep -ni 'merge' <<<"$merge_scan" | head -3
+  fi
 fi
 has "story-closure blocker is open until closed" 'open until that story is closed'
 has "story-closure human stop line" 'the PR to merge and the /dev:close-story <story-id> to run'
@@ -414,7 +470,7 @@ hasc "flat path's review is the ticket review" 'the ticket review (switch'
 lacks "retired ticket gate name in the runbook" 'ticket gate'
 
 # flat /to-tickets appears only in the Variants section
-awk '/^## /{sec=$0} /\/mattpocock-skills:to-tickets/ && sec !~ /Variants/ {print NR": "$0; n=1} END{exit n}' "$f" >/dev/null \
+unchanged_file || awk '/^## /{sec=$0} /\/mattpocock-skills:to-tickets/ && sec !~ /Variants/ {print NR": "$0; n=1} END{exit n}' "$f" >/dev/null \
   || bad "/mattpocock-skills:to-tickets outside Variants"
 
 # stale wording
@@ -452,11 +508,11 @@ lacks "chain refusal in the runbook" 'refus[a-z]*[^|]{0,60}dependency chain|depe
 hase "/mattpocock-skills:pr named (Variants)" '/mattpocock-skills:pr([^a-z-]|$)'
 
 # /pr stays off the main line: the fenced flow block and stage 5
-awk '/^```/{fence=!fence; next} fence && /\/mattpocock-skills:pr([^a-z-]|$)/ {n=1} END{exit n}' "$f" || bad "/mattpocock-skills:pr in the fenced flow"
+unchanged_file || awk '/^```/{fence=!fence; next} fence && /\/mattpocock-skills:pr([^a-z-]|$)/ {n=1} END{exit n}' "$f" || bad "/mattpocock-skills:pr in the fenced flow"
 lackse "/mattpocock-skills:pr in stage 5" '^\| 5 .*/mattpocock-skills:pr([^a-z-]|$)'
 
 # the stage table stays one table (rows 1..8 contiguous)
-awk '/^\| 1 \|/{on=1} on && !/^\|/{bad=1} /^\| 8 \|/{on=0} END{exit bad}' "$f" || bad "stage table broken by a non-row line"
+unchanged_file || awk '/^\| 1 \|/{on=1} on && !/^\|/{bad=1} /^\| 8 \|/{on=0} END{exit bad}' "$f" || bad "stage table broken by a non-row line"
 
 fi
 
@@ -630,14 +686,18 @@ fi
 
 # ---- 5. agent docs and skills: retired phrases ----
 section "5. retired phrases: $agents, $skills"
+# every file under the agent docs and the skills (less those LINT_UNCHANGED lists), listed once
+# for the sweeps below, each of which reads them and then its own extra files
+swept=$(find "$agents" "$skills" -type f 2>/dev/null | sort | drop_unchanged)
 # whole words only ("shortcut one", "cut ones" pass); "re-cut one" is the spec's wording, not the retired name
 retired='(^|[^-A-Za-z0-9_])cut (one|two)([^-A-Za-z0-9_]|$)|<spec-slug>|story-cut\.md'
 # and no foreground spawn instruction: an Agent call returns at once whatever run_in_background
 # says, so skills and agent docs point at the waiting rule instead (chezmoi-p4q)
 while IFS= read -r f; do
+  unchanged_file && continue
   lacks "retired phrase in $f" "$retired"
   lacks "foreground spawn instruction in $f" 'run_in_background: false'
-done < <(find "$agents" "$skills" -type f 2>/dev/null | sort)
+done <<<"$swept"
 
 # two lists are retired everywhere a reader meets them, the four file kinds: the skills, the
 # agent docs, the project CLAUDE.md and the runbook (section 2's file).
@@ -648,37 +708,50 @@ walkup='nearest ancestor|walking up|walk up|one level up|the home repo included|
 # DAG), and the two-wave cap (now topological waves).
 retired_dag='one story per repo|feat/<key>-<n>|chains are out of scope|only text blocker|two waves suffice'
 while IFS= read -r f; do
+  unchanged_file && continue
   lacks "retired walk-up wording in $f" "$walkup"
   lacks "retired story-DAG wording in $f" "$retired_dag"
-done < <({ find "$agents" "$skills" -type f 2>/dev/null; echo "$user_claude_md"; echo "$runbook"; } | sort)
+done <<<"$swept
+$user_claude_md
+$runbook"
 # the check and review loop's retired two-gate wording (dev-1xf.1.4): the Evidence run, the later
 # run that reviews a fix, the third-round wording and the second-red stall are absent from every
 # file a reader meets, the four kinds above plus the root glossary and the sequence diagrams;
 # docs/specs keeps them, since a spec states the change it makes
 retired_loop='evidence run|a later run reviews the fix|a third round of either kind|a second red'
 while IFS= read -r f; do
+  unchanged_file && continue
   lacks "retired two-gate wording in $f" "$retired_loop"
-done < <({ find "$agents" "$skills" -type f 2>/dev/null; echo "$user_claude_md"; echo "$runbook"; echo "$glossary_md"; echo "$docs/SEQUENCES.md"; } | sort)
+done <<<"$swept
+$user_claude_md
+$runbook
+$glossary_md
+$docs/SEQUENCES.md"
 
 # the retired vocabulary (dev-9k5.1.11): the epic, ticket and landing roles, the built-in
 # review by name, the review marker, the lint command and the test seams as checks are absent from
 # the four file kinds and the sequence diagrams; the glossary lists them under _Avoid_, and
 # docs/adr/ keeps their historical sense through .glossary-allow, so neither is swept here
 while IFS= read -r f; do
+  unchanged_file && continue
   retired_row_names
   lacks "the retired review marker in $f" 'review markers?'
   lacks "the retired lint command in $f" 'the lint command'
   lacks "the retired test seams as checks in $f" 'test seams? as (the )?checks?'
-done < <({ find "$agents" "$skills" -type f 2>/dev/null; echo "$user_claude_md"; echo "$runbook"; echo "$docs/SEQUENCES.md"; } | sort)
+done <<<"$swept
+$user_claude_md
+$runbook
+$docs/SEQUENCES.md"
 
 # the docs ship in the plugin: no path into the old dotfiles deployment (~/.claude/docs,
 # ~/.claude/hooks) or the chezmoi source remains in any doc under docs/, the skills, the agent
 # docs, the project CLAUDE.md or the runbook, spelled ~/, $HOME/ or ${HOME}/ (INFRA-30)
 deployed='(~|\$HOME|\$\{HOME\})/(\.claude/docs|\.claude/hooks|\.local/share/chezmoi)'
 while IFS= read -r f; do
+  unchanged_file && continue
   lacks "dotfiles deployment path in $f" "$deployed"
 done < <({ find "$docs" -type f -name '*.md' 2>/dev/null; find "$agents" "$skills" -type f 2>/dev/null
-  echo "$user_claude_md"; echo "$runbook"; } | grep . | sort -u)
+  echo "$user_claude_md"; echo "$runbook"; } | grep . | sort -u | drop_unchanged)
 
 # ---- 6. shared rules the skills point at ----
 if doc 6 "orchestration rules" "$agents/orchestration.md"; then
@@ -1083,7 +1156,7 @@ line_has "$G3" "a red starts the loop over from the checks" 'A red spawns a fres
 line_has "$G3" "a blocking verdict starts the loop over from the checks, never straight to the reviewer" 'a blocking verdict spawns a fresh implementer on the fix-up and the loop starts over from the checks, never straight to the reviewer'
 line_has "$G3" "a clean verdict exits the loop" '**Clean** exits the loop'
 line_hase "$G3" "the check gate runs before step 3's reviewer" '\*\*Check gate\*\*.*Green:.*for `medium` and `high`, spawn a \*\*reviewer\*\*'
-grep -E "$G3" "$f" | sed 's/Green: .*//' | grep -qF -- 'spawn a **reviewer**' && bad "present: ticket orchestrator step 3 spawns a reviewer ahead of the checks' green"
+unchanged_file || ! grep -E "$G3" "$f" | sed 's/Green: .*//' | grep -qF -- 'spawn a **reviewer**' || bad "present: ticket orchestrator step 3 spawns a reviewer ahead of the checks' green"
 line_has "$G3" "a low ticket exits the loop on green checks" 'Green: a `low` ticket exits the loop, go to step 4'
 line_has '^> 2\. ' "ticket orchestrator step 2's implementer runs no gate and spawns no one" 'The implementer runs no gate and spawns no one'
 # the check record (dev-9k5.1.7): keyed by the tree SHA under the owner checkout's .tmp/checks/,
@@ -1175,7 +1248,7 @@ line_lacks "$G7" "the story gate's minors fix-up spending budget" "a minors-only
 lacksf "the retired Running the checks paragraph" '**Running the checks.**'
 lacks "the retired review marker" 'review marker'
 # on the first step 7 line, the checks come before the reviewed-tip compare and the review
-awk -v g='Each pass runs the checks first' -v m='the same SHA exits the gate' -v r='mattpocock-skills:code-review' \
+unchanged_file || awk -v g='Each pass runs the checks first' -v m='the same SHA exits the gate' -v r='mattpocock-skills:code-review' \
   '/^7\. / { i = index($0, g); k = index($0, m); j = index($0, r); ok = (i && k && j && i < k && k < j); seen = 1; exit } END { exit !(seen && ok) }' "$f" \
   || bad "missing: the story gate (step 7) runs the checks before the reviewed-tip compare and the two-axis review"
 line_has '^8\. ' "the deliver step leaves the PR a draft" 'The PR stays a draft'
@@ -1218,7 +1291,7 @@ for d in "$agents/issue-tracker.md" "$agents/orchestration.md"; do
   # read as one line, so a phrase wrapped across a line break is still caught; the chains
   # match is bounded so it cannot run across paragraphs
   for pat in 'only text blocker' 'chains[^.]{0,120}out of scope'; do
-    tr '\n' ' ' < "$f" | grep -qiE -- "$pat" && bad "present: retired story-DAG wording in $f ($pat)"
+    unchanged_file || ! tr '\n' ' ' < "$f" | grep -qiE -- "$pat" || bad "present: retired story-DAG wording in $f ($pat)"
   done
 done
 # a story held only by a story-closure blocker ends the run as a human stop naming the merge
@@ -1269,16 +1342,18 @@ fi
 plugin=${PLUGIN_SKILLS:-$(ls -d "$HOME"/.claude/plugins/cache/claude-plugins-official/mattpocock-skills/*/skills 2>/dev/null | sort -V | tail -1)}
 # the plugin's skill names, listed once per run: a skill dir sits at the plugin's skills level,
 # directly or under one category dir (engineering/tdd), and is not a subdirectory of another
-# skill (tdd/scripts)
-plugin_skills=
-if [ -d "$plugin" ]; then
+# skill (tdd/scripts); listed when the first mattpocock-skills: token is checked
+plugin_skills= plugin_listed=
+list_plugin_skills() {
+  plugin_listed=1
+  [ -d "$plugin" ] || return 0
   # one listing: the SKILL.md files that make a dir a skill ("S"), then the candidate dirs ("D")
   plugin_skills=$({ find "$plugin" -maxdepth 2 -name SKILL.md | sed 's/^/S /'
     find "$plugin" -mindepth 1 -maxdepth 2 -type d | sed 's/^/D /'; } 2>/dev/null | awk '
     { path = substr($0, 3) }
     /^S / { sub(/\/SKILL\.md$/, "", path); skill[path] = 1; next }
     { parent = path; sub(/\/[^\/]*$/, "", parent); if (!(parent in skill)) { sub(/.*\//, "", path); print path } }' | sort -u)
-fi
+}
 builtin=" model add-dir code-review plugin sandbox clear mcp help config tmp compact init permissions hooks resume agents bug context cost doctor exit login logout memory pr-comments review status statusline terminal-setup vim ide install-github-app release-notes rewind export usage theme output-style loop schedule security-review simplify run fewer-permission-prompts keybindings-help update-config claude-api "
 
 # the /command tokens of files $@, one "<file><tab><token>" line per distinct pair, in one awk
@@ -1293,6 +1368,7 @@ cmd_tokens() { # <file>...
   # LC_ALL=C: a multibyte char (arrow, em dash) next to a slash must not abort awk; an extractor
   # failure is the caller's to report, never swallowed by the sort
   out=$(LC_ALL=C awk -v q="'" '{
+    if (!index($0, "/")) next
     line = $0; inc = 0; i = 0
     # visit the slashes and backticks in order rather than every character: the regression
     # test runs this over every doc a few hundred times
@@ -1333,6 +1409,7 @@ cmds() { # <token>...
         if [ ! -d "$plugin" ]; then
           bad "/$tok cannot be resolved: plugin skills dir not found (${plugin:-unset}; install mattpocock-skills or set PLUGIN_SKILLS)"
         else
+          [ -n "$plugin_listed" ] || list_plugin_skills
           case $'\n'"$plugin_skills"$'\n' in
             *$'\n'"$name"$'\n'*) ;;
             *) bad "/$tok names no skill" ;;
@@ -1342,12 +1419,19 @@ cmds() { # <token>...
   done
 }
 section "11. namespace rule"
-scanned=()
+# a token's verdict reads its file and the layout of the skills and plugin dirs; with
+# LINT_UNCHANGED listing both dirs, a file it lists is skipped, as the queued checks skip it
+scanned=() trees_unchanged=1
+for given in "$skills" "$plugin"; do
+  case $unchanged in *$'\n'"$given/"$'\n'*) ;; *) trees_unchanged= ;; esac
+done
 while IFS= read -r f; do
   [ -f "$f" ] && scanned+=("$f")
 done < <({ find "$docs" "$agents" "$skills" -type f -name '*.md' 2>/dev/null
-  echo "$runbook"; echo "$user_claude_md"; echo "$glossary_md"; echo "${1:-}"; } | grep . | sort -u)
-pairs=$(cmd_tokens "${scanned[@]}") || bad "token extractor failed on ${scanned[*]}"
+  echo "$runbook"; echo "$user_claude_md"; echo "$glossary_md"; echo "${1:-}"; } | grep . | sort -u \
+  | if [ -n "$trees_unchanged" ]; then drop_unchanged; else cat; fi)
+pairs=
+[ "${#scanned[@]}" -eq 0 ] || pairs=$(cmd_tokens "${scanned[@]}") || bad "token extractor failed on ${scanned[*]}"
 while IFS=$'\t' read -r f tok; do
   [ -n "$tok" ] || continue
   case "$f" in "$docs/specs/"*) ;; *) cmds "$tok" ;; esac
@@ -1383,11 +1467,15 @@ fi
 # skill's own to resolve and passes.
 section "13. brief rule"
 # one awk over every skill doc, the quote state reset at each file's first line
-while IFS=$'\t' read -r f n line; do
+brief_files=()
+while IFS= read -r -d '' f; do
+  unchanged_file || brief_files+=("$f")
+done < <(find "$skills" -type f -name '*.md' -print0 2>/dev/null | sort -z)
+[ "${#brief_files[@]}" -eq 0 ] || while IFS=$'\t' read -r f n line; do
   bad "plugin-root variable in a brief in $f:$n (spell the plugin root literally; the rules doc's Plugin root rule): $line"
-done < <(find "$skills" -type f -name '*.md' -print0 2>/dev/null | sort -z | xargs -0 awk '
+done < <(awk '
   FNR == 1 {inq=0} /^[[:space:]]*>/ {inq=1} /^[[:space:]]*$/ {inq=0}
-  inq && /CLAUDE_PLUGIN_ROOT/ {print FILENAME "\t" FNR "\t" $0}' /dev/null)
+  inq && /CLAUDE_PLUGIN_ROOT/ {print FILENAME "\t" FNR "\t" $0}' "${brief_files[@]}")
 
 # version-bump rule: a change to what the plugin ships (skills, docs, hooks and the glossary,
 # less the specs under docs, which never reach an installed machine) needs a version change in
@@ -1432,11 +1520,20 @@ fi
 # and closes on the next fence line; every .md under the docs dir, the skills and the agent docs,
 # plus the project CLAUDE.md, the runbook and the root glossary, is read.
 section "15. mermaid blocks: no semicolon"
+mermaid_files=()
 while IFS= read -r f; do
-  [ -f "$f" ] || continue
-  hits=$(awk '/^[[:space:]]*```mermaid/ { inm = 1; next } inm && /^[[:space:]]*```/ { inm = 0 } inm && index($0, ";") { print FNR": "$0 }' "$f")
-  [ -z "$hits" ] || { bad "present: a semicolon in a mermaid block in $f (mermaid ends the statement there)"; printf '%s\n' "$hits" | head -3; }
-done < <({ find "$agents" "$skills" "$docs" -type f -name '*.md' 2>/dev/null; echo "$user_claude_md"; echo "$runbook"; echo "$glossary_md"; } | sort -u)
+  [ -f "$f" ] && mermaid_files+=("$f")
+done < <({ find "$agents" "$skills" "$docs" -type f -name '*.md' 2>/dev/null; echo "$user_claude_md"; echo "$runbook"; echo "$glossary_md"; } | sort -u | drop_unchanged)
+# one awk pass over every file, a FAIL line per file with its first three hits under it
+if [ "${#mermaid_files[@]}" -gt 0 ]; then
+  hits=$(awk 'FNR == 1 { inm = 0; c = 0 }
+    /^[[:space:]]*```mermaid/ { inm = 1; next } inm && /^[[:space:]]*```/ { inm = 0 }
+    inm && index($0, ";") {
+      if (++c == 1) printf "FAIL: present: a semicolon in a mermaid block in %s (mermaid ends the statement there)\n", FILENAME
+      if (c <= 3) print FNR": "$0
+    }' "${mermaid_files[@]}")
+  [ -z "$hits" ] || { printf '%s\n' "$hits"; fail=1; }
+fi
 
 checks_run
 [ "$fail" = 0 ] && echo "PASS"
