@@ -737,6 +737,16 @@ drop_phrase docs/WORKFLOW.md 'One review tool, three rows'
 echo 'see One review tool, three rows' >> "$scratch/docs/WORKFLOW.md"
 expect "one review tool paragraph pin is anchored on its line" 1 "the one review tool paragraph"
 
+# 4a's review of a low ticket with no check command, dropped from its row, and the
+# medium/high-only wording seeded back (dev-5e4)
+fresh
+drop_phrase docs/WORKFLOW.md 'for `medium` and `high`, and for `low` with no check command, a review one tier up'
+expect "runbook copy without 4a's low ticket review fails" 1 "4a reviews a low ticket with no check command"
+
+fresh
+echo 'the checks, then for `medium`/`high` a review one tier up' >> "$scratch/docs/WORKFLOW.md"
+expect "runbook copy limiting 4a's review to medium and high fails" 1 "4a's review limited to medium and high"
+
 # the ticket review of a low ticket with no check command, dropped, and the medium-and-high-only
 # wording seeded back (dev-5e4)
 fresh
@@ -770,7 +780,7 @@ expect "tracker doc without every ticket passing the check gate fails" 1 "every 
 # the review of a low ticket with no check command, dropped, and the medium-and-high-only wording
 # seeded back (dev-5e4)
 fresh
-drop_phrase docs/agents/issue-tracker.md 'a `low` ticket is reviewed only when its repo has no check command'
+drop_phrase docs/agents/issue-tracker.md 'a `low` ticket is reviewed only when its owner repo has no check command'
 expect "tracker doc without the low ticket's review fails" 1 "the tracker doc reviews a low ticket with no check command"
 
 fresh

@@ -428,6 +428,9 @@ hasc "argument paragraph" '**The argument.**'
 # ticket review; "ticket gate" is retired so "gate" means the checks in every doc (dev-cq0.1.3)
 line_has '^[|] 4b [|]' "flat path runs the checks before the review" "then the checks (the owner repo's check command), then \`/mattpocock-skills:code-review\`"
 line_has '^[|] 4a [|] `/dev:implement-spec`' "4a names the ticket orchestrators" '**ticket orchestrator**'
+# 4a's check gate reviews a low ticket with no check command (dev-5e4)
+line_has '^[|] 4a [|] `/dev:implement-spec`' "4a reviews a low ticket with no check command" 'for `medium` and `high`, and for `low` with no check command, a review one tier up'
+lacks "4a's review limited to medium and high" 'then for `medium`/`high` a review'
 hase "the one review tool paragraph" '^One review tool, three rows'
 # a low ticket is reviewed at the ticket only with no check command (dev-5e4)
 hasc "the runbook reviews a low ticket with no check command" 'for `medium` and `high` and for `low` with no check command'
@@ -904,11 +907,12 @@ hasc "the -C discipline" 'This section binds every session and subagent'
 hasc "the preflight stays in the rules doc" 'The working-directory preflight stays in `orchestration.md`'
 fi
 if doc 6 "tracker rules" "$agents/issue-tracker.md"; then
-# every ticket passes the check gate; only the review is medium/high (ADR 0014)
+# every ticket passes the check gate; the review is medium and high, and low with no check command
+# (ADR 0014, dev-5e4)
 lacks "medium and high tickets passing the check gate" '`medium` and `high` tickets pass the check gate'
 hasc "every ticket passes the check gate" 'every ticket passes the check gate'
 # a low ticket adds the review only with no check command (dev-5e4)
-hasc "the tracker doc reviews a low ticket with no check command" 'a `low` ticket is reviewed only when its repo has no check command'
+hasc "the tracker doc reviews a low ticket with no check command" 'a `low` ticket is reviewed only when its owner repo has no check command'
 lacks "the tracker doc's review limited to medium and high" 'only `medium` and `high` tickets add the review'
 # the one test of the session mode (ADR 0008), stated once, in the opening before any section
 for need in '`<home>` is the session'"'"'s repo' '`<home>/repos.yaml`' '**workspace session**' '**repo session**' 'the only owner'; do
