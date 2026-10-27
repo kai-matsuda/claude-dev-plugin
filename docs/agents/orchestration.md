@@ -42,7 +42,7 @@ agents' loop. There the checks are green when the forge reports them green on th
 and the delivered tip's check record is the PR's Evidence. On a blocking verdict or a red check the epic orchestrator cuts the findings itself into
 `ready-for-agent` tickets under the story, one per blocking finding, a red check being one
 finding that carries its check, its command and its log pointer, and re-runs that story's
-orchestrator in add mode; three such fix-ups per story, red or blocking alike. A pending
+orchestrator in add mode; three such fix-ups per story per invocation, red or blocking alike. A pending
 check is neither: the PR stays a draft and a later run reads it again. A clean verdict's
 minors take no last fix-up at this row, since the epic orchestrator implements nothing and
 its one fix-up is a ticket under the story, where no minor goes (Review verdict): they go to
@@ -226,13 +226,12 @@ A red or a blocking verdict goes to a fresh implementer by pointer brief and the
 (at the epic row, to `ready-for-agent` tickets under the story, The epic row above);
 three such fix-ups per unit (at the epic row, three per story), and the fourth is `failed`,
 one line, the same words at every row.
-A fresh orchestrator at the ticket or story row starts its unit's budget at three whatever notes earlier runs left,
+A fresh orchestrator at any row starts its unit's budget at three whatever notes earlier invocations left,
 and an agent resumed with its context keeps its own count (Cut-off agents in `harness.md`).
-A person who types `/dev:implement-spec` or `/dev:implement-story` again makes a deliberate new attempt,
+The epic orchestrator counts a story's spent budget from the story's `epic fix-up` notes after this invocation's `epic review 1` note (The epic row, above).
+The bound a person wants is per invocation (dev-l4j): a person who types `/dev:implement-spec` or `/dev:implement-story` again makes a deliberate new attempt,
 and a replaced ticket orchestrator's ticket starts over from the integration branch tip,
-so neither row records spent fix-ups for a later run to count from.
-The epic row is the exception: it spans runs while its PRs wait on their checks, so it counts each
-story's budget from the story's `epic fix-up` notes (The epic row, above).
+so neither row records spent fix-ups for a later invocation to count from.
 A minors fix-up and a conflict resolution move the tip, so the checks rerun, but no reviewer
 runs again and no budget is spent: the gate exits on the moved tip once its checks are green.
 The story orchestrator records the reviewed tip in its notes, the reviewed-tip note on the story bead

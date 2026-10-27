@@ -1798,17 +1798,18 @@ for case in '**Review scope.**|review scoping rule' "The spec axis takes the row
   'the gate exits on the moved tip once its checks are green|the gate exits on the moved tip' \
   'the reviewed-tip note on the story bead|the reviewed-tip note names the moved tip' \
   'the ticket row writes no such note|the ticket row writes no reviewed-tip note' \
-  "starts its unit's budget at three whatever notes earlier runs left|a fresh orchestrator starts its unit's budget at three" \
-  'A fresh orchestrator at the ticket or story row|the fresh budget holds at the ticket and story rows' \
+  "starts its unit's budget at three whatever notes earlier invocations left|a fresh orchestrator starts its unit's budget at three" \
+  'A fresh orchestrator at any row|the fresh budget holds at any row' \
   'an agent resumed with its context keeps its own count|a resumed agent keeps its own count' \
   'neither row records spent fix-ups|neither row records spent fix-ups' \
-  "story's budget from the story's \`epic fix-up\` notes|the epic row counts from its epic fix-up notes" \
+  "counts a story's spent budget from the story's \`epic fix-up\` notes after this invocation's \`epic review 1\` note|the epic orchestrator counts from the notes after this invocation's epic review 1" \
+  'bound a person wants is per invocation (dev-l4j)|the bound is per invocation, citing dev-l4j' \
   'at the epic row, three per story|the epic row budgets per story' \
   "the story gate's own fix-up commits|the story row's standards axis takes the gate's fix-up commits" \
   "the forge reports them green on the PR's tip|the epic row's checks are the forge's status on the PR tip" \
   'On a blocking verdict or a red check|a red check at the epic row is filed like a blocking verdict' \
   "carries its check, its command and its log pointer|the red check's ticket carries its check, command and log" \
-  "three such fix-ups per story, red or blocking alike|a red check spends the epic row's budget" \
+  "three such fix-ups per story per invocation, red or blocking alike|a red check spends the epic row's budget" \
   'the PR stays a draft and a later run reads it again|a pending check leaves the PR a draft' \
   "minors take no last fix-up at this row|the epic row's minors take no last fix-up" \
   "the inbox as deferrals|the epic row's minors go to the inbox" \
@@ -1820,6 +1821,10 @@ for case in '**Review scope.**|review scoping rule' "The spec axis takes the row
   drop_phrase $orch "$phrase"
   sec=6 expect "orchestration doc without '$phrase' fails" 1 "${case#*|}"
 done
+# the Check gate naming the epic row as the budget's exception, seeded back
+fresh
+printf '\nThe epic row is the exception: it counts from notes.\n' >> "$scratch/$orch"
+sec=6 expect "orchestration doc naming the epic row as the budget's exception fails" 1 "present: the epic row named as the budget's exception"
 # the review scope's why names ADR 0014; ADR 0014 and ADR 0001 keep their decision lines
 fresh
 drop_phrase $orch 'ADR 0014 in the plugin repo'
