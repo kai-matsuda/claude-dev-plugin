@@ -346,18 +346,18 @@ is reviewed again by every invocation until it is clean or a person closes its P
 _Avoid_: typed run, fresh run (and "attempt" for one invocation)
 
 **Human stop**:
-The end of a run of `/dev:implement-spec` or `/dev:implement-story` whose frontier is empty, with
+The end of an invocation of `/dev:implement-spec` or `/dev:implement-story` whose frontier is empty, with
 nothing in flight, while the feature waits on a person's action: a `ready-for-human`
 ticket is open, or a story waits on another story's closure (merge its PR, then
-`/dev:close-story`). The run reports the action and what waits behind it; rerunning the
+`/dev:close-story`). The invocation reports the action and what waits behind it; rerunning the
 command after the person takes it resumes the feature.
 _Avoid_: pause, handoff, blocked run
 
 **Stall**:
-The end of a run of `/dev:implement-spec` or `/dev:implement-story` whose frontier is empty, with
+The end of an invocation of `/dev:implement-spec` or `/dev:implement-story` whose frontier is empty, with
 nothing in flight and no `ready-for-human` ticket open, while some ticket the story still
 waits for is open (Finished story above), the check gate loop has failed a fourth time,
-red or review, after its three fix-ups, or the push was refused. The run reports each
+red or review, after its three fix-ups, or the push was refused. The invocation reports each
 stuck ticket with its open blocker, a red check as `failed: <check> <command>`, a review
 as `failed: review mattpocock-skills:code-review`, or the refused push with its command.
 _Avoid_: deadlock, hang

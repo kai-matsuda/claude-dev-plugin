@@ -386,6 +386,7 @@ lacks "glossary's avoided term human ticket" '(^|[^-])human ticket'
 # the epic row reviews and marks ready, but opening a PR stays the story orchestrator's
 lacks "PR-opening steps" 'draft PR|pr create|pulls create|open(s|ing)? (a|the) PR'
 lacks "a budget of blocking verdicts only" 'three blocking verdicts'
+lacks "a spent budget skipping the review" 'is failed and not reviewed again'
 lacks "nothing touches a ticket" 'nothing below touches a ticket'
 # dev-47z: the review set reads the delivered: note, not a failed: report this run
 lacks "review set keyed on a failed: report this run" 'did not report `failed:` this run'
@@ -823,22 +824,25 @@ para_has '**Check gate.**' "the reviewed tip noted on the story" 'records the re
 para_has '**Check gate.**' "the gate exits on the moved tip" 'the gate exits on the moved tip once its checks are green'
 para_has '**Check gate.**' "the reviewed-tip note names the moved tip" 'the reviewed-tip note on the story bead'
 para_has '**Check gate.**' "the ticket row writes no reviewed-tip note" 'the ticket row writes no such note'
-# a fresh run's budget (dev-94a): a fresh ticket or story orchestrator starts at three whatever
-# earlier runs noted, a resumed agent keeps its own count, so neither row records spent fix-ups;
-# the epic row, which spans runs, counts from its epic fix-up notes
-para_has '**Check gate.**' "a fresh orchestrator starts its unit's budget at three" "starts its unit's budget at three whatever notes earlier runs left"
-para_has '**Check gate.**' "the fresh budget holds at the ticket and story rows" 'A fresh orchestrator at the ticket or story row'
+# the fix-up budget is bounded per invocation at every row (dev-gi1): a fresh orchestrator at any
+# row starts its unit's budget at three whatever notes earlier invocations left, the epic
+# orchestrator counts a story's spent budget from the notes after this invocation's epic review 1,
+# an agent resumed with its context keeps its own count, and the epic row is no exception
+para_has '**Check gate.**' "a fresh orchestrator starts its unit's budget at three" "starts its unit's budget at three whatever notes earlier invocations left"
+para_has '**Check gate.**' "the fresh budget holds at any row" 'A fresh orchestrator at any row'
 para_has '**Check gate.**' "a resumed agent keeps its own count" 'an agent resumed with its context keeps its own count'
-para_has '**Check gate.**' "neither row records spent fix-ups" 'neither row records spent fix-ups'
-para_has '**Check gate.**' "the epic row counts from its epic fix-up notes" "story's budget from the story's \`epic fix-up\` notes"
+para_has '**Check gate.**' "neither the ticket row nor the story row records spent fix-ups" 'neither the ticket row nor the story row records spent fix-ups'
+para_has '**Check gate.**' "the epic orchestrator counts from the notes after this invocation's epic review 1" "counts a story's spent budget from the story's \`epic fix-up\` notes after this invocation's \`epic review 1\` note"
+para_has '**Check gate.**' "the bound is per invocation, citing dev-l4j" 'bound a person wants is per invocation (dev-l4j)'
+lacks "the epic row named as the budget's exception" 'The epic row is the exception'
 para_has '**The epic row.**' "the epic row's checks are the forge's status on the PR tip" "the forge reports them green on the PR's tip"
 # the epic row settles its own red check and minors (dev-bwh): a red check is filed like a
 # blocking finding, a ticket under the story, and spends the budget; a clean verdict's minors
 # take no last fix-up, which the epic orchestrator cannot run, and go to the inbox
 para_has '**The epic row.**' "a red check at the epic row is filed like a blocking verdict" 'On a blocking verdict or a red check'
 para_has '**The epic row.**' "the red check's ticket carries its check, command and log" 'carries its check, its command and its log pointer'
-para_has '**The epic row.**' "a red check spends the epic row's budget" 'three such fix-ups per story, red or blocking alike'
-para_has '**The epic row.**' "a pending check leaves the PR a draft" 'the PR stays a draft and a later run reads it again'
+para_has '**The epic row.**' "a red check spends the epic row's budget" 'three such fix-ups per story per invocation, red or blocking alike'
+para_has '**The epic row.**' "a pending check leaves the PR a draft" 'the PR stays a draft and a later invocation reads it again'
 para_has '**The epic row.**' "the epic row's minors take no last fix-up" 'minors take no last fix-up at this row'
 para_has '**The epic row.**' "the epic row's minors go to the inbox" 'the inbox as deferrals'
 para_has '**Review verdict.**' "the Review verdict sends the epic row's minors to the inbox" 'always to the inbox (The epic row, above)'
