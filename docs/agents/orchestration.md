@@ -222,6 +222,9 @@ implementer's own runs never count (trust rule 3). The PR's Evidence is the reco
 
 **Check gate.** At every row the gate exits when the checks are green on the tip the review called clean.
 Each pass runs the check command on the tip, unless its tree has a record, then the review.
+A `low` ticket's gate is the checks alone when its owner repo has a check command,
+and the review at the `low` tier's review model when it has none,
+so no ticket lands with neither a check nor a review (dev-5e4).
 A red or a blocking verdict goes to a fresh implementer by pointer brief and the loop starts over
 (at the epic row, to `ready-for-agent` tickets under the story, The epic row above);
 three such fix-ups per unit (at the epic row, three per story), and the fourth is `failed`,
@@ -239,8 +242,6 @@ The story orchestrator records the reviewed tip in its notes, the reviewed-tip n
 clean and reviews only a tip that has moved past it; the ticket row writes no such note.
 On delivery it records the delivered tip and its check record, `delivered: <tip SHA> <check record>`,
 which the epic row reads as the story's delivered tip.
-No ticket lands with neither a check nor a review (dev-5e4): a `low` ticket's gate is the checks alone when its owner repo has a check command,
-and the review at the `low` tier's review model when it has none, the gate review-only at every tier.
 
 **Review verdict.** Every reviewer, at every row, tags every finding **blocking** or **minor** and ends its report on one verdict line. A
 finding is blocking when an acceptance criterion is unmet, a behaviour is wrong, a test is

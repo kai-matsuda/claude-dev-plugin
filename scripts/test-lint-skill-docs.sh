@@ -1875,8 +1875,9 @@ for case in '**Review scope.**|review scoping rule' "The spec axis takes the row
   drop_phrase $orch "$phrase"
   sec=6 expect "orchestration doc without '$phrase' fails" 1 "${case#*|}"
 done
-# the Check gate's two lines on a low ticket's gate, each dropped whole (dev-5e4)
-for case in 'No ticket lands with neither a check nor a review|no ticket lands with neither a check nor a review' \
+# the Check gate's three lines on a low ticket's gate, each dropped whole (dev-5e4)
+for case in "A \`low\` ticket's gate is the checks alone when its owner repo has a check command|a low ticket with a check command is gated by the checks" \
+  'so no ticket lands with neither a check nor a review|no ticket lands with neither a check nor a review' \
   "and the review at the \`low\` tier's review model when it has none|a low ticket with no check command is reviewed"; do
   fresh
   drop_line $orch "${case%%|*}"
@@ -2170,14 +2171,14 @@ swap_phrase skills/implement-story/SKILL.md '^(> 3\. \*\*Check gate\*\*, every t
 expect "ticket orchestrator step 3 spawning the reviewer before the checks' green fails" 1 "present: ticket orchestrator step 3 spawns a reviewer ahead of the checks' green"
 
 fresh
-swap_phrase skills/implement-story/SKILL.md '^(> 3\. .*Green: a `low` ticket exits the loop, go to step 4; for `medium` and `high`, )spawn a \*\*reviewer\*\*' '\1hand the ticket to a **reviewer**'
+swap_phrase skills/implement-story/SKILL.md '^(> 3\. .*Green: a `low` ticket with a check command exits the loop, go to step 4; for `medium` and `high`, and for a `low` ticket with no check command, )spawn a \*\*reviewer\*\*' '\1hand the ticket to a **reviewer**'
 expect "ticket orchestrator step 3 whose green spawns no reviewer fails" 1 "missing: the check gate runs before step 3's reviewer"
 
 for case in "as the rules doc's Check gate says|a loop step not citing the rules doc's loop|missing: the loop step cites the rules doc's loop" \
   'A red spawns a fresh implementer on the fix-up and the loop starts over from the checks|a red not starting the loop over|missing: a red starts the loop over from the checks' \
   'and the loop starts over from the checks, never straight to the reviewer|a blocking verdict not starting over from the checks|missing: a blocking verdict starts the loop over from the checks' \
   '**Clean** exits the loop|a clean verdict not exiting the loop|missing: a clean verdict exits the loop' \
-  'Green: a `low` ticket exits the loop, go to step 4|a low ticket not exiting on green|missing: a low ticket exits the loop on green checks' \
+  'Green: a `low` ticket with a check command exits the loop, go to step 4|a low ticket not exiting on green|missing: a low ticket exits the loop on green checks' \
   'tail -n 40 <log>|a red read without a forty-line tail|missing: a red gate reads a forty-line tail' \
   '`bd -C <owner> note <ticket-id> "checks <round>: red <command>"`|a red without its note|missing: a red gate'"'"'s note form' \
   'a green writes no note|a green that may write a note|missing: a green gate writes no note' \

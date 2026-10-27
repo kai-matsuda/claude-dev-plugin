@@ -826,7 +826,8 @@ para_has '**Check gate.**' "the reviewed-tip note names the moved tip" 'the revi
 para_has '**Check gate.**' "the ticket row writes no reviewed-tip note" 'the ticket row writes no such note'
 # a low ticket in a repo with no check command is reviewed, so no tier and no repo leaves a
 # ticket ungated (dev-5e4)
-para_has '**Check gate.**' "no ticket lands with neither a check nor a review" 'No ticket lands with neither a check nor a review (dev-5e4)'
+para_has '**Check gate.**' "a low ticket with a check command is gated by the checks" 'A `low` ticket'"'"'s gate is the checks alone when its owner repo has a check command'
+para_has '**Check gate.**' "no ticket lands with neither a check nor a review" 'so no ticket lands with neither a check nor a review (dev-5e4)'
 para_has '**Check gate.**' "a low ticket with no check command is reviewed" 'and the review at the `low` tier'"'"'s review model when it has none'
 # the fix-up budget is bounded per invocation at every row (dev-gi1): a fresh orchestrator at any
 # row starts its unit's budget at three whatever notes earlier invocations left, the epic
@@ -1133,9 +1134,9 @@ line_has "$G3" "the loop step cites the rules doc's loop" "as the rules doc's Ch
 line_has "$G3" "a red starts the loop over from the checks" 'A red spawns a fresh implementer on the fix-up and the loop starts over from the checks'
 line_has "$G3" "a blocking verdict starts the loop over from the checks, never straight to the reviewer" 'a blocking verdict spawns a fresh implementer on the fix-up and the loop starts over from the checks, never straight to the reviewer'
 line_has "$G3" "a clean verdict exits the loop" '**Clean** exits the loop'
-line_hase "$G3" "the check gate runs before step 3's reviewer" '\*\*Check gate\*\*.*Green:.*for `medium` and `high`, spawn a \*\*reviewer\*\*'
+line_hase "$G3" "the check gate runs before step 3's reviewer" '\*\*Check gate\*\*.*Green:.*for `medium` and `high`, and for a `low` ticket with no check command, spawn a \*\*reviewer\*\*'
 unchanged_file || ! grep -E "$G3" "$f" | sed 's/Green: .*//' | grep -qF -- 'spawn a **reviewer**' || bad "present: ticket orchestrator step 3 spawns a reviewer ahead of the checks' green"
-line_has "$G3" "a low ticket exits the loop on green checks" 'Green: a `low` ticket exits the loop, go to step 4'
+line_has "$G3" "a low ticket exits the loop on green checks" 'Green: a `low` ticket with a check command exits the loop, go to step 4'
 line_has "$G3" "a low ticket with no check command goes on to the reviewer" 'the gate is review-only, so a `low` ticket goes on to the reviewer as `medium` and `high` do (the rules doc'"'"'s Check gate)'
 line_has '^> 2\. ' "ticket orchestrator step 2's implementer runs no gate and spawns no one" 'The implementer runs no gate and spawns no one'
 # the check record (dev-9k5.1.7): keyed by the tree SHA under the owner checkout's .tmp/checks/,

@@ -4,8 +4,9 @@ status: accepted
 
 > Supersedes ADR 0001 (two review tools, one tier up, at two stages).
 
-> Amended by dev-5e4 (2026-10-27): a `low` ticket in a repo with no check command is reviewed,
-> so no ticket lands with neither a check nor a review (`docs/agents/orchestration.md`, Check gate).
+> Amended by dev-5e4 (INFRA-33, 2026-10-27): a `low` ticket in a repo with no check command
+> is reviewed, so no ticket lands with neither a check nor a review. The why is in
+> `docs/agents/orchestration.md`, Check gate.
 
 # One loop at three rows, one check command, one review tool
 

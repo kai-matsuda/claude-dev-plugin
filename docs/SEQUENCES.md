@@ -42,7 +42,7 @@ sequenceDiagram
             F-->>O: report, the loop starts over from the checks
         else checks green, the ticket row at low with a check command, no reviewer
             Note over O: the loop exits on green
-        else checks green
+        else checks green, or no check command (the gate review-only)
             O->>V: spawn the review, the row's axes (the epic row, the spec axis only)
             V-->>O: findings tagged blocking or minor, last line the verdict
             O->>BD: note the review with the verdict line
