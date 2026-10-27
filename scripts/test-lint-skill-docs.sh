@@ -116,9 +116,18 @@ lint_scratch() {
   rc=$?
   printf '%s\n%s\n' "$out" "$rc"
 }
-# true when the lint output $3 (last line: exit code) ends in exit code $1 and contains $2
-result_is() { # <exit code> <message> <output>
-  [ "${3##*$'\n'}" = "$1" ] && { [ -z "$2" ] || [[ $3 == *"$2"* ]]; }
+# the lines of messages $2 that output $1 lacks, "; "-joined, in $missing, with no process
+missing_lines() { # <output> <messages, one per line>
+  local m
+  missing=
+  while IFS= read -r m; do [ -z "$m" ] || [[ $1 == *"$m"* ]] || missing+="${missing:+; }$m"; done <<<"$2"
+}
+# true when the lint output $3 (last line: exit code) ends in exit code $1 and contains every
+# line of $2
+result_is() { # <exit code> <messages, one per line> <output>
+  [ "${3##*$'\n'}" = "$1" ] || return 1
+  missing_lines "$3" "$2"
+  [ -z "$missing" ]
 }
 # the sections with a FAIL line in lint output $1 (stdin), space-separated, ascending
 failed_sections() {
@@ -128,8 +137,11 @@ failed_sections() {
 # FAIL lines indented under a FAIL. With $sec set, a failing case must fail in exactly the
 # sections it names ("6 10"), or in exactly one section when it says "one".
 judge() {
-  local why= got
-  result_is "$2" "$3" "$4" || why="exit ${4##*$'\n'}, want $2${3:+, with: $3}"
+  local why= got missing
+  if ! result_is "$2" "$3" "$4"; then
+    missing_lines "$4" "$3"
+    why="exit ${4##*$'\n'}, want $2${missing:+, missing: $missing}"
+  fi
   if [ -z "$why" ] && [ "$2" = 1 ] && [ -n "${sec:-}" ]; then
     got=$(failed_sections <<<"$4")
     if [ "$sec" = one ]; then [ "$(wc -w <<<"$got")" -eq 1 ]; else [ "$got" = "$sec" ]; fi \
@@ -157,7 +169,7 @@ expect_flush() {
     case "$nl$verdict" in *"$nl"FAIL*) fails=$((fails+1));; esac
   done
 }
-# expect <description> <expected exit code> [message the output must contain] [lint args...]
+# expect <description> <expected exit code> [messages the output must contain, one per line] [lint args...]
 # Moves the scratch tree into the case's own dir and lints it there in the background, every
 # $scratch path in the message, the arguments and the override variables rewritten to it. A case
 # with a throwaway repo (bump_repo_dir) runs in the foreground on the scratch copy itself.
@@ -670,22 +682,6 @@ expect "runbook copy without the ticket review name fails" 1 "flat path's review
 fresh
 echo 'Then the ticket gate (switch `/model` to the tier'"'"'s review model) runs.' >> "$scratch/docs/WORKFLOW.md"
 expect "runbook copy with the seeded phrase ticket gate fails" 1 "retired ticket gate name in the runbook"
-
-# the retired row names seeded back into each doc, runbook and cut skills among them
-# (dev-9k5.1.10): the epic, ticket and landing roles, the built-in review by name
-# and the two-review-tools paragraph each fail in the runbook, /workflow, the story and ticket
-# cuts, close-epic and the tracker doc
-for doc in docs/WORKFLOW.md skills/workflow/SKILL.md skills/close-epic/SKILL.md skills/spec-to-stories/SKILL.md skills/spec-to-tickets/SKILL.md docs/agents/issue-tracker.md; do
-  for case in 'A driver over the stories.|the retired driver role' \
-    'Each ticket runner implements.|the retired ticket runner role' \
-    'A merger folds it in.|the retired merger role' \
-    'Run the built-in `code-review` on it.|the built-in code-review named' \
-    'Two review tools, two stages: per ticket.|the two review tools paragraph'; do
-    fresh
-    echo "${case%%|*}" >> "$scratch/$doc"
-    expect "$doc seeded with ${case##*|} fails" 1 "${case##*|}"
-  done
-done
 
 fresh
 echo '`medium` and `high` tickets pass the check gate before merge.' >> "$scratch/docs/agents/issue-tracker.md"
@@ -1667,22 +1663,28 @@ fresh
 echo 'The retired Evidence run stays in the spec.' >> "$scratch/docs/specs/check-and-review-loop.md"
 expect "a spec keeping 'Evidence run' passes" 0
 
-# the retired vocabulary (dev-9k5.1.11): each retired word or phrase seeded into each file kind
-# section 5 sweeps (a skill, an agent doc, the project CLAUDE.md, the runbook, the sequence
-# diagrams) fails, by section 5 alone; the glossary and docs/adr/ are not swept
-for file in skills/sample/SKILL.md docs/agents/triage-labels.md CLAUDE.md docs/WORKFLOW.md docs/SEQUENCES.md; do
-  for case in 'The driver spawns the stories.|the retired driver role' \
-    'Each ticket runner implements.|the retired ticket runner role' \
-    'A merger folds it in.|the retired merger role' \
-    'Spawn a fresh fix-up implementer.|the retired fix-up implementer role' \
-    'Run the built-in `code-review` on it.|the built-in code-review named' \
-    'Exit on the review marker.|the retired review marker' \
-    'Run the lint command, then the tip.|the retired lint command' \
-    'Name the test seams as checks.|the retired test seams as checks'; do
-    fresh
+# the retired vocabulary (dev-9k5.1.10, dev-9k5.1.11): every retired word or phrase seeded
+# together into each file section 5 sweeps (skills, agent docs, the project CLAUDE.md, the
+# runbook, the sequence diagrams) fails by section 5 alone, the output naming each phrase's
+# check, one lint run per file; the glossary and docs/adr/ are not swept
+retired_vocab='The driver spawns the stories.|the retired driver role
+Each ticket runner implements.|the retired ticket runner role
+A merger folds it in.|the retired merger role
+Spawn a fresh fix-up implementer.|the retired fix-up implementer role
+Run the built-in `code-review` on it.|the built-in code-review named
+Two review tools, two stages: per ticket.|the two review tools paragraph
+Exit on the review marker.|the retired review marker
+Run the lint command, then the tip.|the retired lint command
+Name the test seams as checks.|the retired test seams as checks'
+for file in skills/sample/SKILL.md skills/workflow/SKILL.md skills/close-epic/SKILL.md skills/spec-to-stories/SKILL.md \
+  skills/spec-to-tickets/SKILL.md docs/agents/issue-tracker.md docs/agents/triage-labels.md CLAUDE.md docs/WORKFLOW.md docs/SEQUENCES.md; do
+  fresh
+  msgs=
+  while IFS= read -r case; do
     echo "${case%%|*}" >> "$scratch/$file"
-    sec=5 expect "$file seeded with ${case##*|} fails section 5" 1 "${case##*|}"
-  done
+    msgs+="${case##*|} in $scratch/$file$nl"
+  done <<<"$retired_vocab"
+  sec=5 expect "$file seeded with every retired word fails section 5" 1 "$msgs"
 done
 
 fresh
