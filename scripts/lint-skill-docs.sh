@@ -901,6 +901,8 @@ if doc 6 "harness rules" "$agents/harness.md"; then
 # a runner waits on its subagent's report, never on a Bash poll loop; pgrep is dead in the sandbox (chezmoi-flq)
 hasc "waiting rule" '**Waiting.**'
 hasc "pgrep unusable in the sandbox" '`pgrep` cannot list processes in the sandbox'
+# the lock wait's paths come from git rev-parse --git-path, since .git may be a file (dev-cjf)
+lacks "a literal <owner>/.git/ path" '<owner>/\.git/'
 # an Agent call returns at once in this harness, so an orchestrator ends its turn after spawning
 # and the child's report arrives as the Agent tool's completion notification; run_in_background
 # is a JSON boolean the probe found ignored or absent for a nested agent; every subagent below
@@ -1061,7 +1063,12 @@ hasc "finished story tolerates untriaged children" '`needs-triage` or `wontfix`'
 # the ticket orchestrator landing its ticket waits on the owner checkout's lock in one bounded
 # foreground until-loop, not a check-and-sleep loop by hand (chezmoi-sn1, dev-9k5.1.7; the
 # Waiting rule is checked in 6)
-hasc "the landing waits on the lock with an until-loop" 'until ! [ -e <owner>/.git/index.lock ]'
+hasc "the landing waits on the lock with an until-loop" 'until ! [ -e <index lock> ] && ! [ -e <merge head> ]'
+# the lock and step 9's worktrees live where git says, not under <owner>/.git/, which is a file
+# in a linked worktree, a submodule or the stories fixture (dev-cjf)
+hasc "the lock wait finds the lock through git" 'rev-parse --path-format=absolute --git-path index.lock --git-path MERGE_HEAD'
+hasc "step 9 finds the worktrees directory through git" '`git -C <owner> rev-parse --path-format=absolute --git-common-dir`'
+lacks "a literal <owner>/.git/ path" '<owner>/\.git/'
 hasc "the landing's lock wait is bounded by the call's timeout" 'timeout: 300000'
 lacks "a lock wait sleeping and re-checking the lock by hand" 'waits [0-9]+ seconds|checks again|re-?checks the lock|checks every [0-9]+ seconds'
 # the story orchestrator and the ticket orchestrator end their turn after spawning and are resumed

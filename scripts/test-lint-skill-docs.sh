@@ -1065,8 +1065,29 @@ drop_phrase skills/implement-story/SKILL.md 'until add mode has carried its work
 expect "implement-story whose stray ticket waits on add mode moving it fails" 1
 
 fresh
-drop_line skills/implement-story/SKILL.md 'until ! [ -e <owner>/.git/index.lock ]'
+drop_line skills/implement-story/SKILL.md 'until ! [ -e <index lock> ] && ! [ -e <merge head> ]'
 expect "implement-story whose landing does not wait on the lock with an until-loop fails" 1
+
+fresh
+drop_line skills/implement-story/SKILL.md 'rev-parse --path-format=absolute --git-path index.lock --git-path MERGE_HEAD'
+expect "implement-story whose lock wait does not find the lock through git fails" 1
+
+fresh
+drop_phrase skills/implement-story/SKILL.md '`git -C <owner> rev-parse --path-format=absolute --git-common-dir`'
+expect "implement-story whose step 9 does not find the worktrees directory through git fails" 1
+
+# a literal <owner>/.git/ path does not exist where .git is a file (dev-cjf)
+fresh
+echo 'wait with `until ! [ -e <owner>/.git/index.lock ]; do sleep 5; done`' >> "$scratch/skills/implement-story/SKILL.md"
+expect "implement-story waiting on a literal <owner>/.git/index.lock fails" 1
+
+fresh
+echo 'the sandbox denies deletes under `<owner>/.git/worktrees/`' >> "$scratch/skills/implement-story/SKILL.md"
+expect "implement-story naming a literal <owner>/.git/worktrees/ fails" 1
+
+fresh
+echo 'an `until` loop over `<owner>/.git/index.lock` and `MERGE_HEAD`' >> "$scratch/docs/agents/harness.md"
+expect "harness doc waiting on a literal <owner>/.git/index.lock fails" 1
 
 fresh
 drop_line skills/implement-story/SKILL.md 'timeout: 300000'

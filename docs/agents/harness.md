@@ -52,7 +52,9 @@ were backgrounded that way, and one agent went looking for its own process with 
 This is the mechanism behind the no-polling rule above, and why INFRA-29's until-loops
 and Monitors woke agents with stale state. The one shell wait is a ticket orchestrator's wait on the owner checkout's lock (the
 ticket orchestrator brief's step 4): a single foreground Bash call running an `until` loop over
-`<owner>/.git/index.lock` and `MERGE_HEAD`, with the call's `timeout` as the five-minute
+the owner checkout's `index.lock` and `MERGE_HEAD`, at the paths
+`git rev-parse --path-format=absolute --git-path` prints (`.git` is a file in a linked
+worktree or a submodule, so a literal `.git/` path there names nothing), with the call's `timeout` as the five-minute
 bound, so it returns when the lock clears and is killed when it does not (chezmoi-sn1's
 check, 2026-10-22, saw the background form end the ticket orchestrator's turn with nothing reported).
 The Bash tool's text says foreground `sleep` is blocked and points at `Monitor`; the same
