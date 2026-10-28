@@ -1151,6 +1151,12 @@ done
 hase "ticket orchestrator step 3's brief carries the plain-command line" '^> 3\. .*TMPDIR line.*plain-command line, one plain .git. or .bd. command per Bash call, every path spelled out.*TMPDIR line.*plain-command line, one plain .git. or .bd. command per Bash call, every path spelled out'
 hase "the story review's fix-up brief carries the plain-command line" '^7\. .*TMPDIR line.*plain-command line, one plain .git. or .bd. command per Bash call, every path spelled out'
 hase "the ticket orchestrator header carries the plain-command line" '^> You are the \*\*ticket orchestrator\*\*.*TMPDIR line.*plain-command line, one plain .git. or .bd. command per Bash call, every path spelled out'
+# on the harness route the TMPDIR line is two steps: a bare pwd as the first Bash call, then the
+# path it printed spelled literally in every later export, since agents left to fill in the path
+# wrote $PWD and the guard refused it in INFRA-35's run (dev-r1p)
+line_hase 'starts with the \*\*TMPDIR line\*\*' "the Owner repo bullet states the bare pwd step" 'first Bash call is .pwd. alone.*spelled literally in every later .export.'
+hase "ticket orchestrator step 2's brief names the bare pwd step" '^> 2\. .*TMPDIR line.*first Bash call is .pwd. alone.*spelled literally in every later .export.'
+lacks "the retired fill-in-the-pwd-path wording" 'fills in the path `pwd` prints'
 hasc "Gitignore step counts four entries" "the rule's four entries"
 lacks "Gitignore step counts three entries" "the rule's three entries"
 # the reviewer brief in the ticket orchestrator's step 3 carries the two tags with their definitions and

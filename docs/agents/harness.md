@@ -131,8 +131,11 @@ path out literally, one plain command per Bash call.
 worktree path spelled out literally: on the hand-rolled route the path the brief gives, on
 the harness route the one `pwd` prints, since that brief carries none and the worktree
 guard refuses an `export TMPDIR=` whose value holds a variable (`$PWD`) as it refuses one
-in a `git` call (Literal paths). `.tmp/` is gitignored (`/.tmp/`, the Gitignore rule in `orchestration.md`) and
-sits inside the worktree, so the sandbox lets the agent write there whatever temp
+in a `git` call (Literal paths). On the harness route that is two steps: the first Bash
+call is `pwd` alone, and every later `export` spells the path it printed (two agents in
+INFRA-35's run skipped the `pwd` and wrote `$PWD`, and the guard refused both).
+`.tmp/` is gitignored (`/.tmp/`, the Gitignore rule in `orchestration.md`) and sits
+inside the worktree, so the sandbox lets the agent write there whatever temp
 directory it inherited, as long as the worktree is where the Worktrees rule puts it, in
 the session's repo or under `~/src`. It prevents two failures from INFRA-29's runs (2026-10-23), whose
 worktree agents inherited the macOS default temp directory, which the sandbox denies:

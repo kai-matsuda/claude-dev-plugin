@@ -1202,6 +1202,35 @@ drop_phrase skills/implement-story/SKILL.md "$pc"
 expect "implement-story without the plain-command line anywhere fails" 1 \
   "missing (case-sensitive): plain-command line stated in the skill"
 
+# on the harness route the TMPDIR line is two steps, a bare pwd as the first Bash call, then the
+# path it printed spelled literally in every later export, since agents left to fill in the path
+# wrote $PWD and the guard refused it (dev-r1p); each pin loses each half, the pwd step and the
+# literal path, in a case of its own
+fresh
+swap_phrase skills/implement-story/SKILL.md '(starts with the \*\*TMPDIR line\*\*.*)first Bash call is `pwd` alone' '\1first Bash call runs `pwd`'
+expect "implement-story whose Owner repo bullet loses the bare pwd step fails" 1 \
+  "missing: the Owner repo bullet states the bare pwd step"
+
+fresh
+swap_phrase skills/implement-story/SKILL.md '(starts with the \*\*TMPDIR line\*\*.*)spelled literally in every later `export`' '\1in every later `export`'
+expect "implement-story whose Owner repo bullet drops the literal path from later exports fails" 1 \
+  "missing: the Owner repo bullet states the bare pwd step"
+
+fresh
+swap_phrase skills/implement-story/SKILL.md '^(> 2\. .*)first Bash call is `pwd` alone' '\1first Bash call runs `pwd`'
+expect "implement-story whose ticket orchestrator step 2 brief loses the bare pwd step fails" 1 \
+  "missing: ticket orchestrator step 2's brief names the bare pwd step"
+
+fresh
+swap_phrase skills/implement-story/SKILL.md '^(> 2\. .*)spelled literally in every later `export`' '\1in every later `export`'
+expect "implement-story whose step 2 brief drops the literal path from later exports fails" 1 \
+  "missing: ticket orchestrator step 2's brief names the bare pwd step"
+
+fresh
+printf 'on the harness route the implementer fills in the path `pwd` prints\n' >> "$scratch/skills/implement-story/SKILL.md"
+expect "implement-story with the retired fill-in-the-pwd-path wording fails" 1 \
+  "present: the retired fill-in-the-pwd-path wording"
+
 for phrase in 'mkdir -p <worktree>/.tmp && export TMPDIR=<worktree>/.tmp' 'repeated at the head of every Bash call' \
   'mktemp -d <worktree>/.tmp/<name>.XXXXXX' "the harness doc's TMPDIR rule"; do
   fresh
