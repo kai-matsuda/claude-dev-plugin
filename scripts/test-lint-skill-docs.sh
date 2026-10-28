@@ -928,6 +928,18 @@ fresh
 drop_line skills/implement-story/SKILL.md 'failed twice: <reason>; resume:'
 expect "implement-story without the resume pointer on a second failure fails" 1
 
+# a fresh ticket orchestrator starts at round 1, and a replaced implementer's no reset holds
+# within one ticket orchestrator: each pin proven by dropping its phrase (dev-drw)
+for case in 'so you start at round 1|a fresh ticket orchestrator starts at round 1' \
+  'whatever `checks <n>:` or `review <n>:` notes earlier attempts left|the fresh start ignores earlier attempts'"'"' notes' \
+  "your ticket starts over from \`<branch>\`'s tip (the rules doc's Check gate)|the fresh start points at the rules doc's Check gate" \
+  "no reset within this ticket orchestrator|a replaced implementer's no reset holds within one ticket orchestrator"; do
+  phrase=${case%%|*}
+  fresh
+  drop_phrase skills/implement-story/SKILL.md "$phrase"
+  expect "implement-story without the pin: ${case#*|} fails" 1 "missing: ${case#*|}"
+done
+
 fresh
 drop_line skills/implement-story/SKILL.md 'named `feat/<story-id>`, keyed or not'
 expect "implement-story without the feat/<story-id> branch name fails" 1

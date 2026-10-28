@@ -1063,6 +1063,13 @@ hasc "the skill names the harness doc's Idle rule" "the harness doc's Idle rule"
 for step in 2 3 4; do
   line_has "^> $step\. " "the ticket orchestrator brief's step $step: check and test timeout" 'timeout: 600000'
 done
+# a fresh ticket orchestrator starts at round 1 whatever earlier attempts noted, the Check gate's
+# fresh budget; a replaced implementer's no reset holds within one ticket orchestrator (dev-drw)
+CUT='^> A subagent that returns an API error'
+line_has "$CUT" "a fresh ticket orchestrator starts at round 1" 'so you start at round 1'
+line_has "$CUT" "the fresh start ignores earlier attempts' notes" 'whatever `checks <n>:` or `review <n>:` notes earlier attempts left'
+line_has "$CUT" "the fresh start points at the rules doc's Check gate" "your ticket starts over from \`<branch>\`'s tip (the rules doc's Check gate)"
+line_has "$CUT" "a replaced implementer's no reset holds within one ticket orchestrator" 'no reset within this ticket orchestrator'
 line_has '^7\. ' "story fix-up brief names the check and test limit" 'the ten-minute limit on check and test runs'
 # the per-ticket reviewer reads the standards the story review reads: the repo's own files and
 # the plugin's coding-standards doc by its literal path (dev-co6)
