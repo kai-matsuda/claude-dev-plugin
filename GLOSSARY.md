@@ -224,7 +224,7 @@ acceptance criterion names). The spec axis judges the row's unit (ticket body, s
 Jira Epic spec); the standards axis judges what entered since the last standards review,
 and is skipped at the epic row. A clean round sends its minors to one last
 fix-up or to the inbox (at the epic row, always the inbox) and moves on; a blocking
-round's fix-up fixes its in-scope minors too, and every minor still unfixed when the unit
+round's fix-up fixes its in-scope minors too and the rest go to the inbox at once, and every minor still unfixed when the unit
 lands or fails goes to the inbox; a red or blocking fix-up spends the check gate's
 budget, a minors fix-up spends none (`docs/agents/orchestration.md`, "Review").
 _Avoid_: zero findings, nit-free, pass/fail

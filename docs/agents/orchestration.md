@@ -45,8 +45,8 @@ finding that carries its check, its command and its log pointer, and re-runs tha
 orchestrator in add mode; three such fix-ups per story per invocation, red or blocking alike. A pending
 check is neither: the PR stays a draft and a later invocation reads it again. Whatever its
 verdict, an epic review's minors take no last fix-up at this row, since the epic orchestrator
-implements nothing and its one fix-up is a ticket under the story, where no minor goes (Review verdict): they go to
-the inbox as deferrals at once, the tracker doc's "capture a retro item", and on a clean
+implements nothing and its one fix-up is a ticket under the story, where no minor goes
+(Review verdict): they go to the inbox as deferrals at once, the tracker doc's "capture a retro item", and on a clean
 verdict the PR is marked ready once its checks are green.
 
 ## Orchestrator role
@@ -259,10 +259,10 @@ those in the unit's scope go to its fix-up, pointed at the round's note, with it
 and the rest to the inbox at once. Every fix-up's report names each minor it fixed and each
 it left unfixed. No minor is dropped (dev-a9a):
 every minor still unfixed when the unit lands or fails goes to the inbox as a deferral, the
-tracker doc's "capture a retro item". That is a minor a fix-up reports it left unfixed and,
-when the unit ends `failed`, every minor of its review notes that no fix-up's report names
-as fixed, since a later clean round need not report a minor again and its review note would
-be its only trace. At the epic row every round's minors go to the inbox at once (The epic
+tracker doc's "capture a retro item". When the unit lands, that is each minor a fix-up
+reports it left unfixed. When the unit ends `failed`, it is also every minor of its review
+notes that no fix-up's report names as fixed, since a later clean round need not report a
+minor again and its review note would be its only trace. At the epic row every round's minors go to the inbox at once (The epic
 row, above).
 Every fix-up, red or blocking, spends the loop's budget (the Check gate rule above); a
 minors fix-up spends none, at any row. A round that reports

@@ -866,6 +866,7 @@ para_has '**The epic row.**' "a pending check leaves the PR a draft" 'the PR sta
 para_has '**The epic row.**' "the epic row's minors take no last fix-up" 'minors take no last fix-up at this row'
 para_has '**The epic row.**' "every epic review's minors go to the inbox, blocking or clean" "verdict, an epic review's minors take no last fix-up"
 para_has '**The epic row.**' "the epic row's minors go to the inbox" 'the inbox as deferrals'
+para_has '**The epic row.**' "the epic row's minors go to the inbox at once" 'the inbox as deferrals at once'
 para_has '**Review verdict.**' "the Review verdict sends the epic row's minors to the inbox" 'always to the inbox (The epic row, above)'
 lacks "the retired two-level check order" 'lint first, then the test seams'
 # the seam-test blocking case, and the one review tool
@@ -1256,7 +1257,7 @@ line_has "$G7" "a red or a blocking verdict goes to a fresh fix-up and starts th
 line_has "$G7" "the minors fix-up reruns the checks and spends no budget" 'the minors fix-up reruns the checks and spends no budget'
 line_has "$G7" "the story fix-up fixes the note's in-scope minors" "the blocking findings and the minors in the story's scope"
 line_has "$G7" "what a story fix-up leaves unfixed goes to the inbox" 'you capture each one left in the inbox'
-line_has "$G7" "a failed story gate captures its unfixed minors" "every minor of this run's \`story review\` notes that no fix-up's report names as fixed"
+line_has "$G7" "a failed story gate captures its unfixed minors" "Before any \`failed:\` line this step sends to step 9, a guard's or the fourth failure's, capture in the inbox every minor of this run's \`story review\` notes that no fix-up's report names as fixed"
 line_has "$G7" "the story gate's budget is three fix-ups, red or blocking" 'The budget is three fix-ups per story, red or blocking alike'
 line_has "$G7" "the story gate's fourth failure skips delivery" 'the fourth failure skips step 8 and goes to step 9'
 line_has "$G7" "the story gate's stall line" '`failed: <check> <command>`'

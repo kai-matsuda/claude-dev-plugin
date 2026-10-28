@@ -1901,6 +1901,7 @@ for case in '**Review scope.**|review scoping rule' "The spec axis takes the row
   'the PR stays a draft and a later invocation reads it again|a pending check leaves the PR a draft' \
   "minors take no last fix-up at this row|the epic row's minors take no last fix-up" \
   "the inbox as deferrals|the epic row's minors go to the inbox" \
+  "the inbox as deferrals at once|the epic row's minors go to the inbox at once" \
   "always to the inbox (The epic row, above)|the Review verdict sends the epic row's minors to the inbox" \
   "those in the unit's scope go to its fix-up|a blocking round's in-scope minors go to its fix-up" \
   "report names each minor it fixed and each|a fix-up's report names each minor it fixed and left unfixed" \
@@ -2116,7 +2117,7 @@ for case in "the story row of the rules doc's table|a story gate not naming its 
   'the minors fix-up reruns the checks and spends no budget|a story gate whose minors fix-up is budgeted|missing: the minors fix-up reruns the checks and spends no budget' \
   "the blocking findings and the minors in the story's scope|a story fix-up leaving its round's minors|missing: the story fix-up fixes the note's in-scope minors" \
   'you capture each one left in the inbox|a story fix-up'"'"'s unfixed findings left in its report|missing: what a story fix-up leaves unfixed goes to the inbox' \
-  "every minor of this run's \`story review\` notes that no fix-up's report names as fixed|a failed story gate dropping its minors|missing: a failed story gate captures its unfixed minors" \
+  "Before any \`failed:\` line this step sends to step 9, a guard's or the fourth failure's, capture in the inbox every minor of this run's \`story review\` notes that no fix-up's report names as fixed|a failed story gate dropping its minors|missing: a failed story gate captures its unfixed minors" \
   'The budget is three fix-ups per story, red or blocking alike|a story gate without its one budget|missing: the story gate'"'"'s budget is three fix-ups, red or blocking' \
   'the fourth failure skips step 8 and goes to step 9|a story gate without its fourth-failure stall|missing: the story gate'"'"'s fourth failure skips delivery' \
   '(a review'"'"'s as `failed: review mattpocock-skills:code-review`)|a story gate without the review'"'"'s stall form|missing: the story gate'"'"'s stall line for a review' \
