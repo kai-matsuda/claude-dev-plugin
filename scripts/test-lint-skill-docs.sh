@@ -1828,7 +1828,7 @@ for case in "Ticket@| ticket orchestrator |@ticket row: the ticket orchestrator"
   "Ticket@; none at \`low\` |@ticket row: both axes at the review model, none at low" \
   "Ticket@| an implementer by pointer brief, same worktree |@ticket row: a fix-up by pointer brief, same worktree" \
   "Ticket@merge onto the integration branch under the lock, after the stray-commit check@ticket row: lands by merge under the lock after the stray-commit check" \
-  "Ticket@| three fix-ups |@ticket row: three fix-ups" \
+  "Ticket@| three fix-ups; three conflict resolutions per landing |@ticket row: three fix-ups and three conflict resolutions per landing" \
   "Story@| story orchestrator |@story row: the story orchestrator" \
   "Story@| ticket orchestrators in parallel over the frontier |@story row: ticket orchestrators over the frontier" \
   "Story@| the check command |@Story row: the check command" \
@@ -1863,7 +1863,7 @@ done
 for case in '**Review scope.**|review scoping rule' "The spec axis takes the row's own unit|the spec axis takes the row's own unit" \
   'The standards axis reviews what entered since the last standards review|the standards axis reads what entered since' \
   '**Check scope.**|check scoping rule' 'Every tree is checked once|every tree is checked once' \
-  'a tree with a check record counts as checked|a tree with a check record counts as checked' \
+  'a tree with a green check record (`exit=0`) counts as checked|a tree with a green check record counts as checked' \
   'changes the tree, so it is checked again|a changed tree is checked again' \
   '1. The reviewer runs one tier of model above the implementer|trust rule 1' \
   "2. A fix-up is a fresh implementer in the unit's worktree, never a message back|trust rule 2" \
@@ -1909,7 +1909,13 @@ for case in '**Review scope.**|review scoping rule' "The spec axis takes the row
   "verdict, an epic review's minors take no last fix-up|every epic review's minors go to the inbox, blocking or clean" \
   "every minor still unfixed when the unit lands or fails goes to the inbox|every minor unfixed when the unit lands or fails goes to the inbox" \
   'no test at a story seam exercises the criteria|no test at a story seam is blocking' \
-  '`mattpocock-skills:code-review` at every row|the one review tool'; do
+  '`mattpocock-skills:code-review` at every row|the one review tool' \
+  'one with a red record checks it again|a red record'"'"'s tree is checked again' \
+  'A red record skips nothing|a red check record is checked again' \
+  'unless its tree has a green record|a pass skips the check only on a green record' \
+  'A landing takes at most three conflict resolutions|a landing takes at most three conflict resolutions' \
+  'apart from the fix-up budget|the resolution cap is apart from the fix-up budget' \
+  'the fourth conflict ends the ticket `failed`|the fourth conflict fails the ticket'; do
   phrase=${case%%|*}
   fresh
   drop_phrase $orch "$phrase"
@@ -1919,6 +1925,10 @@ done
 fresh
 drop_line $orch "A \`low\` ticket's gate is the checks alone, with no review"
 sec=6 expect "orchestration doc without the low ticket's gate fails" 1 "a low ticket is gated by the checks alone"
+# a red check record counted as checked, seeded back in the rules doc (dev-6qi)
+fresh
+printf '\nA tree with a check record counts as checked.\n' >> "$scratch/$orch"
+sec=6 expect "orchestration doc counting any check record as checked fails" 1 "present: a red check record counted as checked"
 # the Check gate naming the epic row as the budget's exception, seeded back
 fresh
 printf '\nThe epic row is the exception: it counts from notes.\n' >> "$scratch/$orch"
@@ -1933,7 +1943,8 @@ for case in 'status: accepted|ADR 0014 is accepted' 'Supersedes ADR 0001|ADR 001
   '**A per-row check list**|ADR 0014 option: a per-row check list' \
   '**A merger kept as a role**|ADR 0014 option: a merger kept as a role' \
   'The ticket orchestrator lands its ticket|ADR 0014 decides the ticket orchestrator lands its ticket' \
-  'every tree is checked once|ADR 0014 decides every tree is checked once'; do
+  'every tree is checked once|ADR 0014 decides every tree is checked once' \
+  '> Amended by dev-6qi|ADR 0014 amended by dev-6qi'; do
   fresh
   drop_phrase docs/adr/0014-one-loop-at-three-rows.md "${case%%|*}"
   sec=6 expect "ADR 0014 without '${case%%|*}' fails" 1 "${case#*|}"
@@ -2045,7 +2056,8 @@ done
 # log and the built-in review seeded back on that line fail
 for case in '`git -C <worktree path> rev-parse HEAD^{tree}`|missing: the gate keys the check on the tree SHA' \
   'First confirm the worktree is clean, `git -C <worktree path> status --porcelain` prints nothing; a dirty worktree goes to a fresh implementer as a red does|missing: the gate reads the tree only of a clean worktree' \
-  'a tree with a record is checked: read its exit and run nothing|missing: a tree with a check record is not checked again' \
+  'a tree with a green record (`exit=0`) is checked: run nothing|missing: a tree with a green check record is not checked again' \
+  'a red record is no check, so the tree is checked again|missing: a tree with a red check record is checked again' \
   'mkdir -p <worktree path>/.tmp; mkdir -p <owner>/.tmp/checks/<tree>; export TMPDIR=<worktree path>/.tmp; make -C <worktree path> check > <owner>/.tmp/checks/<tree>/log 2>&1; echo "command=make check exit=$?" > <owner>/.tmp/checks/<tree>/record; cat <owner>/.tmp/checks/<tree>/record|missing: the gate writes the check record per tree' \
   '`mattpocock-skills:code-review`|missing: the gate reviews with mattpocock-skills:code-review' \
   '`git -C <worktree path> diff <branch>...HEAD`|missing: the reviewer brief names the harness-route diff'; do
@@ -2075,7 +2087,9 @@ for case in "A conflict goes to an implementer in the ticket's worktree|missing:
   '`git -C <owner> merge --abort`|missing: a conflicted merge is aborted' \
   '`git -C <owner> merge --ff-only <ticket branch>`|missing: the orchestrator then fast-forwards' \
   "step 3's checks run on the resolved tree and no reviewer runs|missing: the resolved tree is checked and not reviewed again" \
-  "restarts step 3's whole loop, review included|missing: a red after a resolution restarts the whole loop, review included"; do
+  "restarts step 3's whole loop, review included|missing: a red after a resolution restarts the whole loop, review included" \
+  'A landing takes at most three conflict resolutions|missing: a landing takes at most three conflict resolutions' \
+  'the fourth conflict is `<ticket-id> failed: conflict <ticket branch> after three resolutions`|missing: the fourth conflict of a landing fails the ticket'; do
   fresh
   drop_phrase skills/implement-story/SKILL.md "${case%%|*}"
   expect "ticket orchestrator step 4 without '${case%%|*}' fails" 1 "${case#*|}"
@@ -2147,8 +2161,20 @@ expect "implement-story step 7 not headed the story gate fails" 1 "missing: step
 
 # the recorded-tree phrase sits on step 3's line too: dropped from step 7's line alone, it fails
 fresh
-swap_phrase skills/implement-story/SKILL.md '^(7\. .*)a tree with a record is checked: read its exit and run nothing' '\1a tree is read'
-expect "story gate step 7 not reading a recorded tree's record fails" 1 "missing: the story gate reads a recorded tree's check record and runs nothing"
+swap_phrase skills/implement-story/SKILL.md '^(7\. .*)a tree with a green record \(`exit=0`\) is checked: run nothing' '\1a tree is read'
+expect "story gate step 7 not reading a green tree's record fails" 1 "missing: the story gate reads a green tree's check record and runs nothing"
+fresh
+swap_phrase skills/implement-story/SKILL.md '^(7\. .*)a red record is no check, so the tree is checked again' '\1a red record is read'
+expect "story gate step 7 reusing a red record fails" 1 "missing: the story gate checks a red-recorded tree again"
+# a red record read as checked, seeded back on step 3's, step 7's or step 9's line, fails (dev-6qi)
+for case in '^(> 3\. .*)$|\1 So a tree with a record is checked: read its exit and run nothing.|present: the gate skipping the run on a red record' \
+  '^(7\. .*)$|\1 So a tree with a record is checked: read its exit and run nothing.|present: the story gate skipping the run on a red record' \
+  '^(9\. .*)$|\1 A rerun on that tip reads the record as checked red.|present: a rerun reading a red record as checked'; do
+  anchor=${case%%|*} rest=${case#*|}
+  fresh
+  swap_phrase skills/implement-story/SKILL.md "$anchor" "${rest%%|*}"
+  expect "implement-story regaining '${rest%%|*}' fails" 1 "${rest#*|}"
+done
 
 # the stall line is read on step 7's line: dropped there while the report template keeps it
 fresh

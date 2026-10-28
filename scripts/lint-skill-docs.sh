@@ -66,8 +66,9 @@
 #      completion notification resumes it, never a Bash poll loop; pgrep is dead in the
 #      sandbox) with its idle rule (Bash in the foreground only below the epic orchestrator, chezmoi-p4q), the
 #      model (dev-9k5.1.3): the loop sentence, the table's header and each of its three rows, the
-#      two scoping rules, the six trust rules as a closed list, the check command, the check record
-#      and the one gate exit, the seam-test blocking case and the one review tool, with the two-level
+#      two scoping rules (only a green check record skips a run, dev-6qi), the six trust rules as a
+#      closed list, the check command, the check record, the one gate exit, a landing's cap of three
+#      conflict resolutions, the seam-test blocking case and the one review tool, with the two-level
 #      loop's lint-first order retired (section 5 sweeps the review marker and the built-in
 #      code-review); ADR 0014 (its
 #      frontmatter status line accepted, Supersedes ADR 0001, its considered options and
@@ -115,7 +116,8 @@
 #      command (step 3 fails a run with no check target) and the harness doc in one line, writes a check
 #      record per tree SHA, reviews with mattpocock-skills:code-review and lands its own ticket
 #      (lock wait, stray-commit check, merge; a conflict to an implementer in the ticket's
-#      worktree, then a fast-forward, the resolved tree checked and not reviewed again), with the
+#      worktree, then a fast-forward, the resolved tree checked and not reviewed again, three
+#      resolutions per landing, dev-6qi), a red record checked again, with the
 #      lint-command resolution and the separate landing brief retired (dev-9k5.1.7),
 #      and its story gate (step 7) is the rules doc's Check gate loop at the story row: it exits
 #      when the checks are green on the tip the review called clean, reads the checks from the
@@ -773,7 +775,7 @@ line_has "$row" "ticket row: the ticket diff as standards" '| the ticket diff |'
 line_has "$row" "ticket row: both axes at the review model, none at low" "| both axes, at the ticket's review model; none at \`low\` |"
 line_has "$row" "ticket row: lands by merge under the lock after the stray-commit check" 'merge onto the integration branch under the lock, after the stray-commit check'
 line_has "$row" "ticket row: a fix-up by pointer brief, same worktree" '| an implementer by pointer brief, same worktree |'
-line_has "$row" "ticket row: three fix-ups" '| three fix-ups |'
+line_has "$row" "ticket row: three fix-ups and three conflict resolutions per landing" '| three fix-ups; three conflict resolutions per landing |'
 row='^[|] [*][*]Story[*][*] [|]'
 line_has "$row" "story row: the story orchestrator" '| story orchestrator |'
 line_has "$row" "story row: ticket orchestrators over the frontier" '| ticket orchestrators in parallel over the frontier |'
@@ -805,7 +807,18 @@ para_has '**Review scope.**' "the review scope's why is ADR 0014" 'ADR 0014 in t
 para_has '**Review scope.**' "the story row's standards axis takes the gate's fix-up commits" "the story gate's own fix-up commits"
 hasc "check scoping rule" '**Check scope.**'
 para_has '**Check scope.**' "every tree is checked once" 'Every tree is checked once'
-para_has '**Check scope.**' "a tree with a check record counts as checked" 'a tree with a check record counts as checked'
+# only a green record lets a later agent skip the run; a red one is checked again, so a flaky or
+# environmental red never sticks to its tree (dev-6qi)
+para_has '**Check scope.**' "a tree with a green check record counts as checked" 'a tree with a green check record (`exit=0`) counts as checked'
+para_has '**Check scope.**' "a red check record is checked again" 'A red record skips nothing'
+lacks "a red check record counted as checked" 'a tree with a check record counts as checked'
+para_has '**Check gate.**' "a pass skips the check only on a green record" 'unless its tree has a green record'
+para_has '**Check record.**' "a red record's tree is checked again" 'one with a red record checks it again'
+# a landing's conflict resolutions are capped per landing, apart from the fix-up budget, the
+# fourth conflict failing the ticket (dev-6qi)
+para_has '**Landing a ticket.**' "a landing takes at most three conflict resolutions" 'A landing takes at most three conflict resolutions'
+para_has '**Landing a ticket.**' "the resolution cap is apart from the fix-up budget" 'apart from the fix-up budget'
+para_has '**Landing a ticket.**' "the fourth conflict fails the ticket" 'the fourth conflict ends the ticket `failed`'
 para_has '**Check scope.**' "a changed tree is checked again" 'changes the tree, so it is checked again'
 # the six trust rules, a closed list
 hasc "trust rule 1: reviewer one tier up" '1. The reviewer runs one tier of model above the implementer'
@@ -954,6 +967,8 @@ hasc "ADR 0014 option: a per-row check list" '**A per-row check list**'
 hasc "ADR 0014 option: a merger kept as a role" '**A merger kept as a role**'
 hasc "ADR 0014 decides the ticket orchestrator lands its ticket" 'The ticket orchestrator lands its ticket'
 hasc "ADR 0014 decides every tree is checked once" 'every tree is checked once'
+# a red record checked again and the landing's resolution cap amend the ADR (dev-6qi)
+hasc "ADR 0014 amended by dev-6qi" '> Amended by dev-6qi'
 fi
 if doc 6 "ADR 0001" "$docs/adr/0001-two-stage-review.md"; then
 hasc "ADR 0001 is superseded by 0014" 'status: superseded by ADR 0014'
@@ -1181,7 +1196,10 @@ line_has '^> 2\. ' "ticket orchestrator step 2's implementer runs no gate and sp
 line_has "$G3" "the gate keys the check on the tree SHA" '`git -C <worktree path> rev-parse HEAD^{tree}`'
 line_has "$G3" "the gate reads the tree only of a clean worktree" 'First confirm the worktree is clean, `git -C <worktree path> status --porcelain` prints nothing; a dirty worktree goes to a fresh implementer as a red does'
 line_lacks "$G3" "the clean-worktree guard that hides untracked files" '`git -C <worktree path> status --porcelain --untracked-files=no`'
-line_has "$G3" "a tree with a check record is not checked again" 'a tree with a record is checked: read its exit and run nothing'
+# only a green record skips the run; a red one is checked again (dev-6qi)
+line_has "$G3" "a tree with a green check record is not checked again" 'a tree with a green record (`exit=0`) is checked: run nothing'
+line_has "$G3" "a tree with a red check record is checked again" 'a red record is no check, so the tree is checked again'
+line_lacks "$G3" "the gate skipping the run on a red record" 'a tree with a record is checked: read its exit and run nothing'
 line_has "$G3" "the gate writes the check record per tree" 'mkdir -p <worktree path>/.tmp; mkdir -p <owner>/.tmp/checks/<tree>; export TMPDIR=<worktree path>/.tmp; make -C <worktree path> check > <owner>/.tmp/checks/<tree>/log 2>&1; echo "command=make check exit=$?" > <owner>/.tmp/checks/<tree>/record; cat <owner>/.tmp/checks/<tree>/record'
 line_has "$G3" "the gate reviews with mattpocock-skills:code-review" '`mattpocock-skills:code-review`'
 line_has "$G3" "the reviewer brief names the harness-route diff" '`git -C <worktree path> diff <branch>...HEAD`'
@@ -1209,6 +1227,9 @@ line_has "$L4" "the resolved tree is checked and not reviewed again" 'step 3'"'"
 # a red on the resolved tree goes to a fix-up that spends budget and restarts the whole loop,
 # review included: the rules doc exempts only the minors fix-up and the resolution (story
 # dev-9k5.1 review)
+# a landing takes at most three resolutions, the fourth conflict failing the ticket (dev-6qi)
+line_has "$L4" "a landing takes at most three conflict resolutions" 'A landing takes at most three conflict resolutions'
+line_has "$L4" "the fourth conflict of a landing fails the ticket" 'the fourth conflict is `<ticket-id> failed: conflict <ticket branch> after three resolutions`'
 line_has "$L4" "a red after a resolution restarts the whole loop, review included" 'restarts step 3'"'"'s whole loop, review included'
 line_lacks "$L4" "a red fix-up after a resolution skipping its review" 'starts over from the checks only'
 # the story gate (step 7) is the rules doc's Check gate loop on the integration branch tip, the
@@ -1234,7 +1255,9 @@ line_has "$G7" "the story gate's off-branch failed line" '`failed: <story-id> no
 line_has "$G7" "the story gate's clean-checkout guard says why untracked files count" 'untracked files count, since the check runs on the working tree while the record keys on the committed tree'
 line_has "$G7" "the dirty-checkout failed line names the files" '`failed: <story-id> owner checkout dirty: <files>`, `<files>` the paths that status call printed, classified as step 6 says'
 line_has "$G7" "the story gate keys the check on the tip's tree" '`git -C <owner> rev-parse <branch>^{tree}`'
-line_has "$G7" "the story gate reads a recorded tree's check record and runs nothing" 'a tree with a record is checked: read its exit and run nothing'
+line_has "$G7" "the story gate reads a green tree's check record and runs nothing" 'a tree with a green record (`exit=0`) is checked: run nothing'
+line_has "$G7" "the story gate checks a red-recorded tree again" 'a red record is no check, so the tree is checked again'
+line_lacks "$G7" "the story gate skipping the run on a red record" 'a tree with a record is checked: read its exit and run nothing'
 # the check-record call is defined once, in the ticket orchestrator brief's step 3, and step 7
 # names it with <owner> for the worktree path (dev-9k5.1.9 review 1)
 line_has "$G7" "the story gate writes the check record with the brief's step 3 call" "the ticket orchestrator brief's step 3 check-record call with \`<owner>\` as its \`<worktree path>\`"
@@ -1277,6 +1300,7 @@ line_has '^9\. ' "step 9 removes the check records" '`rm -rf <owner>/.tmp/checks
 # a run that ends failed on a red keeps the red tree's log in place for the human, the
 # failed: line's words unchanged, while every other run still removes the records (dev-15s)
 line_has '^9\. ' "step 9 keeps the red check's log on a failed: check run" 'skips the removal and keeps the red check'"'"'s log in place'
+line_lacks '^9\. ' "a rerun reading a red record as checked" 'reads the record as checked red'
 line_has '^9\. ' "step 9 still removes the records on every other run" 'Every other run, a green delivery or one failed for any other reason, removes the records'
 hasc "report template's failed: line names the check" 'or <check> <command>'
 # the report marks the PR a draft and always carries the resume line (dev-9k5.1.9 review 1)

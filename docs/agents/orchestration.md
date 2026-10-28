@@ -22,7 +22,7 @@ human is not a row: a ready PR is theirs to merge.
 
 | Row | Orchestrator | Builds | Checks | Review spec axis | Review standards axis | Reviewer and model | Fix-up | Lands by | Exits when | Budget |
 |---|---|---|---|---|---|---|---|---|---|---|
-| **Ticket** | ticket orchestrator | one implementer in a worktree | the check command | the ticket's body | the ticket diff | both axes, at the ticket's review model; none at `low` | an implementer by pointer brief, same worktree | merge onto the integration branch under the lock, after the stray-commit check | the checks green on the tip the review called clean | three fix-ups |
+| **Ticket** | ticket orchestrator | one implementer in a worktree | the check command | the ticket's body | the ticket diff | both axes, at the ticket's review model; none at `low` | an implementer by pointer brief, same worktree | merge onto the integration branch under the lock, after the stray-commit check | the checks green on the tip the review called clean | three fix-ups; three conflict resolutions per landing |
 | **Story** | story orchestrator | ticket orchestrators in parallel over the frontier | the check command | the story's body | what entered since the last standards review: conflict resolutions, cross-ticket coherence and the story gate's fix-up commits | both axes, at the review model of the story's max tier | an implementer by pointer brief in a fix-up worktree | push, the PR staying a draft | the checks green on the tip the review called clean | three fix-ups |
 | **Epic** | epic orchestrator | story orchestrators in parallel over the frontier | the check command as the forge runs it | the Jira Epic's spec | none, the axis is skipped | the spec axis only, at the review model of the epic's max tier | findings filed as `ready-for-agent` tickets under the story, that story re-run in add mode | the PR marked ready, the human merges, then `/dev:close-story` and `/dev:close-epic` | the checks green on the tip the review called clean | three per story |
 
@@ -33,6 +33,12 @@ conflict goes to an implementer in the ticket's worktree, briefed to merge the i
 tip into the ticket branch; the ticket orchestrator then fast-forwards. The resolved tree is
 a new tree, so it is checked, and it is not reviewed again at the ticket row: the story
 row's standards axis sees it.
+A landing takes at most three conflict resolutions, apart from the fix-up budget, since a
+sibling that moved the integration branch is no failure of the ticket's. A landing runs from
+the first lock wait until a merge applies, a refused fast-forward's conflict counting among
+its three, and the fourth conflict ends the ticket `failed` with the merge aborted. A red on a
+resolved tree goes to a fix-up, which spends the budget and starts a new landing, so the
+budget bounds the landings and the cap the resolutions in each (dev-6qi).
 
 **The epic row.** The epic orchestrator runs its review once every story reports
 delivered, one PR at a time in its owner repo: the diff from the default branch to the
@@ -139,9 +145,11 @@ the ticket row; the conflict resolutions, the coherence across tickets and the s
 since each ticket's diff was reviewed at its own row; nothing at the epic row, where the axis
 is skipped. So no line is read for standards twice (ADR 0014 in the plugin repo).
 
-**Check scope.** Every tree is checked once. A check is one run of the check command on a
-tree, named by the tip's tree SHA, and a tree with a check record counts as checked at
-any row, whichever orchestrator wrote it, so a later agent spends no check run on it. A
+**Check scope.** Every tree is checked once green. A check is one run of the check command on
+a tree, named by the tip's tree SHA, and a tree with a green check record (`exit=0`) counts as checked at
+any row, whichever orchestrator wrote it, so a later agent spends no check run on it.
+A red record skips nothing: a later pass or a resumed run checks that tree again, its record
+replacing the red one, so a flaky or environmental red never sticks to its tree (dev-6qi). A
 sibling landing, a conflict resolution or a fix-up changes the tree, so it is checked again.
 
 ## Trust rules
@@ -220,11 +228,11 @@ where the unit's criteria must be exercised.
 **Check record.** The orchestrator that runs the check command on a tree writes a check
 record, the command, its exit and the log, under the owner checkout's scratch directory
 (`<owner>/.tmp/`) keyed by the tree SHA; a later agent at any row that reaches a tree with a
-record treats it as checked (Check scope). Only an orchestrator writes a check record: an
+green record treats it as checked, and one with a red record checks it again (Check scope). Only an orchestrator writes a check record: an
 implementer's own runs never count (trust rule 3). The PR's Evidence is the record of the delivered tip's tree.
 
 **Check gate.** At every row the gate exits when the checks are green on the tip the review called clean.
-Each pass runs the check command on the tip, unless its tree has a record, then the review.
+Each pass runs the check command on the tip, unless its tree has a green record, then the review.
 A `low` ticket's gate is the checks alone, with no review.
 A red or a blocking verdict goes to a fresh implementer by pointer brief and the loop starts over
 (at the epic row, to `ready-for-agent` tickets under the story, The epic row above);

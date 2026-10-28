@@ -190,8 +190,9 @@ _Avoid_: gate command, CI command, lint command
 
 **Check**:
 One run of the check command on a tree, named by the tip's tree SHA. Every tree is checked
-once: a tree with a check record counts as checked, and a sibling landing, a conflict
-resolution or a fix-up makes a new tree that is checked again.
+once green: a tree with a green check record counts as checked, one with a red record is
+checked again, and a sibling landing, a conflict resolution or a fix-up makes a new tree that
+is checked again.
 _Avoid_: pre-flight, verification step
 
 **Check record**:
@@ -249,7 +250,8 @@ _Avoid_: sub-orchestrator, repo agent
 The ticket row's orchestrator: it owns one ticket from claim to landing, its implementer,
 its check gate and its fix-ups, and lands the ticket itself (the lock, the stray-commit
 check, the merge), sending a conflict to an implementer in the ticket's worktree and then
-fast-forwarding. It reports one line to its story orchestrator and is discarded.
+fast-forwarding, at most three conflict resolutions per landing, apart from the fix-up
+budget, the fourth conflict `failed`. It reports one line to its story orchestrator and is discarded.
 _Avoid_: ticket agent, worker, ticket runner, merger
 
 **Implementer**:

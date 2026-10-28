@@ -35,7 +35,7 @@ sequenceDiagram
     I-->>O: ready for review
 
     loop the checks, then the review on green, three fix-ups per unit (the epic row, three per story)
-        O->>O: run the check command on the tip unless its tree has a record, and write the record (the epic row reads the forge's status on the PR tip)
+        O->>O: run the check command on the tip unless its tree has a green record, and write the record (the epic row reads the forge's status on the PR tip)
         alt the checks are red
             O->>BD: note the failing command and its log
             O->>F: fix-up by pointer brief
@@ -72,7 +72,7 @@ sequenceDiagram
             O->>O: wait on the owner checkout's lock
             O->>O: stray-commit check
             O->>O: merge onto the integration branch
-            opt the merge conflicts
+            opt the merge conflicts, at most three resolutions per landing (the fourth fails the ticket)
                 O->>F: an implementer in the ticket worktree merges the integration tip in
                 F-->>O: report, O runs the check command on the resolved tree, then fast-forwards
             end

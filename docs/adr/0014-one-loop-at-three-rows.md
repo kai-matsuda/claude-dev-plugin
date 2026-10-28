@@ -4,6 +4,12 @@ status: accepted
 
 > Supersedes ADR 0001 (two review tools, one tier up, at two stages).
 
+> Amended by dev-6qi (INFRA-33, 2026-10-27): only a green check record (`exit=0`) counts as
+> checked; a tree with a red record is checked again, so a flaky or environmental red never
+> sticks to its tree. A ticket's landing takes at most three conflict resolutions, apart from
+> the fix-up budget. The why is in `docs/agents/orchestration.md`, Check scope and Landing a
+> ticket.
+>
 > Amended by ADR 0015 (`docs/adr/0015-every-owner-repo-has-a-check-target.md`, dev-0l6,
 > INFRA-33, 2026-10-27): every owner repo has a `check` target, so the review-only gate below is retired,
 > with the two amendments that patched it.
