@@ -108,7 +108,8 @@
 #      ADR 0011), and its clean-up step removes worktrees with the sandbox disabled up front,
 #      sweeps every worktree-agent-* and .worktrees/ worktree whose branch is merged into the
 #      integration branch, earlier runs' included, and reports a locked or unmerged one in the
-#      report's worktrees: line instead of forcing it (chezmoi-73d), and its implementer,
+#      report's worktrees: line instead of forcing it (chezmoi-73d), then names every untracked,
+#      non-ignored file on the report's stray: line without deleting it (dev-9ft), and its implementer,
 #      fix-up and conflict-resolution briefs start with the TMPDIR line, whose rule section 6
 #      checks in orchestration.md (chezmoi-3eg), and its reviewer brief tags every finding
 #      blocking or minor and ends on the verdict line, its ticket orchestrator step 3 and story review step 7
@@ -1140,7 +1141,16 @@ lacks "the sweep limited to this run's worktrees" 'every worktree the run made'
 hasc "a locked or unmerged worktree is reported, not removed" 'reported with its path'
 lacks "a locked or unmerged worktree forced" 'worktree remove[^`]* -(-force|f)'
 hasc "report template shows the worktrees: line" 'worktrees: <absolute path>'
-hasc "the worktrees: line appears only with content" '`waiting:` and `worktrees:` lines appear only when they have content'
+hasc "the worktrees: and stray: lines appear only with content" '`waiting:`, `worktrees:` and `stray:` lines appear only when they have content'
+# step 9 names every untracked, non-ignored file left in the owner checkout on the report's
+# stray: line and deletes none, so a file an agent wrote outside the scratch paths gets seen
+# (dev-9ft, the .tmp-lint.sh left at the INFRA-33 run's repo root)
+line_has '^9\. ' "step 9 lists the stray files" '`git -C <owner> status --porcelain --untracked-files=all`'
+line_has '^9\. ' "step 9 lists them for a finished story too" "step 1's finished story included"
+line_has '^9\. ' "step 9 deletes no stray file" 'none is deleted'
+line_has '^9\. ' "the stray: line is absent with no stray file" 'there is no `stray:` line'
+hasc "report template shows the stray: line" 'stray:   <path>'
+lacks "step 9 deleting a stray file" 'git -C <owner> clean'
 lacks "the resume: line printed only with content" '`resume:` lines appear only'
 # the implementer, fix-up and conflict-resolving briefs start with the
 # TMPDIR line, stated once in the Owner repo section with its two riders and named in the ticket

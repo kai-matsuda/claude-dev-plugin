@@ -1142,8 +1142,34 @@ drop_line skills/implement-story/SKILL.md 'worktrees: <absolute path>'
 expect "implement-story whose report template has no worktrees: line fails" 1
 
 fresh
-drop_phrase skills/implement-story/SKILL.md '`waiting:` and `worktrees:` lines appear only when they have content'
+drop_phrase skills/implement-story/SKILL.md '`waiting:`, `worktrees:` and `stray:` lines appear only when they have content'
 expect "implement-story printing the worktrees: line unconditionally fails" 1
+
+# step 9 names every untracked, non-ignored file on the report's stray: line and deletes none
+# (dev-9ft)
+fresh
+drop_phrase skills/implement-story/SKILL.md '`git -C <owner> status --porcelain --untracked-files=all`'
+expect "implement-story whose clean-up lists no stray files fails" 1 "missing: step 9 lists the stray files"
+
+fresh
+drop_phrase skills/implement-story/SKILL.md "step 1's finished story included"
+expect "implement-story whose finished story lists no stray files fails" 1 "missing: step 9 lists them for a finished story too"
+
+fresh
+drop_line skills/implement-story/SKILL.md 'stray:   <path>'
+expect "implement-story whose report template has no stray: line fails" 1 "missing (case-sensitive): report template shows the stray: line"
+
+fresh
+drop_phrase skills/implement-story/SKILL.md 'none is deleted'
+expect "implement-story not keeping the stray files fails" 1 "missing: step 9 deletes no stray file"
+
+fresh
+drop_phrase skills/implement-story/SKILL.md 'there is no `stray:` line'
+expect "implement-story printing the stray: line unconditionally fails" 1 "missing: the stray: line is absent with no stray file"
+
+fresh
+echo 'then `git -C <owner> clean -f` removes the stray files' >> "$scratch/skills/implement-story/SKILL.md"
+expect "implement-story cleaning the stray files fails" 1 "present: step 9 deleting a stray file"
 
 # the report marks the PR a draft and always prints the resume line (dev-9k5.1.9 review 1)
 fresh
