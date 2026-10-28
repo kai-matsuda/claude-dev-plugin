@@ -270,6 +270,13 @@ orchestrator before landing its ticket, the story orchestrator before each push 
 integration branch; a hit stops the merge or push with `failed: stray commit <sha> <subject>`.
 _Avoid_: push guard, stray check
 
+**Forge-check wait**:
+The story orchestrator's wait, after the delivery push, for the PR's forge checks on the
+pushed tip, before the delivery is recorded: a red check is a `failed: forge check <name>
+<run URL>` line and leaves the story unfinished; a repo with no forge or no checks delivers
+with a `checks: skipped` line. One of the two shell waits the Idle rule allows.
+_Avoid_: CI wait, check poll
+
 **Cut-off**:
 An Agent call that returns an API error (a session or rate limit) in place of its report.
 The child and everything below it stop where they are, state intact: a story orchestrator

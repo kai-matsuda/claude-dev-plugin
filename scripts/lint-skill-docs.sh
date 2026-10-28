@@ -109,7 +109,9 @@
 #      sweeps every worktree-agent-* and .worktrees/ worktree whose branch is merged into the
 #      integration branch, earlier runs' included, and reports a locked or unmerged one in the
 #      report's worktrees: line instead of forcing it (chezmoi-73d), then names every untracked,
-#      non-ignored file on the report's stray: line without deleting it (dev-9ft), and its implementer,
+#      non-ignored file on the report's stray: line without deleting it (dev-9ft), its deliver
+#      step waits for the PR's forge checks and makes a red one a failed: line, a missing forge
+#      or check a checks: skipped line (dev-xc2), and its implementer,
 #      fix-up and conflict-resolution briefs start with the TMPDIR line, whose rule section 6
 #      checks in orchestration.md (chezmoi-3eg), and its reviewer brief tags every finding
 #      blocking or minor and ends on the verdict line, its ticket orchestrator step 3 and story review step 7
@@ -932,6 +934,9 @@ para_has '**TMPDIR.**' "the directory is gitignored" '`.tmp/` is gitignored'
 para_has '**TMPDIR.**' "export repeated per Bash call" 'export TMPDIR=<worktree>/.tmp; <command>'
 para_has '**TMPDIR.**' "mktemp -d takes a template under .tmp" 'mktemp -d <worktree>/.tmp/<name>.XXXXXX'
 para_has '**Idle rule.**' "the Idle rule names the check command" 'every run of the check command'
+# the story orchestrator's forge-check wait is the second shell wait the rule allows (dev-xc2)
+para_has '**Idle rule.**' "the Idle rule names the forge-check wait" "The other is the story orchestrator's forge-check wait"
+lacks "the Idle rule's single shell wait" 'The one shell wait is'
 lacks "the Idle rule's retired story's-checks clause" "these are the story's checks"
 # the cut-off rule with its stop sweep, and the commits rule with its clean-tree check
 hasc "cut-off rule" '**Cut-off agents.**'
@@ -1363,6 +1368,27 @@ line_has '^8\. ' "the deliver step leaves the PR a draft" 'The PR stays a draft'
 line_lacks '^8\. ' "the deliver step marking the PR ready" 'gh pr ready'
 line_lacks '^8\. ' "the deliver step marking the PR ready with tea" 'tea pr edit <n> --repo <owner> --ready'
 line_has '^8\. ' "the deliver step's Evidence is the delivered tip's check record" "its Evidence the delivered tip's check record"
+# step 8 waits for the PR's forge checks before recording the delivery, so a story is never
+# finished on a PR its CI rejects; a red check is a failed: line naming it and its run URL, and
+# no forge or no checks is a checks: skipped line (dev-xc2)
+line_has '^8\. ' "step 8 waits for the forge checks" 'Then the **forge-check wait**, before the delivery is recorded'
+line_has '^8\. ' "step 8 watches the gh checks" 'gh pr checks <n> --repo <forge-slug> --watch'
+line_has '^8\. ' "step 8 waits on the tea commit status" "tea api --repo <owner> repos/{owner}/{repo}/commits/<tip SHA>/status | jq -e"
+line_has '^8\. ' "a red forge check is a failed: line" 'one `failed: forge check <name> <run URL>` line per red check'
+line_has '^8\. ' "a red forge check leaves the story unfinished" 'note <story-id> "checks red: <tip SHA>"'
+line_has '^8\. ' "a red forge check records no delivery" 'no `delivered:` or `pr:` note is written'
+# step 1 does not count a story with a later checks red: note as finished, so a re-delivery's
+# red check is not hidden by the earlier delivery's pr: note (dev-xc2 review 1)
+line_has '^   The tickets are ' "a checks red: note unfinishes the story" 'with no `checks red:` line after it'
+# the gh wait keys on the pushed tip, so the last tip's finished checks never pass it (dev-xc2 review 1)
+line_has '^8\. ' "the gh wait waits for the pushed tip as the PR head" '--json headRefOid -q .headRefOid)" = <tip SHA> ]'
+line_has '^8\. ' "a failing forge read is an error, not a skip" 'is a forge error, as step 3 says, never a skip'
+line_has '^8\. ' "the forge-check wait is bounded" 'at most six calls in all'
+line_has '^8\. ' "no workflows says the checks were skipped" '`checks: skipped: no workflows`'
+line_has '^8\. ' "no checks reported says the checks were skipped" '`checks: skipped: none reported`'
+line_has '^8\. ' "no forge says the checks were skipped" '`checks: skipped: no forge`'
+hasc "report template shows the checks: line" 'checks:  skipped: <no forge | no workflows | none reported>'
+hasc "report template's failed: line names a red forge check" 'or forge check <name> <run URL>'
 line_has '^9\. ' "step 9 removes the check records" '`rm -rf <owner>/.tmp/checks`'
 # a run that ends failed on a red keeps the red tree's log in place for the human, the
 # failed: line's words unchanged, while every other run still removes the records (dev-15s)

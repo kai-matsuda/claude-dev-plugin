@@ -1171,6 +1171,78 @@ fresh
 echo 'then `git -C <owner> clean -f` removes the stray files' >> "$scratch/skills/implement-story/SKILL.md"
 expect "implement-story cleaning the stray files fails" 1 "present: step 9 deleting a stray file"
 
+# step 8 waits for the PR's forge checks before recording the delivery; a red check is a
+# failed: line naming it and its run URL, and a forge with no checks is a checks: skipped line
+# (dev-xc2)
+fresh
+drop_line skills/implement-story/SKILL.md 'Then the **forge-check wait**, before the delivery is recorded'
+expect "implement-story whose deliver step waits for no forge checks fails" 1 "missing: step 8 waits for the forge checks"
+
+fresh
+drop_phrase skills/implement-story/SKILL.md 'gh pr checks <n> --repo <forge-slug> --watch'
+expect "implement-story whose gh wait watches no checks fails" 1 "missing: step 8 watches the gh checks"
+
+fresh
+drop_phrase skills/implement-story/SKILL.md "tea api --repo <owner> repos/{owner}/{repo}/commits/<tip SHA>/status | jq -e"
+expect "implement-story whose tea wait reads no commit status fails" 1 "missing: step 8 waits on the tea commit status"
+
+fresh
+drop_phrase skills/implement-story/SKILL.md 'one `failed: forge check <name> <run URL>` line per red check'
+expect "implement-story whose red forge check is no failed: line fails" 1 "missing: a red forge check is a failed: line"
+
+fresh
+drop_phrase skills/implement-story/SKILL.md 'note <story-id> "checks red: <tip SHA>"'
+expect "implement-story finishing a story on a red forge check fails" 1 "missing: a red forge check leaves the story unfinished"
+
+fresh
+drop_phrase skills/implement-story/SKILL.md 'no `delivered:` or `pr:` note is written'
+expect "implement-story recording a delivery on a red forge check fails" 1 "missing: a red forge check records no delivery"
+
+fresh
+drop_phrase skills/implement-story/SKILL.md 'with no `checks red:` line after it'
+expect "implement-story counting a re-delivered red story as finished fails" 1 "missing: a checks red: note unfinishes the story"
+
+fresh
+drop_phrase skills/implement-story/SKILL.md '--json headRefOid -q .headRefOid)" = <tip SHA> ]'
+expect "implement-story whose gh wait passes on the last tip's checks fails" 1 "missing: the gh wait waits for the pushed tip as the PR head"
+
+fresh
+drop_phrase skills/implement-story/SKILL.md 'is a forge error, as step 3 says, never a skip'
+expect "implement-story skipping the checks on a forge error fails" 1 "missing: a failing forge read is an error, not a skip"
+
+fresh
+drop_phrase skills/implement-story/SKILL.md 'at most six calls in all'
+expect "implement-story waiting on a pending check without bound fails" 1 "missing: the forge-check wait is bounded"
+
+fresh
+drop_phrase skills/implement-story/SKILL.md '`checks: skipped: no workflows`'
+expect "implement-story silent on a repo with no workflows fails" 1 "missing: no workflows says the checks were skipped"
+
+fresh
+drop_phrase skills/implement-story/SKILL.md '`checks: skipped: none reported`'
+expect "implement-story silent on a forge with no checks fails" 1 "missing: no checks reported says the checks were skipped"
+
+fresh
+drop_phrase skills/implement-story/SKILL.md '`checks: skipped: no forge`'
+expect "implement-story silent on a repo with no forge fails" 1 "missing: no forge says the checks were skipped"
+
+fresh
+drop_line skills/implement-story/SKILL.md 'checks:  skipped: <no forge | no workflows | none reported>'
+expect "implement-story whose report template has no checks: line fails" 1 "missing (case-sensitive): report template shows the checks: line"
+
+fresh
+drop_line skills/implement-story/SKILL.md 'or forge check <name> <run URL>'
+expect "implement-story whose report template has no forge check failure fails" 1 "missing (case-sensitive): report template's failed: line names a red forge check"
+
+fresh
+drop_line docs/agents/harness.md "The other is the story orchestrator's forge-check wait"
+expect "harness doc without the forge-check wait fails" 1 "the Idle rule names the forge-check wait"
+
+# the Idle rule's retired single shell wait, seeded back in the harness doc (dev-xc2)
+fresh
+printf '\nThe one shell wait is a ticket orchestrator'"'"'s wait on the lock.\n' >> "$scratch/docs/agents/harness.md"
+expect "harness doc naming a single shell wait fails" 1 "present: the Idle rule's single shell wait"
+
 # the report marks the PR a draft and always prints the resume line (dev-9k5.1.9 review 1)
 fresh
 drop_phrase skills/implement-story/SKILL.md 'the `resume:` line always appears'
