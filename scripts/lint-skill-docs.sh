@@ -1035,6 +1035,10 @@ lacks "profile-gated push" 'when the active profile permits|ask the user to run 
 hasc "gitignore commit keyed on a dirty file" 'git -C <owner> status --porcelain -- .gitignore'
 lacks "a gitignore hand-off from the story cut" 'the story cut appended|story cut could not commit'
 hasc "a user edit in .gitignore is a failed: line, not absorbed" 'failed: <owner>/.gitignore has uncommitted edits'
+# the gitignore commit carries trailers, so it goes through a message file as the harness doc's
+# Commits rule says, never --trailer (dev-7gu)
+hasc "gitignore commit through a message file" '`git -C <owner> commit -F <owner>/.tmp/commit-msg`'
+lacks "a --trailer commit" '--trailer'
 hasc "exploration subagent reads the design field" '.[0].design'
 hasc "exploration subagent owns the notes directory" '`<owner>/.spec-notes/<epic-id>/`'
 # a failed ticket orchestrator's ticket is unclaimed at once, a second failure leaves the resume pointer on

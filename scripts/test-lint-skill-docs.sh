@@ -675,6 +675,14 @@ drop_line skills/implement-story/SKILL.md 'failed: <owner>/.gitignore has uncomm
 expect "implement-story whose Gitignore step absorbs a user edit fails" 1
 
 fresh
+drop_phrase skills/implement-story/SKILL.md '`git -C <owner> commit -F <owner>/.tmp/commit-msg`'
+expect "implement-story whose Gitignore step commits without a message file fails" 1
+
+fresh
+echo 'git -C <owner> commit -m "chore: x" --trailer "Bead: <story-id>"' >> "$scratch/skills/implement-story/SKILL.md"
+expect "implement-story committing with --trailer fails" 1
+
+fresh
 drop_line skills/spec-to-stories/SKILL.md 'update <story-id> --design-file -'
 expect "spec-to-stories without the design field write fails" 1
 
