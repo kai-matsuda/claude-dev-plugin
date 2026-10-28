@@ -24,8 +24,9 @@ check: ## Everything: ci and the fixture tests at once (needs bd and cargo); the
 
 lint: check ## Deprecated alias of check, kept for one release
 
-ci: ## Lint the skill docs and run every script test that needs no beads database (check runs it beside the fixtures)
+ci: ## Lint the skill docs and the glossary terms, and run every script test that needs no beads database (check runs it beside the fixtures)
 	$(call timed,scripts/lint-skill-docs.sh)
+	$(call timed,sh skills/glossary-lint/glossary-lint.sh)
 	$(call timed,scripts/check-test-git-init.sh)
 	$(call timed,scripts/test-lint-skill-docs.sh)
 	$(call timed,scripts/test-guard-rm.sh)
