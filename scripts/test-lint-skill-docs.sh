@@ -1949,9 +1949,10 @@ sec=6 expect "orchestration doc counting any check record as checked fails" 1 "p
 fresh
 printf '\nSo a fix-up that commits nothing re-reads the red record.\n' >> "$scratch/$orch"
 sec=6 expect "orchestration doc letting a fix-up that commits nothing re-read the red record fails" 1 "present: a fix-up that commits nothing re-reading the red record"
-# the Check gate naming the epic row as the budget's exception, seeded back
+# the Check gate's retired sentence naming the epic row as the budget's exception, seeded back
 fresh
-printf '\nThe epic row is the exception: it counts from notes.\n' >> "$scratch/$orch"
+printf '\n%s\n%s\n' 'The epic row is the exception: it spans runs while its PRs wait on their checks, so it counts each' \
+  "story's budget from the story's \`epic fix-up\` notes (The epic row, above)." >> "$scratch/$orch"
 sec=6 expect "orchestration doc naming the epic row as the budget's exception fails" 1 "present: the epic row named as the budget's exception"
 # the review scope's why names ADR 0014; ADR 0014 and ADR 0001 keep their decision lines
 fresh
