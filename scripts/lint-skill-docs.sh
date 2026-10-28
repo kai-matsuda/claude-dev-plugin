@@ -754,6 +754,12 @@ para_has '**Review verdict.**' "the blocking verdict line" 'verdict: blocking (<
 para_has '**Review verdict.**' "the blocking-or-minor tags" '**blocking** or **minor**'
 para_has '**Review verdict.**' "a round with no blocking findings is clean" 'no blocking findings is **clean**'
 para_has '**Review verdict.**' "every fix-up, red or blocking, spends the loop's budget" "Every fix-up, red or blocking, spends the loop's budget"
+# no minor is dropped (dev-a9a): a blocking round's fix-up fixes its in-scope minors and names
+# what it left, and every minor still unfixed when the unit lands or fails goes to the inbox
+para_has '**Review verdict.**' "a blocking round's in-scope minors go to its fix-up" "those in the unit's scope go to its fix-up"
+para_has '**Review verdict.**' "a fix-up's report names each minor it fixed and left unfixed" "report names each minor it fixed and each"
+para_has '**Review verdict.**' "the epic row sends every round's minors to the inbox" "every round's minors go to the inbox at once"
+para_has '**Review verdict.**' "every minor unfixed when the unit lands or fails goes to the inbox" 'every minor still unfixed when the unit lands or fails goes to the inbox'
 # the model (dev-9k5.1.3): one loop run at three rows, stated once as its sentence and a table
 # whose rows give each level its parameters; each row pinned on its own line, so a cell kept
 # elsewhere in the doc cannot stand in
@@ -858,6 +864,7 @@ para_has '**The epic row.**' "the red check's ticket carries its check, command 
 para_has '**The epic row.**' "a red check spends the epic row's budget" 'three such fix-ups per story per invocation, red or blocking alike'
 para_has '**The epic row.**' "a pending check leaves the PR a draft" 'the PR stays a draft and a later invocation reads it again'
 para_has '**The epic row.**' "the epic row's minors take no last fix-up" 'minors take no last fix-up at this row'
+para_has '**The epic row.**' "every epic review's minors go to the inbox, blocking or clean" "verdict, an epic review's minors take no last fix-up"
 para_has '**The epic row.**' "the epic row's minors go to the inbox" 'the inbox as deferrals'
 para_has '**Review verdict.**' "the Review verdict sends the epic row's minors to the inbox" 'always to the inbox (The epic row, above)'
 lacks "the retired two-level check order" 'lint first, then the test seams'
@@ -1184,6 +1191,9 @@ line_has "$G3" "a green gate writes no note" 'a green writes no note'
 line_has "$G3" "the gate's fix-up brief points at the log path" 'the log path, and no pasted output'
 line_has "$G3" "red and blocking fix-ups share one budget of three, the fourth failure is failed" 'The budget is three fix-ups of either cause; the fourth red or blocking verdict is `failed`'
 line_has "$G3" "the minors fix-up after a clean verdict spends no budget and advances no round" 'The minors fix-up spends no budget and advances no round'
+line_has "$G3" "the blocking fix-up fixes the note's in-scope minors" "fixes the note's blocking findings and its minors in the ticket's scope"
+line_has "$G3" "a minor unfixed when the ticket lands or fails goes to the inbox" 'Every minor still unfixed when the ticket lands or fails goes to the inbox'
+line_has "$G3" "a blocking round's out-of-scope minors go to the inbox" "the note's minors you judge out of the ticket's scope go to the inbox at once"
 lacks "the retired run-the-gate-again wording" 'run the check gate again, and on green spawn a reviewer again'
 # the ticket orchestrator lands its own ticket (step 4): lock wait, stray-commit check, merge; a
 # conflict goes to an implementer in the ticket's worktree, then a fast-forward; the resolved
@@ -1244,6 +1254,9 @@ line_has "$G7" "the standards axis gets each merge's resolution" '`git -C <owner
 line_has "$G7" "the standards axis gets the fix-up commits since the last story review" "\`git -C <owner> log --no-merges --grep='^Bead: <story-id>\$' <since>..<branch>\`"
 line_has "$G7" "a red or a blocking verdict goes to a fresh fix-up and starts the loop over" 'A red or a blocking verdict goes to a fresh implementer by pointer brief and the loop starts over'
 line_has "$G7" "the minors fix-up reruns the checks and spends no budget" 'the minors fix-up reruns the checks and spends no budget'
+line_has "$G7" "the story fix-up fixes the note's in-scope minors" "the blocking findings and the minors in the story's scope"
+line_has "$G7" "what a story fix-up leaves unfixed goes to the inbox" 'you capture each one left in the inbox'
+line_has "$G7" "a failed story gate captures its unfixed minors" "every minor of this run's \`story review\` notes that no fix-up's report names as fixed"
 line_has "$G7" "the story gate's budget is three fix-ups, red or blocking" 'The budget is three fix-ups per story, red or blocking alike'
 line_has "$G7" "the story gate's fourth failure skips delivery" 'the fourth failure skips step 8 and goes to step 9'
 line_has "$G7" "the story gate's stall line" '`failed: <check> <command>`'

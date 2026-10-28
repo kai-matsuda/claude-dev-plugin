@@ -48,7 +48,7 @@ sequenceDiagram
             O->>BD: note the review with the verdict line
             Note over O: the story row also records the reviewed tip in its notes
             alt verdict blocking
-                O->>F: fix-up pointed at that note
+                O->>F: fix-up pointed at that note, its blockers and its in-scope minors (the rest to the inbox)
                 F-->>O: report, the loop starts over from the checks
             else verdict clean (minors or none)
                 Note over O: no reviewer runs again, the loop exits
@@ -57,6 +57,7 @@ sequenceDiagram
     end
 
     alt fourth failure, a red or a blocking verdict after the budget
+        O->>IN: capture every minor no fix-up report names as fixed (needs-triage)
         O-->>U: report failed with the reason
     else clean
         opt minors in scope, never at the epic row
@@ -64,7 +65,7 @@ sequenceDiagram
             F-->>O: report
             O->>O: the tip moved, rerun the check command, the gate exits on the moved tip once green
         end
-        opt minors out of scope, and every minor at the epic row
+        opt minors out of scope, a minor a fix-up reported as left unfixed, and every minor at the epic row
             O->>IN: capture a retro item (needs-triage), never to a bead of the story
         end
         alt ticket row

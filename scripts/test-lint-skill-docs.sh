@@ -1902,6 +1902,11 @@ for case in '**Review scope.**|review scoping rule' "The spec axis takes the row
   "minors take no last fix-up at this row|the epic row's minors take no last fix-up" \
   "the inbox as deferrals|the epic row's minors go to the inbox" \
   "always to the inbox (The epic row, above)|the Review verdict sends the epic row's minors to the inbox" \
+  "those in the unit's scope go to its fix-up|a blocking round's in-scope minors go to its fix-up" \
+  "report names each minor it fixed and each|a fix-up's report names each minor it fixed and left unfixed" \
+  "every round's minors go to the inbox at once|the epic row sends every round's minors to the inbox" \
+  "verdict, an epic review's minors take no last fix-up|every epic review's minors go to the inbox, blocking or clean" \
+  "every minor still unfixed when the unit lands or fails goes to the inbox|every minor unfixed when the unit lands or fails goes to the inbox" \
   'no test at a story seam exercises the criteria|no test at a story seam is blocking' \
   '`mattpocock-skills:code-review` at every row|the one review tool'; do
   phrase=${case%%|*}
@@ -2109,6 +2114,9 @@ for case in "the story row of the rules doc's table|a story gate not naming its 
   'the standards axis is what entered since the ticket reviews: the conflict resolutions and the coherence across tickets|a story review without its standards axis|missing: the story review'"'"'s standards axis is what entered since the ticket reviews' \
   'A red or a blocking verdict goes to a fresh implementer by pointer brief and the loop starts over|a story red or blocking verdict not starting the loop over|missing: a red or a blocking verdict goes to a fresh fix-up and starts the loop over' \
   'the minors fix-up reruns the checks and spends no budget|a story gate whose minors fix-up is budgeted|missing: the minors fix-up reruns the checks and spends no budget' \
+  "the blocking findings and the minors in the story's scope|a story fix-up leaving its round's minors|missing: the story fix-up fixes the note's in-scope minors" \
+  'you capture each one left in the inbox|a story fix-up'"'"'s unfixed findings left in its report|missing: what a story fix-up leaves unfixed goes to the inbox' \
+  "every minor of this run's \`story review\` notes that no fix-up's report names as fixed|a failed story gate dropping its minors|missing: a failed story gate captures its unfixed minors" \
   'The budget is three fix-ups per story, red or blocking alike|a story gate without its one budget|missing: the story gate'"'"'s budget is three fix-ups, red or blocking' \
   'the fourth failure skips step 8 and goes to step 9|a story gate without its fourth-failure stall|missing: the story gate'"'"'s fourth failure skips delivery' \
   '(a review'"'"'s as `failed: review mattpocock-skills:code-review`)|a story gate without the review'"'"'s stall form|missing: the story gate'"'"'s stall line for a review' \
@@ -2236,6 +2244,9 @@ for case in "as the rules doc's Check gate says|a loop step not citing the rules
   'a green writes no note|a green that may write a note|missing: a green gate writes no note' \
   'the log path, and no pasted output|a fix-up brief without the log path|missing: the gate'"'"'s fix-up brief points at the log path' \
   'The minors fix-up spends no budget and advances no round|a minors fix-up that may spend budget|missing: the minors fix-up after a clean verdict spends no budget' \
+  "fixes the note's blocking findings and its minors in the ticket's scope|a blocking fix-up leaving its round's minors|missing: the blocking fix-up fixes the note's in-scope minors" \
+  'Every minor still unfixed when the ticket lands or fails goes to the inbox|a ticket dropping its unfixed minors|missing: a minor unfixed when the ticket lands or fails goes to the inbox' \
+  "the note's minors you judge out of the ticket's scope go to the inbox at once|a blocking round's out-of-scope minors dropped|missing: a blocking round's out-of-scope minors go to the inbox" \
   'The budget is three fix-ups of either cause; the fourth red or blocking verdict is `failed`|a loop without its shared budget|missing: red and blocking fix-ups share one budget of three'; do
   phrase=${case%%|*} rest=${case#*|}
   fresh
