@@ -939,6 +939,9 @@ para_has '**Commits.**' "the clean-tree check" '`git status --porcelain --untrac
 # guard refuses a $'...' -m as too complex to verify (dev-dzc, INFRA-35)
 para_has '**Commits.**' "the message file written with the Write tool" '`<worktree>/.tmp/commit-msg` with the Write tool'
 para_has '**Commits.**' "the commit -F form" '`git -C <worktree> commit -F <worktree>/.tmp/commit-msg`'
+# Write refuses a file the session has not Read, so a commit-msg an earlier agent or a cut-off
+# run left in the worktree is Read first (dev-cqf)
+para_has '**Commits.**' "a leftover message file Read before the Write" 'a leftover `<worktree>/.tmp/commit-msg` is Read first'
 # the shell-commands discipline and the pointer back at the preflight kept in the rules doc
 hasc "the -C discipline" 'This section binds every session and subagent'
 hasc "the preflight stays in the rules doc" 'The working-directory preflight stays in `orchestration.md`'
@@ -1038,6 +1041,8 @@ hasc "a user edit in .gitignore is a failed: line, not absorbed" 'failed: <owner
 # the gitignore commit carries trailers, so it goes through a message file as the harness doc's
 # Commits rule says, never --trailer (dev-7gu)
 hasc "gitignore commit through a message file" '`git -C <owner> commit -F <owner>/.tmp/commit-msg`'
+# the step inherits the rule's Read of a leftover commit-msg only through this reference (dev-cqf)
+hasc "gitignore commit follows the Commits rule" "commit it as the harness doc's Commits rule says"
 lacks "a --trailer commit" 'commit [^`]*--trailer'
 hasc "exploration subagent reads the design field" '.[0].design'
 hasc "exploration subagent owns the notes directory" '`<owner>/.spec-notes/<epic-id>/`'

@@ -1290,6 +1290,15 @@ for phrase in '**Cut-off agents.**' 'First the **stop sweep**' '**Commits.**' '`
   expect "harness doc without '$phrase' fails" 1
 done
 
+# a commit-msg an earlier agent left in the worktree is Read before the Write overwrites it (dev-cqf)
+fresh
+drop_phrase docs/agents/harness.md 'a leftover `<worktree>/.tmp/commit-msg` is Read first'
+expect "harness doc whose Commits rule skips Reading a leftover commit-msg fails" 1
+
+fresh
+drop_phrase skills/implement-story/SKILL.md "commit it as the harness doc's Commits rule says"
+expect "implement-story whose Gitignore step drops the Commits rule reference fails" 1
+
 fresh
 drop_line docs/agents/harness.md 'This section binds every session and subagent'
 expect "harness doc without the -C discipline fails" 1

@@ -69,7 +69,10 @@ after the merge). A message with a trailer paragraph (`Bead:`, `Refs:`) is writt
 trailers included, to `<worktree>/.tmp/commit-msg` with the Write tool and committed with
 `git -C <worktree> commit -F <worktree>/.tmp/commit-msg`, a form the worktree guard accepts;
 a second `-m $'...'` for the trailers is refused as "git in a form too complex to verify"
-and costs a retry (INFRA-35, 2026-10-27). Every brief to an agent that commits or merges
+and costs a retry (INFRA-35, 2026-10-27). Write refuses to overwrite a file the session
+has not Read, so a leftover `<worktree>/.tmp/commit-msg` is Read first: an agent following another into the same
+worktree (a fix-up, a conflict resolution) or a re-run after a cut-off finds the earlier
+message there and would spend a retry on it. Every brief to an agent that commits or merges
 (implementer, fix-up included, ticket orchestrator, story orchestrator) names this rule.
 
 **Cut-off agents.** An Agent call that returns an API error (`HTTP 429 You've hit your
