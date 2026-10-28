@@ -935,6 +935,10 @@ hasc "cut-off rule" '**Cut-off agents.**'
 para_has '**Cut-off agents.**' "the stop sweep" 'First the **stop sweep**'
 hasc "commits rule" '**Commits.**'
 para_has '**Commits.**' "the clean-tree check" '`git status --porcelain --untracked-files=no` prints nothing'
+# a message with a trailer paragraph goes through a file the Write tool wrote, since the worktree
+# guard refuses a $'...' -m as too complex to verify (dev-dzc, INFRA-35)
+para_has '**Commits.**' "the message file written with the Write tool" '`<worktree>/.tmp/commit-msg` with the Write tool'
+para_has '**Commits.**' "the commit -F form" '`git -C <worktree> commit -F <worktree>/.tmp/commit-msg`'
 # the shell-commands discipline and the pointer back at the preflight kept in the rules doc
 hasc "the -C discipline" 'This section binds every session and subagent'
 hasc "the preflight stays in the rules doc" 'The working-directory preflight stays in `orchestration.md`'

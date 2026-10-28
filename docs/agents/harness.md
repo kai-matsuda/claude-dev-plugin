@@ -65,8 +65,12 @@ before any other `git` operation, and a branch is merged only onto a clean tree:
 uncommitted changes through when they touch no file the merge does, so a skipped retry
 goes unnoticed (INFRA-28's run 1, 2026-10-20: an implementer whose subject failed the
 72-character limit merged `feat/infra-28` over its uncommitted fixes and committed them
-after the merge). Every brief to an agent that commits or merges (implementer, fix-up
-included, ticket orchestrator, story orchestrator) names this rule.
+after the merge). A message with a trailer paragraph (`Bead:`, `Refs:`) is written whole,
+trailers included, to `<worktree>/.tmp/commit-msg` with the Write tool and committed with
+`git -C <worktree> commit -F <worktree>/.tmp/commit-msg`, a form the worktree guard accepts;
+a second `-m $'...'` for the trailers is refused as "git in a form too complex to verify"
+and costs a retry (INFRA-35, 2026-10-27). Every brief to an agent that commits or merges
+(implementer, fix-up included, ticket orchestrator, story orchestrator) names this rule.
 
 **Cut-off agents.** An Agent call that returns an API error (`HTTP 429 You've hit your
 session limit`) in place of a report is a **cut-off**: the child and everything below it
