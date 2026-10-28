@@ -1171,6 +1171,37 @@ fresh
 swap_phrase skills/implement-story/SKILL.md '^(7\. .*)TMPDIR line' '\1TMPDIR'
 expect "implement-story whose story review fix-up brief loses the TMPDIR line fails" 1
 
+# next to its TMPDIR line, every worktree brief carries the plain-command line inline, since a
+# brief that only cites the harness doc's Literal paths drew 14 guard refusals (dev-ask); each
+# brief is checked on its own, step 3's two by its last occurrence alone
+pc='plain-command line, one plain `git` or `bd` command per Bash call, every path spelled out'
+for step in 2 3 4; do
+  fresh
+  swap_phrase skills/implement-story/SKILL.md "^(> $step\. .*)plain-command line, one plain" '\1one plain'
+  expect "implement-story whose ticket orchestrator step $step brief loses the plain-command line fails" 1 \
+    "missing: ticket orchestrator step $step's brief carries the plain-command line"
+done
+
+fresh
+swap_phrase skills/implement-story/SKILL.md '^(7\. .*)plain-command line, one plain' '\1one plain'
+expect "implement-story whose story review fix-up brief loses the plain-command line fails" 1 \
+  "missing: the story review's fix-up brief carries the plain-command line"
+
+fresh
+swap_phrase skills/implement-story/SKILL.md '^(> You are the .*)plain-command line, one plain' '\1one plain'
+expect "implement-story whose ticket orchestrator header loses the plain-command line fails" 1 \
+  "missing: the ticket orchestrator header carries the plain-command line"
+
+fresh
+swap_phrase skills/implement-story/SKILL.md '(starts with the \*\*TMPDIR line\*\*.*)plain-command line, one plain' '\1one plain'
+expect "implement-story whose Owner repo bullet loses the plain-command line fails" 1 \
+  "missing: the Owner repo bullet states the plain-command line"
+
+fresh
+drop_phrase skills/implement-story/SKILL.md "$pc"
+expect "implement-story without the plain-command line anywhere fails" 1 \
+  "missing (case-sensitive): plain-command line stated in the skill"
+
 for phrase in 'mkdir -p <worktree>/.tmp && export TMPDIR=<worktree>/.tmp' 'repeated at the head of every Bash call' \
   'mktemp -d <worktree>/.tmp/<name>.XXXXXX' "the harness doc's TMPDIR rule"; do
   fresh

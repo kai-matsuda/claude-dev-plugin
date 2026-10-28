@@ -1140,6 +1140,17 @@ for step in 2 3 4; do
   hase "ticket orchestrator step $step's brief starts with the TMPDIR line" "^> $step\. .*TMPDIR line"
 done
 hase "the story review's fix-up brief starts with the TMPDIR line" '^7\. .*TMPDIR line'
+# next to its TMPDIR line, every worktree brief carries the plain-command line inline: briefs that
+# only cited the harness doc's Literal paths drew 14 guard refusals in INFRA-33's run (dev-ask);
+# step 3 names it for both of its fix-up briefs
+hasc "plain-command line stated in the skill" 'plain-command line, one plain `git` or `bd` command per Bash call, every path spelled out'
+line_hase 'starts with the \*\*TMPDIR line\*\*' "the Owner repo bullet states the plain-command line" 'TMPDIR line.*plain-command line, one plain .git. or .bd. command per Bash call, every path spelled out'
+for step in 2 4; do
+  hase "ticket orchestrator step $step's brief carries the plain-command line" "^> $step\\. .*TMPDIR line.*plain-command line, one plain .git. or .bd. command per Bash call, every path spelled out"
+done
+hase "ticket orchestrator step 3's brief carries the plain-command line" '^> 3\. .*TMPDIR line.*plain-command line, one plain .git. or .bd. command per Bash call, every path spelled out.*TMPDIR line.*plain-command line, one plain .git. or .bd. command per Bash call, every path spelled out'
+hase "the story review's fix-up brief carries the plain-command line" '^7\. .*TMPDIR line.*plain-command line, one plain .git. or .bd. command per Bash call, every path spelled out'
+hase "the ticket orchestrator header carries the plain-command line" '^> You are the \*\*ticket orchestrator\*\*.*TMPDIR line.*plain-command line, one plain .git. or .bd. command per Bash call, every path spelled out'
 hasc "Gitignore step counts four entries" "the rule's four entries"
 lacks "Gitignore step counts three entries" "the rule's three entries"
 # the reviewer brief in the ticket orchestrator's step 3 carries the two tags with their definitions and
