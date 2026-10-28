@@ -1913,6 +1913,10 @@ for case in '**Review scope.**|review scoping rule' "The spec axis takes the row
   'one with a red record checks it again|a red record'"'"'s tree is checked again' \
   'A red record skips nothing|a red check record is checked again' \
   'unless its tree has a green record|a pass skips the check only on a green record' \
+  'so the checks rerun on the unchanged tree|a fix-up that commits nothing reruns the checks' \
+  'A fix-up that commits nothing still spends the budget|a fix-up that commits nothing still spends the budget' \
+  'after a red, a fix-up that commits nothing leaves it red-recorded|a fix-up that commits nothing has its tree checked again' \
+  'After a blocking verdict the unchanged tree keeps its green record|a fix-up that commits nothing after a blocking verdict is reviewed again' \
   'A landing takes at most three conflict resolutions|a landing takes at most three conflict resolutions' \
   'apart from the fix-up budget|the resolution cap is apart from the fix-up budget' \
   'the fourth conflict ends the ticket `failed`|the fourth conflict fails the ticket'; do
@@ -1929,6 +1933,10 @@ sec=6 expect "orchestration doc without the low ticket's gate fails" 1 "a low ti
 fresh
 printf '\nA tree with a check record counts as checked.\n' >> "$scratch/$orch"
 sec=6 expect "orchestration doc counting any check record as checked fails" 1 "present: a red check record counted as checked"
+# a fix-up that commits nothing re-reading the red record, seeded back in the rules doc (dev-vnf)
+fresh
+printf '\nSo a fix-up that commits nothing re-reads the red record.\n' >> "$scratch/$orch"
+sec=6 expect "orchestration doc letting a fix-up that commits nothing re-read the red record fails" 1 "present: a fix-up that commits nothing re-reading the red record"
 # the Check gate naming the epic row as the budget's exception, seeded back
 fresh
 printf '\nThe epic row is the exception: it counts from notes.\n' >> "$scratch/$orch"
@@ -2166,6 +2174,15 @@ expect "story gate step 7 not reading a green tree's record fails" 1 "missing: t
 fresh
 swap_phrase skills/implement-story/SKILL.md '^(7\. .*)a red record is no check, so the tree is checked again' '\1a red record is read'
 expect "story gate step 7 reusing a red record fails" 1 "missing: the story gate checks a red-recorded tree again"
+# a fix-up that commits nothing has its tree checked again, dropped from step 3's or step 7's line
+# alone, fails (dev-vnf)
+for case in '^(> 3\. .*)After a red, a fix-up that commits nothing leaves the tree red-recorded, so the next pass checks it again|missing: the ticket gate checks a red'"'"'s fix-up that commits nothing again' \
+  '^(7\. .*)After a red, a fix-up that commits nothing leaves the tree red-recorded, so the next pass checks it again|missing: the story gate checks a red'"'"'s fix-up that commits nothing again' \
+  '^(7\. .*)a green on a tip the `review:` note still names exits|missing: the story gate exits on a green tip its review: note still names'; do
+  fresh
+  swap_phrase skills/implement-story/SKILL.md "${case%%|*}" '\1a fix-up that commits nothing is read'
+  expect "implement-story dropping the commits-nothing rule ('${case%%|*}') fails" 1 "${case#*|}"
+done
 # a red record read as checked, seeded back on step 3's, step 7's or step 9's line, fails (dev-6qi)
 for case in '^(> 3\. .*)$|\1 So a tree with a record is checked: read its exit and run nothing.|present: the gate skipping the run on a red record' \
   '^(7\. .*)$|\1 So a tree with a record is checked: read its exit and run nothing.|present: the story gate skipping the run on a red record' \

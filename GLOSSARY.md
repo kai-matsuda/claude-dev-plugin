@@ -191,8 +191,8 @@ _Avoid_: gate command, CI command, lint command
 **Check**:
 One run of the check command on a tree, named by the tip's tree SHA. Every tree is checked
 once green: a tree with a green check record counts as checked, one with a red record is
-checked again, and a sibling landing, a conflict resolution or a fix-up makes a new tree that
-is checked again.
+checked again, and a sibling landing, a conflict resolution or a fix-up's commit makes a new
+tree that is checked again; a fix-up that commits nothing makes none.
 _Avoid_: pre-flight, verification step
 
 **Check record**:

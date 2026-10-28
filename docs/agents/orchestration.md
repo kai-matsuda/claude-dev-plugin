@@ -150,7 +150,10 @@ a tree, named by the tip's tree SHA, and a tree with a green check record (`exit
 any row, whichever orchestrator wrote it, so a later agent spends no check run on it.
 A red record skips nothing: a later pass or a resumed run checks that tree again, its record
 replacing the red one, so a flaky or environmental red never sticks to its tree (dev-6qi). A
-sibling landing, a conflict resolution or a fix-up changes the tree, so it is checked again.
+sibling landing, a conflict resolution or a fix-up's commit
+changes the tree, so it is checked again;
+after a red, a fix-up that commits nothing leaves it red-recorded, so it is checked again too
+(Check gate).
 
 ## Trust rules
 
@@ -238,6 +241,14 @@ A red or a blocking verdict goes to a fresh implementer by pointer brief and the
 (at the epic row, to `ready-for-agent` tickets under the story, The epic row above);
 three such fix-ups per unit (at the epic row, three per story), and the fourth is `failed`,
 one line, the same words at every row.
+A fix-up that commits nothing (a flaky red it could not reproduce, say) leaves the tip and its tree
+where they were, and the loop starts over from the checks all the same: after a red that tree's
+record is red, and a red record skips nothing (Check scope), so the checks rerun on the unchanged tree
+rather than one red record spending the whole budget, and a flaky red can go green there (dev-vnf).
+After a blocking verdict the unchanged tree keeps its green record, so the pass runs no check and
+the review runs again; at the story row a green on a tip the `review:` note still names exits.
+A fix-up that commits nothing still spends the budget, so a red that stays red on an unchanged tree
+still fails at the fourth.
 A fresh orchestrator at any row starts its unit's budget at three whatever notes earlier invocations left,
 and an agent resumed with its context keeps its own count (Cut-off agents in `harness.md`).
 The epic orchestrator counts a story's spent budget from the story's `epic fix-up` notes after this invocation's `epic review 1` note (The epic row, above).
