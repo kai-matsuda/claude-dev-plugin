@@ -472,7 +472,9 @@ The skill adds its own refusals after these.
    the first one by `SendMessage` (`orchestration.md`, Trust rules, rule 2). The implementer
    never calls the skill itself: it would run at the implementer's own model. Why:
    `docs/adr/0014-one-loop-at-three-rows.md` in the plugin repo.
-5. On completion `bd close <id>`. Do not touch the Jira epic per task.
+5. On completion `bd close <id>`: the story orchestrator closes the task at landing (under
+   `/dev:implement-task`, at delivery); the task orchestrator never does
+   (`docs/adr/0016-the-story-row-lands-its-tasks.md`). Do not touch the Jira epic per task.
 
 Every `bd` call above runs in the task's owner repo (`-C <owner>` when that is not
 the session's), and the commit's `Bead:` trailer is the id in that repo's database.

@@ -1119,6 +1119,9 @@ hasc "every task passes the check gate" 'every task passes the check gate'
 hasc "the tracker doc reviews medium and high tasks" 'only `medium` and `high` tasks add the review'
 # the task gate's review is two reviewers, one per axis, as /dev:task-orchestrator spawns them
 sec_has '## When a skill says "start work on a task" (`/dev:implement-story`, `/dev:implement-task`)' "the task gate's review is two-axis" 'two reviewers, one per axis'
+# the task's close is the story row's at landing, never the task row's (ADR 0016; dev-b8d.1
+# story review 2)
+sec_has '## When a skill says "start work on a task" (`/dev:implement-story`, `/dev:implement-task`)' "the story orchestrator closes the task at landing" 'the story orchestrator closes the task at landing'
 # a routed triage item is a standalone task, the one type /dev:implement-task takes; the
 # inbox bead stays a chore, a retro item and no task (dev-b8d.1 story review 1)
 sec_has '## When a skill says "route a triaged item" (`/dev:triage`)' "the routed bead is a task" 'create "<title>" --type task -l complexity:<tier>,retro'

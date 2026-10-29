@@ -2249,6 +2249,9 @@ fresh
 drop_phrase docs/agents/issue-tracker.md 'two reviewers, one per axis'
 sec=6 expect "tracker doc without the two-axis task review fails" 1 "the task gate's review is two-axis"
 fresh
+drop_phrase docs/agents/issue-tracker.md 'the story orchestrator closes the task at landing'
+sec=6 expect "tracker doc without the story row's close at landing fails" 1 "the story orchestrator closes the task at landing"
+fresh
 drop_phrase skills/triage/SKILL.md 'a standalone task (`--type task`'
 sec=6 expect "triage without the task type fails" 1 "/triage creates a standalone task"
 fresh

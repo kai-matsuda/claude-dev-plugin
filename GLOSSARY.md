@@ -386,13 +386,14 @@ same word for askable questions; in this repo it means tasks.)
 _Avoid_: ready list, todo, backlog
 
 **Invocation**:
-One typed `/dev:implement-spec`, `/dev:implement-story` or `/dev:implement-task`, from the command to its end
-state. It includes everything the command does before it reports: its re-polls of pending
-checks, and its continuation from the person's next message after a session limit cut it
-off. Every fix-up budget is bounded per invocation: three fix-ups per unit, and only a
-person typing the command again grants more. A later invocation reads what earlier ones
-left in the beads as history, never as spent budget, so a story whose epic review failed
-is reviewed again by every invocation until it is clean or a person closes its PR.
+One typed `/dev:implement-spec`, `/dev:implement-story` or `/dev:implement-task`, from the
+command to its end state. It includes everything the command does before it reports: its
+re-polls of pending checks, and its continuation from the person's next message after a
+session limit cut it off. Every fix-up budget is bounded per invocation: three fix-ups per
+unit, and only a person typing the command again grants more. A later invocation reads
+what earlier ones left in the beads as history, never as spent budget, so a story whose
+epic review failed is reviewed again by every invocation until it is clean or a person
+closes its PR.
 _Avoid_: typed run, fresh run (and "attempt" for one invocation)
 
 **Human stop**:
