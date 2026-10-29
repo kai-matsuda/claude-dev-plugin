@@ -186,6 +186,14 @@
 #      command from the brief, the harness doc in one line, the turn ended after a spawn, the
 #      TMPDIR and plain-command lines, a check record per tree SHA, the two-axis review with its
 #      verdict line, the fix-up budget and the minors rule. Section 5 sweeps the lock wait.
+#  17. /implement-task (dev-b8d.1.6): the non-task, story-task and not-ready refusals, the story
+#      row's plumbing (the make probe and its refusal, the forge decided once, the gitignore rule,
+#      task/<id> with a branch: note), one task orchestrator with the short brief, the landing by
+#      a fast-forward, the rules doc's Delivery with the PR opened ready and never a draft,
+#      delivered: before pr: and the close at delivery, no forge's pushed branch and skipped-checks
+#      line, the merge guard and the gate re-entry on a rerun, and the report minus the story lines
+#      ending on resume:. Section 6 pins the rules doc's one paragraph on it (the table keeps three
+#      rows) and the no-seam-test case skipping a standalone task without ## Test seams.
 # Usage: scripts/lint-skill-docs.sh [implement-spec SKILL.md [WORKFLOW.md]]
 # A section whose doc is missing fails naming it ("missing document: <path>") rather than being
 # skipped, so a renamed skill or rules doc cannot turn its checks off (dev-dov); each section
@@ -1011,7 +1019,17 @@ para_has '**Review verdict.**' "the Review verdict sends the epic row's minors t
 lacks "the retired two-level check order" 'lint first, then the test seams'
 # the seam-test blocking case, and the one review tool
 para_has '**Review verdict.**' "no test at a story seam is blocking" 'no test at a story seam exercises the criteria'
+# a standalone task's body may carry ## Test seams; without one the case does not apply (dev-b8d.1.6)
+para_has '**Review verdict.**' "the no-seam-test case skips a standalone task without test seams" 'a standalone task whose body has no `## Test seams` names no seam, and the case does not apply to it'
 hasc "the one review tool" '`mattpocock-skills:code-review` at every row'
+# /dev:implement-task in one paragraph under the table, the table keeping three rows (dev-b8d.1.6)
+para_has '**The standalone task.**' "the paragraph names /dev:implement-task" '`/dev:implement-task <id>`'
+para_has '**The standalone task.**' "the paragraph: the story row with a frontier of one" 'the story row with a frontier of one'
+para_has '**The standalone task.**' "the paragraph: no story gate" 'no story bead and no story gate'
+para_has '**The standalone task.**' "the paragraph: the PR opened ready" 'a PR opened ready'
+para_has '**The standalone task.**' "the paragraph: the close at delivery" 'closes the task at delivery'
+para_has '**The standalone task.**' "the paragraph: the table keeps three rows" 'the table keeps its three rows'
+lackse "a fourth row in the table" '^[|] [*][*](Standalone|Standalone task|Implement-task)[*][*] [|]'
 fi
 if doc 6 "harness rules" "$agents/harness.md"; then
 # the mechanics live in the harness doc (dev-9k5.1.2): the rules above moved out of the
@@ -1637,6 +1655,64 @@ R4='^4\. \*\*Report the reviewed branch\.\*\*'
 hase "step 4 reports the reviewed branch" "$R4"
 line_has "$R4" "step 4 lands nothing and closes nothing" 'You land nothing and close nothing'
 line_has "$R4" "step 4 reads the reviewed tip" '`git -C <worktree path> rev-parse HEAD`'
+# a standalone task without ## Test seams names no seam, so the no-seam-test blocking case does
+# not apply to it, and its implementer's tests go where tdd agrees them (dev-b8d.1.6)
+line_has "$G3" "the no-seam-test case skips a standalone task without test seams" 'a standalone task whose body has no `## Test seams` names no seam, so this case does not apply'
+line_has '^2\. Spawn the \*\*implementer\*\*' "a standalone task's implementer tests where tdd agrees them" "where \`tdd\` agrees them when it has none"
+fi
+
+# ---- 17. /implement-task: a standalone task delivered as a PR opened ready ----
+# the story row with a frontier of one (dev-b8d.1.6): typed, it refuses a bead of another type, a
+# story's task (naming /dev:implement-story <story-id>) and one not ready-for-agent; it reuses the
+# story orchestrator's plumbing (the make probe and its refusal, the forge decision, the gitignore
+# rule, task/<id> off the default branch with a branch: note), spawns one task orchestrator with
+# the short brief, lands its reviewed branch by a fast-forward, and delivers by the rules doc's
+# Delivery section: the PR opened ready, delivered: before pr:, then the close; with no forge the
+# pushed branch and checks: skipped: no forge. A rerun applies the merge guard on the pr: note and
+# re-enters at the gate on a failed run's commits with a fresh budget; the report ends on resume:.
+if doc 17 "/implement-task" "$skills/implement-task/SKILL.md"; then
+opening_has "the frontmatter names a standalone task" 'Implement one standalone task bead'
+# the three refusals, each one line that creates nothing
+hasc "the non-task refusal" '`<id> is of type <type>, not a task; /dev:implement-task takes a standalone task bead id.`'
+hasc "the story-task refusal names /dev:implement-story" '`<id> refused: its parent <story-id> is a story; run /dev:implement-story <story-id>`'
+hasc "the not-ready refusal" '`<id> refused: not ready-for-agent'
+# the story row with a frontier of one, no story bead and no story gate
+hasc "the story row with a frontier of one" 'the story row with a frontier of one'
+hasc "no story gate" 'no story bead and no story gate'
+# the plumbing: the same make probe and refusal, the forge decision, the gitignore rule, the branch
+hasc "the make probe for the check target" 'make -C <owner> -pRrq : 2>/dev/null'
+hasc "the refusal with no check target" '`failed: no check target in <owner>; run /dev:setup-repo there, then re-run`'
+hasc "the gitignore rule" "the rules doc's Gitignore rule"
+hasc "the branch task/<id> off the default branch" 'git -C <owner> switch -c task/<task-id> <default branch>'
+hasc "the branch: note" 'bd -C <owner> note <task-id> "branch: task/<task-id>"'
+hasc "the forge decided once" 'Decide **once** which forge fronts the repo'
+# one task orchestrator, the short brief
+hasc "one task orchestrator through the skill" 'Call the Skill tool with `dev:task-orchestrator`'
+hasc "the task orchestrator at opus" 'at `model: opus`'
+hasc "the brief's gate entry" '`gate entry: <task branch> <worktree path> <tip SHA>`'
+# the landing is a fast-forward after the stray-commit check, and a review: note marks it
+hasc "the landing is a fast-forward" 'git -C <owner> merge --ff-only <task branch>'
+hasc "the landed tip is noted" 'bd -C <owner> note <task-id> "review: <tip SHA>"'
+# delivery: the rules doc's Delivery section, the PR opened ready, the notes in order, the close
+hasc "delivery by the rules doc's Delivery section" "as the rules doc's Delivery section says, with the standalone task as its unit"
+hasc "the PR opened ready, not draft" 'opened **ready**, not draft'
+lacks "a draft PR for a standalone task" 'gh pr create --draft|"WIP: '
+hasc "delivered: precedes pr:" 'the `delivered:` and `pr:` notes in that order'
+hasc "the task closes at delivery" 'bd -C <owner> close <task-id> --reason "delivered: <pr: value>"'
+hasc "no forge: the pushed branch is the deliverable" 'the pushed branch is the deliverable'
+hasc "no forge: the skipped-checks line" 'checks: skipped: no forge'
+# a rerun: the merge guard on the pr: note, and a gate re-entry on a failed run's commits
+hasc "the merge guard" '**Merge guard.**'
+hasc "the merge guard's merged refusal" '`<task-id> refused: PR <url> already merged'
+hasc "the merge guard's closed-unmerged refusal" '`<task-id> refused: PR <url> is closed unmerged`'
+hasc "the merge guard's open PR delivers again" 'OPEN: continue on the `branch:` note'"'"'s branch and deliver again'
+hasc "a failed run re-enters at the gate" 'its next spawn is a gate entry'
+hasc "the gate entry starts a fresh budget" 'with a fresh budget'
+# the report: the story block minus the story lines, ending on resume:
+hasc "the report's task line" 'task:    <task-id> <title>'
+hasc "the report's resume line" 'resume:  /dev:implement-task <task-id>'
+lacks "a story line in the report" '^ *story: '
+lacks "a human: or waiting: line in the report" '^ *(human|waiting): '
 fi
 
 # ---- 9. /close-story: the task check counts children as the finished-story definition does ----
@@ -1809,10 +1885,8 @@ pairs=
 [ "${#scanned[@]}" -eq 0 ] || pairs=$(cmd_tokens "${scanned[@]}") || bad "token extractor failed on ${scanned[*]}"
 while IFS=$'\t' read -r f tok; do
   [ -n "$tok" ] || continue
-  # specs and ADRs keep the words of their day, so no existence check runs on them; the glossary
-  # and /dev:task-orchestrator's refusal name /dev:implement-task, which dev-b8d.1.6 adds, so the
-  # check waits for it there
-  case "$f" in "$docs/specs/"*|"$docs/adr/"*) ;; "$glossary_md"|"$skills/task-orchestrator/SKILL.md") case "$tok" in dev:implement-task) ;; *) cmds "$tok" ;; esac ;; *) cmds "$tok" ;; esac
+  # specs and ADRs keep the words of their day, so no existence check runs on them
+  case "$f" in "$docs/specs/"*|"$docs/adr/"*) ;; *) cmds "$tok" ;; esac
   case "$tok" in dev:*|mattpocock-skills:*) continue;; esac
   case "$builtin" in *" $tok "*) continue;; esac
   bad "bare or unknown skill namespace in $f: /$tok (use dev:<skill> or mattpocock-skills:<skill>)"

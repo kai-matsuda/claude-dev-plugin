@@ -571,6 +571,7 @@ section_case 11 skills/sample/SKILL.md 'run /story-to-tasks next' "a bare /<skil
 section_case 12 skills/retro/SKILL.md 'grep the whole slug directory' "/retro with the bare grep instruction"
 section_case 13 skills/sample/SKILL.md '> read ${CLAUDE_PLUGIN_ROOT}/docs/agents/orchestration.md' "the plugin-root variable in a brief"
 section_case 16 skills/task-orchestrator/SKILL.md 'then merge it with `git -C <owner> merge <task branch>`' "/task-orchestrator merging onto the owner checkout"
+section_case 17 skills/implement-task/SKILL.md 'then run `gh pr create --draft`' "/implement-task opening a draft PR"
 # the version-bump rule (14) has its own cases at the end, each on a throwaway repo
 fresh
 drop_phrase skills/retro/SKILL.md 'one JSON object per line'
@@ -581,7 +582,7 @@ sec=12 expect "section 12 fails alone: /retro without the transcript shape" 1
 for case in '1 skills/implement-spec/SKILL.md' '2 skills/workflow/SKILL.md' '2 docs/WORKFLOW.md' \
   '3 skills/spec-to-stories/SKILL.md' '4 skills/spec-to-tasks/SKILL.md' '6 10 docs/agents/orchestration.md' \
   '6 docs/agents/harness.md' '6 10 docs/agents/issue-tracker.md' '6 skills/setup-repo/SKILL.md' '7 skills/story-to-tasks/SKILL.md' '8 skills/implement-story/SKILL.md' \
-  '9 skills/close-story/SKILL.md' '6 skills/triage/SKILL.md' '12 skills/retro/SKILL.md' '16 skills/task-orchestrator/SKILL.md' '0 CLAUDE.md' '0 GLOSSARY.md'; do
+  '9 skills/close-story/SKILL.md' '6 skills/triage/SKILL.md' '12 skills/retro/SKILL.md' '16 skills/task-orchestrator/SKILL.md' '17 skills/implement-task/SKILL.md' '0 CLAUDE.md' '0 GLOSSARY.md'; do
   doc=${case##* }
   fresh
   rm "$scratch/$doc"
@@ -2724,6 +2725,83 @@ for case in 'Then merge, `git -C <owner> merge <task branch>`.|present: a write 
   fresh
   printf '%s\n' "${case%%|*}" >> "$scratch/skills/task-orchestrator/SKILL.md"
   sec=16 expect "task-orchestrator regaining '${case%%|*}' fails" 1 "${case#*|}"
+done
+
+# /dev:implement-task (dev-b8d.1.6): every pin proven by dropping its phrase, the retired or
+# out-of-row forms by seeding them back, and the skill's existence by the namespace rule
+for case in 'Implement one standalone task bead|missing in the opening: the frontmatter names a standalone task' \
+  '`<id> is of type <type>, not a task; /dev:implement-task takes a standalone task bead id.`|missing (case-sensitive): the non-task refusal' \
+  '`<id> refused: its parent <story-id> is a story; run /dev:implement-story <story-id>`|missing (case-sensitive): the story-task refusal names /dev:implement-story' \
+  '`<id> refused: not ready-for-agent|missing (case-sensitive): the not-ready refusal' \
+  'the story row with a frontier of one|missing (case-sensitive): the story row with a frontier of one' \
+  'no story bead and no story gate|missing (case-sensitive): no story gate' \
+  'make -C <owner> -pRrq : 2>/dev/null|missing (case-sensitive): the make probe for the check target' \
+  '`failed: no check target in <owner>; run /dev:setup-repo there, then re-run`|missing (case-sensitive): the refusal with no check target' \
+  "the rules doc's Gitignore rule|missing (case-sensitive): the gitignore rule" \
+  'git -C <owner> switch -c task/<task-id> <default branch>|missing (case-sensitive): the branch task/<id> off the default branch' \
+  'bd -C <owner> note <task-id> "branch: task/<task-id>"|missing (case-sensitive): the branch: note' \
+  'Decide **once** which forge fronts the repo|missing (case-sensitive): the forge decided once' \
+  'Call the Skill tool with `dev:task-orchestrator`|missing (case-sensitive): one task orchestrator through the skill' \
+  'at `model: opus`|missing (case-sensitive): the task orchestrator at opus' \
+  '`gate entry: <task branch> <worktree path> <tip SHA>`|missing (case-sensitive): the brief'"'"'s gate entry' \
+  'git -C <owner> merge --ff-only <task branch>|missing (case-sensitive): the landing is a fast-forward' \
+  'bd -C <owner> note <task-id> "review: <tip SHA>"|missing (case-sensitive): the landed tip is noted' \
+  "as the rules doc's Delivery section says, with the standalone task as its unit|missing (case-sensitive): delivery by the rules doc's Delivery section" \
+  'opened **ready**, not draft|missing (case-sensitive): the PR opened ready, not draft' \
+  'the `delivered:` and `pr:` notes in that order|missing (case-sensitive): delivered: precedes pr:' \
+  'bd -C <owner> close <task-id> --reason "delivered: <pr: value>"|missing (case-sensitive): the task closes at delivery' \
+  'the pushed branch is the deliverable|missing (case-sensitive): no forge: the pushed branch is the deliverable' \
+  'checks: skipped: no forge|missing (case-sensitive): no forge: the skipped-checks line' \
+  '**Merge guard.**|missing (case-sensitive): the merge guard' \
+  '`<task-id> refused: PR <url> already merged|missing (case-sensitive): the merge guard'"'"'s merged refusal' \
+  '`<task-id> refused: PR <url> is closed unmerged`|missing (case-sensitive): the merge guard'"'"'s closed-unmerged refusal' \
+  'OPEN: continue on the `branch:` note'"'"'s branch and deliver again|missing (case-sensitive): the merge guard'"'"'s open PR delivers again' \
+  'its next spawn is a gate entry|missing (case-sensitive): a failed run re-enters at the gate' \
+  'with a fresh budget|missing (case-sensitive): the gate entry starts a fresh budget' \
+  'task:    <task-id> <title>|missing (case-sensitive): the report'"'"'s task line' \
+  'resume:  /dev:implement-task <task-id>|missing (case-sensitive): the report'"'"'s resume line'; do
+  fresh
+  drop_phrase skills/implement-task/SKILL.md "${case%%|*}"
+  sec=17 expect "implement-task without '${case%%|*}' fails" 1 "${case#*|}"
+done
+for case in 'Then `gh pr create --draft --repo <forge-slug>`.|present: a draft PR for a standalone task' \
+  'Or `tea pr create --title "WIP: <task title>"`.|present: a draft PR for a standalone task' \
+  '   story:   <story-id> <title>|present: a story line in the report' \
+  '   human:   <bead-id> <title>|present: a human: or waiting: line in the report'; do
+  fresh
+  printf '%s\n' "${case%%|*}" >> "$scratch/skills/implement-task/SKILL.md"
+  sec=17 expect "implement-task regaining '${case%%|*}' fails" 1 "${case#*|}"
+done
+# the skill exists, so /dev:task-orchestrator's refusal and the glossary naming it pass the
+# namespace rule; without its dir they fail there
+fresh
+rm -r "$scratch/skills/implement-task"
+sec="11 17" expect "a missing implement-task skill dir fails the namespace rule" 1 "/dev:implement-task names no skill"
+# the rules doc's one paragraph on it, the table keeping three rows, and the no-seam-test case
+# skipping a standalone task without ## Test seams (section 6), and the task orchestrator's
+# reviewer and implementer briefs saying the same (section 16)
+for case in '`/dev:implement-task <id>`|the paragraph names /dev:implement-task' \
+  'the story row with a frontier of one|the paragraph: the story row with a frontier of one' \
+  'no story bead and no story gate|the paragraph: no story gate' \
+  'a PR opened ready|the paragraph: the PR opened ready' \
+  'closes the task at delivery|the paragraph: the close at delivery' \
+  'the table keeps its three rows|the paragraph: the table keeps three rows'; do
+  fresh
+  drop_phrase docs/agents/orchestration.md "${case%%|*}" -i
+  sec=6 expect "orchestration without '${case%%|*}' fails" 1 "missing in the **The standalone task.** paragraph: ${case#*|}"
+done
+fresh
+drop_phrase docs/agents/orchestration.md 'a standalone task whose body has no `## Test seams` names no seam, and the case does not apply to it'
+sec=6 expect "orchestration whose Review verdict blocks a standalone task without test seams fails" 1 \
+  "missing in the **Review verdict.** paragraph: the no-seam-test case skips a standalone task without test seams"
+fresh
+printf '%s\n' '| **Standalone task** | story orchestrator | one task orchestrator |' >> "$scratch/docs/agents/orchestration.md"
+sec=6 expect "orchestration with a fourth table row fails" 1 "present: a fourth row in the table"
+for case in 'a standalone task whose body has no `## Test seams` names no seam, so this case does not apply|missing: the no-seam-test case skips a standalone task without test seams' \
+  'where `tdd` agrees them when it has none|missing: a standalone task'"'"'s implementer tests where tdd agrees them'; do
+  fresh
+  drop_phrase skills/task-orchestrator/SKILL.md "${case%%|*}"
+  sec=16 expect "task-orchestrator without '${case%%|*}' fails" 1 "${case#*|}"
 done
 
 # the story gate (step 7) is the check gate loop at the story row: each pin is proven by

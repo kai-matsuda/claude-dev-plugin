@@ -26,6 +26,17 @@ human is not a row: a ready PR is theirs to merge.
 | **Story** | story orchestrator | task orchestrators in parallel over the frontier | the check command | the story's body | what entered since the last standards review: conflict resolutions, cross-task coherence and the story gate's fix-up commits | both axes, at the review model of the story's max tier | an implementer by pointer brief in a fix-up worktree | merges each reviewed task branch after the stray-commit check; push, the PR staying a draft | the checks green on the tip the review called clean | three fix-ups; three conflict resolutions per landing |
 | **Epic** | epic orchestrator | story orchestrators in parallel over the frontier | the check command as the forge runs it | the Jira Epic's spec | none, the axis is skipped | the spec axis only, at the review model of the epic's max tier | findings filed as `ready-for-agent` tasks under the story, that story re-run in add mode | the PR marked ready, the human merges, then `/dev:close-story` and `/dev:close-epic` | the checks green on the tip the review called clean | three per story |
 
+**The standalone task.** `/dev:implement-task <id>`, typed in the repo whose beads hold a
+standalone task, is the story row with a frontier of one: a story orchestrator with
+no story bead and no story gate. It runs the story row's plumbing (the check command, the
+forge decision, the Gitignore rule, the branch `task/<id>` off the default branch with a
+`branch:` note), spawns one task orchestrator with the same brief, lands its reviewed branch
+by a fast-forward, since nothing else moves the branch, and delivers it by the Delivery
+section as a PR opened ready, not draft, since no spec sits above the task's own body: the
+task gate's review is the only review, and its green record on the same tip is the check.
+It closes the task at delivery, after the `delivered:` and `pr:` notes, and a rerun applies
+the merge guard on the `pr:` note. It is a parameter of the story row, so the table keeps its three rows.
+
 **Landing a task.** The story row lands: the task orchestrator reports its reviewed
 branch and never touches the owner checkout, and the story orchestrator, in the turn that
 report resumes it, runs the stray-commit check and merges the task branch onto the
@@ -275,8 +286,9 @@ which the epic row reads as the story's delivered tip.
 
 **Review verdict.** Every reviewer, at every row, tags every finding **blocking** or **minor** and ends its report on one verdict line. A
 finding is blocking when an acceptance criterion is unmet, a behaviour is wrong, a test is
-missing, or no test at a story seam exercises the criteria the unit names; it is minor when it changes
-no behaviour an acceptance criterion names (wording, naming, a nit). The last line is
+missing, or no test at a story seam exercises the criteria the unit names
+(a standalone task whose body has no `## Test seams` names no seam, and the case does not apply to it);
+it is minor when it changes no behaviour an acceptance criterion names (wording, naming, a nit). The last line is
 `verdict: clean` when no finding is blocking, else `verdict: blocking (<n>)`, `<n>` the
 count of blocking findings. A round with no blocking findings is **clean**, whatever its
 minors: they go to one last fix-up, or to the inbox as a deferral when the
