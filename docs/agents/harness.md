@@ -57,7 +57,7 @@ the owner checkout's `index.lock` and `MERGE_HEAD`, at the paths
 worktree or a submodule, so a literal `.git/` path there names nothing), with the call's `timeout` as the five-minute
 bound, so it returns when the lock clears and is killed when it does not (chezmoi-sn1's
 check, 2026-10-22, saw the background form end the task orchestrator's turn with nothing reported).
-The other is the story orchestrator's forge-check wait (`/dev:implement-story` step 8): one
+The other is the story orchestrator's forge-check wait (the rules doc's Delivery section): one
 foreground Bash call that waits for the PR's forge checks on the pushed tip, bounded by its
 `timeout: 600000` and run again while a check is still pending, at most six calls.
 The Bash tool's text says foreground `sleep` is blocked and points at `Monitor`; the same

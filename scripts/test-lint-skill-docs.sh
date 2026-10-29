@@ -619,7 +619,7 @@ drop_line docs/agents/harness.md '`pgrep` cannot list processes in the sandbox'
 expect "harness doc without the pgrep warning fails" 1
 
 fresh
-drop_line docs/agents/orchestration.md '**Delivery.**'
+drop_line docs/agents/orchestration.md '**Delivery authority.**'
 expect "orchestration doc without the delivery rule fails" 1
 
 fresh
@@ -627,7 +627,7 @@ echo "push when the active profile permits" >> "$scratch/docs/agents/orchestrati
 expect "profile-gated push in the orchestration doc fails" 1
 
 fresh
-drop_line skills/implement-story/SKILL.md 'the rules doc'"'"'s Delivery'
+drop_line skills/implement-story/SKILL.md 'the rules doc'"'"'s Delivery authority'
 expect "implement-story without its delivery pointer fails" 1
 
 fresh
@@ -1397,10 +1397,11 @@ expect "implement-story whose report template has no forge check failure fails" 
 # the check-record call is stated once in the rules doc and the Delivery section is pinned there,
 # parametrised by its unit (dev-b8d.1.3); each skill cites them and keeps only its own lines
 for case in 'mkdir -p <worktree path>/.tmp; mkdir -p <owner>/.tmp/checks/<tree>; export TMPDIR=<worktree path>/.tmp; make -C <worktree path> check > <owner>/.tmp/checks/<tree>/log 2>&1; echo "command=make check exit=$?" > <owner>/.tmp/checks/<tree>/record; cat <owner>/.tmp/checks/<tree>/record|missing (case-sensitive): Check record states the compound call' \
-  'parametrised by the unit it delivers: a **story**|missing (case-sensitive): Delivery is parametrised by the unit' \
-  'or a **standalone task** (delivered by its own skill)|missing (case-sensitive): Delivery names the standalone task' \
-  'Call the Skill tool with `mattpocock-skills:pr` to write the body|missing (case-sensitive): Delivery'"'"'s PR body is written by mattpocock-skills:pr' \
-  "its Evidence the delivered tip's check record|missing (case-sensitive): Delivery's Evidence is the delivered tip's check record"; do
+  'parametrised by the unit it delivers: a **story**|missing in the ## Delivery section: Delivery is parametrised by the unit' \
+  'or a **standalone task** (delivered by its own skill)|missing in the ## Delivery section: Delivery names the standalone task' \
+  'the Skill tool with `mattpocock-skills:pr` to write the body|missing in the ## Delivery section: Delivery'"'"'s PR body is written by mattpocock-skills:pr' \
+  'With a forge, call |missing in the ## Delivery section: Delivery'"'"'s PR body is written with a forge' \
+  "its Evidence the delivered tip's check record|missing in the ## Delivery section: Delivery's Evidence is the delivered tip's check record"; do
   fresh
   drop_phrase docs/agents/orchestration.md "${case%%|*}"
   expect "the rules doc without '${case%%|*}' fails" 1 "${case#*|}"
@@ -1428,6 +1429,57 @@ for case in '^(8\. .*)$|\1 Then wait: `gh pr checks <n> --repo <forge-slug> --wa
   swap_phrase skills/implement-story/SKILL.md "$anchor" "${rest%%|*}"
   expect "implement-story regaining '${rest%%|*}' fails" 1 "${rest#*|}"
 done
+
+# the Delivery pins search the ## Delivery section alone: the phrase moved out of it, to the end of
+# the file, still fails (dev-b8d.1.3 review 1)
+for phrase in 'git -C <owner> push -u origin <branch>' 'at most six calls in all' '`checks: skipped: no forge`'; do
+  fresh
+  drop_phrase docs/agents/orchestration.md "$phrase"
+  printf '%s\n' "$phrase" >> "$scratch/docs/agents/orchestration.md"
+  expect "the rules doc with '$phrase' outside the Delivery section fails" 1 "missing in the ## Delivery section"
+done
+
+# the paragraph is the Delivery authority and the section is the Delivery section: a paragraph
+# named like the section is two rules under one name (dev-b8d.1.3 review 1)
+fresh
+echo '**Delivery.** The paragraph under the section'"'"'s name.' >> "$scratch/docs/agents/orchestration.md"
+expect "the rules doc with a paragraph named like the Delivery section fails" 1 "present: a paragraph named like the Delivery section"
+
+# no skill or doc points at another skill's step number for the delivery (dev-b8d.1.3 review 1)
+for case in "the rules doc's Delivery section writes \`delivered: <tip SHA> <check record>\`|missing (case-sensitive): the epic review cites the Delivery section for the delivered: note" \
+  "the rules doc's Delivery section's forge-check wait|missing (case-sensitive): draft until clean cites the Delivery section's forge-check wait"; do
+  fresh
+  drop_phrase skills/implement-spec/SKILL.md "${case%%|*}"
+  expect "implement-spec without '${case%%|*}' fails" 1 "${case#*|}"
+done
+
+fresh
+echo 'Step 8 writes it: see `/dev:implement-story` step 8.' >> "$scratch/skills/implement-spec/SKILL.md"
+expect "implement-spec pointing at /dev:implement-story step 8 fails" 1 "present: a step number of /dev:implement-story for the delivery"
+
+fresh
+echo 'The wait is `/dev:implement-story` step 8.' >> "$scratch/docs/agents/harness.md"
+expect "harness doc pointing at /dev:implement-story step 8 fails" 1 "present: a step number of /dev:implement-story for the forge-check wait"
+
+fresh
+drop_phrase docs/agents/harness.md "forge-check wait (the rules doc's Delivery section)"
+expect "harness doc whose forge-check wait cites no Delivery section fails" 1 "the Idle rule cites the Delivery section for the forge-check wait"
+
+fresh
+drop_phrase skills/implement-story/SKILL.md "first run the rules doc's Delivery section's **stray-commit check**"
+expect "implement-story step 3 without the Delivery section's stray-commit check fails" 1 "missing: step 3 runs the Delivery section's stray-commit check"
+
+fresh
+drop_phrase skills/implement-story/SKILL.md "(the rules doc's Delivery authority)"
+expect "implement-story step 3 pushing without the Delivery authority fails" 1 "missing: step 3 pushes on the Delivery authority"
+
+fresh
+swap_phrase skills/implement-story/SKILL.md "^(   With a forge, open a .*)$" "\\1 Run step 8's **stray-commit check**."
+expect "implement-story step 3 pointing at step 8's stray-commit check fails" 1 "present: step 3 pointing at step 8's stray-commit check"
+
+fresh
+drop_phrase skills/implement-story/SKILL.md "(the rules doc's Check record)"
+expect "the task orchestrator brief without its Check record citation fails" 1 "missing: the gate names the rules doc's Check record as the writer's rule"
 
 fresh
 drop_line docs/agents/harness.md "The other is the story orchestrator's forge-check wait"

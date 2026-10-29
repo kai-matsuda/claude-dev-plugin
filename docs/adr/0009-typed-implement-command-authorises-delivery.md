@@ -47,7 +47,7 @@ had caught.
 - A run of `/dev:implement-spec` or `/dev:implement-story` ends with the PR open or a `failed:
   push` line, never waiting for the user. The run is AFK, as the runbook's stage 4a says.
 - Stage 4a of the runbook stays as written (AFK, the run opens the PR); a skill that
-  delivers a branch cites the rules doc's Delivery paragraph, never the Beads profile.
+  delivers a branch cites the rules doc's Delivery authority paragraph, never the Beads profile.
 - A user who wants to confirm each push runs the skill in a prompting permission mode; the
   prompt reaches them from the background orchestrator and a denial is reported as a
   refused push.
