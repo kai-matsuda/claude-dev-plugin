@@ -48,6 +48,13 @@ else echo "confirm: Atlassian MCP (claude.ai connector or mcpServers entry; chec
 here=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 echo; echo "=== paste into ~/.claude/CLAUDE.md ==="; cat "$here/claude-md-stub.md"
 echo; echo "=== merge into ~/.claude/settings.json (merge the arrays; do not replace) ==="; cat "$here/baseline-settings.json"
+# the commit-msg hook: a machine setup tool installs the shipped script rather than vendoring
+# it, again after each plugin update, since $here names the installed version
+lint_dest='~/.config/git/commit-lint.sh'
+echo; echo "=== install as $lint_dest, run on commit-msg in every repo (again after a plugin update) ==="
+echo "mkdir -p ~/.config/git && cp $here/commit-lint.sh $lint_dest"
+echo "git config --global hook.commitlint.event commit-msg"
+echo "git config --global hook.commitlint.command 'f=\$HOME/${lint_dest#\~/}; [ -f \"\$f\" ] || exit 0; sh \"\$f\" \"\$@\"'"
 echo
 
 if [ "$missing" != 0 ]; then exit 1

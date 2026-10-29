@@ -451,11 +451,12 @@ orchestration rules doc, not the runbook skill, not the skills.
 
 **Machine setup**:
 The per-machine part of running the dev plugin, which a plugin cannot carry: the
-user-level `CLAUDE.md` stub that points at the plugin's docs, the baseline settings, and
+user-level `CLAUDE.md` stub that points at the plugin's docs, the baseline settings, the
+commit-lint git hook (the script ships in the plugin; the hook config cannot), and
 the lines the runbook has the owner add by hand (the `~/src` sandbox allowlist,
 `beads.role`, `BD_EXPORT_AUTO`). `/dev:setup` checks the prerequisites and hands the owner
-the stub and the baseline to paste, nothing more; on Kai's own machines chezmoi applies
-all of it, the commit-lint git hook too, and the skill finds nothing missing.
+the stub, the baseline and the hook commands, nothing more; on Kai's own machines
+chezmoi applies all of it and the skill finds nothing missing.
 _Avoid_: bootstrap, onboarding
 
 **Repo setup**:

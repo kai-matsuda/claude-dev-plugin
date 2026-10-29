@@ -12,6 +12,7 @@ skill=$repo_root/skills/setup
 snippet=$skill/baseline-settings.json
 stub=$skill/claude-md-stub.md
 prereqs=$skill/check-prereqs.sh
+lint=$skill/commit-lint.sh
 
 fm=$(fx_front "$skill/SKILL.md")
 fx_check "frontmatter names the skill setup" grep -qx 'name: setup' <<<"$fm"
@@ -119,6 +120,11 @@ fx_check "full machine exits 0" test "$rc" = 0
 fx_check "full machine says all prerequisites are present" grep -q '^all prerequisites present' <<<"$out"
 fx_check "full machine prints the CLAUDE.md stub" bash -c '[[ $1 == *"$(cat "$2")"* ]]' _ "$out" "$stub"
 fx_check "full machine prints the baseline snippet" bash -c '[[ $1 == *"$(cat "$2")"* ]]' _ "$out" "$snippet"
+fx_check "full machine names the shipped commit-lint.sh to install" grep -qF "$lint" <<<"$out"
+fx_check "full machine says commit-lint.sh goes to ~/.config/git" grep -qF '~/.config/git/commit-lint.sh' <<<"$out"
+fx_check "full machine prints the commit-msg hook config" bash -c '
+  grep -qF "git config --global hook.commitlint.event commit-msg" <<<"$1" &&
+  grep -q "git config --global hook.commitlint.command .*config/git/commit-lint.sh" <<<"$1"' _ "$out"
 out_line() { grep -n "$1" <<<"$out" | head -1 | cut -d: -f1; }
 stub_leads_with_command_grep() { # before the cd rule, the printed stub's first shell line (dev-5o3)
   local g c; g=$(out_line 'command grep'); c=$(out_line 'cd <repo>')
@@ -167,5 +173,29 @@ done
 fx_check "empty machine asks to confirm Atlassian, not missing" bash -c 'grep -q "^confirm: Atlassian" <<<"$1" && ! grep -q "^missing: Atlassian" <<<"$1"' _ "$out"
 fx_check "empty machine still prints the CLAUDE.md stub" bash -c '[[ $1 == *"$(cat "$2")"* ]]' _ "$out" "$stub"
 fx_check "empty machine still prints the baseline snippet" bash -c '[[ $1 == *"$(cat "$2")"* ]]' _ "$out" "$snippet"
+
+# commit-lint.sh, the commit-msg hook machine setup installs (dev-clo): run in a throwaway repo
+# on message files, as git's hook would
+lintw=$work/lint
+fx_check "commit-lint: the throwaway repo is made" fx_git_repo "$lintw/repo"
+lint_msg() { # <message>: lint it from the repo; sets lout and lrc
+  printf '%s\n' "$1" >"$lintw/msg"
+  lout=$(cd "$lintw/repo" && sh "$lint" "$lintw/msg" 2>&1); lrc=$?
+}
+fx_check "commit-lint ships beside the stub" test -s "$lint"
+lint_msg $'feat(setup): ship commit-lint\n\nBody.\n\nBead: dev-clo\nRefs: INFRA-1'
+fx_check "commit-lint passes a Conventional Commits message with trailers" test "$lrc" = 0
+lint_msg 'Added a thing.'
+fx_check "commit-lint blocks a subject with no type" bash -c '[ "$1" = 1 ] && grep -q "error: subject is not" <<<"$2"' _ "$lrc" "$lout"
+lint_msg 'feat: Ship it'
+fx_check "commit-lint blocks a capital after the colon" bash -c '[ "$1" = 1 ] && grep -q "capital" <<<"$2"' _ "$lrc" "$lout"
+lint_msg "feat: $(printf 'x%.0s' $(seq 70))"
+fx_check "commit-lint blocks a subject over 72 characters" bash -c '[ "$1" = 1 ] && grep -q "the limit is 72" <<<"$2"' _ "$lrc" "$lout"
+lint_msg $'fix: thing\n\nBead: dev-clo\n\nMore prose after the trailer.'
+fx_check "commit-lint blocks a Bead: line outside the last paragraph" bash -c '[ "$1" = 1 ] && grep -q "trailer block" <<<"$2"' _ "$lrc" "$lout"
+lint_msg $'fix: thing\nbody right under the subject'
+fx_check "commit-lint blocks a body with no blank line after the subject" bash -c '[ "$1" = 1 ] && grep -q "no blank line" <<<"$2"' _ "$lrc" "$lout"
+lint_msg $'Merge branch \'x\''
+fx_check "commit-lint lets git's own Merge subject through" test "$lrc" = 0
 
 fx_report_fails

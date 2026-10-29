@@ -121,9 +121,9 @@ repo already had `core.hooksPath` set, chain the old hook from the new one in
   both when both apply. Neither is inferable from a diff, so a commit without them loses
   the link for good. They go in the last paragraph with the attribution lines and no
   prose, since git parses only a last paragraph made of trailer lines as trailers. A
-  machine may enforce the mechanical parts with a commit-msg hook (a dotfiles-managed
-  `commit-lint.sh`, when the machine has one); a commit it rejects is fixed and retried
-  (`harness.md`, Commits).
+  machine may enforce the mechanical parts with a commit-msg hook (the `commit-lint.sh`
+  the plugin ships in `skills/setup/`, when machine setup installed it); a commit it
+  rejects is fixed and retried (`harness.md`, Commits).
 
 ## When a skill says "publish the spec to the issue tracker" (`/mattpocock-skills:to-spec`)
 

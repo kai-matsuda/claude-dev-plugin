@@ -2,6 +2,11 @@
 status: accepted
 ---
 
+> Amended 2026-10-28 (dev-clo): the commit-lint git hook's script, `commit-lint.sh`, ships
+> in the plugin's `skills/setup/`, and `/dev:setup` prints the commands that copy it to
+> `~/.config/git` and wire `hook.commitlint`. The hook config stays per machine, as below;
+> machine setup installs the script from the plugin cache instead of vendoring a copy.
+
 > Amended 2026-10-26 (dev-iyr, INFRA-33): the fixture tests no longer stay local. With
 > `0014-one-loop-at-three-rows.md`'s single check command, GitHub Actions calls `make check`,
 > which runs `make ci` and the fixture tests side by side; `make lint` is a deprecated alias
