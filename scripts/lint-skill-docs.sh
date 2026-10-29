@@ -1732,8 +1732,8 @@ hasc "no story gate" 'no story bead and no story gate'
 hasc "the make probe for the check target" 'make -C <owner> -pRrq : 2>/dev/null'
 hasc "the refusal with no check target" '`failed: no check target in <owner>; run /dev:setup-repo there, then re-run`'
 hasc "the gitignore rule" "the rules doc's Gitignore rule"
-hasc "the branch task/<id> off the default branch" 'git -C <owner> switch -c task/<task-id> <default branch>'
-hasc "the branch: note" 'bd -C <owner> note <task-id> "branch: task/<task-id>"'
+hasc "the branch feat/<id> off the default branch" 'git -C <owner> switch -c feat/<task-id> <default branch>'
+hasc "the branch: note" 'bd -C <owner> note <task-id> "branch: feat/<task-id>"'
 hasc "the forge decided once" 'Decide **once** which forge fronts the repo'
 # one task orchestrator, the short brief
 hasc "one task orchestrator through the skill" 'Call the Skill tool with `dev:task-orchestrator`'
