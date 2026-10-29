@@ -21,7 +21,7 @@ climbs to an ancestor's database (another home's inbox). Missing →
 
 With an argument: a bead id → `bd show <id> --json` (an array; `.[0]`); an `issue_type`
 other than `epic` → `<id> refused: <id> is <type>, not an epic`, and stop, so a story or
-task id never reaches the flat-epic check in step 2. A `<KEY>-<n>` → `bd list --type epic
+task id never reaches the malformed-epic check in step 2. A `<KEY>-<n>` → `bd list --type epic
 --external-ref <KEY>-<n>`. Without one: `bd list -t epic -s open,in_progress --json`, drop
 beads labelled `wayfinder:map`, and in a repo session keep those with at least one child (a
 workspace session's epic has no children by design, so keep every one). Exactly one → use
@@ -34,10 +34,10 @@ and failure rules included. Keep each story's `<owner>`, its owner repo's absolu
 a repo session the only story is the home story and its owner is `<home>`. Skip
 `retro`-labelled beads (${CLAUDE_PLUGIN_ROOT}/docs/agents/issue-tracker.md).
 
-Check for a **flat epic** separately: `bd list --parent <epic-id> --all --json` is the
+Check for a **malformed epic** separately: `bd list --parent <epic-id> --all --json` is the
 epic's direct children (none in a workspace session); the `--all` is load-bearing, since
 `bd list` hides closed beads. A non-story among them →
-`<id> refused: flat epic (tasks directly under the epic bead); the story skills do not handle it — the small-bug path does: /mattpocock-skills:implement <task-id> per task, then bd close <epic-id>`
+`<epic-id> refused: <child-id> is not a story`
 and stop. The gather above finding no story → refuse, naming the epic; empty direct
 children alone is not a refusal.
 

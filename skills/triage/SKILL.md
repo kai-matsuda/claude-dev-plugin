@@ -7,7 +7,7 @@ disable-model-invocation: true
 Works the **inbox**: the `needs-triage` beads in the home's beads database (**the one
 test** in the tracker doc's (`${CLAUDE_PLUGIN_ROOT}/docs/agents/issue-tracker.md`) opening: the workspace's in a workspace session, the repo's in
 a repo session), filed by `/dev:retro` or by hand. A human accepts or rejects each one; you
-make the accepted ones implementable the way `/mattpocock-skills:to-tickets` makes a spec implementable:
+make the accepted ones implementable the way `/dev:story-to-tasks` makes a story implementable:
 acceptance criteria, a complexity tier, and a bead in the repo that owns the change. The
 accept question in step 4 is the point of this skill, so it runs only with the user
 present.
@@ -109,5 +109,5 @@ One line per inbox bead handled:
 `<inbox id> → <repo> <new id> complexity:<tier> <ready label>` · or `wontfix` · or
 `needs-info`
 
-Then what to type next: `/mattpocock-skills:implement <id>` in the owner repo, or `bd -C <repo> ready` to
+Then what to type next: `/dev:implement-task <id>` in the owner repo, or `bd -C <repo> ready` to
 see it on that repo's frontier.

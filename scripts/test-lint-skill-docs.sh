@@ -65,7 +65,7 @@ bounded() {
 # the stand-in for the installed plugin: every name the tree's /commands resolve to, and the
 # ones the cases below name; listed once, since every fresh copy holds the same tree
 plugin_names=$(grep -rhoE 'mattpocock-skills:[a-z-]+' "$repo_root/skills" "$repo_root/docs" "$repo_root/CLAUDE.md" "$repo_root/GLOSSARY.md" \
-  | cut -d: -f2; printf '%s\n' tdd to-tickets)
+  | cut -d: -f2; printf '%s\n' tdd)
 # the pristine tree, built once: every fresh copy is one cp of it
 pristine=$jobs/pristine
 mkdir "$pristine"
@@ -335,7 +335,7 @@ for target in skills/sample/SKILL.md docs/agents/sample.md docs/WORKFLOW.md CLAU
   echo "run /other:story-to-tasks next" >> "$scratch/$target"
   expect "another namespace in $target fails with the namespace message" 1 "$ns_msg in $scratch/$target"
   fresh
-  printf 'run dev:story-to-tasks, then mattpocock-skills:to-tickets\nor /mattpocock-skills:tdd and /dev:workflow\n' >> "$scratch/$target"
+  printf 'run dev:story-to-tasks, then mattpocock-skills:code-review\nor /mattpocock-skills:tdd and /dev:workflow\n' >> "$scratch/$target"
   expect "namespaced references in $target pass" 0
 done
 # the loop above seeds /story-to-tasks; dev-9np's acceptance criterion names /implement-spec
@@ -734,11 +734,16 @@ fresh
 drop_line docs/WORKFLOW.md '**The argument.**'
 expect "runbook copy without the argument paragraph fails" 1
 
-# the flat path's checks-first wording and its task review name (dev-cq0.1.3): each phrase
-# dropped alone, the rest of its row kept, so each case fires its own pin
+# row 4b names /dev:implement-task, and the small-bug route is one bd create then that skill
+# (INFRA-37): each phrase dropped alone, the rest of its row kept
 fresh
-drop_phrase docs/WORKFLOW.md "then the checks (the owner repo's check command), then \`/mattpocock-skills:code-review\`"
-expect "runbook copy without the checks-first flat path fails" 1 "flat path runs the checks before the review"
+drop_phrase docs/WORKFLOW.md '`/dev:implement-task <task-id>`'
+echo 'then `/dev:implement-task <task-id>` elsewhere' >> "$scratch/docs/WORKFLOW.md"
+expect "4b pin is anchored on its row" 1 "4b names implement-task"
+
+fresh
+drop_phrase docs/WORKFLOW.md 'one `bd create`, then `/dev:implement-task <task-id>`'
+expect "runbook without the one-bd-create small-bug route fails" 1 "the small-bug route is one bd create then implement-task"
 
 # the row pins sit on their own row: the phrase kept on another line cannot stand in
 fresh
@@ -768,14 +773,6 @@ expect "runbook copy without the task review's tiers fails" 1 "the runbook revie
 fresh
 echo 'at the task (`medium` and `high` only) on both axes' >> "$scratch/docs/WORKFLOW.md"
 expect "runbook copy limiting the task review to medium and high fails" 1 "the runbook's task review limited to medium and high"
-
-fresh
-swap_phrase docs/WORKFLOW.md "the owner repo's check command" "the owner repo's lint, then the agreed test seams"
-expect "runbook copy with the retired lint-then-seams wording fails" 1 "flat path runs the checks before the review"
-
-fresh
-drop_phrase docs/WORKFLOW.md 'the task review (switch'
-expect "runbook copy without the task review name fails" 1 "flat path's review is the task review"
 
 fresh
 echo 'Then the task gate (switch `/model` to the tier'"'"'s review model) runs.' >> "$scratch/docs/WORKFLOW.md"
@@ -2207,6 +2204,47 @@ done
 fresh
 echo 'A repo with no check command gets a review-only gate.' >> "$scratch/docs/specs/one-loop-three-rows.md"
 expect "a spec keeping the review-only gate passes" 0
+
+# one route per unit (INFRA-37): the refusal for an epic bead with a non-story child, and the
+# retired route words swept from every file a reader meets (the bare word chore still passes)
+fresh
+drop_phrase skills/implement-spec/SKILL.md '<epic-id> refused: <child-id> is not a story'
+expect "implement-spec without the malformed-epic refusal fails" 1 "malformed epic refusal"
+fresh
+drop_phrase skills/implement-story/SKILL.md '`<id> refused: <child-id> is not a story`'
+sec=8 expect "implement-story without the malformed-epic refusal fails" 1 "malformed epic refusal"
+fresh
+drop_phrase docs/agents/issue-tracker.md 'refused: <child-id> is not a story'
+sec=6 expect "tracker doc without the malformed-epic refusal fails" 1 "malformed epic refusal"
+fresh
+drop_phrase skills/workflow/SKILL.md '<child-id> is not a story'
+sec=2 expect "workflow without the malformed-epic line fails" 1 "workflow prints the malformed-epic line"
+fresh
+drop_phrase skills/close-epic/SKILL.md '<epic-id> refused: <child-id> is not a story'
+sec=2 expect "close-epic without the malformed-epic refusal fails" 1 "close-epic refuses a non-story child"
+fresh
+drop_phrase skills/triage/SKILL.md '`/dev:implement-task <id>` in the owner repo'
+sec=6 expect "triage without the implement-task hand-off fails" 1 "/triage hands a standalone task to implement-task"
+
+for case in 'a flat epic of tasks|flat epic' 'The flat-epic refusal.|flat-epic' \
+  'the small-bug path does it|small-bug path' 'the small bug path|small bug path' \
+  'run /mattpocock-skills:implement <id>|mattpocock-skills:implement' \
+  'run /mattpocock-skills:to-tickets now|mattpocock-skills:to-tickets' \
+  'the implement-chore skill|implement-chore' 'the chore orchestrator|chore orchestrator' \
+  'on branch chore/<id>|chore/'; do
+  for file in skills/sample/SKILL.md docs/agents/issue-tracker.md docs/WORKFLOW.md skills/implement-story/SKILL.md; do
+    fresh
+    echo "${case%%|*}" >> "$scratch/$file"
+    sec=5 expect "$file saying '${case%%|*}' fails section 5" 1 "a retired route (flat epic, small-bug path, upstream skill or chore name) in $scratch/$file"
+  done
+done
+fresh
+printf 'The commit subject is chore: ignore agent scratch space.\nA chore type and a chore commit pass.\nSee /mattpocock-skills:tdd.\n' >> "$scratch/skills/sample/SKILL.md"
+expect "the bare word chore and the other upstream skills pass" 0
+fresh
+echo 'ADR 0006 keeps the flat epic and /mattpocock-skills:to-tickets history.' >> "$scratch/docs/adr/0001.md"
+echo 'The spec names a flat epic, chore/<id> and the small-bug path.' >> "$scratch/docs/specs/one-loop-three-rows.md"
+expect "an ADR and a spec keeping the retired route words pass" 0
 
 # the retired vocabulary (dev-9k5.1.10, dev-9k5.1.11): every retired word or phrase seeded
 # together into each file section 5 sweeps (skills, agent docs, the project CLAUDE.md, the

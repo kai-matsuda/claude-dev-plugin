@@ -4,8 +4,7 @@ description: "Break one story bead into tracer-bullet tasks for its owner repo, 
 ---
 
 <!-- Derived from mattpocock-skills 1.3.1 `engineering/to-tickets`, steps 1-5 kept in the
-     plugin's order. Local changes: the input is one story bead (legacy flat epic,
-     non-story, closed and finished stories refused, a finished one unless add mode
+     plugin's order. Local changes: the input is one story bead (non-story, closed and finished stories refused, a finished one unless add mode
      marked it with a recut: note), optionally in another repo (bd -C);
      context is the story body and its Jira epic; tasks for the owner repo only; one
      complexity tier per task; two modes, alone (quiz, then publish) and called (a "story
@@ -37,7 +36,6 @@ Work from whatever is already in the conversation context.
 
 `bd show <id> --json` returns an array; read `.[0]`. Refuse with one line and create nothing when:
 
-- `issue_type` is `epic` and its direct children (`bd list --parent <id> --all --json`) include a non-story bead → `<id> refused: flat epic (tasks directly under the epic bead); the story skills do not handle it — the small-bug path does: /mattpocock-skills:implement <task-id> per task, then bd close <epic-id>`;
 - `issue_type` is anything but `story` → `<id> refused: <id> is <type>, not a story`;
 - `status` is `closed` → `<id> refused: story is closed`;
 - its notes hold a `pr:` line → `<id> refused: finished story (pr: note present); a later run never touches it; to add work to it use add mode (/dev:spec-to-stories <KEY>-<n>, or the epic bead id when the story has no key)`, unless its notes carry a `recut:` line (`recut: <dep repo> publish <crate> <version>`, written by add mode's `OPEN` path while the PR is still open) naming a `## Blocked by` publish blocker that no bump child covers yet: then the cut goes on as a re-cut that adds that blocker's bump with its edges and drops nothing, and the next run delivers the same PR again.

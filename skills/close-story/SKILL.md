@@ -29,8 +29,6 @@ of scope; this skill never calls it.
 `bd show <id> --json` returns an array; read `.[0]`. `issue_type` is `story` → go on. Then:
 
 - `status` already `closed` → `<id> already closed`, stop.
-- `epic`, and its direct children (`bd list --parent <id> --all --json`) include a non-story
-  bead → `<id> refused: flat epic (tasks directly under the epic bead); the story skills do not handle it — the small-bug path does: /mattpocock-skills:implement <task-id> per task, then bd close <epic-id>`.
 - Any other type → `<id> refused: <id> is <type>, not a story`.
 
 ## 2. Every task is closed

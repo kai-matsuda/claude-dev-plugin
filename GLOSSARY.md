@@ -41,7 +41,7 @@ by its tool, never by the bare word.
 _Avoid_: ticket (any level of something to do; a story is not one), sub-task
 
 **Standalone task**:
-A task with no story: a triaged retro item, a small bug, or a child of a flat epic. It is
+A task with no story: a triaged retro item, or a small bug. It is
 the task row's unit all the same.
 _Avoid_: loose bead, orphan task
 

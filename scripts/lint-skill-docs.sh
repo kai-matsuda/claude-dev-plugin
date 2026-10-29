@@ -450,7 +450,7 @@ lacks "nothing touches a task" 'nothing below touches a task'
 lacks "review set keyed on a failed: report this run" 'did not report `failed:` this run'
 lacks "the paginated tea pr list" 'tea pr list'
 has "frontmatter" 'disable-model-invocation: true'
-has "legacy line" 'refused: flat epic (tasks directly under the epic bead); the story skills do not handle it — the small-bug path does: /mattpocock-skills:implement <task-id> per task, then bd close <epic-id>'
+has "malformed epic refusal" '<epic-id> refused: <child-id> is not a story'
 has "add-dir refusal" '/add-dir <'
 hasc "Human stop" '**Human stop**'
 hasc "Stall" '**Stall**'
@@ -482,15 +482,19 @@ fi
 if doc 2 "/workflow" "$skills/workflow/SKILL.md"; then
 hasc "workflow prints the story cut's argument" 'next: `/dev:spec-to-stories <arg>`'
 hasc "workflow prints the task cut's argument" 'next: `/dev:spec-to-tasks <arg>`'
+hasc "workflow prints the malformed-epic line" '<child-id> is not a story'
 fi
-doc 2 "/close-epic" "$skills/close-epic/SKILL.md" || true   # no pins of its own; section 5 sweeps it
+if doc 2 "/close-epic" "$skills/close-epic/SKILL.md"; then
+hasc "close-epic refuses a non-story child as a malformed epic" '<epic-id> refused: <child-id> is not a story'
+fi
 if doc 2 "runbook" "$runbook"; then
 # the cut skills take the feature as their one argument; the runbook has a paragraph on it and
 # writes it in the 3a and 3b rows below (chezmoi-nz0)
 hasc "argument paragraph" '**The argument.**'
-# the flat path (row 4b) runs the checks before the one review tool, and its review is the
-# task review; "task gate" is retired so "gate" means the checks in every doc (dev-cq0.1.3)
-line_has '^[|] 4b [|]' "flat path runs the checks before the review" "then the checks (the owner repo's check command), then \`/mattpocock-skills:code-review\`"
+# row 4b is the standalone task: /dev:implement-task, and the small-bug route is one bd create
+# then that skill, with no epic bead (INFRA-37); the retired words are section 5's sweep
+line_has '^[|] 4b [|]' "4b names implement-task" '`/dev:implement-task <task-id>`'
+hasc "the small-bug route is one bd create then implement-task" 'one `bd create`, then `/dev:implement-task <task-id>`'
 line_has '^[|] 4a [|] `/dev:implement-spec`' "4a names the task orchestrators" '**task orchestrator**'
 # 4a's check gate reviews medium and high tasks, a low task's gate being its checks (ADR 0015)
 line_has '^[|] 4a [|] `/dev:implement-spec`' "4a reviews medium and high tasks" '(the checks, then, for `medium` and `high`, a review one tier up'
@@ -500,12 +504,7 @@ hasc "the runbook reviews medium and high tasks" "task's review model, for \`med
 lacks "the runbook's task review limited to medium and high" '(`medium` and `high` only)'
 line_has '^[|] 4a [|] opus [|]' "session model 4a: the epic orchestrator session" 'The epic orchestrator session'
 
-hasc "flat path's review is the task review" 'the task review (switch'
 lacks "retired task gate name in the runbook" 'task gate'
-
-# flat /to-tickets appears only in the Variants section
-unchanged_file || awk '/^## /{sec=$0} /\/mattpocock-skills:to-tickets/ && sec !~ /Variants/ {print NR": "$0; n=1} END{exit n}' "$f" >/dev/null \
-  || bad "/mattpocock-skills:to-tickets outside Variants"
 
 # stale wording
 for pat in 'cross-repo task' 'per-task `pr:`' 'single orchestrator' 'one orchestrator drives'; do
@@ -754,6 +753,10 @@ moved_names='(waiting|idle rule|commits|cut-off agents|worktrees|hand-rolled|fal
 # <x>/.beads, or as a repo "with `.beads/`"; the gates cite the tracker doc's "Has a database" rule
 beads_gate='test -d [^ ]*/\.beads|`<[a-z ]+>/\.beads` (is )?missing|no `<[a-z ]+>/\.beads`|with (no )?`\.beads/`'
 moved_rule='(rules doc|orchestration\.md)`?(, |'\''s (([a-z-]+ ){1,3}says \(|scratch space \(|[a-z-]+ )?)'"$moved_names"'([^a-z]|$)|'"$moved_names"'"?( rule)? (of|in) (the )?`?(rules doc|orchestration\.md)'
+# the task row as a skill (INFRA-37): one route per unit. No doc names a flat epic, the small-bug
+# path, the two upstream skills it replaces or the rejected chore names (never the bare word
+# chore, which the gitignore commit subject and the Conventional Commits type use)
+retired_route='flat[ -]epics?|small[ -]bug path|mattpocock-skills:(implement|to-tickets)([^-a-z]|$)|implement-chore|chore orchestrator|chore/'
 while IFS= read -r f; do
   lacksw "retired phrase in $f" "$retired"
   # no foreground spawn instruction: an Agent call returns at once whatever run_in_background
@@ -780,6 +783,9 @@ while IFS= read -r f; do
   # orchestrator's wait on the owner checkout's lock and its index.lock probe are gone
   # (dev-b8d.1.4)
   lacksw "the retired lock wait in $f" 'lock wait|index\.lock|under the lock'
+  # one route per unit (INFRA-37): a standalone task goes to /dev:implement-task, an epic bead
+  # with a non-story child is refused as malformed, and the upstream skills are not named
+  lacksw "a retired route (flat epic, small-bug path, upstream skill or chore name) in $f" "$retired_route"
 done <<<"$swept"
 # the root glossary lists the retired vocabulary under _Avoid_ (and docs/adr/ keeps its
 # historical sense through .glossary-allow), so only the two-gate wording is swept there
@@ -1113,7 +1119,7 @@ done
 hasc "epic gather section" 'When a skill says "gather the epic bead"'
 has "other-repo refusal" 'refused: epic bead lives in <repo>'
 has "closed refusal" 'refused: epic bead is closed'
-has "flat epic refusal" 'refused: flat epic (tasks directly under the epic bead)'
+has "malformed epic refusal" 'refused: <child-id> is not a story'
 has "re-cut creates a missing publish task" 'has no publish task'
 lacks "Jira comment gated on every task" "When all of a run's tasks are published"
 hasc "spec fetch section" 'When a skill says "fetch the spec"'
@@ -1160,6 +1166,7 @@ done
 # /triage has no section of its own, so its document is this one's
 if doc 6 "/triage" "$skills/triage/SKILL.md"; then
 hasc "/triage cites the tracker doc's \"Has a database\" rule" '"Has a database" rule'
+hasc "/triage hands a standalone task to implement-task" '`/dev:implement-task <id>` in the owner repo'
 fi
 # ADR 0014 records the one loop and supersedes ADR 0001, which keeps its text and points at it
 if doc 6 "ADR 0014" "$docs/adr/0014-one-loop-at-three-rows.md"; then
@@ -1231,6 +1238,8 @@ fi
 
 # ---- 8. /implement-story: the deliver step pushes and opens the PR on the typed command's authority ----
 if doc 8 "/implement-story" "$skills/implement-story/SKILL.md"; then
+# an epic bead with a non-story child is malformed, and the refusal points nowhere (INFRA-37)
+hasc "malformed epic refusal" '`<id> refused: <child-id> is not a story`'
 hasc "delivery rule pointer" 'the rules doc'"'"'s Delivery authority'
 hasc "step 8 delivers as the Delivery section says with the story as its unit" "8. **Deliver**, as the rules doc's Delivery section says, with the story as its unit"
 # a commit from outside the run (21f770c: a test whose throwaway init failed committed into the

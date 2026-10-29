@@ -172,12 +172,11 @@ bead), create the epic bead first, carrying that key as its `--external-ref`; no
 is created, since the key names one. The key is taken as given: one Jira does not know
 surfaces as `<KEY>-<n> is not in Jira` at the spec fetch or the task cut's comment. The
 skill requires the key or a bead id ("gather the epic bead" below), so `/dev:spec-to-stories`
-never creates an epic bead without a key; one made by hand or by the flat `/mattpocock-skills:to-tickets`
-path can lack it, which step 1 catches.
+never creates an epic bead without a key; one made by hand can lack it, which step 1 catches.
 
 1. In a workspace session the epic bead must carry an `--external-ref <KEY>-<n>`: every
    story is in another database than the epic bead, so that key is all that ties a story
-   to the feature. If it has none (made by hand or by `/mattpocock-skills:to-tickets`), stop before creating
+   to the feature. If it has none (made by hand), stop before creating
    anything and tell the user to publish the spec with `/mattpocock-skills:to-spec` (or add the key with
    `bd update <epic-id> --external-ref <KEY>-<n>`). In a repo session the key is not
    needed: every story there is the epic bead's child.
@@ -368,16 +367,6 @@ leave its line as it is.
 7. The Jira comment lists each publish task, with its proposed version, under its
    dependency's story, and each bump under its dependent's.
 
-## When a skill says "publish the tasks to the issue tracker" (`/mattpocock-skills:to-tickets`)
-
-The plugin words this as "publish the tasks to the configured tracker". The plugin's
-`/mattpocock-skills:to-tickets` is the flat path for a small change in the session's repo alone (the
-runbook's small-bug variant): it has no stories, and its tasks are children of the epic
-bead, created as in "publish a story's tasks" with `--parent <epic-id>`. It creates no
-Jira epic; without a prior `/mattpocock-skills:to-spec`, create the epic bead first.
-A breakdown with a slice in another repo belongs to `/dev:spec-to-stories` (then `/dev:spec-to-tasks`), typed at the workspace
-root: stop and tell the user so.
-
 ## When a skill says "fetch the relevant task"
 
 A `<KEY>-<n>` key → `getJiraIssue`, then `bd list --type epic --external-ref <KEY>-<n>` to
@@ -465,26 +454,24 @@ and create nothing and spawn nothing, when:
 - the bead is not an epic → `<id> refused: <id> is <type>, not an epic`;
 - its `status` is `closed` → `<epic-id> refused: epic bead is closed`;
 - it has a direct child (`bd list --parent <epic-id> --all --json`) whose `issue_type` is
-  not `story` → `<id> refused: flat epic (tasks directly under the epic bead); the story skills do not handle it — the small-bug path does: /mattpocock-skills:implement <task-id> per task, then bd close <epic-id>`.
+  not `story` → `<epic-id> refused: <child-id> is not a story`, a malformed epic, and the line points nowhere.
 
 The skill adds its own refusals after these.
 
-## When a skill says "start work on a task" (`/mattpocock-skills:implement`, `/dev:implement-story`)
+## When a skill says "start work on a task" (`/dev:implement-story`, `/dev:implement-task`)
 
 1. `bd update <id> --claim` (the bead already exists from the task cut; if it doesn't,
    create it under the story, or under the epic bead when there is none, with a
    `complexity:<tier>` label first).
 2. Pick the implementation model from the bead's `complexity` tier (table below).
 3. Work it; `bd note <id>` for progress worth keeping across sessions.
-4. Under `/dev:implement-story` every task passes the check gate before merge: the task
+4. Under `/dev:implement-story` and `/dev:implement-task` every task passes the check gate before merge: the task
    orchestrator runs the checks, and only `medium` and `high` tasks add the review. It spawns
    a reviewer subagent at the tier's review model, briefed to run the
    `mattpocock-skills:code-review` skill on the task's branch since the integration tip; a
    red or a blocking verdict goes to a fresh implementer in the same worktree, never back to
    the first one by `SendMessage` (`orchestration.md`, Trust rules, rule 2). The implementer
-   never calls the skill itself: it would run at the implementer's own model. Under
-   `/mattpocock-skills:implement` there is no task orchestrator: the session is the
-   implementer and runs the checks and then the task review itself. Why:
+   never calls the skill itself: it would run at the implementer's own model. Why:
    `docs/adr/0014-one-loop-at-three-rows.md` in the plugin repo.
 5. On completion `bd close <id>`. Do not touch the Jira epic per task.
 

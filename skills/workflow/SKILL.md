@@ -23,14 +23,13 @@ calls. Print, don't act: the next command is always the user's to type.
   `/dev:spec-to-stories`, `/dev:spec-to-tasks` and `/dev:implement-spec` take, printed filled in so
   the user types the line as-is.
 
-## Flat epic
+## Malformed epic
 
 Read the epic's direct children with `bd list --parent <id> --all --json` (`--all` keeps
 closed ones, which the default filter hides). Any child that is not of type `story` → the
-flat shape, the plugin's small-bug path, which this skill positions rather than refuses.
-Print `<bead-id> (<KEY>-<n>) "<title>" — flat epic (tasks directly under the epic bead),
-the small-bug path · next: `/mattpocock-skills:implement <task-id>` one at a time`, with `bd ready --parent
-<epic-id>` as-is beneath it, and go to the next epic.
+epic is malformed, which this skill reports and does not position. Print
+`<bead-id> (<KEY>-<n>) "<title>" — <epic-id> refused: <child-id> is not a story`, suggest
+nothing, and go to the next epic.
 
 ## Position of a story-shaped epic
 

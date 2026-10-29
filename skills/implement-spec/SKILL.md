@@ -8,7 +8,7 @@ disable-model-invocation: true
      feature-level epic orchestrator (INFRA-26, ADR 0006; the epic row, INFRA-33). The plugin's
      single-repo procedure moved to /dev:implement-story, and its shared rules to
      docs/agents/orchestration.md in this plugin; this file keeps only the story gather, the
-     flat-epic refusal, the working-directory preflight, the story orchestrator spawn, the epic
+     malformed-epic refusal, the working-directory preflight, the story orchestrator spawn, the epic
      review with its add-mode fix-up, the three end states and the once-only Jira step. It no
      longer tracks the plugin copy line by line: re-sync the intent, not the text. -->
 
@@ -34,9 +34,9 @@ The harness mechanics (Waiting, the Idle rule, Cut-off agents, literal paths, Co
 
 2. **Gather the stories** with the "Stories" gather of "fetch the relevant task" in `${CLAUDE_PLUGIN_ROOT}/docs/agents/issue-tracker.md`, its fallback and failure rules included. A sweep that stops there spawns nothing, since that repo's story would go unseen and Done could fire early. Skip `retro`-labelled beads. Each story's `<owner>` and `<owner repo>` follow from where it was found (Names).
 
-   **Flat epic.** `bd list --parent <epic-id> --all --json` is the epic's direct children (`--all` keeps closed ones). Any child that is not of type `story` → refuse and stop, creating nothing:
+   **Malformed epic.** `bd list --parent <epic-id> --all --json` is the epic's direct children (`--all` keeps closed ones). Any child that is not of type `story` → refuse and stop, creating nothing:
 
-   `<id> refused: flat epic (tasks directly under the epic bead); the story skills do not handle it — the small-bug path does: /mattpocock-skills:implement <task-id> per task, then bd close <epic-id>`
+   `<epic-id> refused: <child-id> is not a story`
 
    No stories at all → refuse, naming the epic.
 
