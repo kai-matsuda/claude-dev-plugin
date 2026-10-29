@@ -1160,6 +1160,12 @@ fresh
 drop_phrase skills/implement-story/SKILL.md '`git -C <owner> rev-parse --show-toplevel`'
 expect "implement-story whose sweep does not resolve the owner's top level fails" 1 "missing: step 9 resolves the owner's top level"
 
+# a linked worktree nested inside the owner keeps its own worktrees out of the owner's sweep
+# (dev-f61)
+fresh
+drop_phrase skills/implement-story/SKILL.md 'inside another listed worktree'
+expect "implement-story whose sweep takes a nested checkout's worktrees fails" 1 "missing: step 9 skips worktrees of a checkout nested in the owner"
+
 fresh
 drop_line skills/implement-story/SKILL.md 'worktrees: <absolute path>'
 expect "implement-story whose report template has no worktrees: line fails" 1

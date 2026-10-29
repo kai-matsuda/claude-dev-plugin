@@ -111,8 +111,9 @@
 #      sweeps every worktree-agent-* and .worktrees/ worktree whose branch is merged into the
 #      integration branch, earlier runs' included, and reports a locked or unmerged one in the
 #      report's worktrees: line instead of forcing it (chezmoi-73d), only inside the owner
-#      checkout's resolved top level (dev-114), then names every untracked,
-#      non-ignored file on the report's stray: line without deleting it (dev-9ft), its deliver
+#      checkout's resolved top level and not inside a linked worktree nested there (dev-114,
+#      dev-f61), then names every untracked, non-ignored file on the report's stray: line
+#      without deleting it (dev-9ft), its deliver
 #      step waits for the PR's forge checks and makes a red one a failed: line, a missing forge
 #      or check a checks: skipped line (dev-xc2), and its implementer,
 #      fix-up and conflict-resolution briefs start with the TMPDIR line, whose rule section 6
@@ -1183,6 +1184,9 @@ hasc "the sweep is keyed on the branch being merged into the integration branch"
 # paths with symlinks followed (dev-114)
 line_has '^9\. ' "step 9 sweeps only worktrees inside the owner checkout" 'lies inside `<top>`'
 line_has '^9\. ' "step 9 resolves the owner's top level" '`git -C <owner> rev-parse --show-toplevel`'
+# an entry inside another listed worktree that itself lies inside <top> belongs to a linked
+# worktree nested in the owner, and that worktree's own sweep is the one to remove it (dev-f61)
+line_has '^9\. ' "step 9 skips worktrees of a checkout nested in the owner" 'inside another listed worktree'
 lacks "the sweep limited to this run's worktrees" 'every worktree the run made'
 hasc "a locked or unmerged worktree is reported, not removed" 'reported with its path'
 lacks "a locked or unmerged worktree forced" 'worktree remove[^`]* -(-force|f)'
