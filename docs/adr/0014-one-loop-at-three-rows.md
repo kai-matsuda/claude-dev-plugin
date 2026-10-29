@@ -22,6 +22,10 @@ status: accepted
 > going to the inbox, so a commit after the clean review never lands with neither a check nor a
 > review; a ticket's conflict resolution waits for the story row's standards axis
 > (`docs/agents/orchestration.md`, Check gate).
+>
+> Superseded in part by ADR 0016 (`docs/adr/0016-the-story-row-lands-its-tasks.md`): its
+> decision "The ticket orchestrator lands its ticket" is replaced, the story row landing
+> each task and holding the three-resolutions budget; the rest of this ADR stands.
 
 # One loop at three rows, one check command, one review tool
 
