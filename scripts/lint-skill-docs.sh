@@ -1030,6 +1030,11 @@ has "re-cut re-edges kept tickets onto the new bump" 'kept ones with `bd dep add
 has "re-cut matches a bump to its blocker by crate" 'a bump covers the blocker whose crate its title names'
 has "publish ticket line shapes" 'a line names a publish ticket when it reads'
 has "re-cut cites the tracker doc's per-edge rules" 'the tracker doc'"'"'s per-edge re-cut rules'
+# a story changing what a plugin ships bumps its version first, so no ticket runs red on the
+# version-bump rule before the bump lands (dev-b9t)
+has "plugin version bump is the first ticket" 'the plugin version bump as its first ticket'
+has "every other ticket blocked on the plugin bump" 'every other ticket of the story blocked natively on that bump'
+has "a re-cut keeps the plugin bump first" 'A re-cut keeps the plugin version bump first'
 
 fi
 

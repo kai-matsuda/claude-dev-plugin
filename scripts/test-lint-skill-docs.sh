@@ -928,6 +928,19 @@ fresh
 drop_phrase skills/story-to-tickets/SKILL.md 'a line names a publish ticket when it reads'
 expect "story-to-tickets without the publish ticket line shapes fails" 1
 
+# a story changing what a plugin ships bumps its version in its first ticket (dev-b9t)
+fresh
+drop_phrase skills/story-to-tickets/SKILL.md 'the plugin version bump as its first ticket'
+expect "story-to-tickets without the plugin bump first fails" 1
+
+fresh
+drop_phrase skills/story-to-tickets/SKILL.md 'every other ticket of the story blocked natively on that bump'
+expect "story-to-tickets without the edges onto the plugin bump fails" 1
+
+fresh
+drop_phrase skills/story-to-tickets/SKILL.md 'A re-cut keeps the plugin version bump first'
+expect "story-to-tickets re-cut without the plugin bump kept first fails" 1
+
 fresh
 drop_line skills/implement-story/SKILL.md '.[0].design'
 expect "implement-story whose exploration subagent skips the design field fails" 1
