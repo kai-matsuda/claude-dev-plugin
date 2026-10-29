@@ -12,11 +12,11 @@ The skills speak in terms of five canonical triage roles. This file maps those r
 
 When a skill mentions a role (e.g. "apply the AFK-ready triage label"), use the corresponding label string from this table.
 
-Only `ready-for-agent` puts a ticket on an orchestrator's frontier (`orchestration.md`,
-"Frontier"); a ticket carrying any of the other four, or none, is never run.
+Only `ready-for-agent` puts a task on an orchestrator's frontier (`orchestration.md`,
+"Frontier"); a task carrying any of the other four, or none, is never run.
 
 Edit the "Label in our tracker" column to match whatever vocabulary you actually use.
 
 Labels live on the Jira issue. Jira labels are free-form and created on first use, so
-nothing needs provisioning. When a bead exists for the ticket, mirror the label with
+nothing needs provisioning. When a bead exists for the task, mirror the label with
 `bd label add <id> <label>`.

@@ -4,7 +4,7 @@ description: "Close one repo's story bead after its PR merges. Use when a story'
 ---
 
 Closes one **story** (${CLAUDE_PLUGIN_ROOT}/GLOSSARY.md): the part of a feature that lands in one repo, whose children are
-**tickets**. Takes a story bead id, and optionally the path of the repo that owns it. With
+**tasks**. Takes a story bead id, and optionally the path of the repo that owns it. With
 a path, every `bd` call below is `bd -C <path> ...` and every forge command names that
 repo (`git -C <path> remote get-url origin`, `gh -R <owner/repo>`, `tea` run with
 `--repo`). When a `bd -C` fails with `Operation not permitted`, the
@@ -29,11 +29,9 @@ of scope; this skill never calls it.
 `bd show <id> --json` returns an array; read `.[0]`. `issue_type` is `story` → go on. Then:
 
 - `status` already `closed` → `<id> already closed`, stop.
-- `epic`, and its direct children (`bd list --parent <id> --all --json`) include a non-story
-  bead → `<id> refused: flat epic (tickets directly under the epic bead); the story skills do not handle it — the small-bug path does: /mattpocock-skills:implement <ticket-id> per ticket, then bd close <epic-id>`.
 - Any other type → `<id> refused: <id> is <type>, not a story`.
 
-## 2. Every ticket is closed
+## 2. Every task is closed
 
 ```bash
 bd list --parent <id> --all --json | jq -r '.[] | "\(.id) \(.status) \(
@@ -43,14 +41,14 @@ bd list --parent <id> --all --json | jq -r '.[] | "\(.id) \(.status) \(
 
 One line per child: id, status, triage label (`-` when it has none). The `--all` is
 load-bearing: `bd list` hides closed beads, so a fully closed story reads as childless.
-The publish ticket is a ticket like any other. A child that is not `closed` but
-carries `needs-triage` or `wontfix` is not a ticket: it is a note an earlier run left
+The publish task is a task like any other. A child that is not `closed` but
+carries `needs-triage` or `wontfix` is not a task: it is a note an earlier run left
 under the story (a review deferral filed before deferrals went to the inbox), with nothing
 to implement, and it holds back neither the PR nor this close, as **finished story**
 (${CLAUDE_PLUGIN_ROOT}/GLOSSARY.md) counts it; it stays open for `/dev:triage` in the repo session, where
 `bd list -l needs-triage -s open` finds it whatever its parent's status. Any other child
-not `closed` → `<id> refused: open tickets <child> <status> <label>, ...`, each as the
-line above prints it. No children → `<id> refused: no tickets to verify`.
+not `closed` → `<id> refused: open tasks <child> <status> <label>, ...`, each as the
+line above prints it. No children → `<id> refused: no tasks to verify`.
 
 ## 3. The `pr:` note exists
 

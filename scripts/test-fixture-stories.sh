@@ -28,7 +28,7 @@ fx_check "rerun: lib listing identical (incl. dependencies)" fx_eq "$l1" "$l2"
 fx_check "rerun: consumer listing identical (incl. dependencies)" fx_eq "$c1" "$c2"
 fx_check "rerun: root listing identical (id prefix normalised)" fx_eq "$r1" "$r2"
 fx_check "lib has exactly 4 beads" fx_eq "$(jq length <<<"$l2")" 4
-fx_check "consumer has exactly 3 beads (story, 2 tickets)" fx_eq "$(jq length <<<"$c2")" 3
+fx_check "consumer has exactly 3 beads (story, 2 tasks)" fx_eq "$(jq length <<<"$c2")" 3
 fx_check "root has exactly 1 bead (the epic)" fx_eq "$(jq length <<<"$r2")" 1
 
 # 3. shape
@@ -42,7 +42,7 @@ lt2=$(fx_one lib '.title=="Test multiply in fixture-lib"')
 bump=$(fx_one consumer '.title=="Bump fixture-lib to 0.2.0"')
 print=$(fx_one consumer '.title=="Print multiply result"')
 found=$([ -n "$epic" ] && [ -n "$cstory" ] && [ -n "$lstory" ] && [ -n "$pub" ] && [ -n "$lt1" ] && [ -n "$lt2" ] && [ -n "$bump" ] && [ -n "$print" ] && echo yes)
-fx_check "exactly one epic, story per repo, publish ticket, and named tickets" fx_eq "$found" yes
+fx_check "exactly one epic, story per repo, publish task, and named tasks" fx_eq "$found" yes
 
 fx_check "epic has external ref FIX-1" fx_eq "$(fx_field . "$epic" .external_ref)" FIX-1
 fx_check "epic is labelled ready-for-agent" fx_eq "$(fx_field . "$epic" '.labels | index("ready-for-agent") != null')" true
@@ -58,31 +58,31 @@ for pair in "consumer $cstory" "lib $lstory"; do
   fx_check "$1 story body has a ## Test seams heading" grep -qx "## Test seams" <<<"$(fx_field "$1" "$2" .description)"
 done
 fx_check "consumer story has no labels" fx_eq "$(fx_field consumer "$cstory" '.labels // [] | length')" 0
-fx_check "exactly 2 consumer tickets with complexity + ready-for-agent" fx_eq "$(fx_children consumer "$cstory" | jq '[.[] | select(.status != "closed") | select((.labels|index("ready-for-agent")) and (.labels|map(startswith("complexity:"))|any))]|length')" 2
-fx_check "publish ticket is a child of lib story" fx_eq "$(fx_field lib "$pub" .parent)" "$lstory"
-fx_check "publish ticket titled 'publish fixture-lib 0.2.0'" fx_eq "$(fx_field lib "$pub" .title)" "publish fixture-lib 0.2.0"
-fx_check "publish ticket labels are exactly ready-for-human + complexity:low" fx_eq "$(fx_field lib "$pub" '.labels | sort | join(",")')" "complexity:low,ready-for-human"
+fx_check "exactly 2 consumer tasks with complexity + ready-for-agent" fx_eq "$(fx_children consumer "$cstory" | jq '[.[] | select(.status != "closed") | select((.labels|index("ready-for-agent")) and (.labels|map(startswith("complexity:"))|any))]|length')" 2
+fx_check "publish task is a child of lib story" fx_eq "$(fx_field lib "$pub" .parent)" "$lstory"
+fx_check "publish task titled 'publish fixture-lib 0.2.0'" fx_eq "$(fx_field lib "$pub" .title)" "publish fixture-lib 0.2.0"
+fx_check "publish task labels are exactly ready-for-human + complexity:low" fx_eq "$(fx_field lib "$pub" '.labels | sort | join(",")')" "complexity:low,ready-for-human"
 body=$(fx_field consumer "$cstory" .description)
 fx_check "consumer story body: Blocked by line 'lib <publish id>'" grep -qx "lib $pub" <<<"$body"
 fx_check "consumer story body: ## Blocked by" grep -q '^## Blocked by' <<<"$body"
 
 # 4. native edges
-fx_check "publish ticket blocked by both lib tickets" fx_eq "$(fx_blockers lib "$pub")" "$(printf '%s\n' "$lt1" "$lt2" | sort | paste -sd, -)"
-fx_check "lib ticket 2 blocked by lib ticket 1 (gap 1)" fx_eq "$(fx_blockers lib "$lt2")" "$lt1"
-fx_check "lib ticket 1 has no blockers" fx_eq "$(fx_blockers lib "$lt1")" ""
-fx_check "print ticket blocked by the bump" fx_eq "$(fx_blockers consumer "$print")" "$bump"
-fx_check "bump ticket has no blockers" fx_eq "$(fx_blockers consumer "$bump")" ""
+fx_check "publish task blocked by both lib tasks" fx_eq "$(fx_blockers lib "$pub")" "$(printf '%s\n' "$lt1" "$lt2" | sort | paste -sd, -)"
+fx_check "lib task 2 blocked by lib task 1 (gap 1)" fx_eq "$(fx_blockers lib "$lt2")" "$lt1"
+fx_check "lib task 1 has no blockers" fx_eq "$(fx_blockers lib "$lt1")" ""
+fx_check "print task blocked by the bump" fx_eq "$(fx_blockers consumer "$print")" "$bump"
+fx_check "bump task has no blockers" fx_eq "$(fx_blockers consumer "$bump")" ""
 
 # 5. frontier
 fx_check "consumer ready --parent lists exactly the bump" fx_eq "$(fx_bdj consumer ready --parent "$cstory" --json | jq -r 'map(.id)|join(",")')" "$bump"
-fx_check "lib ready --parent lists exactly one lib ticket (the unblocked one)" fx_eq "$(fx_bdj lib ready --parent "$lstory" --json | jq -r 'map(.id)|join(",")')" "$lt1"
-# a dead runner's claim hides its ticket from bd ready; the orchestrator's unclaim brings it back (chezmoi-jvc)
+fx_check "lib ready --parent lists exactly one lib task (the unblocked one)" fx_eq "$(fx_bdj lib ready --parent "$lstory" --json | jq -r 'map(.id)|join(",")')" "$lt1"
+# a dead runner's claim hides its task from bd ready; the orchestrator's unclaim brings it back (chezmoi-jvc)
 fx_bdj lib update "$lt1" --claim >/dev/null
-fx_check "a claimed lib ticket leaves ready --parent" fx_eq "$(fx_bdj lib ready --parent "$lstory" --json | jq length)" 0
+fx_check "a claimed lib task leaves ready --parent" fx_eq "$(fx_bdj lib ready --parent "$lstory" --json | jq length)" 0
 # a needs-triage child filed under the story (a review deferral, INFRA-27) is listed by bd ready like
-# any other open child; the Frontier rule admits ready-for-agent tickets only, so with lt1 still
+# any other open child; the Frontier rule admits ready-for-agent tasks only, so with lt1 still
 # claimed the rule's filter yields nothing to run (chezmoi-wgi)
-frontier() { # <repo> <story-id>   the Frontier rule's read: bd ready --parent, ready-for-agent tickets only
+frontier() { # <repo> <story-id>   the Frontier rule's read: bd ready --parent, ready-for-agent tasks only
   fx_bdj "$1" ready --parent "$2" --json | jq -r '[.[] | select(.labels // [] | index("ready-for-agent"))] | map(.id) | join(",")'
 }
 triage_child=$(fx_bdj lib create --silent --parent "$lstory" --no-inherit-labels --labels needs-triage "Deferred: review note with nothing to implement")
@@ -90,7 +90,7 @@ fx_check "bd ready --parent lists the needs-triage child" fx_eq "$(fx_bdj lib re
 fx_check "the frontier (ready-for-agent only) yields nothing to run" fx_eq "$(frontier lib "$lstory")" ""
 fx_bdj lib unclaim "$lt1" >/dev/null
 fx_check "unclaim returns it to ready --parent, open and unassigned" fx_eq "$(fx_bdj lib ready --parent "$lstory" --json | jq -r 'map(select(.id == "'"$lt1"'") | .id + " " + .status + " " + (.assignee // "-"))|join(",")')" "$lt1 open -"
-fx_check "the frontier is then exactly the unclaimed ticket, the needs-triage child still off it" fx_eq "$(frontier lib "$lstory")" "$lt1"
+fx_check "the frontier is then exactly the unclaimed task, the needs-triage child still off it" fx_eq "$(frontier lib "$lstory")" "$lt1"
 fx_bdj lib close "$triage_child" --reason "test teardown" >/dev/null
 
 # 6. gap 2: a plain git worktree of the consumer checkout builds (path dep resolves from both)

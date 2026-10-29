@@ -10,8 +10,8 @@ texts disagree, the texts win and the diagram is the bug. Bold terms are defined
 
 ## The loop
 
-The ticket, the story and the epic are one loop at three rows. The diagram draws the row
-in general, with `O` the row's orchestrator and the unit a ticket, a story or an epic. Each
+The task, the story and the epic are one loop at three rows. The diagram draws the row
+in general, with `O` the row's orchestrator and the unit a task, a story or an epic. Each
 row's parameters are the model doc's table (`docs/agents/orchestration.md`, The loop): the
 Fix-up column is where the rows differ most, and the diagram draws all three of its cases.
 
@@ -26,9 +26,9 @@ sequenceDiagram
     participant IN as Inbox (plain bd, home)
     participant U as Row above (or the human)
 
-    Note over F: ticket row, a fresh implementer in the same worktree
+    Note over F: task row, a fresh implementer in the same worktree
     Note over F: story row, a fresh implementer in a fix-up worktree
-    Note over F: epic row, no implementer, O files the findings as ready-for-agent tickets under the story and re-runs that story in add mode
+    Note over F: epic row, no implementer, O files the findings as ready-for-agent tasks under the story and re-runs that story in add mode
 
     O->>BD: claim the unit, read its tier
     O->>I: spawn the builder (a worktree, or the row below)
@@ -40,7 +40,7 @@ sequenceDiagram
             O->>BD: note the failing command and its log
             O->>F: fix-up by pointer brief
             F-->>O: report, the loop starts over from the checks
-        else checks green, the ticket row at low, no reviewer
+        else checks green, the task row at low, no reviewer
             Note over O: the loop exits on green
         else checks green, any other row or tier
             O->>V: spawn the review, the row's axes (the epic row, the spec axis only)
@@ -68,20 +68,22 @@ sequenceDiagram
         opt minors out of scope, a minor a fix-up reported as left unfixed, and every minor at the epic row
             O->>IN: capture a retro item (needs-triage), never to a bead of the story
         end
-        alt ticket row
-            O->>O: wait on the owner checkout's lock
-            O->>O: stray-commit check
-            O->>O: merge onto the integration branch
-            opt the merge conflicts, at most three resolutions per landing (the fourth fails the ticket)
-                O->>F: an implementer in the ticket worktree merges the integration tip in
-                F-->>O: report, O runs the check command on the resolved tree, then fast-forwards
+        alt task row, the owner checkout untouched
+            O->>U: reviewed, one line with the task branch, its worktree and its tip
+            Note over U: the story row lands it, serially, one landing per report, no lock
+            U->>U: stray-commit check
+            U->>U: merge onto the integration branch
+            opt the merge conflicts, at most three resolutions per landing (the fourth fails the task)
+                U->>F: an implementer in the task worktree merges the integration tip in
+                F-->>U: report, U runs the check command on the resolved tree, then fast-forwards
+                Note over U: a red there fails the landing, and the task's retry enters at the gate on the resolved branch
             end
-            O->>BD: close the ticket's bead
+            U->>BD: close the task's bead
         else story or epic row
             O->>O: stray-commit check
             O->>U: push (story, draft PR) or mark the PR ready (epic)
             Note over BD: the story and epic beads stay open, /dev:close-story and /dev:close-epic close them after the merge
+            O->>U: landed, one line
         end
-        O->>U: landed, one line
     end
 ```

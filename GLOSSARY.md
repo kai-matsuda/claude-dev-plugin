@@ -18,6 +18,12 @@ The beads issue that anchors a feature on the agent side, linked to its Jira Epi
 either.
 _Avoid_: root bead
 
+**Malformed epic**:
+An epic bead with a direct child that is not a story. The story-tier skills refuse it with
+`<epic-id> refused: <child-id> is not a story` and suggest nothing; `/dev:workflow`
+reports it without positioning it.
+_Avoid_: flat epic
+
 **Story**:
 The part of one feature that lands in one repo as one PR: what that PR must deliver, and
 the parent of the feature's tasks there. A story is one PR, with one integration branch
@@ -41,7 +47,7 @@ by its tool, never by the bare word.
 _Avoid_: ticket (any level of something to do; a story is not one), sub-task
 
 **Standalone task**:
-A task with no story: a triaged retro item, a small bug, or a child of a flat epic. It is
+A task with no story: a triaged retro item or a small bug. It is
 the task row's unit all the same.
 _Avoid_: loose bead, orphan task
 
@@ -186,7 +192,8 @@ The one forge query `/dev:implement-story` runs before committing to a delivered
 `pr:` note) that has an open `ready-for-agent` task: a merged PR refuses and points at
 add mode, a PR closed unmerged refuses, an open one continues on the story's branch, and
 a branch-form note or no forge is decided locally, else asked. It is how a sealed story
-stays sealed.
+stays sealed. `/dev:implement-task` runs the same guard on an open standalone task with a
+`pr:` note: merged and closed-unmerged refuse, an open one delivers again.
 _Avoid_: merge check, PR check, seal check
 
 **Check command**:
@@ -220,8 +227,9 @@ tasks under the story) and the loop starts over, three such
 fix-ups per unit (per story at the epic row) per invocation and the fourth `failed`; a minors fix-up and
 a conflict resolution move the tip, so the checks rerun, but no reviewer runs again and no
 budget is spent: the gate exits on the moved tip once its checks are green. The story
-orchestrator records that tip in the reviewed-tip note on the story bead
-(`review: <tip SHA>`), so a rerun knows it; the task row writes no such note.
+orchestrator records that tip in the reviewed-tip note (`review: <tip SHA>`), so a rerun
+knows it: on the story bead under `/dev:implement-story`, on the task bead under
+`/dev:implement-task`, which has no story bead; the task row writes no such note.
 _Avoid_: test gate, lint gate, seam gate, check and review loop, review marker
 
 **Review verdict**:
@@ -270,6 +278,20 @@ never typed, to which it reports one line (`reviewed`, `needs split` or `failed`
 discarded.
 _Avoid_: task agent, worker, task runner
 
+**Claim entry**:
+The task orchestrator's entry for a fresh task, a brief with no `gate entry:` line: it
+claims the task, spawns the implementer in a new worktree reset onto the integration
+branch tip, then runs the check gate. Every spawn is one but a gate entry.
+_Avoid_: fresh entry, cold start
+
+**Gate entry**:
+The task orchestrator's entry when the task's branch already carries commits: a cut-off
+task orchestrator's replacement on its surviving branch, or the one retry after a red on
+a conflict-resolved tree. It claims the task and goes straight to the check gate on the
+branch, worktree path and tip its brief names, with a fresh budget and no implementer
+build; after a red on a resolved tree, the brief also carries that red record's log.
+_Avoid_: re-entry, resume entry
+
 **Implementer**:
 The one agent kind that edits files: it builds a task, fixes a failed check or a review
 finding by pointer brief, or resolves a merge conflict, always fresh and in the unit's
@@ -281,16 +303,16 @@ _Avoid_: fix-up implementer, fixer
 The read of every commit a push or a merge would carry but merges, before it runs: one whose
 author is not the run's `user.email`, or that has no `Bead:` trailer, came from outside the
 run (a test whose throwaway repo failed to init commits into the enclosing checkout).
-The orchestrator runs it before every merge and every push (a trust rule): the task
-orchestrator before landing its task, the story orchestrator before each push of the
-integration branch; a hit stops the merge or push with `failed: stray commit <sha> <subject>`.
+The story orchestrator runs it before every merge and every push (a trust rule): before
+each landing of a reviewed branch onto the integration branch, and before each push of it;
+a hit stops the merge or push with `failed: stray commit <sha> <subject>`.
 _Avoid_: push guard, stray check
 
 **Forge-check wait**:
 The story orchestrator's wait, after the delivery push, for the PR's forge checks on the
 pushed tip, before the delivery is recorded: a red check is a `failed: forge check <name>
 <run URL>` line and leaves the story unfinished; a repo with no forge or no checks delivers
-with a `checks: skipped` line. One of the two shell waits the Idle rule allows.
+with a `checks: skipped` line. The one shell wait the Idle rule allows.
 _Avoid_: CI wait, check poll
 
 **Cut-off**:
@@ -364,13 +386,14 @@ same word for askable questions; in this repo it means tasks.)
 _Avoid_: ready list, todo, backlog
 
 **Invocation**:
-One typed `/dev:implement-spec` or `/dev:implement-story`, from the command to its end
-state. It includes everything the command does before it reports: its re-polls of pending
-checks, and its continuation from the person's next message after a session limit cut it
-off. Every fix-up budget is bounded per invocation: three fix-ups per unit, and only a
-person typing the command again grants more. A later invocation reads what earlier ones
-left in the beads as history, never as spent budget, so a story whose epic review failed
-is reviewed again by every invocation until it is clean or a person closes its PR.
+One typed `/dev:implement-spec`, `/dev:implement-story` or `/dev:implement-task`, from the
+command to its end state. It includes everything the command does before it reports: its
+re-polls of pending checks, and its continuation from the person's next message after a
+session limit cut it off. Every fix-up budget is bounded per invocation: three fix-ups per
+unit, and only a person typing the command again grants more. A later invocation reads
+what earlier ones left in the beads as history, never as spent budget, so a story whose
+epic review failed is reviewed again by every invocation until it is clean or a person
+closes its PR.
 _Avoid_: typed run, fresh run (and "attempt" for one invocation)
 
 **Human stop**:

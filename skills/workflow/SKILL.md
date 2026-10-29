@@ -1,6 +1,6 @@
 ---
 name: workflow
-description: Print the human runbook for the Jira + beads feature workflow (grill → spec → story cut → tickets → implement → close-epic) and say where each open epic is in it.
+description: Print the human runbook for the Jira + beads feature workflow (grill → spec → story cut → tasks → implement → close-epic) and say where each open epic is in it.
 disable-model-invocation: true
 ---
 
@@ -20,26 +20,25 @@ calls. Print, don't act: the next command is always the user's to type.
 
   `<KEY>-<n>` is the bead's external ref; omit the parenthesis when it has none. `<arg>` in
   the next commands below is `<KEY>-<n>`, or `<bead-id>` when it has none: the argument
-  `/dev:spec-to-stories`, `/dev:spec-to-tickets` and `/dev:implement-spec` take, printed filled in so
+  `/dev:spec-to-stories`, `/dev:spec-to-tasks` and `/dev:implement-spec` take, printed filled in so
   the user types the line as-is.
 
-## Flat epic
+## Malformed epic
 
 Read the epic's direct children with `bd list --parent <id> --all --json` (`--all` keeps
 closed ones, which the default filter hides). Any child that is not of type `story` → the
-flat shape, the plugin's small-bug path, which this skill positions rather than refuses.
-Print `<bead-id> (<KEY>-<n>) "<title>" — flat epic (tickets directly under the epic bead),
-the small-bug path · next: `/mattpocock-skills:implement <ticket-id>` one at a time`, with `bd ready --parent
-<epic-id>` as-is beneath it, and go to the next epic.
+epic is malformed, which this skill reports and does not position. Print
+`<epic-id> (<KEY>-<n>) "<title>" refused: <child-id> is not a story`, suggest
+nothing, and go to the next epic.
 
 ## Position of a story-shaped epic
 
-**Gather the stories** the way `/dev:implement-spec`, `/dev:spec-to-tickets` and `/dev:close-epic` do: the "Stories" gather of "fetch the relevant
-ticket" in `${CLAUDE_PLUGIN_ROOT}/docs/agents/issue-tracker.md`, its fallback and failure rules
+**Gather the stories** the way `/dev:implement-spec`, `/dev:spec-to-tasks` and `/dev:close-epic` do: the "Stories" gather of "fetch the relevant
+task" in `${CLAUDE_PLUGIN_ROOT}/docs/agents/issue-tracker.md`, its fallback and failure rules
 included. A sweep that stops there is reported on that epic's line, and no position is
 printed for it, since that repo's unfinished story would otherwise drop out.
 
-A story's **tickets** are its children, read in its owner repo `<owner>` (the absolute
+A story's **tasks** are its children, read in its owner repo `<owner>` (the absolute
 path of the repo it was found in; `<owner repo>` is its manifest entry name):
 `bd -C <owner> list --parent <story-id> --all --json`. A story is **finished** (the
 `${CLAUDE_PLUGIN_ROOT}/GLOSSARY.md` term) when every child is `closed` or carries `ready-for-human`,
@@ -51,13 +50,13 @@ The position is the first row that holds:
 | The epic's stories | position · next |
 |---|---|
 | none | after `/mattpocock-skills:to-spec` · next: `/dev:spec-to-stories <arg>` |
-| some story has no tickets | after the story cut · next: `/dev:spec-to-tickets <arg>` |
-| no ticket `in_progress` or `closed` | after `/dev:spec-to-tickets` · next: `/dev:implement-spec <arg>`, or `/dev:implement-story <story-id>` in one story's repo |
+| some story has no tasks | after the story cut · next: `/dev:spec-to-tasks <arg>` |
+| no task `in_progress` or `closed` | after `/dev:spec-to-tasks` · next: `/dev:implement-spec <arg>`, or `/dev:implement-story <story-id>` in one story's repo |
 | some story not finished | in stage 4 · next: `/dev:implement-spec <arg>`, or `/dev:implement-story <story-id>` in that story's repo |
 | every story finished | PRs delivered · once they merge: `/dev:close-epic` |
 
-Under rows 3 and 4 (after `/dev:spec-to-tickets` and stage 4), print `bd -C <owner> ready --parent <story-id>`
+Under rows 3 and 4 (after `/dev:spec-to-tasks` and stage 4), print `bd -C <owner> ready --parent <story-id>`
 as-is for each story not finished; its `complexity:` labels are what to set `/model` from.
 In stage 4 also print each unfinished story, one per line: `<owner repo> <story-id> <title>`.
-Under row 5, list any open `ready-for-human` ticket the same way, since `/dev:close-story`
-refuses while one is open. Under row 2, name each story that has no tickets.
+Under row 5, list any open `ready-for-human` task the same way, since `/dev:close-story`
+refuses while one is open. Under row 2, name each story that has no tasks.

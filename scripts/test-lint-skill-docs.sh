@@ -65,7 +65,7 @@ bounded() {
 # the stand-in for the installed plugin: every name the tree's /commands resolve to, and the
 # ones the cases below name; listed once, since every fresh copy holds the same tree
 plugin_names=$(grep -rhoE 'mattpocock-skills:[a-z-]+' "$repo_root/skills" "$repo_root/docs" "$repo_root/CLAUDE.md" "$repo_root/GLOSSARY.md" \
-  | cut -d: -f2; printf '%s\n' tdd to-tickets)
+  | cut -d: -f2; printf '%s\n' tdd)
 # the pristine tree, built once: every fresh copy is one cp of it
 pristine=$jobs/pristine
 mkdir "$pristine"
@@ -329,16 +329,16 @@ expect "words containing the retired phrase do not false-fail" 0
 ns_msg="bare or unknown skill namespace"
 for target in skills/sample/SKILL.md docs/agents/sample.md docs/WORKFLOW.md CLAUDE.md GLOSSARY.md; do
   fresh
-  echo "run /story-to-tickets next" >> "$scratch/$target"
+  echo "run /story-to-tasks next" >> "$scratch/$target"
   expect "a bare /<skill> in $target fails with the namespace message" 1 "$ns_msg in $scratch/$target"
   fresh
-  echo "run /other:story-to-tickets next" >> "$scratch/$target"
+  echo "run /other:story-to-tasks next" >> "$scratch/$target"
   expect "another namespace in $target fails with the namespace message" 1 "$ns_msg in $scratch/$target"
   fresh
-  printf 'run dev:story-to-tickets, then mattpocock-skills:to-tickets\nor /mattpocock-skills:tdd and /dev:workflow\n' >> "$scratch/$target"
+  printf 'run dev:story-to-tasks, then mattpocock-skills:code-review\nor /mattpocock-skills:tdd and /dev:workflow\n' >> "$scratch/$target"
   expect "namespaced references in $target pass" 0
 done
-# the loop above seeds /story-to-tickets; dev-9np's acceptance criterion names /implement-spec
+# the loop above seeds /story-to-tasks; dev-9np's acceptance criterion names /implement-spec
 # in the glossary, so that token is pinned on its own
 fresh
 echo "the spec runs through /implement-spec" >> "$scratch/GLOSSARY.md"
@@ -370,14 +370,14 @@ echo "run /mattpocock-skills:nope" >> "$scratch/skills/sample/SKILL.md"
 expect "/mattpocock-skills:<missing> fails as naming no skill" 1 "/mattpocock-skills:nope names no skill"
 
 fresh
-echo "run /story-to-tickets" >> "$scratch/docs/adr/0001.md"
+echo "run /story-to-tasks" >> "$scratch/docs/adr/0001.md"
 expect "a bare /<skill> under docs/ outside docs/agents fails" 1 "$ns_msg in $scratch/docs/adr/0001.md"
 fresh
-echo "run dev:story-to-tickets and /dev:workflow" >> "$scratch/docs/adr/0001.md"
+echo "run dev:story-to-tasks and /dev:workflow" >> "$scratch/docs/adr/0001.md"
 expect "namespaced references under docs/adr pass" 0
 
 fresh
-echo "run /story-to-tickets" > "$scratch/driver.md"
+echo "run /story-to-tasks" > "$scratch/driver.md"
 expect "an implement-spec skill passed as \$1 outside the skills dir gets the namespace check" 1 "$ns_msg in $scratch/driver.md" "$scratch/driver.md" "$scratch/docs/WORKFLOW.md"
 
 # paths after a placeholder, a substitution or a closing backtick are not commands
@@ -415,10 +415,10 @@ expect "a namespace alone passes" 0
 
 # only .md files are scanned
 fresh
-printf 'cd /opt and /story-to-tickets\n' > "$scratch/docs/helper.sh"
+printf 'cd /opt and /story-to-tasks\n' > "$scratch/docs/helper.sh"
 expect "a non-md file under docs is not scanned" 0
 fresh
-printf 'cd /opt and /story-to-tickets\n' > "$scratch/skills/sample/helper.sh"
+printf 'cd /opt and /story-to-tasks\n' > "$scratch/skills/sample/helper.sh"
 expect "a non-md file under the skills dir is not scanned" 0
 
 # the plugin dir absent is said so; the skill dir is matched at the plugin's skills level only
@@ -558,18 +558,20 @@ section_case() {
   sec=$1 expect "section $1 fails alone: $4" 1
 }
 section_case 1 skills/implement-spec/SKILL.md 'then open a draft PR' "/implement-spec with a PR step"
-section_case 2 docs/WORKFLOW.md 'each cross-repo ticket gets its own PR' "a runbook with stale wording"
+section_case 2 docs/WORKFLOW.md 'each cross-repo task gets its own PR' "a runbook with stale wording"
 section_case 3 skills/spec-to-stories/SKILL.md 'then re-sync the stories' "/spec-to-stories with a re-sync"
-section_case 4 skills/spec-to-tickets/SKILL.md 'then rerun this skill for the dependent' "/spec-to-tickets with the retired rerun hint"
+section_case 4 skills/spec-to-tasks/SKILL.md 'then rerun this skill for the dependent' "/spec-to-tasks with the retired rerun hint"
 section_case 5 skills/sample/SKILL.md 'cut one' "a retired phrase in a skill"
 section_case 6 docs/agents/orchestration.md 'push when the active profile permits' "an orchestration doc gating the push on the profile"
-section_case 7 skills/story-to-tickets/SKILL.md 'read the notes under .spec-notes' "/story-to-tickets reading an owner-repo notes file"
+section_case 7 skills/story-to-tasks/SKILL.md 'read the notes under .spec-notes' "/story-to-tasks reading an owner-repo notes file"
 section_case 8 skills/implement-story/SKILL.md "the rule's three entries" "/implement-story counting three Gitignore entries"
 section_case 9 skills/close-story/SKILL.md 'query `tea api repos/x/y/pulls/1`' "/close-story with a Forgejo query naming no repo"
 section_case 10 docs/agents/issue-tracker.md 'the only lines the story cut writes' "a tracker doc whose story cut writes two forms only"
-section_case 11 skills/sample/SKILL.md 'run /story-to-tickets next' "a bare /<skill>"
+section_case 11 skills/sample/SKILL.md 'run /story-to-tasks next' "a bare /<skill>"
 section_case 12 skills/retro/SKILL.md 'grep the whole slug directory' "/retro with the bare grep instruction"
 section_case 13 skills/sample/SKILL.md '> read ${CLAUDE_PLUGIN_ROOT}/docs/agents/orchestration.md' "the plugin-root variable in a brief"
+section_case 16 skills/task-orchestrator/SKILL.md 'then merge it with `git -C <owner> merge <task branch>`' "/task-orchestrator merging onto the owner checkout"
+section_case 17 skills/implement-task/SKILL.md 'then run `gh pr create --draft`' "/implement-task opening a draft PR"
 # the version-bump rule (14) has its own cases at the end, each on a throwaway repo
 fresh
 drop_phrase skills/retro/SKILL.md 'one JSON object per line'
@@ -578,9 +580,9 @@ sec=12 expect "section 12 fails alone: /retro without the transcript shape" 1
 # a section's document gone: the section fails naming it, never skips; a rules doc that two
 # sections read fails both
 for case in '1 skills/implement-spec/SKILL.md' '2 skills/workflow/SKILL.md' '2 docs/WORKFLOW.md' \
-  '3 skills/spec-to-stories/SKILL.md' '4 skills/spec-to-tickets/SKILL.md' '6 10 docs/agents/orchestration.md' \
-  '6 docs/agents/harness.md' '6 10 docs/agents/issue-tracker.md' '6 skills/setup-repo/SKILL.md' '7 skills/story-to-tickets/SKILL.md' '8 skills/implement-story/SKILL.md' \
-  '9 skills/close-story/SKILL.md' '6 skills/triage/SKILL.md' '12 skills/retro/SKILL.md' '0 CLAUDE.md' '0 GLOSSARY.md'; do
+  '3 skills/spec-to-stories/SKILL.md' '4 skills/spec-to-tasks/SKILL.md' '6 10 docs/agents/orchestration.md' \
+  '6 docs/agents/harness.md' '6 10 docs/agents/issue-tracker.md' '6 skills/setup-repo/SKILL.md' '7 skills/story-to-tasks/SKILL.md' '8 skills/implement-story/SKILL.md' \
+  '9 skills/close-story/SKILL.md' '6 skills/triage/SKILL.md' '12 skills/retro/SKILL.md' '16 skills/task-orchestrator/SKILL.md' '17 skills/implement-task/SKILL.md' '0 CLAUDE.md' '0 GLOSSARY.md'; do
   doc=${case##* }
   fresh
   rm "$scratch/$doc"
@@ -607,8 +609,8 @@ expect "misspelt command in /dev:workflow fails" 1
 
 
 fresh
-drop_line skills/story-to-tickets/SKILL.md 'Fetch the spec as the tracker doc'
-expect "story-to-tickets without its spec fetch fails" 1
+drop_line skills/story-to-tasks/SKILL.md 'Fetch the spec as the tracker doc'
+expect "story-to-tasks without its spec fetch fails" 1
 
 fresh
 drop_line docs/agents/harness.md '**Waiting.**'
@@ -619,15 +621,20 @@ drop_line docs/agents/harness.md '`pgrep` cannot list processes in the sandbox'
 expect "harness doc without the pgrep warning fails" 1
 
 fresh
-drop_line docs/agents/orchestration.md '**Delivery.**'
+drop_line docs/agents/orchestration.md '**Delivery authority.**'
 expect "orchestration doc without the delivery rule fails" 1
+
+fresh
+drop_phrase docs/agents/orchestration.md 'and `/dev:implement-task` are typed to deliver a PR'
+sec=6 expect "orchestration whose Delivery authority omits /dev:implement-task fails" 1 \
+  "missing in the **Delivery authority.** paragraph: /dev:implement-task is typed to deliver a PR"
 
 fresh
 echo "push when the active profile permits" >> "$scratch/docs/agents/orchestration.md"
 expect "profile-gated push in the orchestration doc fails" 1
 
 fresh
-drop_line skills/implement-story/SKILL.md 'the rules doc'"'"'s Delivery'
+drop_line skills/implement-story/SKILL.md 'the rules doc'"'"'s Delivery authority'
 expect "implement-story without its delivery pointer fails" 1
 
 fresh
@@ -635,32 +642,32 @@ echo "otherwise ask the user to run that exact command and wait for it" >> "$scr
 expect "implement-story asking the user to push fails" 1
 
 fresh
-drop_line skills/implement-story/SKILL.md 'git -C <owner> push -u origin <branch>'
-expect "implement-story without the push command fails" 1
+drop_phrase docs/agents/orchestration.md 'git -C <owner> push -u origin <branch>'
+expect "the rules doc without the push command fails (Delivery)" 1 "Delivery's push command"
 
 fresh
-drop_line skills/implement-story/SKILL.md 'failed: push'
-expect "implement-story without the refused-push failed: line fails" 1
+drop_phrase docs/agents/orchestration.md 'failed: push <command>: <error>'
+expect "the rules doc without the refused-push failed: line fails (Delivery)" 1 "Delivery's refused push is a failed: line"
 
 fresh
-drop_phrase skills/implement-story/SKILL.md 'First the **stray-commit check**, before any push'
-expect "implement-story whose deliver step pushes without the stray-commit check fails" 1
+drop_phrase docs/agents/orchestration.md '1. **Stray-commit check**, before any push'
+expect "the rules doc whose deliver step pushes without the stray-commit check fails (Delivery)" 1 "Delivery's stray-commit check precedes the push"
 
 fresh
-drop_phrase skills/implement-story/SKILL.md 'run the **stray-commit check** on what the merge brings in'
-expect "implement-story whose ticket orchestrator lands without the stray-commit check fails" 1
+drop_phrase skills/implement-story/SKILL.md 'the **stray-commit check** on what the merge brings in'
+expect "implement-story whose landing skips the stray-commit check fails" 1
 
 fresh
-drop_phrase skills/implement-story/SKILL.md 'failed: stray commit <sha> <subject>'
-expect "implement-story without the stray-commit failed: line fails" 1
+drop_phrase docs/agents/orchestration.md 'failed: stray commit <sha> <subject>'
+expect "the rules doc without the stray-commit failed: line fails (Delivery)" 1 "Delivery's stray-commit failed: line"
 
 fresh
-drop_phrase skills/implement-story/SKILL.md 'note <story-id> "delivered: <tip SHA> <check record>"'
-expect "implement-story whose deliver step records no delivered: note fails" 1
+drop_phrase docs/agents/orchestration.md 'note <unit-id> "delivered: <tip SHA> <check record>"'
+expect "the rules doc whose deliver step records no delivered: note fails (Delivery)" 1 "Delivery records the delivered: note"
 
 fresh
-drop_phrase skills/implement-story/SKILL.md 'It goes ahead of the `pr:` note'
-expect "implement-story without the delivered:-before-pr: order fails" 1
+drop_phrase docs/agents/orchestration.md 'The `delivered:` note goes ahead of the `pr:` note'
+expect "the rules doc without the delivered:-before-pr: order fails (Delivery)" 1 "Delivery records delivered: ahead of pr:"
 
 fresh
 drop_phrase skills/implement-story/SKILL.md 'a finished story with no `delivered:` line'
@@ -708,16 +715,16 @@ echo 'With no argument, list the open epic beads in `<home>` and ask which is th
 expect "spec-to-stories recovering the epic from the open epic list fails" 1
 
 fresh
-drop_line skills/spec-to-tickets/SKILL.md 'usage: /dev:spec-to-tickets <KEY>-<n>|<epic-id>'
-expect "spec-to-tickets without its usage line fails" 1
+drop_line skills/spec-to-tasks/SKILL.md 'usage: /dev:spec-to-tasks <KEY>-<n>|<epic-id>'
+expect "spec-to-tasks without its usage line fails" 1
 
 fresh
-echo 'With none, take the one on the next: line /dev:spec-to-stories ended on in the conversation' >> "$scratch/skills/spec-to-tickets/SKILL.md"
-expect "spec-to-tickets recovering the epic from the conversation fails" 1
+echo 'With none, take the one on the next: line /dev:spec-to-stories ended on in the conversation' >> "$scratch/skills/spec-to-tasks/SKILL.md"
+expect "spec-to-tasks recovering the epic from the conversation fails" 1
 
 fresh
-drop_line skills/workflow/SKILL.md 'next: `/dev:spec-to-tickets <arg>`'
-expect "workflow printing the ticket cut without its argument fails" 1
+drop_line skills/workflow/SKILL.md 'next: `/dev:spec-to-tasks <arg>`'
+expect "workflow printing the task cut without its argument fails" 1
 
 fresh
 drop_line docs/WORKFLOW.md '| 3a | `/dev:spec-to-stories <KEY>-<n>`'
@@ -727,17 +734,34 @@ fresh
 drop_line docs/WORKFLOW.md '**The argument.**'
 expect "runbook copy without the argument paragraph fails" 1
 
-# the flat path's checks-first wording and its ticket review name (dev-cq0.1.3): each phrase
-# dropped alone, the rest of its row kept, so each case fires its own pin
+# row 4b names /dev:implement-task, and the small-bug route is one bd create then that skill
+# (INFRA-37): each phrase dropped alone, the rest of its row kept
 fresh
-drop_phrase docs/WORKFLOW.md "then the checks (the owner repo's check command), then \`/mattpocock-skills:code-review\`"
-expect "runbook copy without the checks-first flat path fails" 1 "flat path runs the checks before the review"
+drop_phrase docs/WORKFLOW.md '`/dev:implement-task <task-id>`'
+echo 'then `/dev:implement-task <task-id>` elsewhere' >> "$scratch/docs/WORKFLOW.md"
+expect "4b pin is anchored on its row" 1 "4b names implement-task"
+
+fresh
+drop_phrase docs/WORKFLOW.md 'one `bd create`, then `/dev:implement-task <task-id>`'
+expect "runbook without the one-bd-create small-bug route fails" 1 "the small-bug route is one bd create then implement-task"
+
+# the story row lands (ADR 0016): 4a's and 4b's landing pins, each dropped alone, and the
+# retired task-orchestrator landing seeded back (dev-b8d.1 story review 1)
+fresh
+drop_phrase docs/WORKFLOW.md 'the story orchestrator lands each reviewed branch'
+sec=2 expect "4a without the story orchestrator's landing fails" 1 "4a: the story orchestrator lands each task"
+fresh
+drop_phrase docs/WORKFLOW.md 'the session lands its reviewed branch'
+sec=2 expect "4b without the session's landing fails" 1 "4b: the session lands the task"
+fresh
+echo 'each task orchestrator lands the task itself' >> "$scratch/docs/WORKFLOW.md"
+sec=2 expect "a runbook task orchestrator landing its task fails" 1 "a task orchestrator landing its own task in the runbook"
 
 # the row pins sit on their own row: the phrase kept on another line cannot stand in
 fresh
-drop_phrase docs/WORKFLOW.md '**ticket orchestrator**'
-echo 'a **ticket orchestrator** elsewhere' >> "$scratch/docs/WORKFLOW.md"
-expect "4a pin is anchored on its row" 1 "4a names the ticket orchestrators"
+drop_phrase docs/WORKFLOW.md '**task orchestrator**'
+echo 'a **task orchestrator** elsewhere' >> "$scratch/docs/WORKFLOW.md"
+expect "4a pin is anchored on its row" 1 "4a names the task orchestrators"
 
 fresh
 drop_phrase docs/WORKFLOW.md 'The epic orchestrator session'
@@ -749,46 +773,38 @@ drop_phrase docs/WORKFLOW.md 'One review tool, three rows'
 echo 'see One review tool, three rows' >> "$scratch/docs/WORKFLOW.md"
 expect "one review tool paragraph pin is anchored on its line" 1 "the one review tool paragraph"
 
-# 4a's review of medium and high tickets, and the ticket review's tiers, each dropped (ADR 0015)
+# 4a's review of medium and high tasks, and the task review's tiers, each dropped (ADR 0015)
 fresh
 drop_phrase docs/WORKFLOW.md '(the checks, then, for `medium` and `high`, a review one tier up'
-expect "runbook copy without 4a's medium and high review fails" 1 "4a reviews medium and high tickets"
+expect "runbook copy without 4a's medium and high review fails" 1 "4a reviews medium and high tasks"
 
 fresh
-drop_phrase docs/WORKFLOW.md "ticket's review model, for \`medium\` and \`high\`; at the story"
-expect "runbook copy without the ticket review's tiers fails" 1 "the runbook reviews medium and high tickets"
+drop_phrase docs/WORKFLOW.md "task's review model, for \`medium\` and \`high\`; at the story"
+expect "runbook copy without the task review's tiers fails" 1 "the runbook reviews medium and high tasks"
 
 fresh
-echo 'at the ticket (`medium` and `high` only) on both axes' >> "$scratch/docs/WORKFLOW.md"
-expect "runbook copy limiting the ticket review to medium and high fails" 1 "the runbook's ticket review limited to medium and high"
+echo 'at the task (`medium` and `high` only) on both axes' >> "$scratch/docs/WORKFLOW.md"
+expect "runbook copy limiting the task review to medium and high fails" 1 "the runbook's task review limited to medium and high"
 
 fresh
-swap_phrase docs/WORKFLOW.md "the owner repo's check command" "the owner repo's lint, then the agreed test seams"
-expect "runbook copy with the retired lint-then-seams wording fails" 1 "flat path runs the checks before the review"
+echo 'Then the task gate (switch `/model` to the tier'"'"'s review model) runs.' >> "$scratch/docs/WORKFLOW.md"
+expect "runbook copy with the seeded phrase task gate fails" 1 "retired task gate name in the runbook"
 
 fresh
-drop_phrase docs/WORKFLOW.md 'the ticket review (switch'
-expect "runbook copy without the ticket review name fails" 1 "flat path's review is the ticket review"
+echo '`medium` and `high` tasks pass the check gate before merge.' >> "$scratch/docs/agents/issue-tracker.md"
+expect "tracker doc limiting the check gate to medium and high fails" 1 "medium and high tasks passing the check gate"
 
 fresh
-echo 'Then the ticket gate (switch `/model` to the tier'"'"'s review model) runs.' >> "$scratch/docs/WORKFLOW.md"
-expect "runbook copy with the seeded phrase ticket gate fails" 1 "retired ticket gate name in the runbook"
+drop_phrase docs/agents/issue-tracker.md 'every task passes the check gate'
+expect "tracker doc without every task passing the check gate fails" 1 "every task passes the check gate"
+
+# the review of medium and high tasks only, dropped (ADR 0015)
+fresh
+drop_phrase docs/agents/issue-tracker.md 'only `medium` and `high` tasks add the review'
+expect "tracker doc without its medium and high review fails" 1 "the tracker doc reviews medium and high tasks"
 
 fresh
-echo '`medium` and `high` tickets pass the check gate before merge.' >> "$scratch/docs/agents/issue-tracker.md"
-expect "tracker doc limiting the check gate to medium and high fails" 1 "medium and high tickets passing the check gate"
-
-fresh
-drop_phrase docs/agents/issue-tracker.md 'every ticket passes the check gate'
-expect "tracker doc without every ticket passing the check gate fails" 1 "every ticket passes the check gate"
-
-# the review of medium and high tickets only, dropped (ADR 0015)
-fresh
-drop_phrase docs/agents/issue-tracker.md 'only `medium` and `high` tickets add the review'
-expect "tracker doc without its medium and high review fails" 1 "the tracker doc reviews medium and high tickets"
-
-fresh
-echo 'read `<owner>/.spec-notes/<epic-id>/story-cut.md` first' >> "$scratch/skills/spec-to-tickets/SKILL.md"
+echo 'read `<owner>/.spec-notes/<epic-id>/story-cut.md` first' >> "$scratch/skills/spec-to-tasks/SKILL.md"
 sec="4 5" expect "story-cut.md in a skill fails" 1
 
 fresh
@@ -896,7 +912,7 @@ fresh
 drop_phrase skills/implement-spec/SKILL.md '"Has a database" rule'
 sec=1 expect "/implement-spec not citing the has-a-database rule fails" 1 "missing (case-sensitive): /implement-spec cites the tracker doc's \"Has a database\" rule"
 
-for g in spec-to-stories spec-to-tickets story-to-tickets close-epic retro triage; do
+for g in spec-to-stories spec-to-tasks story-to-tasks close-epic retro triage; do
   fresh
   drop_phrase "skills/$g/SKILL.md" '"Has a database" rule'
   sec=6 expect "/$g not citing the has-a-database rule fails" 1 "missing (case-sensitive): /$g cites the tracker doc's \"Has a database\" rule"
@@ -918,23 +934,23 @@ fresh
 echo '`bd init` cannot take `-C`, so give the user the command.' >> "$scratch/skills/sample/SKILL.md"
 expect "a skill saying bd init cannot take -C fails" 1 "the retired bd init -C wording"
 
-for skill in spec-to-stories spec-to-tickets story-to-tickets; do
+for skill in spec-to-stories spec-to-tasks story-to-tasks; do
   fresh
   drop_line "skills/$skill/SKILL.md" '"epic bead writes" convention'
   expect "$skill without its epic bead writes pointer fails" 1
 done
 
 fresh
-drop_line skills/story-to-tickets/SKILL.md '**Called, draft role ("story cutter"'
-expect "story-to-tickets without the story cutter trigger fails" 1
+drop_line skills/story-to-tasks/SKILL.md '**Called, draft role ("story cutter"'
+expect "story-to-tasks without the story cutter trigger fails" 1
 
 fresh
-drop_line skills/story-to-tickets/SKILL.md '.[0].design'
-expect "story-to-tickets without the design field read fails" 1
+drop_line skills/story-to-tasks/SKILL.md '.[0].design'
+expect "story-to-tasks without the design field read fails" 1
 
-# the ticket cut cuts a DAG (chezmoi-9v4.1.8): a cycle is refused naming its stories, the
+# the task cut cuts a DAG (chezmoi-9v4.1.8): a cycle is refused naming its stories, the
 # cutters run in topological waves each carrying every upstream breakdown, and an already cut
-# dependent of a new publish ticket is re-cut in the same run; the two-wave cap is retired.
+# dependent of a new publish task is re-cut in the same run; the two-wave cap is retired.
 # Review 2: a re-cut dependent that is also a dependency joins the trigger until no story joins,
 # so no dependent waits on a publish the run creates; the cut-failure cascade covers only the
 # run's dependencies, after the closed-uncut rule, so each story gets one report line
@@ -945,14 +961,14 @@ for phrase in 'refused: dependency cycle (' 'topological waves' 'one wave per le
   'cut failed: finished story (pr: note present)' \
   'holds nothing' \
   'A dependent of the run (in the set to cut or to re-cut) with such an edge' \
-  'a dependent to re-cut without its publish ticket' 'applied until no story joins' \
+  'a dependent to re-cut without its publish task' 'applied until no story joins' \
   'and is not re-cut in this run' \
   'a dependency of the run whose cutter failed or that was itself held back' \
   'Nor is a dependent spawned whose dependency story is `closed` with no children' \
   'a step-1 progress line' 'a `recut:` line for that edge'; do
   fresh
-  drop_phrase skills/spec-to-tickets/SKILL.md "$phrase"
-  expect "spec-to-tickets without '$phrase' fails" 1
+  drop_phrase skills/spec-to-tasks/SKILL.md "$phrase"
+  expect "spec-to-tasks without '$phrase' fails" 1
 done
 
 for phrase in 'in at most two dependency waves' 'in at most two waves' 'two dependency waves suffice' \
@@ -960,81 +976,81 @@ for phrase in 'in at most two dependency waves' 'in at most two waves' 'two depe
   'chains are out of scope' 'then rerun this skill for the dependent' \
   '(/dev:spec-to-stories would refuse too, since stories exist)'; do
   fresh
-  echo "x $phrase y" >> "$scratch/skills/spec-to-tickets/SKILL.md"
+  echo "x $phrase y" >> "$scratch/skills/spec-to-tasks/SKILL.md"
   # two of them are section 5's retired story-DAG wording, which section 4 does not repeat
   case $phrase in "two waves suffice"|"chains are out of scope") s=5 ;; *) s=4 ;; esac
-  sec=$s expect "spec-to-tickets saying '$phrase' fails" 1
+  sec=$s expect "spec-to-tasks saying '$phrase' fails" 1
 done
 # the ban is on the cap, not on the words: two waves named without a cap pass, and so does
 # "at most two" about anything but waves
-for phrase in 'a chain of two waves' 'at most two tickets'; do
+for phrase in 'a chain of two waves' 'at most two tasks'; do
   fresh
-  echo "x $phrase y" >> "$scratch/skills/spec-to-tickets/SKILL.md"
-  expect "spec-to-tickets saying '$phrase' passes" 0
+  echo "x $phrase y" >> "$scratch/skills/spec-to-tasks/SKILL.md"
+  expect "spec-to-tasks saying '$phrase' passes" 0
 done
 
 fresh
-drop_phrase skills/story-to-tickets/SKILL.md 'Dependency pair, per edge'
-expect "story-to-tickets without the per-edge pair wording fails" 1
+drop_phrase skills/story-to-tasks/SKILL.md 'Dependency pair, per edge'
+expect "story-to-tasks without the per-edge pair wording fails" 1
 
 fresh
-drop_phrase skills/story-to-tickets/SKILL.md 'one bump per publish blocker'
-expect "story-to-tickets without one bump per publish blocker fails" 1
+drop_phrase skills/story-to-tasks/SKILL.md 'one bump per publish blocker'
+expect "story-to-tasks without one bump per publish blocker fails" 1
 
 fresh
-drop_phrase skills/story-to-tickets/SKILL.md 'one `Dependency:` line per publish blocker'
-expect "story-to-tickets brief without a Dependency line per publish blocker fails" 1
+drop_phrase skills/story-to-tasks/SKILL.md 'one `Dependency:` line per publish blocker'
+expect "story-to-tasks brief without a Dependency line per publish blocker fails" 1
 
 fresh
-drop_phrase skills/story-to-tickets/SKILL.md 'one `Dependent:` line per dependent'
-expect "story-to-tickets brief without a Dependent line per dependent fails" 1
+drop_phrase skills/story-to-tasks/SKILL.md 'one `Dependent:` line per dependent'
+expect "story-to-tasks brief without a Dependent line per dependent fails" 1
 
 fresh
-drop_phrase skills/story-to-tickets/SKILL.md 'refused: block carries two publish tickets; one PR publishes one version'
-expect "story-to-tickets without the two-publish-tickets refusal fails" 1
+drop_phrase skills/story-to-tasks/SKILL.md 'refused: block carries two publish tasks; one PR publishes one version'
+expect "story-to-tasks without the two-publish-tasks refusal fails" 1
 
 fresh
-drop_phrase skills/story-to-tickets/SKILL.md 'or the epic bead id when the story has no key)'
-expect "story-to-tickets finished-story refusal without add mode fails" 1
+drop_phrase skills/story-to-tasks/SKILL.md 'or the epic bead id when the story has no key)'
+expect "story-to-tasks finished-story refusal without add mode fails" 1
 
 # add mode's OPEN path marks a finished dependent with a recut: note, which lets the re-cut
 # past the finished-story refusal (story review 1)
 fresh
-drop_phrase skills/story-to-tickets/SKILL.md 'unless its notes carry a `recut:` line'
-expect "story-to-tickets refusing a finished story add mode marked for a re-cut fails" 1
+drop_phrase skills/story-to-tasks/SKILL.md 'unless its notes carry a `recut:` line'
+expect "story-to-tasks refusing a finished story add mode marked for a re-cut fails" 1
 
 fresh
-drop_phrase skills/story-to-tickets/SKILL.md 'gained a publish blocker'
-expect "story-to-tickets re-cut without the second bump fails" 1
+drop_phrase skills/story-to-tasks/SKILL.md 'gained a publish blocker'
+expect "story-to-tasks re-cut without the second bump fails" 1
 
 fresh
-drop_phrase skills/story-to-tickets/SKILL.md "the tracker doc's per-edge re-cut rules"
-expect "story-to-tickets re-cut without the per-edge rules citation fails" 1
+drop_phrase skills/story-to-tasks/SKILL.md "the tracker doc's per-edge re-cut rules"
+expect "story-to-tasks re-cut without the per-edge rules citation fails" 1
 
 fresh
-drop_phrase skills/story-to-tickets/SKILL.md 'kept ones with `bd dep add <ticket id> <bump id>`'
-expect "story-to-tickets re-cut without the re-edge of kept tickets fails" 1
+drop_phrase skills/story-to-tasks/SKILL.md 'kept ones with `bd dep add <task id> <bump id>`'
+expect "story-to-tasks re-cut without the re-edge of kept tasks fails" 1
 
 fresh
-drop_phrase skills/story-to-tickets/SKILL.md 'a bump covers the blocker whose crate its title names'
-expect "story-to-tickets re-cut without the bump-to-blocker match fails" 1
+drop_phrase skills/story-to-tasks/SKILL.md 'a bump covers the blocker whose crate its title names'
+expect "story-to-tasks re-cut without the bump-to-blocker match fails" 1
 
 fresh
-drop_phrase skills/story-to-tickets/SKILL.md 'a line names a publish ticket when it reads'
-expect "story-to-tickets without the publish ticket line shapes fails" 1
+drop_phrase skills/story-to-tasks/SKILL.md 'a line names a publish task when it reads'
+expect "story-to-tasks without the publish task line shapes fails" 1
 
-# a story changing what a plugin ships bumps its version in its first ticket (dev-b9t)
+# a story changing what a plugin ships bumps its version in its first task (dev-b9t)
 fresh
-drop_phrase skills/story-to-tickets/SKILL.md 'the plugin version bump as its first ticket'
-expect "story-to-tickets without the plugin bump first fails" 1
-
-fresh
-drop_phrase skills/story-to-tickets/SKILL.md 'every other ticket of the story blocked natively on that bump'
-expect "story-to-tickets without the edges onto the plugin bump fails" 1
+drop_phrase skills/story-to-tasks/SKILL.md 'the plugin version bump as its first task'
+expect "story-to-tasks without the plugin bump first fails" 1
 
 fresh
-drop_phrase skills/story-to-tickets/SKILL.md 'A re-cut keeps the plugin version bump first'
-expect "story-to-tickets re-cut without the plugin bump kept first fails" 1
+drop_phrase skills/story-to-tasks/SKILL.md 'every other task of the story blocked natively on that bump'
+expect "story-to-tasks without the edges onto the plugin bump fails" 1
+
+fresh
+drop_phrase skills/story-to-tasks/SKILL.md 'A re-cut keeps the plugin version bump first'
+expect "story-to-tasks re-cut without the plugin bump kept first fails" 1
 
 fresh
 drop_line skills/implement-story/SKILL.md '.[0].design'
@@ -1042,22 +1058,22 @@ expect "implement-story whose exploration subagent skips the design field fails"
 
 fresh
 drop_line skills/implement-story/SKILL.md 'first `bd -C <owner> unclaim <id>`'
-expect "implement-story leaving a failed ticket claimed fails" 1
+expect "implement-story leaving a failed task claimed fails" 1
 
 fresh
 drop_line skills/implement-story/SKILL.md 'failed twice: <reason>; resume:'
 expect "implement-story without the resume pointer on a second failure fails" 1
 
-# a fresh ticket orchestrator starts at round 1, and a replaced implementer's no reset holds
-# within one ticket orchestrator: each pin proven by dropping its phrase (dev-drw)
-for case in 'so you start at round 1|a fresh ticket orchestrator starts at round 1' \
+# a fresh task orchestrator starts at round 1, and a replaced implementer's no reset holds
+# within one task orchestrator: each pin proven by dropping its phrase (dev-drw)
+for case in 'so you start at round 1|a fresh task orchestrator starts at round 1' \
   'whatever `checks <n>:` or `review <n>:` notes earlier attempts left|the fresh start ignores earlier attempts'"'"' notes' \
-  "your ticket starts over from \`<branch>\`'s tip (the rules doc's Check gate)|the fresh start points at the rules doc's Check gate" \
-  "no reset within this ticket orchestrator|a replaced implementer's no reset holds within one ticket orchestrator"; do
+  "your task starts over from \`<branch>\`'s tip (the rules doc's Check gate)|the fresh start points at the rules doc's Check gate" \
+  "no reset within this task orchestrator|a replaced implementer's no reset holds within one task orchestrator"; do
   phrase=${case%%|*}
   fresh
-  drop_phrase skills/implement-story/SKILL.md "$phrase"
-  expect "implement-story without the pin: ${case#*|} fails" 1 "missing: ${case#*|}"
+  drop_phrase skills/task-orchestrator/SKILL.md "$phrase"
+  sec=16 expect "task-orchestrator without the pin: ${case#*|} fails" 1 "missing: ${case#*|}"
 done
 
 fresh
@@ -1069,7 +1085,7 @@ echo 'switch -c feat/<key>-<n> main' >> "$scratch/skills/implement-story/SKILL.m
 sec=5 expect "implement-story with the keyed branch form fails" 1
 
 fresh
-drop_phrase skills/implement-story/SKILL.md 'a delivered story with an open `ready-for-agent` ticket'
+drop_phrase skills/implement-story/SKILL.md 'a delivered story with an open `ready-for-agent` task'
 expect "implement-story without the delivered-story merge guard fails" 1
 
 fresh
@@ -1114,7 +1130,7 @@ expect "implement-story without the keyless story's feat/<story-id> branch fails
 
 fresh
 drop_phrase skills/implement-story/SKILL.md 'that is not closed (open, in_progress or blocked)'
-expect "implement-story whose guard misses an in_progress or blocked ticket fails" 1
+expect "implement-story whose guard misses an in_progress or blocked task fails" 1
 
 fresh
 drop_phrase skills/implement-story/SKILL.md '`git -C <owner> merge-base --is-ancestor <tip SHA> origin/<default branch>`'
@@ -1157,8 +1173,8 @@ drop_phrase skills/implement-story/SKILL.md 'in add mode '
 expect "implement-story whose MERGED refusal does not say add mode fails" 1
 
 fresh
-drop_phrase skills/implement-story/SKILL.md '; then close <ticket-id> (moved to the new story)'
-expect "implement-story whose MERGED refusal leaves the stray ticket open fails" 1
+drop_phrase skills/implement-story/SKILL.md '; then close <task-id> (moved to the new story)'
+expect "implement-story whose MERGED refusal leaves the stray task open fails" 1
 
 fresh
 drop_phrase skills/implement-story/SKILL.md '(already decided in step 1 when the merge guard ran)'
@@ -1170,15 +1186,7 @@ expect "implement-story whose branch-form ask names a PR that does not exist fai
 
 fresh
 drop_phrase skills/implement-story/SKILL.md 'until add mode has carried its work into a new story, so close it there then'
-expect "implement-story whose stray ticket waits on add mode moving it fails" 1
-
-fresh
-drop_line skills/implement-story/SKILL.md 'until ! [ -e <index lock> ] && ! [ -e <merge head> ]'
-expect "implement-story whose landing does not wait on the lock with an until-loop fails" 1
-
-fresh
-drop_line skills/implement-story/SKILL.md 'rev-parse --path-format=absolute --git-path index.lock --git-path MERGE_HEAD'
-expect "implement-story whose lock wait does not find the lock through git fails" 1
+expect "implement-story whose stray task waits on add mode moving it fails" 1
 
 fresh
 drop_phrase skills/implement-story/SKILL.md '`git -C <owner> rev-parse --path-format=absolute --git-common-dir`'
@@ -1186,20 +1194,29 @@ expect "implement-story whose step 9 does not find the worktrees directory throu
 
 # a literal <owner>/.git/ path does not exist where .git is a file (dev-cjf)
 fresh
-echo 'wait with `until ! [ -e <owner>/.git/index.lock ]; do sleep 5; done`' >> "$scratch/skills/implement-story/SKILL.md"
-expect "implement-story waiting on a literal <owner>/.git/index.lock fails" 1
+echo 'read `<owner>/.git/HEAD` for the branch' >> "$scratch/skills/implement-story/SKILL.md"
+sec=8 expect "implement-story naming a literal <owner>/.git/HEAD fails" 1
 
 fresh
 echo 'the sandbox denies deletes under `<owner>/.git/worktrees/`' >> "$scratch/skills/implement-story/SKILL.md"
 expect "implement-story naming a literal <owner>/.git/worktrees/ fails" 1
 
 fresh
-echo 'an `until` loop over `<owner>/.git/index.lock` and `MERGE_HEAD`' >> "$scratch/docs/agents/harness.md"
-expect "harness doc waiting on a literal <owner>/.git/index.lock fails" 1
+echo 'an `until` loop over `<owner>/.git/HEAD`' >> "$scratch/docs/agents/harness.md"
+sec=6 expect "harness doc naming a literal <owner>/.git/HEAD fails" 1
 
-fresh
-drop_line skills/implement-story/SKILL.md 'timeout: 300000'
-expect "implement-story whose landing's lock wait has no timeout bound fails" 1
+# the story row lands serially with no lock, so the task orchestrator's lock wait and its
+# index.lock probe are swept from every doc a reader meets, each seeded back alone failing
+# section 5 (dev-b8d.1.4)
+for case in 'skills/implement-story/SKILL.md|Take the owner checkout under the lock, one landing at a time.' \
+  'skills/task-orchestrator/SKILL.md|Wait on `index.lock` before you report.' \
+  'docs/agents/harness.md|The task orchestrator'"'"'s lock wait is a shell wait too.' \
+  'docs/agents/orchestration.md|The task orchestrator merges under the lock.' \
+  'docs/SEQUENCES.md|O waits on index.lock.'; do
+  fresh
+  printf '\n%s\n' "${case#*|}" >> "$scratch/${case%%|*}"
+  sec=5 expect "${case%%|*} regaining the lock wait ('${case#*|}') fails" 1 "the retired lock wait in $scratch/${case%%|*}"
+done
 
 for phrase in 'waits 10 seconds and checks again' 'waits 15 seconds and retries' 'sleeps, then re-checks the lock' 'checks every 10 seconds'; do
   fresh
@@ -1272,22 +1289,26 @@ drop_phrase skills/implement-story/SKILL.md 'in use: holds <child path>'
 expect "implement-story whose report drops the in-use worktree reason fails" 1 "missing (case-sensitive): report template names a nested owner in use"
 
 # a merged, unlocked .worktrees/ entry that holds no listed worktree and is not a hand-rolled
-# ticket worktree (a nested owner before its run's first spawn) is left and reported (dev-dzu)
+# task worktree (a nested owner before its run's first spawn) is left and reported (dev-dzu)
 fresh
-drop_phrase skills/implement-story/SKILL.md 'only a hand-rolled ticket worktree is swept'
-expect "implement-story whose sweep removes any merged .worktrees/ entry fails" 1 "missing: step 9 sweeps only a hand-rolled ticket worktree under .worktrees/"
+drop_phrase skills/implement-story/SKILL.md 'only a hand-rolled task worktree is swept'
+expect "implement-story whose sweep removes any merged .worktrees/ entry fails" 1 "missing: step 9 sweeps only a hand-rolled task worktree under .worktrees/"
 
 fresh
-drop_phrase skills/implement-story/SKILL.md '`refs/heads/ticket/<slug>` at `<top>/.worktrees/<slug>`'
-expect "implement-story whose sweep does not name a ticket worktree's shape fails" 1 "missing: step 9 names a ticket worktree by its branch and path"
+drop_phrase skills/implement-story/SKILL.md '`refs/heads/task/<slug>` at `<top>/.worktrees/<slug>`'
+expect "implement-story whose sweep does not name a task worktree's shape fails" 1 "missing: step 9 names a task worktree by its branch and path"
 
 fresh
 drop_phrase skills/implement-story/SKILL.md 'the same `<slug>` in both'
-expect "implement-story whose ticket worktree's branch and path need not share a slug fails" 1 "missing: step 9 matches a ticket worktree's branch and path on one slug"
+expect "implement-story whose task worktree's branch and path need not share a slug fails" 1 "missing: step 9 matches a task worktree's branch and path on one slug"
 
 fresh
-drop_phrase skills/implement-story/SKILL.md 'not a ticket worktree'
-expect "implement-story whose report drops the not-a-ticket-worktree reason fails" 1 "missing (case-sensitive): report template names a .worktrees/ entry that is not a ticket worktree"
+drop_phrase skills/implement-story/SKILL.md 'reported as `not a task worktree`, a `ticket/<slug>` worktree (the prefix before the rename) included'
+expect "implement-story whose sweep takes a ticket/ worktree for a task worktree fails" 1 "missing: step 9 leaves a ticket/ worktree in place as not a task worktree"
+
+fresh
+drop_phrase skills/implement-story/SKILL.md 'not a task worktree'
+expect "implement-story whose report drops the not-a-task-worktree reason fails" 1 "missing (case-sensitive): report template names a .worktrees/ entry that is not a task worktree"
 
 fresh
 echo 'A nested owner that holds none is swept like any merged entry.' >> "$scratch/skills/implement-story/SKILL.md"
@@ -1327,60 +1348,60 @@ fresh
 echo 'then `git -C <owner> clean -f` removes the stray files' >> "$scratch/skills/implement-story/SKILL.md"
 expect "implement-story cleaning the stray files fails" 1 "present: step 9 deleting a stray file"
 
-# step 8 waits for the PR's forge checks before recording the delivery; a red check is a
-# failed: line naming it and its run URL, and a forge with no checks is a checks: skipped line
-# (dev-xc2)
+# orchestration.md's Delivery section waits for the PR's forge checks before recording the
+# delivery; a red check is a failed: line naming it and its run URL, and a forge with no checks
+# is a checks: skipped line (dev-xc2)
 fresh
-drop_line skills/implement-story/SKILL.md 'Then the **forge-check wait**, before the delivery is recorded'
-expect "implement-story whose deliver step waits for no forge checks fails" 1 "missing: step 8 waits for the forge checks"
+drop_phrase docs/agents/orchestration.md '4. **Forge-check wait**, before the delivery is recorded'
+expect "the rules doc whose deliver step waits for no forge checks fails (Delivery)" 1 "Delivery waits for the forge checks"
 
 fresh
-drop_phrase skills/implement-story/SKILL.md 'gh pr checks <n> --repo <forge-slug> --watch'
-expect "implement-story whose gh wait watches no checks fails" 1 "missing: step 8 watches the gh checks"
+drop_phrase docs/agents/orchestration.md 'gh pr checks <n> --repo <forge-slug> --watch'
+expect "the rules doc whose gh wait watches no checks fails (Delivery)" 1 "Delivery watches the gh checks"
 
 fresh
-drop_phrase skills/implement-story/SKILL.md "tea api --repo <owner> repos/{owner}/{repo}/commits/<tip SHA>/status | jq -e"
-expect "implement-story whose tea wait reads no commit status fails" 1 "missing: step 8 waits on the tea commit status"
+drop_phrase docs/agents/orchestration.md 'tea api --repo <owner> repos/{owner}/{repo}/commits/<tip SHA>/status | jq -e'
+expect "the rules doc whose tea wait reads no commit status fails (Delivery)" 1 "Delivery waits on the tea commit status"
 
 fresh
-drop_phrase skills/implement-story/SKILL.md 'one `failed: forge check <name> <run URL>` line per red check'
-expect "implement-story whose red forge check is no failed: line fails" 1 "missing: a red forge check is a failed: line"
+drop_phrase docs/agents/orchestration.md 'one `failed: forge check <name> <run URL>` line per red check'
+expect "the rules doc whose red forge check is no failed: line fails (Delivery)" 1 "Delivery's red forge check is a failed: line"
 
 fresh
-drop_phrase skills/implement-story/SKILL.md 'note <story-id> "checks red: <tip SHA>"'
-expect "implement-story finishing a story on a red forge check fails" 1 "missing: a red forge check leaves the story unfinished"
+drop_phrase docs/agents/orchestration.md 'note <unit-id> "checks red: <tip SHA>"'
+expect "the rules doc finishing a story on a red forge check fails (Delivery)" 1 "Delivery's red forge check leaves the unit unfinished"
 
 fresh
-drop_phrase skills/implement-story/SKILL.md 'no `delivered:` or `pr:` note is written'
-expect "implement-story recording a delivery on a red forge check fails" 1 "missing: a red forge check records no delivery"
+drop_phrase docs/agents/orchestration.md 'no `delivered:` or `pr:` note is written;'
+expect "the rules doc recording a delivery on a red forge check fails (Delivery)" 1 "Delivery's red forge check records no delivery"
 
 fresh
 drop_phrase skills/implement-story/SKILL.md 'with no `checks red:` line after it'
 expect "implement-story counting a re-delivered red story as finished fails" 1 "missing: a checks red: note unfinishes the story"
 
 fresh
-drop_phrase skills/implement-story/SKILL.md '--json headRefOid -q .headRefOid)" = <tip SHA> ]'
-expect "implement-story whose gh wait passes on the last tip's checks fails" 1 "missing: the gh wait waits for the pushed tip as the PR head"
+drop_phrase docs/agents/orchestration.md '--json headRefOid -q .headRefOid)" = <tip SHA> ]'
+expect "the rules doc whose gh wait passes on the last tip's checks fails (Delivery)" 1 "Delivery's gh wait waits for the pushed tip as the PR head"
 
 fresh
-drop_phrase skills/implement-story/SKILL.md 'is a forge error, as step 3 says, never a skip'
-expect "implement-story skipping the checks on a forge error fails" 1 "missing: a failing forge read is an error, not a skip"
+drop_phrase docs/agents/orchestration.md 'is a forge error, never a skip'
+expect "the rules doc skipping the checks on a forge error fails (Delivery)" 1 "Delivery treats a failing forge read as an error, not a skip"
 
 fresh
-drop_phrase skills/implement-story/SKILL.md 'at most six calls in all'
-expect "implement-story waiting on a pending check without bound fails" 1 "missing: the forge-check wait is bounded"
+drop_phrase docs/agents/orchestration.md 'at most six calls in all'
+expect "the rules doc waiting on a pending check without bound fails (Delivery)" 1 "Delivery bounds the forge-check wait"
 
 fresh
-drop_phrase skills/implement-story/SKILL.md '`checks: skipped: no workflows`'
-expect "implement-story silent on a repo with no workflows fails" 1 "missing: no workflows says the checks were skipped"
+drop_phrase docs/agents/orchestration.md '`checks: skipped: no workflows`'
+expect "the rules doc silent on a repo with no workflows fails (Delivery)" 1 "Delivery says no workflows skips the checks"
 
 fresh
-drop_phrase skills/implement-story/SKILL.md '`checks: skipped: none reported`'
-expect "implement-story silent on a forge with no checks fails" 1 "missing: no checks reported says the checks were skipped"
+drop_phrase docs/agents/orchestration.md '`checks: skipped: none reported`'
+expect "the rules doc silent on a forge with no checks fails (Delivery)" 1 "Delivery says no checks reported skips the checks"
 
 fresh
-drop_phrase skills/implement-story/SKILL.md '`checks: skipped: no forge`'
-expect "implement-story silent on a repo with no forge fails" 1 "missing: no forge says the checks were skipped"
+drop_phrase docs/agents/orchestration.md '`checks: skipped: no forge`'
+expect "the rules doc silent on a repo with no forge fails (Delivery)" 1 "Delivery says no forge skips the checks"
 
 fresh
 drop_line skills/implement-story/SKILL.md 'checks:  skipped: <no forge | no workflows | none reported>'
@@ -1390,14 +1411,107 @@ fresh
 drop_line skills/implement-story/SKILL.md 'or forge check <name> <run URL>'
 expect "implement-story whose report template has no forge check failure fails" 1 "missing (case-sensitive): report template's failed: line names a red forge check"
 
-fresh
-drop_line docs/agents/harness.md "The other is the story orchestrator's forge-check wait"
-expect "harness doc without the forge-check wait fails" 1 "the Idle rule names the forge-check wait"
+# the check-record call is stated once in the rules doc and the Delivery section is pinned there,
+# parametrised by its unit (dev-b8d.1.3); each skill cites them and keeps only its own lines
+for case in 'mkdir -p <worktree path>/.tmp; mkdir -p <owner>/.tmp/checks/<tree>; export TMPDIR=<worktree path>/.tmp; make -C <worktree path> check > <owner>/.tmp/checks/<tree>/log 2>&1; echo "command=make check exit=$?" > <owner>/.tmp/checks/<tree>/record; cat <owner>/.tmp/checks/<tree>/record|missing (case-sensitive): Check record states the compound call' \
+  'parametrised by the unit it delivers: a **story**|missing in the ## Delivery section: Delivery is parametrised by the unit' \
+  'or a **standalone task** (delivered by its own skill)|missing in the ## Delivery section: Delivery names the standalone task' \
+  'the Skill tool with `mattpocock-skills:pr` to write the body|missing in the ## Delivery section: Delivery'"'"'s PR body is written by mattpocock-skills:pr' \
+  'With a forge, call |missing in the ## Delivery section: Delivery'"'"'s PR body is written with a forge' \
+  "its Evidence the delivered tip's check record|missing in the ## Delivery section: Delivery's Evidence is the delivered tip's check record"; do
+  fresh
+  drop_phrase docs/agents/orchestration.md "${case%%|*}"
+  expect "the rules doc without '${case%%|*}' fails" 1 "${case#*|}"
+done
 
-# the Idle rule's retired single shell wait, seeded back in the harness doc (dev-xc2)
 fresh
-printf '\nThe one shell wait is a ticket orchestrator'"'"'s wait on the lock.\n' >> "$scratch/docs/agents/harness.md"
-expect "harness doc naming a single shell wait fails" 1 "present: the Idle rule's single shell wait"
+drop_line docs/agents/orchestration.md '## Delivery'
+expect "the rules doc without its Delivery section fails" 1 "missing: Delivery section"
+
+for case in "as the rules doc's Delivery section says, with the story as its unit|missing (case-sensitive): step 8 delivers as the Delivery section says with the story as its unit" \
+  'open the draft after the push if step 3 could not|missing: step 8 opens the draft itself' \
+  'append the sibling line (rebuilt as in step 3)|missing: step 8 appends the sibling line' \
+  "only then run step 3's sibling refresh|missing: step 8 runs the sibling refresh"; do
+  fresh
+  drop_phrase skills/implement-story/SKILL.md "${case%%|*}"
+  expect "implement-story step 8 without '${case%%|*}' fails" 1 "${case#*|}"
+done
+
+# a second copy of what moved, seeded back into a skill, fails
+for case in '^(8\. .*)$|\1 Then wait: `gh pr checks <n> --repo <forge-slug> --watch`.|present: a second copy of the forge-check wait in step 8' \
+  '^(8\. .*)$|\1 Read `git -C <owner> log --no-merges --format=%H`.|present: a second copy of the stray-commit check in step 8'; do
+  anchor=${case%%|*} rest=${case#*|}
+  fresh
+  swap_phrase skills/implement-story/SKILL.md "$anchor" "${rest%%|*}"
+  expect "implement-story regaining '${rest%%|*}' fails" 1 "${rest#*|}"
+done
+fresh
+swap_phrase skills/task-orchestrator/SKILL.md '^(3\. .*)$' '\1 Run `make check > <owner>/.tmp/checks/<tree>/log 2>\&1`.'
+sec=16 expect "task-orchestrator regaining a copy of the check-record call fails" 1 "present: a second copy of the check-record call in the skill"
+
+# the Delivery pins search the ## Delivery section alone: the phrase moved out of it, to the end of
+# the file, still fails (dev-b8d.1.3 review 1)
+for phrase in 'git -C <owner> push -u origin <branch>' 'at most six calls in all' '`checks: skipped: no forge`'; do
+  fresh
+  drop_phrase docs/agents/orchestration.md "$phrase"
+  printf '%s\n' "$phrase" >> "$scratch/docs/agents/orchestration.md"
+  expect "the rules doc with '$phrase' outside the Delivery section fails" 1 "missing in the ## Delivery section"
+done
+
+# the paragraph is the Delivery authority and the section is the Delivery section: a paragraph
+# named like the section is two rules under one name (dev-b8d.1.3 review 1)
+fresh
+echo '**Delivery.** The paragraph under the section'"'"'s name.' >> "$scratch/docs/agents/orchestration.md"
+expect "the rules doc with a paragraph named like the Delivery section fails" 1 "present: a paragraph named like the Delivery section"
+
+# no skill or doc points at another skill's step number for the delivery (dev-b8d.1.3 review 1)
+for case in "the rules doc's Delivery section writes \`delivered: <tip SHA> <check record>\`|missing (case-sensitive): the epic review cites the Delivery section for the delivered: note" \
+  "the rules doc's Delivery section's forge-check wait|missing (case-sensitive): draft until clean cites the Delivery section's forge-check wait"; do
+  fresh
+  drop_phrase skills/implement-spec/SKILL.md "${case%%|*}"
+  expect "implement-spec without '${case%%|*}' fails" 1 "${case#*|}"
+done
+
+fresh
+echo 'Step 8 writes it: see `/dev:implement-story` step 8.' >> "$scratch/skills/implement-spec/SKILL.md"
+expect "implement-spec pointing at /dev:implement-story step 8 fails" 1 "present: a step number of /dev:implement-story for the delivery"
+
+fresh
+echo 'Evidence is recorded by `/dev:implement-story` step 7.' >> "$scratch/skills/implement-spec/SKILL.md"
+expect "implement-spec pointing at /dev:implement-story step 7 fails" 1 "present: a step 7 of /dev:implement-story credited for the Evidence"
+
+fresh
+echo 'The wait is `/dev:implement-story` step 8.' >> "$scratch/docs/agents/harness.md"
+expect "harness doc pointing at /dev:implement-story step 8 fails" 1 "present: a step number of /dev:implement-story for the forge-check wait"
+
+fresh
+drop_phrase docs/agents/harness.md "forge-check wait (the rules doc's Delivery section)"
+expect "harness doc whose forge-check wait cites no Delivery section fails" 1 "the Idle rule cites the Delivery section for the forge-check wait"
+
+fresh
+drop_phrase skills/implement-story/SKILL.md "first run the rules doc's Delivery section's **stray-commit check**"
+expect "implement-story step 3 without the Delivery section's stray-commit check fails" 1 "missing: step 3 runs the Delivery section's stray-commit check"
+
+fresh
+drop_phrase skills/implement-story/SKILL.md "(the rules doc's Delivery authority)"
+expect "implement-story step 3 pushing without the Delivery authority fails" 1 "missing: step 3 pushes on the Delivery authority"
+
+fresh
+swap_phrase skills/implement-story/SKILL.md "^(   With a forge, open a .*)$" "\\1 Run step 8's **stray-commit check**."
+expect "implement-story step 3 pointing at step 8's stray-commit check fails" 1 "present: step 3 pointing at step 8's stray-commit check"
+
+fresh
+drop_phrase skills/task-orchestrator/SKILL.md "(the rules doc's Check record)"
+sec=16 expect "task-orchestrator without its Check record citation fails" 1 "missing: the gate names the rules doc's Check record as the writer's rule"
+
+fresh
+drop_phrase docs/agents/harness.md "The one shell wait is the story orchestrator's"
+sec=6 expect "harness doc without the forge-check wait as its one shell wait fails" 1 "the Idle rule names the forge-check wait as its one shell wait"
+
+# the Idle rule's retired second shell wait, seeded back in the harness doc (dev-b8d.1.4)
+fresh
+printf '\nThere are two shell waits.\n' >> "$scratch/docs/agents/harness.md"
+sec=6 expect "harness doc naming two shell waits fails" 1 "present: the Idle rule's second shell wait"
 
 # the report marks the PR a draft and always prints the resume line (dev-9k5.1.9 review 1)
 fresh
@@ -1454,13 +1568,18 @@ expect "implement-story whose briefs lose the TMPDIR line fails" 1
 # each brief is checked on its own: the line dropped from one step alone still fails (every
 # occurrence on that step's line: step 3 names it for the gate's fix-up and the blocking
 # fix-up; swap_phrase takes one per pass, so four bounded passes)
-for step in 2 3 4; do
+for step in 2 3; do
   fresh
   for _ in 1 2 3 4; do
-    swap_phrase skills/implement-story/SKILL.md "^(> $step\. .*)TMPDIR line" '\1TMPDIR'
+    swap_phrase skills/task-orchestrator/SKILL.md "^($step\. .*)TMPDIR line" '\1TMPDIR'
   done
-  expect "implement-story whose ticket orchestrator step $step brief loses the TMPDIR line fails" 1
+  sec=16 expect "task-orchestrator whose step $step brief loses the TMPDIR line fails" 1
 done
+
+fresh
+swap_phrase skills/implement-story/SKILL.md '^(3\. A conflict goes to an implementer.*)TMPDIR line' '\1TMPDIR'
+sec=8 expect "implement-story whose conflict implementer's brief loses the TMPDIR line fails" 1 \
+  "missing: the conflict implementer's brief starts with the TMPDIR line and the plain-command line"
 
 fresh
 swap_phrase skills/implement-story/SKILL.md '^(7\. .*)TMPDIR line' '\1TMPDIR'
@@ -1470,12 +1589,17 @@ expect "implement-story whose story review fix-up brief loses the TMPDIR line fa
 # brief that only cites the harness doc's Literal paths drew 14 guard refusals (dev-ask); each
 # brief is checked on its own, step 3's two by its last occurrence alone
 pc='plain-command line, one plain `git` or `bd` command per Bash call, every path spelled out'
-for step in 2 3 4; do
+for step in 2 3; do
   fresh
-  swap_phrase skills/implement-story/SKILL.md "^(> $step\. .*)plain-command line, one plain" '\1one plain'
-  expect "implement-story whose ticket orchestrator step $step brief loses the plain-command line fails" 1 \
-    "missing: ticket orchestrator step $step's brief carries the plain-command line"
+  swap_phrase skills/task-orchestrator/SKILL.md "^($step\. .*)plain-command line, one plain" '\1one plain'
+  sec=16 expect "task-orchestrator whose step $step brief loses the plain-command line fails" 1 \
+    "missing: task orchestrator step $step's brief carries the plain-command line"
 done
+
+fresh
+swap_phrase skills/implement-story/SKILL.md '^(3\. A conflict goes to an implementer.*)plain-command line, one plain' '\1one plain'
+sec=8 expect "implement-story whose conflict implementer's brief loses the plain-command line fails" 1 \
+  "missing: the conflict implementer's brief starts with the TMPDIR line and the plain-command line"
 
 fresh
 swap_phrase skills/implement-story/SKILL.md '^(7\. .*)plain-command line, one plain' '\1one plain'
@@ -1483,9 +1607,9 @@ expect "implement-story whose story review fix-up brief loses the plain-command 
   "missing: the story review's fix-up brief carries the plain-command line"
 
 fresh
-swap_phrase skills/implement-story/SKILL.md '^(> You are the .*)plain-command line, one plain' '\1one plain'
-expect "implement-story whose ticket orchestrator header loses the plain-command line fails" 1 \
-  "missing: the ticket orchestrator header carries the plain-command line"
+swap_phrase skills/task-orchestrator/SKILL.md '^(You are the .*)plain-command line, one plain' '\1one plain'
+sec=16 expect "task-orchestrator whose row paragraph loses the plain-command line fails" 1 \
+  "missing: the task orchestrator header carries the plain-command line"
 
 fresh
 swap_phrase skills/implement-story/SKILL.md '(starts with the \*\*TMPDIR line\*\*.*)plain-command line, one plain' '\1one plain'
@@ -1512,14 +1636,14 @@ expect "implement-story whose Owner repo bullet drops the literal path from late
   "missing: the Owner repo bullet states the bare pwd step"
 
 fresh
-swap_phrase skills/implement-story/SKILL.md '^(> 2\. .*)first Bash call is `pwd` alone' '\1first Bash call runs `pwd`'
-expect "implement-story whose ticket orchestrator step 2 brief loses the bare pwd step fails" 1 \
-  "missing: ticket orchestrator step 2's brief names the bare pwd step"
+swap_phrase skills/task-orchestrator/SKILL.md '^(2\. .*)first Bash call is `pwd` alone' '\1first Bash call runs `pwd`'
+sec=16 expect "task-orchestrator whose step 2 brief loses the bare pwd step fails" 1 \
+  "missing: task orchestrator step 2's brief names the bare pwd step"
 
 fresh
-swap_phrase skills/implement-story/SKILL.md '^(> 2\. .*)spelled literally in every later `export`' '\1in every later `export`'
-expect "implement-story whose step 2 brief drops the literal path from later exports fails" 1 \
-  "missing: ticket orchestrator step 2's brief names the bare pwd step"
+swap_phrase skills/task-orchestrator/SKILL.md '^(2\. .*)spelled literally in every later `export`' '\1in every later `export`'
+sec=16 expect "task-orchestrator whose step 2 brief drops the literal path from later exports fails" 1 \
+  "missing: task orchestrator step 2's brief names the bare pwd step"
 
 fresh
 printf 'on the harness route the implementer fills in the path `pwd` prints\n' >> "$scratch/skills/implement-story/SKILL.md"
@@ -1527,11 +1651,15 @@ expect "implement-story with the retired fill-in-the-pwd-path wording fails" 1 \
   "present: the retired fill-in-the-pwd-path wording"
 
 for phrase in 'mkdir -p <worktree>/.tmp && export TMPDIR=<worktree>/.tmp' 'repeated at the head of every Bash call' \
-  'mktemp -d <worktree>/.tmp/<name>.XXXXXX' "the harness doc's TMPDIR rule"; do
+  'mktemp -d <worktree>/.tmp/<name>.XXXXXX'; do
   fresh
   drop_phrase skills/implement-story/SKILL.md "$phrase"
   expect "implement-story without '$phrase' fails" 1
 done
+fresh
+drop_phrase skills/task-orchestrator/SKILL.md "the harness doc's TMPDIR rule"
+sec=16 expect "task-orchestrator without the harness doc's TMPDIR rule fails" 1 \
+  "missing (case-sensitive): task orchestrator brief points at the harness doc's TMPDIR rule"
 
 fresh
 swap_phrase skills/implement-story/SKILL.md "the rule's four entries" "the rule's three entries"
@@ -1540,7 +1668,7 @@ expect "implement-story whose Gitignore step counts three entries fails" 1
 # there is no foreground spawn: an Agent call returns at once, a nested orchestrator ends its
 # turn and is resumed by the child's completion notification, and every subagent below the
 # the epic orchestrator runs Bash in the foreground only; no skill says run_in_background: false (chezmoi-p4q)
-for skill in implement-spec implement-story spec-to-tickets retro; do
+for skill in implement-spec implement-story spec-to-tasks retro; do
   fresh
   echo 'Agent calls with `run_in_background: false`, so the batch runs in the foreground' >> "$scratch/skills/$skill/SKILL.md"
   expect "run_in_background: false seeded in /$skill fails" 1
@@ -1607,26 +1735,26 @@ echo 'a nested orchestrator (one that is itself a subagent) spawns in the foregr
 expect "harness doc regaining the nested foreground spawn fails" 1
 
 fresh
-drop_line skills/implement-story/SKILL.md 'then end your turn: each ticket orchestrator'
+drop_line skills/implement-story/SKILL.md 'then end your turn: each task orchestrator'
 expect "implement-story whose frontier spawn does not end the turn fails" 1
 
 fresh
-drop_line skills/implement-story/SKILL.md 'then end your turn: its report'
-expect "ticket orchestrator brief whose spawn does not end the turn fails" 1
+drop_phrase skills/task-orchestrator/SKILL.md 'then end your turn: its report'
+sec=16 expect "task-orchestrator whose spawn does not end the turn fails" 1 "missing (case-sensitive): task orchestrator's spawn ends the turn"
 
 fresh
 drop_line skills/implement-story/SKILL.md "the harness doc's Idle rule"
 expect "implement-story without the harness doc's Idle rule fails" 1
 
 fresh
-drop_line skills/spec-to-tickets/SKILL.md 'the "Waiting" rule of `harness.md`'
-expect "spec-to-tickets without its waiting rule pointer fails" 1
+drop_line skills/spec-to-tasks/SKILL.md 'the "Waiting" rule of `harness.md`'
+expect "spec-to-tasks without its waiting rule pointer fails" 1
 
 fresh
 drop_line docs/agents/orchestration.md '**Unclaim.**'
 expect "orchestration doc without the frontier unclaim rule fails" 1
 
-# the frontier admits ready-for-agent tickets only, deferred review findings go to the inbox
+# the frontier admits ready-for-agent tasks only, deferred review findings go to the inbox
 # through the retro capture, and an untriaged child leaves a story finished (chezmoi-wgi)
 fresh
 drop_line docs/agents/orchestration.md 'it is labelled `ready-for-agent`'
@@ -1641,11 +1769,11 @@ drop_line docs/agents/orchestration.md '`needs-triage` or `wontfix`'
 expect "orchestration doc whose finished story waits on an untriaged child fails" 1
 
 fresh
-drop_line skills/implement-story/SKILL.md 'keeping only the tickets labelled `ready-for-agent`'
+drop_line skills/implement-story/SKILL.md 'keeping only the tasks labelled `ready-for-agent`'
 expect "implement-story reading the frontier without the ready-for-agent filter fails" 1
 
 fresh
-echo 'minus `ready-for-human` tickets only' >> "$scratch/skills/implement-story/SKILL.md"
+echo 'minus `ready-for-human` tasks only' >> "$scratch/skills/implement-story/SKILL.md"
 expect "implement-story filtering the frontier on ready-for-human alone fails" 1
 
 fresh
@@ -1667,17 +1795,17 @@ drop_line skills/close-story/SKILL.md 'carries `needs-triage` or `wontfix`'
 expect "close-story waiting on an untriaged child fails" 1
 
 fresh
-drop_line skills/close-story/SKILL.md 'open tickets <child> <status> <label>'
+drop_line skills/close-story/SKILL.md 'open tasks <child> <status> <label>'
 expect "close-story whose refusal drops the label fails" 1
 
 fresh
-echo 'Any child not `closed` → `<id> refused: open tickets <child> <status>, ...`' >> "$scratch/skills/close-story/SKILL.md"
+echo 'Any child not `closed` → `<id> refused: open tasks <child> <status>, ...`' >> "$scratch/skills/close-story/SKILL.md"
 expect "close-story refusing without the label fails" 1
 
-# the tracker and orchestration docs speak of the story DAG and the human gate ticket, and
+# the tracker and orchestration docs speak of the story DAG and the human gate task, and
 # no longer say a feature has one text blocker or that chains are out of scope (ADR 0011)
 for doc in issue-tracker orchestration; do
-  for phrase in 'story DAG' 'human gate ticket'; do
+  for phrase in 'story DAG' 'human gate task'; do
     fresh
     drop_line "docs/agents/$doc.md" "$phrase" -i
     expect "$doc doc without '$phrase' fails" 1
@@ -1697,25 +1825,25 @@ for doc in issue-tracker orchestration; do
 done
 
 # a story held only by a story-closure blocker ends the run as a human stop that names the
-# merge and the /dev:close-story; a publish ticket is ready once its story's tickets close; the
-# story body shows no gate-ticket line no step fills; a middle story of a chain is ordered
+# merge and the /dev:close-story; a publish task is ready once its story's tasks close; the
+# story body shows no gate-task line no step fills; a middle story of a chain is ordered
 fresh
 drop_line docs/agents/orchestration.md 'merge its PR, then run `/dev:close-story <story-id>`'
 expect "orchestration doc whose end state omits the story-closure human stop fails" 1
 
 fresh
-echo "it appears in bd ready as soon as its repo's implementation tickets close." >> "$scratch/docs/agents/orchestration.md"
-expect "orchestration doc releasing a publish ticket on its repo's tickets fails" 1
+echo "it appears in bd ready as soon as its repo's implementation tasks close." >> "$scratch/docs/agents/orchestration.md"
+expect "orchestration doc releasing a publish task on its repo's tasks fails" 1
 
 fresh
-echo '   <repo> <gate ticket id>' >> "$scratch/docs/agents/issue-tracker.md"
-expect "tracker doc whose story body shows an unfillable gate ticket line fails" 1
+echo '   <repo> <gate task id>' >> "$scratch/docs/agents/issue-tracker.md"
+expect "tracker doc whose story body shows an unfillable gate task line fails" 1
 
 fresh
 drop_line docs/agents/issue-tracker.md 'in the middle of a chain'
 expect "tracker doc without the middle-story order fails" 1
 
-# a repo session may hold several home stories, each the epic bead's child; the ticket cut
+# a repo session may hold several home stories, each the epic bead's child; the task cut
 # runs one topological pass, not waves; a split on a deploy waits on the earlier story
 fresh
 drop_line docs/agents/issue-tracker.md '# repo session: every story'
@@ -1727,42 +1855,42 @@ expect "tracker doc giving only one home story a parent fails" 1
 
 fresh
 drop_line docs/agents/issue-tracker.md 'one topological pass'
-expect "tracker doc whose ticket cut order is not one topological pass fails" 1
+expect "tracker doc whose task cut order is not one topological pass fails" 1
 
 fresh
-echo '   ticket opens its own wave, created last' >> "$scratch/docs/agents/issue-tracker.md"
+echo '   task opens its own wave, created last' >> "$scratch/docs/agents/issue-tracker.md"
 expect "tracker doc splitting a middle story across waves fails" 1
 
 fresh
 drop_line docs/agents/issue-tracker.md 'that `/dev:close-story` requires closed'
 expect "tracker doc whose deploy split names no closure wait fails" 1
 
-# the ticket cut orders one pass per story, so every bump precedes the dependent's other
-# tickets; the story cut writes a story line or a publish placeholder, never a gate ticket id
+# the task cut orders one pass per story, so every bump precedes the dependent's other
+# tasks; the story cut writes a story line or a publish placeholder, never a gate task id
 fresh
 sed 's/one topological pass over the stories/one topological pass/' "$scratch/docs/agents/issue-tracker.md" > "$scratch/docs/agents/issue-tracker.md.new" && mv "$scratch/docs/agents/issue-tracker.md.new" "$scratch/docs/agents/issue-tracker.md"
-expect "tracker doc whose ticket cut pass is not per story fails" 1
+expect "tracker doc whose task cut pass is not per story fails" 1
 
 fresh
-echo '   In the ticket cut, one topological pass over the edges: per edge,' >> "$scratch/docs/agents/issue-tracker.md"
-expect "tracker doc ordering the ticket cut per edge fails" 1
+echo '   In the task cut, one topological pass over the edges: per edge,' >> "$scratch/docs/agents/issue-tracker.md"
+expect "tracker doc ordering the task cut per edge fails" 1
 
 fresh
-drop_line docs/agents/issue-tracker.md 'never a line naming a gate ticket id'
+drop_line docs/agents/issue-tracker.md 'never a line naming a gate task id'
 expect "tracker doc without the story cut's no-gate-id rule fails" 1
 
 fresh
 echo 'two forms are the only lines the story cut writes.' >> "$scratch/docs/agents/issue-tracker.md"
 expect "tracker doc whose story cut writes only two forms fails" 1
 
-# a re-cut blocks every open ticket but the bumps on every bump, so no bump blocks on itself
+# a re-cut blocks every open task but the bumps on every bump, so no bump blocks on itself
 # or on another bump (step 5)
 fresh
-drop_line docs/agents/issue-tracker.md 'every open ticket of the story that is not a bump'
+drop_line docs/agents/issue-tracker.md 'every open task of the story that is not a bump'
 expect "tracker doc whose re-cut does not exempt the bumps fails" 1
 
 fresh
-echo 'every open ticket of the story is blocked natively on every bump' >> "$scratch/docs/agents/issue-tracker.md"
+echo 'every open task of the story is blocked natively on every bump' >> "$scratch/docs/agents/issue-tracker.md"
 expect "tracker doc whose re-cut blocks a bump on itself fails" 1
 
 # /dev:spec-to-stories cuts a story DAG per edge, proposes a split only for a deprecate-then-remove
@@ -1849,7 +1977,7 @@ fresh
 echo 'Also refuse when it already has stories → `<epic-id> refused: stories exist`' >> "$scratch/skills/spec-to-stories/SKILL.md"
 expect "spec-to-stories refusing on existing stories fails" 1
 
-for phrase in 'refused: every story is closed' 'finished, open with failed tickets, waiting' \
+for phrase in 'refused: every story is closed' 'finished, open with failed tasks, waiting' \
   'names the `failed twice:` reason it answers' 'quizzes the additions only' \
   'gh pr view <url> --json state' 'tea api --repo <owner> repos/{owner}/{repo}/pulls/<n>' \
   'with the sandbox disabled, as `/dev:close-story` step 4 does' \
@@ -1873,20 +2001,20 @@ echo "- A PR closed unmerged is not sealed: it takes \`OPEN\`'s path." >> "$scra
 expect "spec-to-stories re-cutting a story whose PR closed unmerged fails" 1
 
 fresh
-drop_line skills/story-to-tickets/SKILL.md 'The story and the feature, in the tracker doc'
-expect "story-to-tickets without the home name in its Parent template fails" 1
+drop_line skills/story-to-tasks/SKILL.md 'The story and the feature, in the tracker doc'
+expect "story-to-tasks without the home name in its Parent template fails" 1
 
 fresh
-echo "the nearest ancestor of <owner> holding repos.yaml" >> "$scratch/skills/spec-to-tickets/SKILL.md"
-expect "walk-up phrase in /dev:spec-to-tickets fails" 1
+echo "the nearest ancestor of <owner> holding repos.yaml" >> "$scratch/skills/spec-to-tasks/SKILL.md"
+expect "walk-up phrase in /dev:spec-to-tasks fails" 1
 
 fresh
-echo "the workspace root included" >> "$scratch/skills/story-to-tickets/SKILL.md"
-expect "walk-up phrase in /dev:story-to-tickets fails" 1
+echo "the workspace root included" >> "$scratch/skills/story-to-tasks/SKILL.md"
+expect "walk-up phrase in /dev:story-to-tasks fails" 1
 
 fresh
-echo 'Story <story-id> in <owner repo>; home repo <home repo>, epic bead' >> "$scratch/skills/story-to-tickets/SKILL.md"
-expect "retired home repo <home repo> Parent form in /dev:story-to-tickets fails" 1
+echo 'Story <story-id> in <owner repo>; home repo <home repo>, epic bead' >> "$scratch/skills/story-to-tasks/SKILL.md"
+expect "retired home repo <home repo> Parent form in /dev:story-to-tasks fails" 1
 
 fresh
 echo "the workspace root included" >> "$scratch/skills/retro/SKILL.md"
@@ -1967,8 +2095,8 @@ echo "it enters the set when its orchestrator did not report \`failed:\` this ru
 expect "implement-spec keying the review set on a failed: report fails" 1 "review set keyed on a failed: report this run" "$spec" "$scratch/docs/WORKFLOW.md"
 
 fresh_spec
-echo "nothing below touches a ticket" >> "$spec"
-expect "implement-spec claiming it touches no ticket fails" 1 "nothing touches a ticket" "$spec" "$scratch/docs/WORKFLOW.md"
+echo "nothing below touches a task" >> "$spec"
+expect "implement-spec claiming it touches no task fails" 1 "nothing touches a task" "$spec" "$scratch/docs/WORKFLOW.md"
 
 fresh_spec
 echo "You are the driver, the feature-level session." >> "$spec"
@@ -1978,19 +2106,19 @@ fresh_spec
 echo "Run gh pr create --draft for the story." >> "$spec"
 expect "implement-spec opening a PR fails" 1 "PR-opening steps" "$spec" "$scratch/docs/WORKFLOW.md"
 
-# the glossary's avoided term "human ticket" (a ready-for-human ticket is fine): the gate
-# ticket is a human gate ticket (story review 1)
+# the glossary's avoided term "human task" (a ready-for-human task is fine): the gate
+# task is a human gate task (story review 1)
 fresh_spec
-echo "A resumed run starts the stories the closed human ticket released." >> "$spec"
-expect "implement-spec saying 'human ticket' fails" 1 "" "$spec" "$scratch/docs/WORKFLOW.md"
+echo "A resumed run starts the stories the closed human task released." >> "$spec"
+expect "implement-spec saying 'human task' fails" 1 "" "$spec" "$scratch/docs/WORKFLOW.md"
 
 fresh_spec
-echo "every open ready-for-human ticket is listed" >> "$spec"
-expect "implement-spec saying 'ready-for-human ticket' passes" 0 "" "$spec" "$scratch/docs/WORKFLOW.md"
+echo "every open ready-for-human task is listed" >> "$spec"
+expect "implement-spec saying 'ready-for-human task' passes" 0 "" "$spec" "$scratch/docs/WORKFLOW.md"
 
 fresh
-echo '(each story whose text blocker names a human ticket)' >> "$scratch/skills/implement-story/SKILL.md"
-expect "implement-story saying 'human ticket' fails" 1
+echo '(each story whose text blocker names a human task)' >> "$scratch/skills/implement-story/SKILL.md"
+expect "implement-story saying 'human task' fails" 1
 
 fresh_spec
 echo "The PR To Merge is named in the human line." >> "$spec"
@@ -2005,7 +2133,7 @@ echo "Run gh pr merge <url> once the checks pass." >> "$spec"
 expect "implement-spec with a PR merge command fails" 1 "" "$spec" "$scratch/docs/WORKFLOW.md"
 
 # the runbook describes add mode and the human-stop merge line, and no longer lists a chain
-# among the ticket cut's refusals (chezmoi-9v4.1.9)
+# among the task cut's refusals (chezmoi-9v4.1.9)
 fresh
 sed -e 's|add mode|extension|g' -e 's|Add mode|Extension|g' "$scratch/docs/WORKFLOW.md" > "$scratch/docs/WORKFLOW.md.new" && mv "$scratch/docs/WORKFLOW.md.new" "$scratch/docs/WORKFLOW.md"
 expect "runbook copy without add mode fails" 1
@@ -2023,7 +2151,7 @@ echo 'Among its refusals: a dependency chain (A depends on B depends on C).' >> 
 expect "runbook copy with the chain refusal fails" 1
 
 fresh
-echo 'The ticket cut refuses a dependency chain of three stories.' >> "$scratch/docs/WORKFLOW.md"
+echo 'The task cut refuses a dependency chain of three stories.' >> "$scratch/docs/WORKFLOW.md"
 expect "runbook copy with the chain refusal in a sentence fails" 1
 
 fresh
@@ -2033,7 +2161,7 @@ expect "runbook copy mentioning a dependency chain of closures passes" 0
 # the retired story-DAG phrases are absent from every covered file: the skills, the agent docs,
 # the user-level CLAUDE.md and the runbook (one case per phrase, each planted in one file kind)
 fresh
-echo 'Resolve a spec to one story per repo it changes.' >> "$scratch/skills/story-to-tickets/SKILL.md"
+echo 'Resolve a spec to one story per repo it changes.' >> "$scratch/skills/story-to-tasks/SKILL.md"
 expect "skill saying 'one story per repo' fails" 1
 
 fresh
@@ -2077,9 +2205,9 @@ expect "a spec keeping 'Evidence run' passes" 0
 # the gate with no check command (ADR 0015) is absent from every file kind the sweep covers, the
 # glossary included (one seeded case per phrase, each in its own kind); docs/specs keeps the words
 for case in 'skills/sample/SKILL.md|With no check target the gate is review-only.' \
-  'docs/agents/triage-labels.md|A low ticket in a repo with no check command is reviewed.' \
-  'GLOSSARY.md|A ticket without a check command lands on its review.' \
-  'docs/SEQUENCES.md|checks green, the ticket row at low with a check command' \
+  'docs/agents/triage-labels.md|A low task in a repo with no check command is reviewed.' \
+  'GLOSSARY.md|A task without a check command lands on its review.' \
+  'docs/SEQUENCES.md|checks green, the task row at low with a check command' \
   'docs/WORKFLOW.md|A repo with no\ncheck command is reviewed.'; do
   fresh
   printf "${case#*|}\n" >> "$scratch/${case%%|*}"
@@ -2088,6 +2216,70 @@ done
 fresh
 echo 'A repo with no check command gets a review-only gate.' >> "$scratch/docs/specs/one-loop-three-rows.md"
 expect "a spec keeping the review-only gate passes" 0
+
+# one route per unit (INFRA-37): the refusal for an epic bead with a non-story child, and the
+# retired route words swept from every file a reader meets (the bare word chore still passes)
+fresh
+drop_phrase skills/implement-spec/SKILL.md '<epic-id> refused: <child-id> is not a story'
+expect "implement-spec without the malformed-epic refusal fails" 1 "malformed epic refusal"
+fresh
+drop_phrase skills/implement-story/SKILL.md '`<epic-id> refused: <child-id> is not a story`'
+sec=8 expect "implement-story without the malformed-epic refusal fails" 1 "malformed epic refusal"
+fresh
+drop_phrase docs/agents/issue-tracker.md 'refused: <child-id> is not a story'
+sec=6 expect "tracker doc without the malformed-epic refusal fails" 1 "malformed epic refusal"
+fresh
+drop_phrase skills/workflow/SKILL.md '<child-id> is not a story'
+sec=2 expect "workflow without the malformed-epic line fails" 1 "workflow prints the malformed-epic line"
+fresh
+drop_phrase skills/close-epic/SKILL.md '<epic-id> refused: <child-id> is not a story'
+sec=2 expect "close-epic without the malformed-epic refusal fails" 1 "close-epic refuses a non-story child"
+fresh
+drop_phrase skills/triage/SKILL.md '`/dev:implement-task <id>` in the owner repo'
+sec=6 expect "triage without the implement-task hand-off fails" 1 "/triage hands a standalone task to implement-task"
+# a routed triage item is a task, the one type /dev:implement-task takes, and /triage's body
+# cites the template that exists (dev-b8d.1 story review 1)
+fresh
+drop_line docs/agents/issue-tracker.md 'create "<title>" --type task -l complexity:<tier>,retro'
+sec=6 expect "tracker doc without the routed task's create line fails" 1 "the routed bead is a task"
+fresh
+swap_phrase docs/agents/issue-tracker.md 'create "<title>" --type task -l complexity:' 'create "<title>" --type chore -l complexity:'
+sec=6 expect "a routed bead of type chore fails" 1 "a routed bead of type chore"
+fresh
+drop_phrase docs/agents/issue-tracker.md 'two reviewers, one per axis'
+sec=6 expect "tracker doc without the two-axis task review fails" 1 "the task gate's review is two-axis"
+fresh
+drop_phrase docs/agents/issue-tracker.md 'the story orchestrator closes the task at landing'
+sec=6 expect "tracker doc without the story row's close at landing fails" 1 "the story orchestrator closes the task at landing"
+fresh
+drop_phrase skills/triage/SKILL.md 'a standalone task (`--type task`'
+sec=6 expect "triage without the task type fails" 1 "/triage creates a standalone task"
+fresh
+drop_phrase skills/triage/SKILL.md 'the issue template in `/dev:story-to-tasks`'
+sec=6 expect "triage without the story-to-tasks issue template fails" 1 "/triage writes the body in story-to-tasks' issue template"
+fresh
+echo 'Body in the `to-tickets` issue template.' >> "$scratch/skills/triage/SKILL.md"
+sec=6 expect "triage citing the to-tickets template fails" 1 "/triage citing the retired to-tickets template"
+
+for case in 'a flat epic of tasks|flat epic' 'the legacy flat shape|flat shape' 'The flat-epic refusal.|flat-epic' \
+  'the small-bug path does it|small-bug path' 'the small bug path|small bug path' \
+  'run /mattpocock-skills:implement <id>|mattpocock-skills:implement' \
+  'run /mattpocock-skills:to-tickets now|mattpocock-skills:to-tickets' \
+  'the implement-chore skill|implement-chore' 'the chore orchestrator|chore orchestrator' \
+  'on branch chore/<id>|chore/'; do
+  for file in skills/sample/SKILL.md docs/agents/issue-tracker.md docs/WORKFLOW.md skills/implement-story/SKILL.md; do
+    fresh
+    echo "${case%%|*}" >> "$scratch/$file"
+    sec=5 expect "$file saying '${case%%|*}' fails section 5" 1 "a retired route (flat epic or shape, small-bug path, upstream skill or chore name) in $scratch/$file"
+  done
+done
+fresh
+printf 'The commit subject is chore: ignore agent scratch space.\nA chore type and a chore commit pass.\nSee /mattpocock-skills:tdd.\n' >> "$scratch/skills/sample/SKILL.md"
+expect "the bare word chore and the other upstream skills pass" 0
+fresh
+echo 'ADR 0006 keeps the flat epic and /mattpocock-skills:to-tickets history.' >> "$scratch/docs/adr/0001.md"
+echo 'The spec names a flat epic, chore/<id> and the small-bug path.' >> "$scratch/docs/specs/one-loop-three-rows.md"
+expect "an ADR and a spec keeping the retired route words pass" 0
 
 # the retired vocabulary (dev-9k5.1.10, dev-9k5.1.11): every retired word or phrase seeded
 # together into each file section 5 sweeps (skills, agent docs, the project CLAUDE.md, the
@@ -2098,12 +2290,12 @@ Each ticket runner implements.|the retired ticket runner role
 A merger folds it in.|the retired merger role
 Spawn a fresh fix-up implementer.|the retired fix-up implementer role
 Run the built-in `code-review` on it.|the built-in code-review named
-Two review tools, two stages: per ticket.|the two review tools paragraph
+Two review tools, two stages: per task.|the two review tools paragraph
 Exit on the review marker.|the retired review marker
 Run the lint command, then the tip.|the retired lint command
 Name the test seams as checks.|the retired test seams as checks'
 for file in skills/sample/SKILL.md skills/workflow/SKILL.md skills/close-epic/SKILL.md skills/spec-to-stories/SKILL.md \
-  skills/spec-to-tickets/SKILL.md docs/agents/issue-tracker.md docs/agents/triage-labels.md CLAUDE.md docs/WORKFLOW.md docs/SEQUENCES.md; do
+  skills/spec-to-tasks/SKILL.md docs/agents/issue-tracker.md docs/agents/triage-labels.md CLAUDE.md docs/WORKFLOW.md docs/SEQUENCES.md; do
   fresh
   msgs=
   while IFS= read -r case; do
@@ -2129,9 +2321,9 @@ for case in 'Each ticket\nrunner implements.|the retired ticket runner role' \
   sec=5 expect "runbook with '${case%%|*}' wrapped fails section 5" 1 "${case##*|} in $scratch/docs/WORKFLOW.md"
 done
 fresh
-printf 'One ticket\n\nrunner notes follow.\n' >> "$scratch/docs/WORKFLOW.md"
+printf 'One task\n\nrunner notes follow.\n' >> "$scratch/docs/WORKFLOW.md"
 expect "a phrase's words a paragraph apart pass section 5" 0
-for block in '## One ticket\nrunner notes follow.' '| a ticket |\nrunner notes follow.' 'One ticket\n- runner notes follow.'; do
+for block in '## One task\nrunner notes follow.' '| a task |\nrunner notes follow.' 'One task\n- runner notes follow.'; do
   fresh
   printf "\n$block\n" >> "$scratch/docs/WORKFLOW.md"
   expect "a phrase's words across a block boundary ('$block') pass section 5" 0
@@ -2157,7 +2349,7 @@ for case in "skills/implement-story/SKILL.md|as the rules doc's Scratch space sa
   "skills/sample/SKILL.md|re-add it as the rules doc's fallback says" \
   "skills/sample/SKILL.md|as the rules doc's Scratch space (Literal paths) says" \
   "skills/sample/SKILL.md|hand-rolled, as the rules doc's worktree fallback says" \
-  "skills/spec-to-tickets/SKILL.md|as the \"Waiting\" rule of \`orchestration.md\` says" \
+  "skills/spec-to-tasks/SKILL.md|as the \"Waiting\" rule of \`orchestration.md\` says" \
   "docs/agents/triage-labels.md|the idle rule in the rules doc" \
   "docs/agents/triage-labels.md|see \`orchestration.md\`'s TMPDIR rule" \
   "docs/WORKFLOW.md|the rules doc's\nWorktrees"; do
@@ -2167,7 +2359,7 @@ for case in "skills/implement-story/SKILL.md|as the rules doc's Scratch space sa
 done
 fresh
 printf "%s\n" "the rules doc's Scratch space (Gitignore)" "the harness doc's Scratch space says (Literal paths)" \
-  "(\`orchestration.md\`, Trust rules, rule 2)" "the rules doc's Frontier (waiting tickets stay open)" >> "$scratch/skills/sample/SKILL.md"
+  "(\`orchestration.md\`, Trust rules, rule 2)" "the rules doc's Frontier (waiting tasks stay open)" >> "$scratch/skills/sample/SKILL.md"
 expect "the rules doc's own rule and the harness doc's citation pass section 5" 0
 
 # a semicolon ends a mermaid statement, so one inside a ```mermaid block fails; the same ';' in prose passes
@@ -2181,7 +2373,7 @@ expect "a semicolon outside a mermaid block passes" 0
 
 # a reviewer tags every finding blocking or minor and ends on a verdict line; a round with no
 # blocking findings is clean; every fix-up, red or blocking, spends the check gate loop's budget
-# (chezmoi-49k): the rule lives in the orchestration doc, the ticket orchestrator brief and the story
+# (chezmoi-49k): the rule lives in the orchestration doc, the task orchestrator brief and the story
 # review point at it
 fresh
 drop_line docs/agents/orchestration.md '**Review verdict.**'
@@ -2207,40 +2399,40 @@ sec=6 expect "orchestration doc without the loop sentence fails" 1 "the loop sen
 fresh
 drop_line $orch '| Row |'
 sec=6 expect "orchestration doc without the table's header fails" 1 "missing: the table's header names every parameter"
-for r in Ticket Story Epic; do
+for r in Task Story Epic; do
   fresh
   drop_line $orch "| **$r** |"
   sec=6 expect "orchestration doc without the $r row fails" 1 "missing: $r row: the one exit"
 done
 # each case is <row>@<cell>@<the lint's description>, so a case fails on its own pin
-for case in "Ticket@| ticket orchestrator |@ticket row: the ticket orchestrator" \
-  "Ticket@| one implementer in a worktree |@ticket row: one implementer in a worktree" \
-  "Ticket@| the check command |@Ticket row: the check command" \
-  "Ticket@| the ticket's body |@ticket row: the ticket's body as spec" \
-  "Ticket@| the ticket diff |@ticket row: the ticket diff as standards" \
-  "Ticket@; none at \`low\` |@ticket row: both axes at the review model, none at low" \
-  "Ticket@| an implementer by pointer brief, same worktree |@ticket row: a fix-up by pointer brief, same worktree" \
-  "Ticket@merge onto the integration branch under the lock, after the stray-commit check@ticket row: lands by merge under the lock after the stray-commit check" \
-  "Ticket@| three fix-ups; three conflict resolutions per landing |@ticket row: three fix-ups and three conflict resolutions per landing" \
+for case in "Task@| task orchestrator |@task row: the task orchestrator" \
+  "Task@| one implementer in a worktree |@task row: one implementer in a worktree" \
+  "Task@| the check command |@Task row: the check command" \
+  "Task@| the task's body |@task row: the task's body as spec" \
+  "Task@| the task diff |@task row: the task diff as standards" \
+  "Task@; none at \`low\` |@task row: both axes at the review model, none at low" \
+  "Task@| an implementer by pointer brief, same worktree |@task row: a fix-up by pointer brief, same worktree" \
+  "Task@| reports its reviewed branch, which the story orchestrator merges |@task row: lands by reporting its reviewed branch for the story orchestrator to merge" \
+  "Task@| three fix-ups |@task row: three fix-ups" \
   "Story@| story orchestrator |@story row: the story orchestrator" \
-  "Story@| ticket orchestrators in parallel over the frontier |@story row: ticket orchestrators over the frontier" \
+  "Story@| task orchestrators in parallel over the frontier |@story row: task orchestrators over the frontier" \
   "Story@| the check command |@Story row: the check command" \
   "Story@| the story's body |@story row: the story's body as spec" \
-  "Story@what entered since the last standards review: conflict resolutions, cross-ticket coherence and the story gate's fix-up commits@story row: what entered since as standards" \
+  "Story@what entered since the last standards review: conflict resolutions, cross-task coherence and the story gate's fix-up commits@story row: what entered since as standards" \
   "Story@| both axes, at the review model of the story's max tier |@story row: both axes at the review model of the story's max tier" \
   "Story@| an implementer by pointer brief in a fix-up worktree |@story row: a fix-up by pointer brief in a fix-up worktree" \
-  "Story@| push, the PR staying a draft |@story row: lands by a push, the PR a draft" \
-  "Story@| three fix-ups |@story row: three fix-ups" \
+  "Story@| merges each reviewed task branch after the stray-commit check; push, the PR staying a draft |@story row: lands by merging each reviewed task branch, then a push, the PR a draft" \
+  "Story@| three fix-ups; three conflict resolutions per landing |@story row: three fix-ups and three conflict resolutions per landing" \
   "Epic@| epic orchestrator |@epic row: the epic orchestrator" \
   "Epic@| story orchestrators in parallel over the frontier |@epic row: story orchestrators over the frontier" \
   "Epic@| the check command as the forge runs it |@epic row: the check command as the forge runs it" \
   "Epic@| the Jira Epic's spec |@epic row: the Jira Epic's spec" \
   "Epic@| none, the axis is skipped |@epic row: no standards axis" \
   "Epic@| the spec axis only, at the review model of the epic's max tier |@epic row: the spec axis only at the review model of the epic's max tier" \
-  'Epic@| findings filed as `ready-for-agent` tickets under the story, that story re-run in add mode |@epic row: findings filed as tickets, the story re-run in add mode' \
+  'Epic@| findings filed as `ready-for-agent` tasks under the story, that story re-run in add mode |@epic row: findings filed as tasks, the story re-run in add mode' \
   "Epic@the PR marked ready, the human merges@epic row: the PR marked ready, the human merges" \
   "Epic@| three per story |@epic row: three per story" \
-  "Ticket@| the checks green on the tip the review called clean |@Ticket row: the one exit" \
+  "Task@| the checks green on the tip the review called clean |@Task row: the one exit" \
   "Story@| the checks green on the tip the review called clean |@Story row: the one exit" \
   "Epic@| the checks green on the tip the review called clean |@Epic row: the one exit"; do
   r=${case%%@*} cell=${case#*@} desc=${case##*@}
@@ -2262,7 +2454,7 @@ for case in '**Review scope.**|review scoping rule' "The spec axis takes the row
   "2. A fix-up is a fresh implementer in the unit's worktree, never a message back|trust rule 2" \
   "3. An implementer's own check runs never count|trust rule 3" \
   '4. The stray-commit check runs before every merge and every push|trust rule 4' \
-  '5. Only `ready-for-agent` tickets are claimed|trust rule 5' \
+  '5. Only `ready-for-agent` tasks are claimed|trust rule 5' \
   '6. The typed command authorises delivery|trust rule 6' \
   'The list is closed: a rule that wants to join needs an ADR|the trust rules are a closed list' \
   '**Check command.**|Check command rule' 'One command per owner repo, `make check`|make check is the one check command' \
@@ -2278,18 +2470,18 @@ for case in '**Review scope.**|review scoping rule' "The spec axis takes the row
   'no budget is spent|and spend nothing' 'records the reviewed tip in its notes|the reviewed tip noted on the story' \
   'the gate exits on the moved tip once its checks are green|the gate exits on the moved tip' \
   'the reviewed-tip note on the story bead|the reviewed-tip note names the moved tip' \
-  'the ticket row writes no such note|the ticket row writes no reviewed-tip note' \
+  'the task row writes no such note|the task row writes no reviewed-tip note' \
   "starts its unit's budget at three whatever notes earlier invocations left|a fresh orchestrator starts its unit's budget at three" \
   'A fresh orchestrator at any row|the fresh budget holds at any row' \
   'an agent resumed with its context keeps its own count|a resumed agent keeps its own count' \
-  'neither the ticket row nor the story row records spent fix-ups|neither the ticket row nor the story row records spent fix-ups' \
+  'neither the task row nor the story row records spent fix-ups|neither the task row nor the story row records spent fix-ups' \
   "counts a story's spent budget from the story's \`epic fix-up\` notes after this invocation's \`epic review 1\` note|the epic orchestrator counts from the notes after this invocation's epic review 1" \
   'bound a person wants is per invocation (dev-l4j)|the bound is per invocation, citing dev-l4j' \
   'at the epic row, three per story|the epic row budgets per story' \
   "the story gate's own fix-up commits|the story row's standards axis takes the gate's fix-up commits" \
   "the forge reports them green on the PR's tip|the epic row's checks are the forge's status on the PR tip" \
   'On a blocking verdict or a red check|a red check at the epic row is filed like a blocking verdict' \
-  "carries its check, its command and its log pointer|the red check's ticket carries its check, command and log" \
+  "carries its check, its command and its log pointer|the red check's task carries its check, command and log" \
   "three such fix-ups per story per invocation, red or blocking alike|a red check spends the epic row's budget" \
   'the PR stays a draft and a later invocation reads it again|a pending check leaves the PR a draft' \
   "minors take no last fix-up at this row|the epic row's minors take no last fix-up" \
@@ -2312,16 +2504,29 @@ for case in '**Review scope.**|review scoping rule' "The spec axis takes the row
   'After a blocking verdict the unchanged tree keeps its green record|a fix-up that commits nothing after a blocking verdict is reviewed again' \
   'A landing takes at most three conflict resolutions|a landing takes at most three conflict resolutions' \
   'apart from the fix-up budget|the resolution cap is apart from the fix-up budget' \
-  'the fourth conflict ends the ticket `failed`|the fourth conflict fails the ticket'; do
+  'the fourth conflict ends the task `failed`|the fourth conflict fails the task' \
+  'The story row lands|the story row lands' \
+  'never touches the owner checkout|the task orchestrator never touches the owner checkout' \
+  'Landings are serial, one per report, so no lock is|landings are serial with no lock' \
+  'checks the resolved tree|the resolved tree is checked with the Check record call' \
+  '`failed: red after conflict resolution`|a red on a resolved tree fails the landing' \
+  'entering at the gate on the resolved branch|the retry enters at the gate on the resolved branch' \
+  'A landing closes the task|a landing closes the task' \
+  'fix-up branches land by the same procedure|the story gate'"'"'s fix-ups land by the same procedure'; do
   phrase=${case%%|*}
   fresh
   drop_phrase $orch "$phrase"
   sec=6 expect "orchestration doc without '$phrase' fails" 1 "${case#*|}"
 done
-# the Check gate's line on a low ticket's gate, dropped whole (ADR 0015)
+# the task row's budget regaining the conflict resolutions the landing took to the story row
 fresh
-drop_line $orch "A \`low\` ticket's gate is the checks alone, with no review"
-sec=6 expect "orchestration doc without the low ticket's gate fails" 1 "a low ticket is gated by the checks alone"
+awk 'index($0, "| **Task** |") == 1 { sub(/\| three fix-ups \|/, "| three fix-ups; three conflict resolutions per landing |") } { print }' \
+  "$scratch/$orch" > "$scratch/$orch.new" && mv "$scratch/$orch.new" "$scratch/$orch"
+sec=6 expect "orchestration doc's Task row regaining the conflict resolutions fails" 1 "present: task row: a conflict resolution budget"
+# the Check gate's line on a low task's gate, dropped whole (ADR 0015)
+fresh
+drop_line $orch "A \`low\` task's gate is the checks alone, with no review"
+sec=6 expect "orchestration doc without the low task's gate fails" 1 "a low task is gated by the checks alone"
 # a red check record counted as checked, seeded back in the rules doc (dev-6qi)
 fresh
 printf '\nA tree with a check record counts as checked.\n' >> "$scratch/$orch"
@@ -2359,6 +2564,26 @@ sec=6 expect "ADR 0014 with 'status: accepted, amended' in the frontmatter fails
 fresh
 rm "$scratch/docs/adr/0014-one-loop-at-three-rows.md"
 sec=6 expect "a missing ADR 0014 fails" 1 "missing document: $scratch/docs/adr/0014-one-loop-at-three-rows.md"
+# ADR 0016 and ADR 0014's note keep their decision lines
+for case in '> Superseded in part by ADR 0016|ADR 0014 superseded in part by ADR 0016'; do
+  fresh
+  drop_phrase docs/adr/0014-one-loop-at-three-rows.md "${case%%|*}"
+  sec=6 expect "ADR 0014 without '${case%%|*}' fails" 1 "${case#*|}"
+done
+for case in 'status: accepted|ADR 0016 is accepted' 'Supersedes in part ADR 0014|ADR 0016 supersedes ADR 0014 in part' \
+  '**The story row lands its tasks.**|ADR 0016 decides the story row lands its tasks' \
+  '## Considered options|ADR 0016 has considered options' \
+  '**The story row sending a red resolved tree to a fix-up itself**|ADR 0016 option: the story row sends a red tree to a fix-up' \
+  '**A typed skill that is also the spawned one**|ADR 0016 option: a typed skill that is also the spawned one' \
+  '**A chore skill**|ADR 0016 option: a chore skill' \
+  'three conflict resolutions per landing|ADR 0016 moves the resolution budget to the story row' \
+  'run a task-row gate|ADR 0016 rejects the red-tree fix-up for the task-row gate it would run' \
+  'two modes in one skill|ADR 0016 rejects the typed-and-spawned skill for its two modes' \
+  'would deliver `fix:` commits|ADR 0016 rejects the chore skill for the branch it would deliver'; do
+  fresh
+  drop_phrase docs/adr/0016-the-story-row-lands-its-tasks.md "${case%%|*}"
+  sec=6 expect "ADR 0016 without '${case%%|*}' fails" 1 "${case#*|}"
+done
 for case in 'status: superseded by ADR 0014|ADR 0001 is superseded by 0014' \
   'docs/adr/0014-one-loop-at-three-rows.md|ADR 0001 points at ADR 0014'; do
   fresh
@@ -2388,32 +2613,41 @@ fresh
 echo "These are the story's checks." >> "$scratch/docs/agents/harness.md"
 expect "harness doc regaining the story's-checks clause fails" 1 "present: the Idle rule's retired story's-checks clause"
 
-# the ticket orchestrator brief (dev-9k5.1.7): its row parameters, the check command by Makefile
-# convention and the one-line harness citation, each phrase dropped alone; the brief opener
-# swapped for the retired name; the retired lint command, merger brief and per-round log seeded
-# back. Each pin is read on its own line, so the phrase dropped there alone still fails
-for case in "your row is the ticket row of the rules doc's table|the brief names its row of the rules doc's table" \
+# /dev:task-orchestrator (dev-9k5.1.7, moved from /implement-story's brief in dev-b8d.1.4): its
+# row parameters, the check command from the brief and the one-line harness citation, each
+# phrase dropped alone; the row's opener swapped for the retired name. Each pin is read on its
+# own line, so the phrase dropped there alone still fails
+for case in "your row is the task row of the rules doc's table|the skill names its row of the rules doc's table" \
   'you build with one implementer in a worktree|the row builds with one implementer in a worktree' \
   'check with the check command|the row checks with the check command' \
-  "review the ticket's body as the spec axis and the ticket diff as the standards axis, one tier up, none at \`low\`, fix up|the row reviews the ticket body and diff one tier up, none at low" \
+  "review the task's body as the spec axis and the task diff as the standards axis, one tier up, none at \`low\`, fix up|the row reviews the task body and diff one tier up, none at low" \
   'fix up by pointer brief in the same worktree|the row fixes up by pointer brief in the same worktree' \
-  'land by merging onto `<branch>` under the lock after the stray-commit check|the row lands by merging under the lock after the stray-commit check' \
+  'report the reviewed branch for the story orchestrator to land|the row reports its reviewed branch for the story orchestrator to land' \
   'exit when the checks are green on the tip the review called clean|the row exits on green checks at the tip the review called clean' \
-  'three fix-ups|the row budgets three fix-ups'; do
+  'within three fix-ups|the row budgets three fix-ups'; do
   phrase=${case%%|*}
   fresh
-  drop_phrase skills/implement-story/SKILL.md "$phrase"
-  expect "ticket orchestrator brief without its row parameter '$phrase' fails" 1 "missing: ${case#*|} ($phrase"
+  drop_phrase skills/task-orchestrator/SKILL.md "$phrase"
+  sec=16 expect "task-orchestrator without its row parameter '$phrase' fails" 1 "missing: ${case#*|} ($phrase"
+done
+# the row regaining the landing's conflict resolutions fails (dev-b8d.1.4)
+fresh
+swap_phrase skills/task-orchestrator/SKILL.md '^(You are the .*)within three fix-ups' '\1within three fix-ups and three conflict resolutions per landing'
+sec=16 expect "task-orchestrator whose row regains conflict resolutions fails" 1 "present: the row's conflict resolutions"
+
+for case in 'The harness mechanics are in `<plugin root>/docs/agents/harness.md`|missing: the skill cites the harness doc in one line' \
+  'every brief you send cites it in one line|missing: every brief it sends cites the harness doc' \
+  ', check command `<check command>`|missing: the row'"'"'s check command is the brief'"'"'s' \
+  'never resolve it yourself|missing: the skill never resolves the check command itself'; do
+  fresh
+  drop_phrase skills/task-orchestrator/SKILL.md "${case%%|*}"
+  sec=16 expect "task-orchestrator without '${case%%|*}' fails" 1 "${case#*|}"
 done
 
-for case in 'The harness mechanics are in `<plugin root>/docs/agents/harness.md`|missing: the brief cites the harness doc in one line' \
-  'every brief you send cites it in one line|missing: every brief it sends cites the harness doc' \
-  ', check command `<check command>`|missing: the brief'"'"'s header carries the run'"'"'s check command' \
-  'never resolve it yourself|missing: the brief never resolves the check command itself' \
-  '**once per run**|missing: the check command is resolved once per run' \
+for case in '**once per run**|missing: the check command is resolved once per run' \
   '`make check`, since every owner repo has a `check` target|missing: the check command is make check' \
   'with none, end the run now with `failed: no check target in <owner>; run /dev:setup-repo there, then re-run`|missing: step 3 fails a run with no check target' \
-  'every ticket orchestrator brief carries it in its header|missing: the run'"'"'s check command goes in every brief'"'"'s header' \
+  'every task orchestrator brief carries it and step 7 gates on it|missing: the run'"'"'s check command goes in every brief' \
   'Ask make whether it has one, never grep a Makefile|missing: step 3 asks make for the check target' \
   '`make -C <owner> -pRrq : 2>/dev/null|missing: step 3 reads the check target from make'"'"'s database' \
   'a missing Makefile prints no database and exits 1, so all three read as no check target|missing: a missing Makefile reads as no check target'; do
@@ -2430,18 +2664,19 @@ fresh
 swap_phrase skills/implement-story/SKILL.md 'Ask make whether it has one, never grep a Makefile' "grep -q '^check:' <owner>/Makefile tells which"
 expect "a step 3 that greps the Makefile for the check target fails" 1 "present: the retired grep for the check target"
 
-# a brief that resolves the check command per ticket again fails, so parallel tickets share one gate (dev-yyu)
+# a task orchestrator that resolves the check command per task again fails, so parallel tasks
+# share one gate (dev-yyu)
 fresh
-swap_phrase skills/implement-story/SKILL.md '^(> You are the \*\*ticket orchestrator\*\*.*)never resolve it yourself' '\1find it with `make -C <owner> -pRrq :`'
-expect "a brief that looks up the check target per ticket fails" 1 "present: the per-ticket check target lookup"
+swap_phrase skills/task-orchestrator/SKILL.md '^(You are the \*\*task orchestrator\*\*.*)never resolve it yourself' '\1find it with `make -C <owner> -pRrq :`'
+sec=16 expect "a task orchestrator that looks up the check target per task fails" 1 "present: the per-task check target lookup"
 
 fresh
-swap_phrase skills/implement-story/SKILL.md '^(> You are the \*\*ticket orchestrator\*\*.*)never resolve it yourself' '\1use `make check` when `<owner>`'"'"'s Makefile has a `check` target'
-expect "a brief that applies the Makefile convention per ticket fails" 1 "present: the per-ticket check command by Makefile convention"
+swap_phrase skills/task-orchestrator/SKILL.md '^(You are the \*\*task orchestrator\*\*.*)never resolve it yourself' '\1use `make check` when `<owner>`'"'"'s Makefile has a `check` target'
+sec=16 expect "a task orchestrator that applies the Makefile convention per task fails" 1 "present: the per-task check command by Makefile convention"
 
 fresh
-swap_phrase skills/implement-story/SKILL.md '^> You are the \*\*ticket orchestrator\*\*' '> You are the ticket runner'
-sec="5 8" expect "a brief opening on the old ticket role fails" 1 "missing: the brief opens on the ticket orchestrator"
+swap_phrase skills/task-orchestrator/SKILL.md '^You are the \*\*task orchestrator\*\*' 'You are the ticket runner'
+sec="5 16" expect "a row opening on the old ticket role fails" 1 "missing: the row opens on the task orchestrator"
 
 for case in 'Resolve the owner repo'"'"'s **lint command** once, here beside the forge.|present: the retired lint-command resolution' \
   '`make lint` when `<owner>`'"'"'s Makefile has a `lint` target|present: the retired lint-command resolution' \
@@ -2460,52 +2695,215 @@ for case in '`git -C <worktree path> rev-parse HEAD^{tree}`|missing: the gate ke
   'First confirm the worktree is clean, `git -C <worktree path> status --porcelain` prints nothing; a dirty worktree goes to a fresh implementer as a red does|missing: the gate reads the tree only of a clean worktree' \
   'a tree with a green record (`exit=0`) is checked: run nothing|missing: a tree with a green check record is not checked again' \
   'a red record is no check, so the tree is checked again|missing: a tree with a red check record is checked again' \
-  'mkdir -p <worktree path>/.tmp; mkdir -p <owner>/.tmp/checks/<tree>; export TMPDIR=<worktree path>/.tmp; make -C <worktree path> check > <owner>/.tmp/checks/<tree>/log 2>&1; echo "command=make check exit=$?" > <owner>/.tmp/checks/<tree>/record; cat <owner>/.tmp/checks/<tree>/record|missing: the gate writes the check record per tree' \
+  "the call the rules doc's Check record states|missing: the gate cites the rules doc's check-record call" \
   '`mattpocock-skills:code-review`|missing: the gate reviews with mattpocock-skills:code-review' \
   '`git -C <worktree path> diff <branch>...HEAD`|missing: the reviewer brief names the harness-route diff'; do
   fresh
-  drop_phrase skills/implement-story/SKILL.md "${case%%|*}"
-  expect "ticket orchestrator step 3 without '${case%%|*}' fails" 1 "${case#*|}"
+  drop_phrase skills/task-orchestrator/SKILL.md "${case%%|*}"
+  sec=16 expect "task-orchestrator step 3 without '${case%%|*}' fails" 1 "${case#*|}"
 done
 
 # the clean-worktree guard regaining --untracked-files=no fails (untracked files the check sees
 # but the tree lacks would pass a dirty worktree)
 fresh
-swap_phrase skills/implement-story/SKILL.md '^(> 3\. .*)`git -C <worktree path> status --porcelain`(.*)$' '\1`git -C <worktree path> status --porcelain --untracked-files=no`\2'
-expect "the clean-worktree guard regaining --untracked-files=no fails" 1 "present: the clean-worktree guard that hides untracked files"
+swap_phrase skills/task-orchestrator/SKILL.md '^(3\. .*)`git -C <worktree path> status --porcelain`(.*)$' '\1`git -C <worktree path> status --porcelain --untracked-files=no`\2'
+sec=16 expect "the clean-worktree guard regaining --untracked-files=no fails" 1 "present: the clean-worktree guard that hides untracked files"
 
 for case in ' Each check logs to <worktree path>/.tmp/checks-<round>-<k>.log.|present: the per-round check log' \
   ' Spawn a reviewer briefed to call the built-in `code-review`.|present: the built-in code-review named'; do
   fresh
-  swap_phrase skills/implement-story/SKILL.md '^(> 3\. .*)$' "\\1${case%%|*}"
-  s=one; case ${case%%|*} in *built-in*) s=5;; esac   # section 5 alone sweeps the built-in review
-  sec=$s expect "ticket orchestrator step 3 regaining '${case%%|*}' fails" 1 "${case#*|}"
+  swap_phrase skills/task-orchestrator/SKILL.md '^(3\. .*)$' "\\1${case%%|*}"
+  s=16; case ${case%%|*} in *built-in*) s=5;; esac   # section 5 alone sweeps the built-in review
+  sec=$s expect "task-orchestrator step 3 regaining '${case%%|*}' fails" 1 "${case#*|}"
 done
 
-# the landing and its conflict route on step 4's line, each phrase dropped alone; the step's
-# opener swapped away fails every anchored pin through the opener's own
-for case in "A conflict goes to an implementer in the ticket's worktree|missing: a conflict goes to an implementer in the ticket's worktree" \
-  "briefed to merge \`<branch>\`'s tip into the ticket branch|missing: the conflict implementer merges the integration tip into the ticket branch" \
-  '`git -C <owner> merge --abort`|missing: a conflicted merge is aborted' \
-  '`git -C <owner> merge --ff-only <ticket branch>`|missing: the orchestrator then fast-forwards' \
-  "step 3's checks run on the resolved tree and no reviewer runs|missing: the resolved tree is checked and not reviewed again" \
-  "restarts step 3's whole loop, review included|missing: a red after a resolution restarts the whole loop, review included" \
-  'A landing takes at most three conflict resolutions|missing: a landing takes at most three conflict resolutions' \
-  'the fourth conflict is `<ticket-id> failed: conflict <ticket branch> after three resolutions`|missing: the fourth conflict of a landing fails the ticket'; do
+# the story row's landing (dev-b8d.1.4): each phrase of the Landing section dropped alone fails
+for case in 'Landings are **serial**: one runs at a time, one per report|landings are serial' \
+  'So there is no lock to wait on|a landing waits on no lock' \
+  'confirm `git -C <owner> rev-parse <task branch>` prints `<tip SHA>`|the landing confirms the reviewed tip' \
+  '`git -C <owner> merge <task branch>`|the landing merges the task branch' \
+  '`git -C <owner> merge --abort`|a conflicted merge is aborted, never resolved by the orchestrator' \
+  "A conflict goes to an implementer in the task's worktree|a conflict goes to an implementer in the task's worktree" \
+  "it is briefed to merge \`<branch>\`'s tip into the task branch|the conflict implementer merges the integration tip into the task branch" \
+  "run the rules doc's Check record call with the task's worktree as its \`<worktree path>\`|the resolved tree is checked with the rules doc's call" \
+  "No reviewer runs: the story row's standards axis sees the resolution|no reviewer runs on the resolution" \
+  '`git -C <owner> merge --ff-only <task branch>`|the landing then fast-forwards' \
+  '`<task-id> failed: red after conflict resolution`|a red on a resolved tree fails the landing' \
+  'its one retry is a fresh task orchestrator entering at the gate on the resolved branch|the retry enters at the gate on the resolved branch' \
+  'so you never gate a task yourself|the story orchestrator never gates a task' \
+  'A landing takes at most **three conflict resolutions**|a landing takes at most three conflict resolutions' \
+  '`<task-id> failed: conflict <task branch> after three resolutions`|the fourth conflict fails the task' \
+  'A landing closes the task: `bd -C <owner> close <task-id>`|a landing closes the task' \
+  'confirm `git -C <owner> rev-parse <task branch>` prints the resolved tip, `git -C <worktree path> rev-parse HEAD`|the fast-forward guards the resolved tip' \
+  'its `<tip SHA>` is `git -C <worktree path> rev-parse HEAD`|a story fix-up'"'"'s tip is read from its worktree'; do
   fresh
   drop_phrase skills/implement-story/SKILL.md "${case%%|*}"
-  expect "ticket orchestrator step 4 without '${case%%|*}' fails" 1 "${case#*|}"
+  sec=8 expect "implement-story's Landing without '${case%%|*}' fails" 1 "missing in the ## Landing section: ${case#*|}"
+done
+# a Landing phrase moved out of its section, to the end of the file, still fails
+fresh
+drop_phrase skills/implement-story/SKILL.md 'So there is no lock to wait on'
+printf '%s\n' 'So there is no lock to wait on.' >> "$scratch/skills/implement-story/SKILL.md"
+sec=8 expect "implement-story with the no-lock sentence outside the Landing section fails" 1 "missing in the ## Landing section: a landing waits on no lock"
+fresh
+swap_phrase skills/implement-story/SKILL.md '^## Landing$' '## Merging'
+sec=8 expect "implement-story without its Landing section fails" 1 "missing: the Landing section"
+# the reviewed-tip guard seeded back after a conflict resolution fails (dev-b8d.1.4 review 1)
+fresh
+swap_phrase skills/implement-story/SKILL.md '^(3\. A conflict goes to an implementer.*)Green: ' "\\1Green: repeat 1's guards and 2's stray-commit check. "
+sec=8 expect "implement-story repeating the reviewed-tip guard after a resolution fails" 1 "present: the reviewed-tip guard repeated after a conflict resolution"
+# step 5 lands a reviewed: report in its turn and retries a red on a resolved tree at the gate;
+# the conflict implementer's brief keeps its ten-minute limit; only the story orchestrator writes
+# to the owner checkout
+for case in 'land it now, in the turn this report resumes you|missing: a reviewed: report is landed in the turn it resumes' \
+  'that one enters at the gate on the resolved branch|missing: a first failure after a red on a resolved tree retries at the gate' \
+  '`git -C <owner> log --oneline <branch>..task/<task-slug>` prints anything|missing: step 4 probes a cut-off task'"'"'s branch for a gate entry' \
+  'and you alone write there: a task orchestrator never touches it|missing: only the story orchestrator writes to the owner checkout'; do
+  fresh
+  drop_phrase skills/implement-story/SKILL.md "${case%%|*}"
+  sec=8 expect "implement-story without '${case%%|*}' fails" 1 "${case#*|}"
+done
+fresh
+swap_phrase skills/implement-story/SKILL.md '^(3\. A conflict goes to an implementer.*)timeout: 600000' '\1a timeout'
+swap_phrase skills/implement-story/SKILL.md '^(3\. A conflict goes to an implementer.*)timeout: 600000' '\1a timeout'
+sec=8 expect "implement-story whose conflict implementer has no ten-minute limit fails" 1 "missing: the conflict implementer's check and test timeout"
+# the short brief: each field dropped alone fails, the spawn model swapped fails, and the
+# retired closed report and pasted brief seeded back fail
+for case in 'Call the Skill tool with `dev:task-orchestrator`|the brief calls the task-orchestrator skill' \
+  'It carries only what this run alone knows|the brief carries only what the run alone knows' \
+  'plugin root `<plugin root>`, spelled out as the absolute path|the brief carries the plugin root literally' \
+  '`retry: <first failure'"'"'s reason>`|the brief carries a retry'"'"'s reason' \
+  '`gate entry: <task branch> <worktree path> <tip SHA>`|the brief'"'"'s gate entry' \
+  '`red log: <log>`|the gate entry'"'"'s red log'; do
+  fresh
+  drop_phrase skills/implement-story/SKILL.md "${case%%|*}"
+  sec=8 expect "implement-story's brief without '${case%%|*}' fails" 1 "missing in the ## Task orchestrator brief section: ${case#*|}"
+done
+fresh
+swap_phrase skills/implement-story/SKILL.md '^(4\. \*\*Work the frontier\.\*\*.*)at `model: opus`' '\1at `model: sonnet`'
+sec=8 expect "implement-story spawning task orchestrators below opus fails" 1 "missing: the frontier spawn is at opus"
+for case in '   - `<id> closed`: nothing more for that task.|present: a closed report from the task orchestrator' \
+  'A task orchestrator is a subagent, not a skill. Send this, filled in:|present: the pasted task orchestrator brief'; do
+  fresh
+  printf '%s\n' "${case%%|*}" >> "$scratch/skills/implement-story/SKILL.md"
+  sec=8 expect "implement-story regaining '${case%%|*}' fails" 1 "${case#*|}"
 done
 
-# a red fix-up after a resolution skipping its review, seeded back on step 4's line, fails
-# (story dev-9k5.1 review: the rules doc exempts only the minors fix-up and the resolution)
+# /dev:task-orchestrator itself (dev-b8d.1.4): the spawned-only refusal, the two entries, the
+# reviewed: line and the other two, no write to the owner checkout and no close, each pin
+# proven by dropping its phrase or seeding its retired form back
+for case in '`/dev:task-orchestrator is spawned only, by /dev:implement-story or /dev:implement-task; run one of those instead.`|missing (case-sensitive): the spawned-only refusal names the two skills that spawn it' \
+  'Typed bare, or called without that brief, refuse with exactly one line|missing (case-sensitive): typed bare it refuses with exactly one line' \
+  'Spawned only, by /dev:implement-story or /dev:implement-task|missing in the opening: the frontmatter says spawned only' \
+  'The brief carries only what the story run alone knows|missing (case-sensitive): the brief carries only what the story run alone knows' \
+  'Everything else you derive from the task bead|missing (case-sensitive): the rest is derived from the task bead' \
+  'the **claim entry**, for a fresh task|missing (case-sensitive): the claim entry' \
+  'the **gate entry**, when the branch already carries commits|missing (case-sensitive): the gate entry' \
+  'selected by the brief and never by you|missing (case-sensitive): the entry is selected by the brief' \
+  'with a fresh budget and no step 2|missing (case-sensitive): the gate entry runs no step 2 on a fresh budget' \
+  '`<task-id> reviewed: <task branch> <worktree path> <tip SHA>`|missing (case-sensitive): the reviewed: report line' \
+  '`<task-id> needs split: <proposed cut>`|missing (case-sensitive): the needs split: report line' \
+  '`<task-id> failed: <reason>`|missing (case-sensitive): the failed: report line' \
+  'Report exactly one line|missing (case-sensitive): exactly one report line' \
+  'You never write to the owner checkout|missing (case-sensitive): no write to the owner checkout' \
+  'The story orchestrator lands your branch there and closes the task; you never close it|missing (case-sensitive): the story orchestrator lands and closes' \
+  'You land nothing and close nothing|missing: step 4 lands nothing and closes nothing' \
+  '`git -C <worktree path> rev-parse HEAD`,|missing: step 4 reads the reviewed tip'; do
+  fresh
+  drop_phrase skills/task-orchestrator/SKILL.md "${case%%|*}"
+  sec=16 expect "task-orchestrator without '${case%%|*}' fails" 1 "${case#*|}"
+done
 fresh
-swap_phrase skills/implement-story/SKILL.md '^(> 4\. .*)$' '\1 A red fix-up then starts over from the checks only.'
-expect "ticket orchestrator step 4 regaining an unreviewed red fix-up fails" 1 "present: a red fix-up after a resolution skipping its review"
+swap_phrase skills/task-orchestrator/SKILL.md '^4\. \*\*Report the reviewed branch\.\*\*' '4. **Land the task.**'
+sec=16 expect "task-orchestrator whose step 4 lands the task fails" 1 "missing: step 4 reports the reviewed branch"
+for case in 'Then merge, `git -C <owner> merge <task branch>`.|present: a write command on the owner checkout' \
+  'Then `git -C <owner> switch <branch>`.|present: a write command on the owner checkout' \
+  'Then close it, `bd -C <owner> close <task-id>`.|present: the task closed by the task orchestrator' \
+  'Or report `<task-id> closed`.|present: a closed report line'; do
+  fresh
+  printf '%s\n' "${case%%|*}" >> "$scratch/skills/task-orchestrator/SKILL.md"
+  sec=16 expect "task-orchestrator regaining '${case%%|*}' fails" 1 "${case#*|}"
+done
 
+# /dev:implement-task (dev-b8d.1.6): every pin proven by dropping its phrase, the retired or
+# out-of-row forms by seeding them back, and the skill's existence by the namespace rule
+for case in 'Implement one standalone task bead|missing in the opening: the frontmatter names a standalone task' \
+  '`<id> is of type <type>, not a task; /dev:implement-task takes a standalone task bead id.`|missing (case-sensitive): the non-task refusal' \
+  '`<id> refused: its parent <story-id> is a story; run /dev:implement-story <story-id>`|missing (case-sensitive): the story-task refusal names /dev:implement-story' \
+  '`<id> refused: not ready-for-agent|missing (case-sensitive): the not-ready refusal' \
+  'the story row with a frontier of one|missing (case-sensitive): the story row with a frontier of one' \
+  'no story bead and no story gate|missing (case-sensitive): no story gate' \
+  'make -C <owner> -pRrq : 2>/dev/null|missing (case-sensitive): the make probe for the check target' \
+  '`failed: no check target in <owner>; run /dev:setup-repo there, then re-run`|missing (case-sensitive): the refusal with no check target' \
+  "the rules doc's Gitignore rule|missing (case-sensitive): the gitignore rule" \
+  'git -C <owner> switch -c task/<task-id> <default branch>|missing (case-sensitive): the branch task/<id> off the default branch' \
+  'bd -C <owner> note <task-id> "branch: task/<task-id>"|missing (case-sensitive): the branch: note' \
+  'Decide **once** which forge fronts the repo|missing (case-sensitive): the forge decided once' \
+  'Call the Skill tool with `dev:task-orchestrator`|missing (case-sensitive): one task orchestrator through the skill' \
+  'at `model: opus`|missing (case-sensitive): the task orchestrator at opus' \
+  '`gate entry: <task branch> <worktree path> <tip SHA>`|missing (case-sensitive): the brief'"'"'s gate entry' \
+  'git -C <owner> merge --ff-only <task branch>|missing (case-sensitive): the landing is a fast-forward' \
+  'bd -C <owner> note <task-id> "review: <tip SHA>"|missing (case-sensitive): the landed tip is noted' \
+  "as the rules doc's Delivery section says, with the standalone task as its unit|missing (case-sensitive): delivery by the rules doc's Delivery section" \
+  'opened **ready**, not draft|missing (case-sensitive): the PR opened ready, not draft' \
+  'the `delivered:` and `pr:` notes in that order|missing (case-sensitive): delivered: precedes pr:' \
+  'bd -C <owner> close <task-id> --reason "delivered: <pr: value>"|missing (case-sensitive): the task closes at delivery' \
+  'the pushed branch is the deliverable|missing (case-sensitive): no forge: the pushed branch is the deliverable' \
+  'checks: skipped: no forge|missing (case-sensitive): no forge: the skipped-checks line' \
+  '**Merge guard.**|missing (case-sensitive): the merge guard' \
+  '`<task-id> refused: PR <url> already merged|missing (case-sensitive): the merge guard'"'"'s merged refusal' \
+  '`<task-id> refused: PR <url> is closed unmerged`|missing (case-sensitive): the merge guard'"'"'s closed-unmerged refusal' \
+  'OPEN: continue on the `branch:` note'"'"'s branch and deliver again|missing (case-sensitive): the merge guard'"'"'s open PR delivers again' \
+  'the `pr:` value stands in for `<url>` in the refusals|missing (case-sensitive): the branch form'"'"'s refusals name the pr: value' \
+  "run only step 6's stray scan|missing (case-sensitive): a finished task runs only the stray scan" \
+  'its next spawn is a gate entry|missing (case-sensitive): a failed run re-enters at the gate' \
+  'with a fresh budget|missing (case-sensitive): the gate entry starts a fresh budget' \
+  'task:    <task-id> <title>|missing (case-sensitive): the report'"'"'s task line' \
+  'resume:  /dev:implement-task <task-id>|missing (case-sensitive): the report'"'"'s resume line'; do
+  fresh
+  drop_phrase skills/implement-task/SKILL.md "${case%%|*}"
+  sec=17 expect "implement-task without '${case%%|*}' fails" 1 "${case#*|}"
+done
+for case in 'Then `gh pr create --draft --repo <forge-slug>`.|present: a draft PR for a standalone task' \
+  'Or `tea pr create --title "WIP: <task title>"`.|present: a draft PR for a standalone task' \
+  '   story:   <story-id> <title>|present: a story line in the report' \
+  '   human:   <bead-id> <title>|present: a human: or waiting: line in the report'; do
+  fresh
+  printf '%s\n' "${case%%|*}" >> "$scratch/skills/implement-task/SKILL.md"
+  sec=17 expect "implement-task regaining '${case%%|*}' fails" 1 "${case#*|}"
+done
+# the skill exists, so /dev:task-orchestrator's refusal and the glossary naming it pass the
+# namespace rule; without its dir they fail there
 fresh
-swap_phrase skills/implement-story/SKILL.md '^> 4\. \*\*Land the ticket\*\*' '> 4. Spawn a merger'
-sec="5 8" expect "ticket orchestrator step 4 not landing the ticket fails" 1 "missing: step 4 lands the ticket"
+rm -r "$scratch/skills/implement-task"
+sec="11 17" expect "a missing implement-task skill dir fails the namespace rule" 1 "/dev:implement-task names no skill"
+# the rules doc's one paragraph on it, the table keeping three rows, and the no-seam-test case
+# skipping a standalone task without ## Test seams (section 6), and the task orchestrator's
+# reviewer and implementer briefs saying the same (section 16)
+for case in '`/dev:implement-task <id>`|the paragraph names /dev:implement-task' \
+  'the story row with a frontier of one|the paragraph: the story row with a frontier of one' \
+  'no story bead and no story gate|the paragraph: no story gate' \
+  'a PR opened ready|the paragraph: the PR opened ready' \
+  'closes the task at delivery|the paragraph: the close at delivery' \
+  'the table keeps its three rows|the paragraph: the table keeps three rows'; do
+  fresh
+  drop_phrase docs/agents/orchestration.md "${case%%|*}" -i
+  sec=6 expect "orchestration without '${case%%|*}' fails" 1 "missing in the **The standalone task.** paragraph: ${case#*|}"
+done
+fresh
+drop_phrase docs/agents/orchestration.md 'a standalone task whose body has no `## Test seams` names no seam, and the case does not apply to it'
+sec=6 expect "orchestration whose Review verdict blocks a standalone task without test seams fails" 1 \
+  "missing in the **Review verdict.** paragraph: the no-seam-test case skips a standalone task without test seams"
+fresh
+printf '%s\n' '| **Standalone task** | story orchestrator | one task orchestrator |' >> "$scratch/docs/agents/orchestration.md"
+sec=6 expect "orchestration with a fourth table row fails" 1 "present: a fourth row in the table"
+for case in 'a standalone task whose body has no `## Test seams` names no seam, so this case does not apply|missing: the no-seam-test case skips a standalone task without test seams' \
+  'where `tdd` agrees them when it has none|missing: a standalone task'"'"'s implementer tests where tdd agrees them' \
+  'or a standalone task'"'"'s own body'"'"'s `## Test seams`|missing: the spec reviewer reads a standalone task'"'"'s own test seams'; do
+  fresh
+  drop_phrase skills/task-orchestrator/SKILL.md "${case%%|*}"
+  sec=16 expect "task-orchestrator without '${case%%|*}' fails" 1 "${case#*|}"
+done
 
 # the story gate (step 7) is the check gate loop at the story row: each pin is proven by
 # dropping its phrase, the order by moving the checks after the review, the retired landing agent,
@@ -2515,7 +2913,7 @@ for case in "the story row of the rules doc's table|a story gate not naming its 
   'Each pass runs the checks first|a pass not running the checks first|missing: the story gate runs the checks first in each pass' \
   'confirm the owner checkout is clean, `git -C <owner> status --porcelain` prints nothing|a story gate without its clean-checkout guard|missing: the story gate reads the tree only of a clean owner checkout' \
   '`git -C <owner> rev-parse <branch>^{tree}`|a story gate not keyed on the tree|missing: the story gate keys the check on the tip'"'"'s tree' \
-  "the ticket orchestrator brief's step 3 check-record call with \`<owner>\` as its \`<worktree path>\`|a story gate writing no check record|missing: the story gate writes the check record with the brief's step 3 call" \
+  "the rules doc's Check record call with \`<owner>\` as its \`<worktree path>\`|a story gate writing no check record|missing: the story gate writes the check record with the rules doc's call" \
   'The story keeps the reviewed tip in its notes: its `review:` note names the tip the gate exits on after a clean review, so a rerun reviews only a tip that has moved past it|a story gate without the reviewed-tip sentence|missing: the story keeps the reviewed tip in its notes' \
   '`git -C <owner> branch --show-current` prints `<branch>`|a story gate not confirming its branch|missing: the story gate confirms the owner checkout is on the integration branch' \
   '`failed: <story-id> not on <branch>`|a story gate without its off-branch failed line|missing: the story gate'"'"'s off-branch failed line' \
@@ -2528,7 +2926,7 @@ for case in "the story row of the rules doc's table|a story gate not naming its 
   "\`git -C <owner> log --no-merges --grep='^Bead: <story-id>\$' <since>..<branch>\`|a standards axis without the fix-up commits|missing: the standards axis gets the fix-up commits since the last story review" \
   'the same SHA exits the gate|a reviewed tip not exiting the gate|missing: a green tip the review called clean exits the gate' \
   "the spec axis is the story's body|a story review without its spec axis|missing: the story review's spec axis is the story's body" \
-  'the standards axis is what entered since the ticket reviews: the conflict resolutions and the coherence across tickets|a story review without its standards axis|missing: the story review'"'"'s standards axis is what entered since the ticket reviews' \
+  'the standards axis is what entered since the task reviews: the conflict resolutions and the coherence across tasks|a story review without its standards axis|missing: the story review'"'"'s standards axis is what entered since the task reviews' \
   'A red or a blocking verdict goes to a fresh implementer by pointer brief and the loop starts over|a story red or blocking verdict not starting the loop over|missing: a red or a blocking verdict goes to a fresh fix-up and starts the loop over' \
   'the minors fix-up reruns the checks and spends no budget|a story gate whose minors fix-up is budgeted|missing: the minors fix-up reruns the checks and spends no budget' \
   "the blocking findings and the minors in the story's scope|a story fix-up leaving its round's minors|missing: the story fix-up fixes the note's in-scope minors" \
@@ -2537,10 +2935,9 @@ for case in "the story row of the rules doc's table|a story gate not naming its 
   'The budget is three fix-ups per story, red or blocking alike|a story gate without its one budget|missing: the story gate'"'"'s budget is three fix-ups, red or blocking' \
   'the fourth failure skips step 8 and goes to step 9|a story gate without its fourth-failure stall|missing: the story gate'"'"'s fourth failure skips delivery' \
   '(a review'"'"'s as `failed: review mattpocock-skills:code-review`)|a story gate without the review'"'"'s stall form|missing: the story gate'"'"'s stall line for a review' \
-  "you land its branch as the ticket orchestrator brief's step 4 lands a ticket|a story gate not landing its fix-up|missing: the story gate lands its fix-up itself" \
+  "you land its branch by the same procedure as a task's, the Landing section below|a story gate not landing its fix-up|missing: the story gate lands its fix-up itself by the Landing procedure" \
   'the ten-minute limit on check and test runs|a story fix-up brief without its limit|missing: story fix-up brief names the check and test limit' \
   'The PR stays a draft|a deliver step not leaving the PR a draft|missing: the deliver step leaves the PR a draft' \
-  "its Evidence the delivered tip's check record|a deliver step not citing the check record|missing: the deliver step's Evidence is the delivered tip's check record" \
   '`rm -rf <owner>/.tmp/checks`|a clean-up step keeping the check records|missing: step 9 removes the check records' \
   'skips the removal and keeps the red check'"'"'s log in place|a clean-up step deleting a red check'"'"'s log|missing: step 9 keeps the red check'"'"'s log on a failed: check run' \
   'Every other run, a green delivery or one failed for any other reason, removes the records|a clean-up step keeping the records after a green run|missing: step 9 still removes the records on every other run' \
@@ -2570,16 +2967,20 @@ swap_phrase skills/implement-story/SKILL.md '^(7\. .*)a red record is no check, 
 expect "story gate step 7 reusing a red record fails" 1 "missing: the story gate checks a red-recorded tree again"
 # a fix-up that commits nothing has its tree checked again, dropped from step 3's or step 7's line
 # alone, fails (dev-vnf)
-for case in '^(> 3\. .*)After a red, a fix-up that commits nothing leaves the tree red-recorded, so the next pass checks it again|missing: the ticket gate checks a red'"'"'s fix-up that commits nothing again' \
-  '^(7\. .*)After a red, a fix-up that commits nothing leaves the tree red-recorded, so the next pass checks it again|missing: the story gate checks a red'"'"'s fix-up that commits nothing again' \
+fresh
+swap_phrase skills/task-orchestrator/SKILL.md '^(3\. .*)After a red, a fix-up that commits nothing leaves the tree red-recorded, so the next pass checks it again' '\1a fix-up that commits nothing is read'
+sec=16 expect "task-orchestrator dropping the commits-nothing rule fails" 1 "missing: the task gate checks a red's fix-up that commits nothing again"
+for case in '^(7\. .*)After a red, a fix-up that commits nothing leaves the tree red-recorded, so the next pass checks it again|missing: the story gate checks a red'"'"'s fix-up that commits nothing again' \
   '^(7\. .*)a green on a tip the `review:` note still names exits|missing: the story gate exits on a green tip its review: note still names'; do
   fresh
   swap_phrase skills/implement-story/SKILL.md "${case%%|*}" '\1a fix-up that commits nothing is read'
   expect "implement-story dropping the commits-nothing rule ('${case%%|*}') fails" 1 "${case#*|}"
 done
 # a red record read as checked, seeded back on step 3's, step 7's or step 9's line, fails (dev-6qi)
-for case in '^(> 3\. .*)$|\1 So a tree with a record is checked: read its exit and run nothing.|present: the gate skipping the run on a red record' \
-  '^(7\. .*)$|\1 So a tree with a record is checked: read its exit and run nothing.|present: the story gate skipping the run on a red record' \
+fresh
+swap_phrase skills/task-orchestrator/SKILL.md '^(3\. .*)$' '\1 So a tree with a record is checked: read its exit and run nothing.'
+sec=16 expect "task-orchestrator regaining the red record read as checked fails" 1 "present: the gate skipping the run on a red record"
+for case in '^(7\. .*)$|\1 So a tree with a record is checked: read its exit and run nothing.|present: the story gate skipping the run on a red record' \
   '^(9\. .*)$|\1 A rerun on that tip reads the record as checked red.|present: a rerun reading a red record as checked'; do
   anchor=${case%%|*} rest=${case#*|}
   fresh
@@ -2635,82 +3036,82 @@ fresh
 echo 'Then run the seams and keep the command and its output.' >> "$scratch/skills/implement-story/SKILL.md"
 expect "implement-story with 'the command and its output' seeded fails" 1 "the command and its output"
 
-# the brief's phrases are read on the ticket orchestrator's step 3 line alone: dropped there while step 7
-# keeps them, the lint still fails (each phrase sits once on that line, so the swap hits it)
+# the reviewer brief's phrases are read on /dev:task-orchestrator's step 3 line alone (each phrase
+# sits once on that line, so the swap hits it)
 for phrase in 'verdict: clean' 'verdict: blocking \(<n>\)' '\*\*blocking\*\* or \*\*minor\*\*' 'within the budget above'; do
   fresh
-  swap_phrase skills/implement-story/SKILL.md "^(> 3\. .*)$phrase" '\1'
-  expect "ticket orchestrator step 3 without '$phrase' fails" 1
+  swap_phrase skills/task-orchestrator/SKILL.md "^(3\. .*)$phrase" '\1'
+  sec=16 expect "task-orchestrator step 3 without '$phrase' fails" 1
 done
 
-# each pointer is checked on its own line: step 3 of the ticket orchestrator brief and step 7 of the skill
+# each pointer is checked on its own line: step 3 of /dev:task-orchestrator and step 7 of /dev:implement-story
 fresh
-swap_phrase skills/implement-story/SKILL.md "^(> 3\. .*)the rules doc's Review verdict" '\1the rules doc'
-expect "ticket orchestrator step 3 without its pointer at the Review verdict rule fails" 1
+swap_phrase skills/task-orchestrator/SKILL.md "^(3\. .*)the rules doc's Review verdict" '\1the rules doc'
+sec=16 expect "task-orchestrator step 3 without its pointer at the Review verdict rule fails" 1
 
 fresh
 swap_phrase skills/implement-story/SKILL.md "^(7\. .*)the rules doc's Review verdict" '\1the rules doc'
 expect "story review step 7 without its pointer at the Review verdict rule fails" 1
 
-# the ticket orchestrator's check and review loop (dev-cq0.1.4, dev-1xf.1.2): the step 3 line carrying it
+# the task orchestrator's check and review loop (dev-cq0.1.4, dev-1xf.1.2): the step 3 line carrying it
 # dropped whole, then each pin on its own line, so a phrase kept elsewhere in the file does not pass
 fresh
-drop_line skills/implement-story/SKILL.md '> 3. **Check gate**, every tier'
-expect "ticket orchestrator brief without the loop step fails" 1 "missing: ticket orchestrator step 3 opens with the check gate, every tier"
+drop_line skills/task-orchestrator/SKILL.md '3. **Check gate**, every tier'
+sec=16 expect "task-orchestrator without the loop step fails" 1 "missing: task orchestrator step 3 opens with the check gate, every tier"
 
 fresh
-swap_phrase skills/implement-story/SKILL.md '^> 3\. \*\*Check gate\*\*, every tier' '> 3. The checks'
-expect "ticket orchestrator step 3 not opening with the loop fails" 1 "missing: ticket orchestrator step 3 opens with the check gate, every tier"
+swap_phrase skills/task-orchestrator/SKILL.md '^3\. \*\*Check gate\*\*, every tier' '3. The checks'
+sec=16 expect "task-orchestrator step 3 not opening with the loop fails" 1 "missing: task orchestrator step 3 opens with the check gate, every tier"
 
 # position, each pin on its own: the opener kept, a reviewer spawned ahead of the checks' green
 # (the green's own spawn kept too), then a green that spawns no reviewer
 fresh
-swap_phrase skills/implement-story/SKILL.md '^(> 3\. \*\*Check gate\*\*, every tier, )' '\1for `medium` and `high` spawn two **reviewers** alongside it, '
-expect "ticket orchestrator step 3 spawning the reviewers before the checks' green fails" 1 "present: ticket orchestrator step 3 spawns a reviewer ahead of the checks' green"
+swap_phrase skills/task-orchestrator/SKILL.md '^(3\. \*\*Check gate\*\*, every tier, )' '\1for `medium` and `high` spawn two **reviewers** alongside it, '
+sec=16 expect "task-orchestrator step 3 spawning the reviewers before the checks' green fails" 1 "present: task orchestrator step 3 spawns a reviewer ahead of the checks' green"
 
 fresh
-swap_phrase skills/implement-story/SKILL.md '^(> 3\. .*Green: a `low` ticket exits the loop, go to step 4; for `medium` and `high`, )spawn two \*\*reviewers\*\*' '\1hand the ticket to two **reviewers**'
-expect "ticket orchestrator step 3 whose green spawns no reviewer fails" 1 "missing: the check gate runs before step 3's reviewer"
+swap_phrase skills/task-orchestrator/SKILL.md '^(3\. .*Green: a `low` task exits the loop, go to step 4; for `medium` and `high`, )spawn two \*\*reviewers\*\*' '\1hand the task to two **reviewers**'
+sec=16 expect "task-orchestrator step 3 whose green spawns no reviewer fails" 1 "missing: the check gate runs before step 3's reviewer"
 
 # the per-axis spawn and the combined verdict line, each dropped from step 3's line, fail; the
 # old brief that sent one reviewer to spawn the skill's sub-agents, seeded back, fails (dev-bzd)
-for case in 'spawn two **reviewers**, one per axis|missing: the ticket review spawns one reviewer per axis' \
+for case in 'spawn two **reviewers**, one per axis|missing: the task review spawns one reviewer per axis' \
   'Combine the two reports into one verdict line|missing: the two reviewers combine their reports into one verdict line'; do
   fresh
-  drop_phrase skills/implement-story/SKILL.md "${case%%|*}"
-  expect "ticket orchestrator step 3 without '${case%%|*}' fails" 1 "${case#*|}"
+  drop_phrase skills/task-orchestrator/SKILL.md "${case%%|*}"
+  sec=16 expect "task-orchestrator step 3 without '${case%%|*}' fails" 1 "${case#*|}"
 done
 fresh
-swap_phrase skills/implement-story/SKILL.md '^(> 3\. .*)$' "\\1 Brief the reviewer with the skill's two sub-agents spawned at the tier's review model too."
-expect "ticket orchestrator step 3 regaining the reviewer's sub-agents fails" 1 "present: the reviewer told to spawn the skill's sub-agents"
+swap_phrase skills/task-orchestrator/SKILL.md '^(3\. .*)$' "\\1 Brief the reviewer with the skill's two sub-agents spawned at the tier's review model too."
+sec=16 expect "task-orchestrator step 3 regaining the reviewer's sub-agents fails" 1 "present: the reviewer told to spawn the skill's sub-agents"
 
 for case in "as the rules doc's Check gate says|a loop step not citing the rules doc's loop|missing: the loop step cites the rules doc's loop" \
   'A red spawns a fresh implementer on the fix-up and the loop starts over from the checks|a red not starting the loop over|missing: a red starts the loop over from the checks' \
   'and the loop starts over from the checks, never straight to the reviewers|a blocking verdict not starting over from the checks|missing: a blocking verdict starts the loop over from the checks' \
   '**Clean** exits the loop|a clean verdict not exiting the loop|missing: a clean verdict exits the loop' \
-  'Green: a `low` ticket exits the loop, go to step 4|a low ticket not exiting on green|missing: a low ticket exits the loop on green checks' \
+  'Green: a `low` task exits the loop, go to step 4|a low task not exiting on green|missing: a low task exits the loop on green checks' \
   'tail -n 40 <log>|a red read without a forty-line tail|missing: a red gate reads a forty-line tail' \
-  '`bd -C <owner> note <ticket-id> "checks <round>: red <command>"`|a red without its note|missing: a red gate'"'"'s note form' \
+  '`bd -C <owner> note <task-id> "checks <round>: red <command>"`|a red without its note|missing: a red gate'"'"'s note form' \
   'a green writes no note|a green that may write a note|missing: a green gate writes no note' \
   'the log path, and no pasted output|a fix-up brief without the log path|missing: the gate'"'"'s fix-up brief points at the log path' \
   'The minors fix-up spends no budget and advances no round|a minors fix-up that may spend budget|missing: the minors fix-up after a clean verdict spends no budget' \
-  "fixes the note's blocking findings and its minors in the ticket's scope|a blocking fix-up leaving its round's minors|missing: the blocking fix-up fixes the note's in-scope minors" \
-  'Every minor still unfixed when the ticket lands or fails goes to the inbox|a ticket dropping its unfixed minors|missing: a minor unfixed when the ticket lands or fails goes to the inbox' \
-  "the note's minors you judge out of the ticket's scope go to the inbox at once|a blocking round's out-of-scope minors dropped|missing: a blocking round's out-of-scope minors go to the inbox" \
+  "fixes the note's blocking findings and its minors in the task's scope|a blocking fix-up leaving its round's minors|missing: the blocking fix-up fixes the note's in-scope minors" \
+  'Every minor still unfixed when you report the task reviewed or failed goes to the inbox|a task dropping its unfixed minors|missing: a minor unfixed when the task is reported reviewed or failed goes to the inbox' \
+  "the note's minors you judge out of the task's scope go to the inbox at once|a blocking round's out-of-scope minors dropped|missing: a blocking round's out-of-scope minors go to the inbox" \
   'The budget is three fix-ups of either cause; the fourth red or blocking verdict is `failed`|a loop without its shared budget|missing: red and blocking fix-ups share one budget of three'; do
   phrase=${case%%|*} rest=${case#*|}
   fresh
-  drop_phrase skills/implement-story/SKILL.md "$phrase"
-  expect "ticket orchestrator step 3 with ${rest%%|*} fails" 1 "${rest#*|}"
+  drop_phrase skills/task-orchestrator/SKILL.md "$phrase"
+  sec=16 expect "task-orchestrator step 3 with ${rest%%|*} fails" 1 "${rest#*|}"
 done
 
 fresh
-echo 'Run the check gate again, and on green spawn a reviewer again.' >> "$scratch/skills/implement-story/SKILL.md"
-expect "implement-story regaining the run-the-gate-again wording fails" 1 "present: the retired run-the-gate-again wording"
+echo 'Run the check gate again, and on green spawn a reviewer again.' >> "$scratch/skills/task-orchestrator/SKILL.md"
+sec=16 expect "task-orchestrator regaining the run-the-gate-again wording fails" 1 "present: the retired run-the-gate-again wording"
 
 fresh
-drop_phrase skills/implement-story/SKILL.md 'The implementer runs no gate and spawns no one'
-expect "ticket orchestrator step 2 without the implementer running no gate fails" 1 "missing: ticket orchestrator step 2's implementer runs no gate and spawns no one"
+drop_phrase skills/task-orchestrator/SKILL.md 'The implementer runs no gate and spawns no one'
+sec=16 expect "task-orchestrator step 2 without the implementer running no gate fails" 1 "missing: task orchestrator step 2's implementer runs no gate and spawns no one"
 
 fresh
 echo 'Anything you cannot finish (reviewer still not clean after three rounds) is `failed`.' >> "$scratch/skills/implement-story/SKILL.md"
@@ -2730,12 +3131,30 @@ fx_check "a DOCS_DIR that does not exist fails" grep -qF "no such directory: /ty
 # docs/specs: the namespace rule applies, the existence check does not
 fresh
 mkdir -p "$scratch/docs/specs"
-echo "run /story-to-tickets" > "$scratch/docs/specs/s.md"
+echo "run /story-to-tasks" > "$scratch/docs/specs/s.md"
 expect "a bare /<skill> in docs/specs fails the namespace rule" 1 "$ns_msg in $scratch/docs/specs/s.md"
 fresh
 mkdir -p "$scratch/docs/specs"
 echo "run /dev:not-built-yet" > "$scratch/docs/specs/s.md"
 expect "a /dev:<not yet built> in docs/specs passes" 0
+
+# docs/adr: a record keeps the skill names of its day, so the existence check does not apply
+fresh
+mkdir -p "$scratch/docs/adr"
+echo "run /dev:retired-skill" > "$scratch/docs/adr/0099-x.md"
+expect "a retired /dev:<skill> in docs/adr passes" 0
+fresh
+mkdir -p "$scratch/docs/adr"
+echo "run /retired-skill" > "$scratch/docs/adr/0099-x.md"
+expect "a bare /<skill> in docs/adr fails the namespace rule" 1 "$ns_msg in $scratch/docs/adr/0099-x.md"
+
+# the glossary names the two skills the task row adds before they exist; any other missing one fails
+fresh
+echo 'The `/dev:task-orchestrator` and `/dev:implement-task` run it.' >> "$scratch/GLOSSARY.md"
+expect "the glossary naming the task row's skills passes" 0
+fresh
+echo 'The `/dev:not-built-yet` runs it.' >> "$scratch/GLOSSARY.md"
+expect "the glossary naming another missing skill fails" 1 "/dev:not-built-yet names no skill"
 
 # --- the version-bump rule, on a throwaway git repo the lint reads via VERSION_BUMP_REPO ---
 # The other cases pin the diff base to HEAD (an empty diff) and point VERSION_BUMP_REPO at a

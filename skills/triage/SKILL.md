@@ -7,7 +7,7 @@ disable-model-invocation: true
 Works the **inbox**: the `needs-triage` beads in the home's beads database (**the one
 test** in the tracker doc's (`${CLAUDE_PLUGIN_ROOT}/docs/agents/issue-tracker.md`) opening: the workspace's in a workspace session, the repo's in
 a repo session), filed by `/dev:retro` or by hand. A human accepts or rejects each one; you
-make the accepted ones implementable the way `/mattpocock-skills:to-tickets` makes a spec implementable:
+make the accepted ones implementable the way `/dev:story-to-tasks` makes a story implementable:
 acceptance criteria, a complexity tier, and a bead in the repo that owns the change. The
 accept question in step 4 is the point of this skill, so it runs only with the user
 present.
@@ -29,7 +29,7 @@ manifest; there is no manifest in a repo session. Then, plainly, in `<home>`:
 ## 2. Collapse repeats
 
 `bd find-duplicates` over the open beads. It has no label filter, and a repo session's
-home also holds the feature's epic, stories and tickets, so keep only pairs where both
+home also holds the feature's epic, stories and tasks, so keep only pairs where both
 beads carry `needs-triage`. Each such pair → `bd duplicate <later> --of <earlier>`, and
 the earlier one gains a recurrence. Then, per survivor, search the owner:
 `bd -C <target repo> search "<title words>"` for a manifest repo in a workspace session,
@@ -78,7 +78,8 @@ is what goes into them.
    → say so; when its `.beads/` is missing, run that doc's "First time in a repo" only on
    the user's yes, since it commits there. Without a database after that, skip the item:
    it stays open in the inbox, and nothing is created for it.
-2. **Body** in the to-tickets issue template. "What to build" is the behaviour the
+2. **Body** in the issue template in `/dev:story-to-tasks`
+   (`${CLAUDE_PLUGIN_ROOT}/skills/story-to-tasks/SKILL.md`, from its `## What to build`). "What to build" is the behaviour the
    environment will have afterwards, from the agent's point of view. Acceptance criteria
    are checkable without the original session: the check fails on a seeded violation; a
    fresh session follows the pointer; the reviewer cites the new rule. Name no file paths
@@ -87,7 +88,8 @@ is what goes into them.
    `ready-for-human` when the fix needs a person: an access grant, a tool install, a vendor
    dashboard. A `retro:foreign` item is always `ready-for-human`, and so is a foreign one
    in a workspace session; either keeps its intended location in the body.
-4. Create the bead in the owner repo, then close the inbox bead with `--reason "routed:
+4. Create the bead in the owner repo, a standalone task (`--type task`, the one type
+   `/dev:implement-task` takes), then close the inbox bead with `--reason "routed:
    <owner repo> <new id>"`: the tracker doc's two routing commands, unchanged when the
    owner is `<home>`. A new bead and a closed inbox bead, never a relabel in place.
 
@@ -109,5 +111,5 @@ One line per inbox bead handled:
 `<inbox id> → <repo> <new id> complexity:<tier> <ready label>` · or `wontfix` · or
 `needs-info`
 
-Then what to type next: `/mattpocock-skills:implement <id>` in the owner repo, or `bd -C <repo> ready` to
+Then what to type next: `/dev:implement-task <id>` in the owner repo, or `bd -C <repo> ready` to
 see it on that repo's frontier.

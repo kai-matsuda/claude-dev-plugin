@@ -11,26 +11,26 @@
 # workspace session, ADR 0008), never a checkout inside it; scripts/test-fixture-story-cut.sh,
 # test-fixture-story-cutter.sh, test-fixture-retro.sh and test-fixture-triage.sh print such briefs.
 #
-# --stage-boundary seeds the state /spec-to-stories leaves behind, before /spec-to-tickets runs:
+# --stage-boundary seeds the state /spec-to-stories leaves behind, before /spec-to-tasks runs:
 # that shape and nothing else. The epic's description carries "Spec: specs/multiply.md", the
 # path relative to the epic bead's repo as the tracker doc's "gather the epic bead" has it,
 # naming OUT/specs/multiply.md (written untracked at the workspace root), and the consumer story's
-# "## Blocked by" section is the line "lib publish fixture-lib 0.2.0 (not created yet)". No ticket
+# "## Blocked by" section is the line "lib publish fixture-lib 0.2.0 (not created yet)". No task
 # of any kind. Tested by scripts/test-fixture-stage-boundary.sh; scripts/test-fixture-story-cutter.sh
 # briefs a story cutter on it and asserts its block leaves every database as seeded.
 #
-# --stories adds the tickets: ready-for-agent tickets under each story, a ready-for-human publish
-# ticket under the lib story blocked on the lib tickets, and a "## Blocked by" line
+# --stories adds the tasks: ready-for-agent tasks under each story, a ready-for-human publish
+# task under the lib story blocked on the lib tasks, and a "## Blocked by" line
 # "lib <publish bead-id>" on the consumer story. Tested by scripts/test-fixture-stories.sh.
 #
 # --dag seeds the four-story expand-migrate-contract shape of ADR 0011, a story DAG of text
-# blockers across lib and consumer, from the same epic (FIX-1): "Story: lib expand" (a ticket
+# blockers across lib and consumer, from the same epic (FIX-1): "Story: lib expand" (a task
 # pair and "publish fixture-lib 0.2.0"); "Story: consumer migrate", "## Blocked by" "lib <that
-# publish id>", with its bump and a ticket switching the consumer from add to multiply, blocked on
+# publish id>", with its bump and a task switching the consumer from add to multiply, blocked on
 # the bump (lib contract removes add, so the consumer must stop calling it first); "Story: lib contract", "## Blocked by" "consumer <consumer migrate's
-# story id>", with one ticket and "publish fixture-lib 0.3.0"; "Story: consumer bump", "## Blocked
-# by" "lib <the 0.3.0 publish id>", with its bump. Each publish ticket is the only one in its story,
-# ready-for-human, with native edges from its story's implementation tickets; the stories carry
+# story id>", with one task and "publish fixture-lib 0.3.0"; "Story: consumer bump", "## Blocked
+# by" "lib <the 0.3.0 publish id>", with its bump. Each publish task is the only one in its story,
+# ready-for-human, with native edges from its story's implementation tasks; the stories carry
 # no native edge. Tested by scripts/test-fixture-dag.sh.
 #
 # Output: OUT/ (workspace root: repos.yaml, .beads), OUT/lib (crate fixture-lib) and
@@ -39,12 +39,12 @@
 # main with its own .beads/ and no remotes. Rerunning deletes OUT and rebuilds the same
 # fresh state.
 #
-# --stories and --dag, publish step (by hand, after the lib PR-ready step): a publish ticket
+# --stories and --dag, publish step (by hand, after the lib PR-ready step): a publish task
 # ("publish fixture-lib 0.2.0"; under --dag also "publish fixture-lib 0.3.0") is a human stop.
 # Closing it is bd close <publish> --reason <version> AND bumping fixture-lib's version to that
-# version in Cargo.toml on lib's integration branch; closing the ticket alone leaves lib's
-# Cargo.toml at the old version and the consumer bump ticket cannot build against it.
-# Alternatively seed lib at the version the publish ticket names.
+# version in Cargo.toml on lib's integration branch; closing the task alone leaves lib's
+# Cargo.toml at the old version and the consumer bump task cannot build against it.
+# Alternatively seed lib at the version the publish task names.
 #
 # Sandbox: every fixture repo keeps its git dir under OUT/.git-dirs/, with a `.git` file in
 # the checkout pointing at it. The Bash sandbox denies writes to `config` and `hooks/` inside
@@ -145,8 +145,8 @@ cat > "$out/repos.yaml" <<'T'
 # go.mod, which is already authoritative.
 #
 # Read by any skill that must route a file, crate, or module to the repo that owns it,
-# and so to the beads database a ticket belongs in: retro items aimed at a dependency,
-# cross-repo tickets in /implement-spec. Why one file at the workspace root and not
+# and so to the beads database a task belongs in: retro items aimed at a dependency,
+# cross-repo tasks in /implement-spec. Why one file at the workspace root and not
 # one per repo: README.md beside this file.
 #
 # Resolution, in order. Stop at the first hit.
@@ -220,7 +220,7 @@ if [ "$seed" = stories ]; then
   # epic first (stories are created in dependency order, the epic is not a story)
   epic=$(mk_epic)
 
-  # lib: story, two tickets, publish ticket blocked on both
+  # lib: story, two tasks, publish task blocked on both
   lib_story=$(mk_lib_story "$epic")
   lib_t1=$(mk lib --parent "$lib_story" --labels complexity:low,ready-for-agent "Add multiply to fixture-lib")
   lib_t2=$(mk lib --parent "$lib_story" --labels complexity:low,ready-for-agent \
@@ -228,7 +228,7 @@ if [ "$seed" = stories ]; then
   lib_pub=$(mk lib --parent "$lib_story" --no-inherit-labels --labels ready-for-human,complexity:low \
     --deps "blocked-by:$lib_t1,blocked-by:$lib_t2" "publish fixture-lib 0.2.0")
 
-  # consumer: parentless story, bump ticket, ticket blocked on the bump
+  # consumer: parentless story, bump task, task blocked on the bump
   con_story=$(mk_con_story "$epic" "lib $lib_pub")
   con_bump=$(mk consumer --parent "$con_story" --labels complexity:low,ready-for-agent "Bump fixture-lib to 0.2.0")
   mk consumer --parent "$con_story" --labels complexity:low,ready-for-agent \
@@ -264,7 +264,7 @@ if [ "$seed" = dag ]; then
   mk consumer --parent "$cbump" --labels complexity:low,ready-for-agent "Bump fixture-lib to 0.3.0" >/dev/null
 fi
 
-# --- --stage-boundary: what /spec-to-stories leaves behind, no tickets ---------
+# --- --stage-boundary: what /spec-to-stories leaves behind, no tasks ---------
 if [ "$seed" = stage-boundary ]; then
   spec_rel=specs/multiply.md   # relative to the epic bead's repo, the root (header, "Spec:")
   mkdir -p "$out/specs"

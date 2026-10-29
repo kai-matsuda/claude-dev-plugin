@@ -21,8 +21,8 @@ l2=$(fx_snapshot lib); c2=$(fx_snapshot consumer); r2=$(fx_snapshot .)
 fx_check "rerun: lib listing identical (incl. dependencies)" fx_eq "$l1" "$l2"
 fx_check "rerun: consumer listing identical (incl. dependencies)" fx_eq "$c1" "$c2"
 fx_check "rerun: root listing identical" fx_eq "$r1" "$r2"
-fx_check "lib has exactly 7 beads (2 stories, 3 tickets, 2 publish)" fx_eq "$(jq length <<<"$l2")" 7
-fx_check "consumer has exactly 5 beads (2 stories, 2 bumps, 1 switch ticket)" fx_eq "$(jq length <<<"$c2")" 5
+fx_check "lib has exactly 7 beads (2 stories, 3 tasks, 2 publish)" fx_eq "$(jq length <<<"$l2")" 7
+fx_check "consumer has exactly 5 beads (2 stories, 2 bumps, 1 switch task)" fx_eq "$(jq length <<<"$c2")" 5
 fx_check "root has exactly 1 bead (the epic)" fx_eq "$(jq length <<<"$r2")" 1
 
 # 2. shape
@@ -41,10 +41,10 @@ lt2=$(fx_one lib '.title=="Test multiply in fixture-lib"')
 lt3=$(fx_one lib '.title=="Remove add from fixture-lib"')
 found=$([ -n "$epic" ] && [ -n "$expand" ] && [ -n "$contract" ] && [ -n "$migrate" ] && [ -n "$cbump" ] \
   && [ -n "$pub2" ] && [ -n "$pub3" ] && [ -n "$b2" ] && [ -n "$b3" ] && [ -n "$sw" ] && [ -n "$lt1" ] && [ -n "$lt2" ] && [ -n "$lt3" ] && echo yes)
-fx_check "one epic, four named stories, two publish tickets, two bumps, three lib tickets" fx_eq "$found" yes
+fx_check "one epic, four named stories, two publish tasks, two bumps, three lib tasks" fx_eq "$found" yes
 fx_check "exactly 2 stories in lib" fx_eq "$(fx_all lib | jq '[.[] | select(.issue_type=="story")] | length')" 2
 fx_check "exactly 2 stories in consumer" fx_eq "$(fx_all consumer | jq '[.[] | select(.issue_type=="story")] | length')" 2
-fx_check "exactly 2 publish tickets (ready-for-human) in lib" fx_eq "$(fx_all lib | jq '[.[] | select(.labels // [] | index("ready-for-human"))] | length')" 2
+fx_check "exactly 2 publish tasks (ready-for-human) in lib" fx_eq "$(fx_all lib | jq '[.[] | select(.labels // [] | index("ready-for-human"))] | length')" 2
 
 # the four stories as "<repo> <id>" pairs, read by the per-story passes below (2 and 5)
 stories=("lib $expand" "lib $contract" "consumer $migrate" "consumer $cbump")
@@ -63,29 +63,29 @@ fx_check "consumer-migrate blocked by exactly 'lib <publish 0.2.0 id>'" fx_eq "$
 fx_check "lib-contract blocked by exactly 'consumer <consumer-migrate id>'" fx_eq "$(blocked_by lib "$contract")" "consumer $migrate"
 fx_check "consumer-bump blocked by exactly 'lib <publish 0.3.0 id>'" fx_eq "$(blocked_by consumer "$cbump")" "lib $pub3"
 
-# 4. tickets, labels, parents
-fx_check "publish tickets are each the only ready-for-human ticket in their story" fx_eq \
+# 4. tasks, labels, parents
+fx_check "publish tasks are each the only ready-for-human task in their story" fx_eq \
   "$(for s in "$expand" "$contract"; do fx_children lib "$s" | jq '[.[] | select(.labels // [] | index("ready-for-human"))] | length'; done | paste -sd, -)" "1,1"
 fx_check "publish 0.2.0 is a child of lib-expand, 0.3.0 of lib-contract" fx_eq "$(fx_field lib "$pub2" .parent),$(fx_field lib "$pub3" .parent)" "$expand,$contract"
-fx_check "publish tickets labels are exactly ready-for-human + complexity:low" fx_eq \
+fx_check "publish tasks labels are exactly ready-for-human + complexity:low" fx_eq \
   "$(fx_field lib "$pub2" '.labels | sort | join(",")'),$(fx_field lib "$pub3" '.labels | sort | join(",")')" "complexity:low,ready-for-human,complexity:low,ready-for-human"
 fx_check "bump 0.2.0 is a child of consumer-migrate, bump 0.3.0 of consumer-bump" fx_eq "$(fx_field consumer "$b2" .parent),$(fx_field consumer "$b3" .parent)" "$migrate,$cbump"
 for t in "$b2" "$b3" "$sw"; do
-  fx_check "consumer ticket $t carries complexity + ready-for-agent" fx_eq \
+  fx_check "consumer task $t carries complexity + ready-for-agent" fx_eq \
     "$(fx_field consumer "$t" '(.labels | index("ready-for-agent") != null) and (.labels | map(startswith("complexity:")) | any)')" true
 done
 fx_check "consumer-bump has exactly one child (the 0.3.0 bump)" fx_eq \
   "$(fx_children consumer "$cbump" | jq -r 'map(.id) | join(",")')" "$b3"
 fx_check "consumer-migrate has exactly two children (bump 0.2.0, switch)" fx_eq \
   "$(fx_children consumer "$migrate" | jq -r 'map(.id) | sort | join(",")')" "$(printf '%s\n' "$b2" "$sw" | sort | paste -sd, -)"
-fx_check "lib tickets 1,2 children of lib-expand; 3 of lib-contract" fx_eq "$(fx_field lib "$lt1" .parent),$(fx_field lib "$lt2" .parent),$(fx_field lib "$lt3" .parent)" "$expand,$expand,$contract"
+fx_check "lib tasks 1,2 children of lib-expand; 3 of lib-contract" fx_eq "$(fx_field lib "$lt1" .parent),$(fx_field lib "$lt2" .parent),$(fx_field lib "$lt3" .parent)" "$expand,$expand,$contract"
 
 # 5. native edges
-fx_check "publish 0.2.0 blocked by both lib-expand implementation tickets" fx_eq "$(fx_blockers lib "$pub2")" "$(printf '%s\n' "$lt1" "$lt2" | sort | paste -sd, -)"
-fx_check "publish 0.3.0 blocked by the lib-contract implementation ticket" fx_eq "$(fx_blockers lib "$pub3")" "$lt3"
-fx_check "lib ticket 2 blocked by lib ticket 1" fx_eq "$(fx_blockers lib "$lt2")" "$lt1"
-fx_check "switch ticket blocked by the 0.2.0 bump" fx_eq "$(fx_blockers consumer "$sw")" "$b2"
-fx_check "no native edge on the first tickets and bumps" fx_eq "$(fx_blockers lib "$lt1"),$(fx_blockers lib "$lt3"),$(fx_blockers consumer "$b2"),$(fx_blockers consumer "$b3")" ",,,"
+fx_check "publish 0.2.0 blocked by both lib-expand implementation tasks" fx_eq "$(fx_blockers lib "$pub2")" "$(printf '%s\n' "$lt1" "$lt2" | sort | paste -sd, -)"
+fx_check "publish 0.3.0 blocked by the lib-contract implementation task" fx_eq "$(fx_blockers lib "$pub3")" "$lt3"
+fx_check "lib task 2 blocked by lib task 1" fx_eq "$(fx_blockers lib "$lt2")" "$lt1"
+fx_check "switch task blocked by the 0.2.0 bump" fx_eq "$(fx_blockers consumer "$sw")" "$b2"
+fx_check "no native edge on the first tasks and bumps" fx_eq "$(fx_blockers lib "$lt1"),$(fx_blockers lib "$lt3"),$(fx_blockers consumer "$b2"),$(fx_blockers consumer "$b3")" ",,,"
 fx_check "no native edge on any story (the waits are text)" fx_eq \
   "$(for p in "${stories[@]}"; do set -- $p; fx_blockers "$1" "$2"; done | paste -sd, -)" ",,,"
 

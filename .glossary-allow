@@ -36,3 +36,22 @@ docs/adr/0012-nested-orchestrators-wait-on-the-completion-notification.md merger
 docs/adr/0014-one-loop-at-three-rows.md merger  # the role this ADR retires, named to say so
 docs/adr/0001-two-stage-review.md fix-up implementer  # the retired name of the implementer on a fix-up, in the words of its day
 docs/adr/0014-one-loop-at-three-rows.md fix-up implementer  # names the role this ADR retires
+docs/adr/0001-two-stage-review.md ticket  # written before the rename of ticket to task
+docs/adr/0002-single-repo-manifest.md ticket  # written before the rename of ticket to task
+docs/adr/0003-cross-repo-feature-publishes-before-dependents-migrate.md ticket  # written before the rename of ticket to task
+docs/adr/0004-manifest-at-workspace-root.md ticket  # written before the rename of ticket to task
+docs/adr/0005-retro-inbox-in-workspace-beads.md ticket  # written before the rename of ticket to task
+docs/adr/0006-one-story-per-repo.md ticket  # written before the rename of ticket to task
+docs/adr/0006-one-story-per-repo.md ticket cut  # written before the rename of ticket to task
+docs/adr/0007-ticket-cut-runs-story-cutters-in-waves.md ticket  # written before the rename of ticket to task
+docs/adr/0007-ticket-cut-runs-story-cutters-in-waves.md ticket cut  # written before the rename of ticket to task
+docs/adr/0008-session-mode-declared-by-where-it-starts.md ticket  # written before the rename of ticket to task
+docs/adr/0009-typed-implement-command-authorises-delivery.md ticket  # written before the rename of ticket to task
+docs/adr/0010-epic-level-stages-write-owner-repos-through-beads-only.md ticket  # written before the rename of ticket to task
+docs/adr/0010-epic-level-stages-write-owner-repos-through-beads-only.md ticket cut  # written before the rename of ticket to task
+docs/adr/0011-a-story-is-one-pr-and-stories-form-a-dag.md ticket  # written before the rename of ticket to task
+docs/adr/0011-a-story-is-one-pr-and-stories-form-a-dag.md ticket cut  # written before the rename of ticket to task
+docs/adr/0012-nested-orchestrators-wait-on-the-completion-notification.md ticket  # written before the rename of ticket to task
+docs/adr/0014-one-loop-at-three-rows.md ticket  # written before the rename of ticket to task
+docs/adr/0015-every-owner-repo-has-a-check-target.md ticket  # written before the rename of ticket to task
+docs/adr/0016-the-story-row-lands-its-tasks.md ticket  # quotes ADR 0014 and names the unit it renamed to task

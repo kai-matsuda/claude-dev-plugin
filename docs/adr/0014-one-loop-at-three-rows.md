@@ -8,7 +8,7 @@ status: accepted
 > checked; a tree with a red record is checked again, so a flaky or environmental red never
 > sticks to its tree. A ticket's landing takes at most three conflict resolutions, apart from
 > the fix-up budget. The why is in `docs/agents/orchestration.md`, Check scope and Landing a
-> ticket.
+> task (so named since ADR 0016).
 >
 > Amended by ADR 0015 (`docs/adr/0015-every-owner-repo-has-a-check-target.md`, dev-0l6,
 > INFRA-33, 2026-10-27): every owner repo has a `check` target, so the review-only gate below is retired,
@@ -22,6 +22,10 @@ status: accepted
 > going to the inbox, so a commit after the clean review never lands with neither a check nor a
 > review; a ticket's conflict resolution waits for the story row's standards axis
 > (`docs/agents/orchestration.md`, Check gate).
+>
+> Superseded in part by ADR 0016 (`docs/adr/0016-the-story-row-lands-its-tasks.md`): its
+> decision "The ticket orchestrator lands its ticket" is replaced, the story row landing
+> each task and holding the three-resolutions budget; the rest of this ADR stands.
 
 # One loop at three rows, one check command, one review tool
 
