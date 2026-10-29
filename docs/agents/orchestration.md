@@ -34,8 +34,7 @@ forge decision, the Gitignore rule, the branch `task/<id>` off the default branc
 by a fast-forward, since nothing else moves the branch, and delivers it by the Delivery
 section as a PR opened ready, not draft, since no spec sits above the task's own body: the
 task gate's review is the only review, and its green record on the same tip is the check.
-It closes the task at delivery, after the `delivered:` and `pr:` notes, and a rerun applies
-the merge guard on the `pr:` note. It is a parameter of the story row, so the table keeps its three rows.
+It closes the task at delivery, after the `delivered:` and `pr:` notes, and a rerun applies the merge guard on the `pr:` note only to an open task; a closed task with one is finished and reported from its notes. It is a parameter of the story row, so the table keeps its three rows.
 
 **Landing a task.** The story row lands: the task orchestrator reports its reviewed
 branch and never touches the owner checkout, and the story orchestrator, in the turn that
