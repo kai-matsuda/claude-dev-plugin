@@ -459,6 +459,7 @@ has "orchestration pointer" 'orchestration.md'
 hasc "the epic review cites the Delivery section for the delivered: note" "the rules doc's Delivery section writes \`delivered: <tip SHA> <check record>\`"
 hasc "draft until clean cites the Delivery section's forge-check wait" "the rules doc's Delivery section's forge-check wait"
 lacksf "a step number of /dev:implement-story for the delivery" '`/dev:implement-story` step 8'
+lacksf "a step 7 of /dev:implement-story credited for the Evidence" '`/dev:implement-story` step 7'
 has "preflight pointer" '"Working-directory preflight"'
 
 fi
@@ -1546,13 +1547,9 @@ line_lacks '^8\. ' "a second copy of the forge-check wait in step 8" 'gh pr chec
 line_lacks '^8\. ' "a second copy of the stray-commit check in step 8" '--no-merges --format='
 line_lacks '^8\. ' "the deliver step marking the PR ready" 'gh pr ready'
 line_lacks '^8\. ' "the deliver step marking the PR ready with tea" 'tea pr edit <n> --repo <owner> --ready'
-# step 8 waits for the PR's forge checks before recording the delivery, so a story is never
-# finished on a PR its CI rejects; a red check is a failed: line naming it and its run URL, and
-# no forge or no checks is a checks: skipped line (dev-xc2)
 # step 1 does not count a story with a later checks red: note as finished, so a re-delivery's
 # red check is not hidden by the earlier delivery's pr: note (dev-xc2 review 1)
 line_has '^   The tasks are ' "a checks red: note unfinishes the story" 'with no `checks red:` line after it'
-# the gh wait keys on the pushed tip, so the last tip's finished checks never pass it (dev-xc2 review 1)
 hasc "report template shows the checks: line" 'checks:  skipped: <no forge | no workflows | none reported>'
 hasc "report template's failed: line names a red forge check" 'or forge check <name> <run URL>'
 line_has '^9\. ' "step 9 removes the check records" '`rm -rf <owner>/.tmp/checks`'

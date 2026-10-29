@@ -1331,9 +1331,9 @@ fresh
 echo 'then `git -C <owner> clean -f` removes the stray files' >> "$scratch/skills/implement-story/SKILL.md"
 expect "implement-story cleaning the stray files fails" 1 "present: step 9 deleting a stray file"
 
-# step 8 waits for the PR's forge checks before recording the delivery; a red check is a
-# failed: line naming it and its run URL, and a forge with no checks is a checks: skipped line
-# (dev-xc2)
+# orchestration.md's Delivery section waits for the PR's forge checks before recording the
+# delivery; a red check is a failed: line naming it and its run URL, and a forge with no checks
+# is a checks: skipped line (dev-xc2)
 fresh
 drop_phrase docs/agents/orchestration.md '4. **Forge-check wait**, before the delivery is recorded'
 expect "the rules doc whose deliver step waits for no forge checks fails (Delivery)" 1 "Delivery waits for the forge checks"
@@ -1456,6 +1456,10 @@ done
 fresh
 echo 'Step 8 writes it: see `/dev:implement-story` step 8.' >> "$scratch/skills/implement-spec/SKILL.md"
 expect "implement-spec pointing at /dev:implement-story step 8 fails" 1 "present: a step number of /dev:implement-story for the delivery"
+
+fresh
+echo 'Evidence is recorded by `/dev:implement-story` step 7.' >> "$scratch/skills/implement-spec/SKILL.md"
+expect "implement-spec pointing at /dev:implement-story step 7 fails" 1 "present: a step 7 of /dev:implement-story credited for the Evidence"
 
 fresh
 echo 'The wait is `/dev:implement-story` step 8.' >> "$scratch/docs/agents/harness.md"
