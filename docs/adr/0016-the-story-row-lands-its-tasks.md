@@ -9,9 +9,9 @@ status: accepted
 # The story row lands its tasks
 
 ADR 0014 had the unit's orchestrator land its own unit: it waited on the owner checkout's
-lock, ran the stray-commit check and merged. The lock waited on the owner checkout because
-several ticket orchestrators could land at once, and the task row (the ticket row, renamed
-below) needed access to the owner checkout so it could merge. Landings are in fact serial by
+lock, ran the stray-commit check and merged. The orchestrator waited on the owner checkout's
+lock because several ticket orchestrators could land at once, and the task row (the ticket
+row, renamed below) needed access to the owner checkout so it could merge. Landings are in fact serial by
 construction: a task orchestrator reports its reviewed branch, and the story orchestrator
 resumes on one report at a time. With landings serial, the lock and the task row's
 owner-checkout access guarded nothing, and they kept the task row from being a plain skill
@@ -52,4 +52,4 @@ that any orchestrator could run with a frontier of one.
 ## Consequences
 
 - ADR 0014 keeps its text, with a note pointing here; its other decisions stand.
-- The rules doc's table and Landing a task section state the story row as the lander.
+- The rules doc's table and its Landing a task paragraph state the story row as the lander.
