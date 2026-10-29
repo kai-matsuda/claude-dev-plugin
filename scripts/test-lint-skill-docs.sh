@@ -635,32 +635,32 @@ echo "otherwise ask the user to run that exact command and wait for it" >> "$scr
 expect "implement-story asking the user to push fails" 1
 
 fresh
-drop_line skills/implement-story/SKILL.md 'git -C <owner> push -u origin <branch>'
-expect "implement-story without the push command fails" 1
+drop_phrase docs/agents/orchestration.md 'git -C <owner> push -u origin <branch>'
+expect "the rules doc without the push command fails (Delivery)" 1 "Delivery's push command"
 
 fresh
-drop_line skills/implement-story/SKILL.md 'failed: push'
-expect "implement-story without the refused-push failed: line fails" 1
+drop_phrase docs/agents/orchestration.md 'failed: push <command>: <error>'
+expect "the rules doc without the refused-push failed: line fails (Delivery)" 1 "Delivery's refused push is a failed: line"
 
 fresh
-drop_phrase skills/implement-story/SKILL.md 'First the **stray-commit check**, before any push'
-expect "implement-story whose deliver step pushes without the stray-commit check fails" 1
+drop_phrase docs/agents/orchestration.md '1. **Stray-commit check**, before any push'
+expect "the rules doc whose deliver step pushes without the stray-commit check fails (Delivery)" 1 "Delivery's stray-commit check precedes the push"
 
 fresh
 drop_phrase skills/implement-story/SKILL.md 'run the **stray-commit check** on what the merge brings in'
 expect "implement-story whose task orchestrator lands without the stray-commit check fails" 1
 
 fresh
-drop_phrase skills/implement-story/SKILL.md 'failed: stray commit <sha> <subject>'
-expect "implement-story without the stray-commit failed: line fails" 1
+drop_phrase docs/agents/orchestration.md 'failed: stray commit <sha> <subject>'
+expect "the rules doc without the stray-commit failed: line fails (Delivery)" 1 "Delivery's stray-commit failed: line"
 
 fresh
-drop_phrase skills/implement-story/SKILL.md 'note <story-id> "delivered: <tip SHA> <check record>"'
-expect "implement-story whose deliver step records no delivered: note fails" 1
+drop_phrase docs/agents/orchestration.md 'note <unit-id> "delivered: <tip SHA> <check record>"'
+expect "the rules doc whose deliver step records no delivered: note fails (Delivery)" 1 "Delivery records the delivered: note"
 
 fresh
-drop_phrase skills/implement-story/SKILL.md 'It goes ahead of the `pr:` note'
-expect "implement-story without the delivered:-before-pr: order fails" 1
+drop_phrase docs/agents/orchestration.md 'The `delivered:` note goes ahead of the `pr:` note'
+expect "the rules doc without the delivered:-before-pr: order fails (Delivery)" 1 "Delivery records delivered: ahead of pr:"
 
 fresh
 drop_phrase skills/implement-story/SKILL.md 'a finished story with no `delivered:` line'
@@ -1335,56 +1335,56 @@ expect "implement-story cleaning the stray files fails" 1 "present: step 9 delet
 # failed: line naming it and its run URL, and a forge with no checks is a checks: skipped line
 # (dev-xc2)
 fresh
-drop_line skills/implement-story/SKILL.md 'Then the **forge-check wait**, before the delivery is recorded'
-expect "implement-story whose deliver step waits for no forge checks fails" 1 "missing: step 8 waits for the forge checks"
+drop_phrase docs/agents/orchestration.md '4. **Forge-check wait**, before the delivery is recorded'
+expect "the rules doc whose deliver step waits for no forge checks fails (Delivery)" 1 "Delivery waits for the forge checks"
 
 fresh
-drop_phrase skills/implement-story/SKILL.md 'gh pr checks <n> --repo <forge-slug> --watch'
-expect "implement-story whose gh wait watches no checks fails" 1 "missing: step 8 watches the gh checks"
+drop_phrase docs/agents/orchestration.md 'gh pr checks <n> --repo <forge-slug> --watch'
+expect "the rules doc whose gh wait watches no checks fails (Delivery)" 1 "Delivery watches the gh checks"
 
 fresh
-drop_phrase skills/implement-story/SKILL.md "tea api --repo <owner> repos/{owner}/{repo}/commits/<tip SHA>/status | jq -e"
-expect "implement-story whose tea wait reads no commit status fails" 1 "missing: step 8 waits on the tea commit status"
+drop_phrase docs/agents/orchestration.md 'tea api --repo <owner> repos/{owner}/{repo}/commits/<tip SHA>/status | jq -e'
+expect "the rules doc whose tea wait reads no commit status fails (Delivery)" 1 "Delivery waits on the tea commit status"
 
 fresh
-drop_phrase skills/implement-story/SKILL.md 'one `failed: forge check <name> <run URL>` line per red check'
-expect "implement-story whose red forge check is no failed: line fails" 1 "missing: a red forge check is a failed: line"
+drop_phrase docs/agents/orchestration.md 'one `failed: forge check <name> <run URL>` line per red check'
+expect "the rules doc whose red forge check is no failed: line fails (Delivery)" 1 "Delivery's red forge check is a failed: line"
 
 fresh
-drop_phrase skills/implement-story/SKILL.md 'note <story-id> "checks red: <tip SHA>"'
-expect "implement-story finishing a story on a red forge check fails" 1 "missing: a red forge check leaves the story unfinished"
+drop_phrase docs/agents/orchestration.md 'note <unit-id> "checks red: <tip SHA>"'
+expect "the rules doc finishing a story on a red forge check fails (Delivery)" 1 "Delivery's red forge check leaves the unit unfinished"
 
 fresh
-drop_phrase skills/implement-story/SKILL.md 'no `delivered:` or `pr:` note is written'
-expect "implement-story recording a delivery on a red forge check fails" 1 "missing: a red forge check records no delivery"
+drop_phrase docs/agents/orchestration.md 'no `delivered:` or `pr:` note is written;'
+expect "the rules doc recording a delivery on a red forge check fails (Delivery)" 1 "Delivery's red forge check records no delivery"
 
 fresh
 drop_phrase skills/implement-story/SKILL.md 'with no `checks red:` line after it'
 expect "implement-story counting a re-delivered red story as finished fails" 1 "missing: a checks red: note unfinishes the story"
 
 fresh
-drop_phrase skills/implement-story/SKILL.md '--json headRefOid -q .headRefOid)" = <tip SHA> ]'
-expect "implement-story whose gh wait passes on the last tip's checks fails" 1 "missing: the gh wait waits for the pushed tip as the PR head"
+drop_phrase docs/agents/orchestration.md '--json headRefOid -q .headRefOid)" = <tip SHA> ]'
+expect "the rules doc whose gh wait passes on the last tip's checks fails (Delivery)" 1 "Delivery's gh wait waits for the pushed tip as the PR head"
 
 fresh
-drop_phrase skills/implement-story/SKILL.md 'is a forge error, as step 3 says, never a skip'
-expect "implement-story skipping the checks on a forge error fails" 1 "missing: a failing forge read is an error, not a skip"
+drop_phrase docs/agents/orchestration.md 'is a forge error, never a skip'
+expect "the rules doc skipping the checks on a forge error fails (Delivery)" 1 "Delivery treats a failing forge read as an error, not a skip"
 
 fresh
-drop_phrase skills/implement-story/SKILL.md 'at most six calls in all'
-expect "implement-story waiting on a pending check without bound fails" 1 "missing: the forge-check wait is bounded"
+drop_phrase docs/agents/orchestration.md 'at most six calls in all'
+expect "the rules doc waiting on a pending check without bound fails (Delivery)" 1 "Delivery bounds the forge-check wait"
 
 fresh
-drop_phrase skills/implement-story/SKILL.md '`checks: skipped: no workflows`'
-expect "implement-story silent on a repo with no workflows fails" 1 "missing: no workflows says the checks were skipped"
+drop_phrase docs/agents/orchestration.md '`checks: skipped: no workflows`'
+expect "the rules doc silent on a repo with no workflows fails (Delivery)" 1 "Delivery says no workflows skips the checks"
 
 fresh
-drop_phrase skills/implement-story/SKILL.md '`checks: skipped: none reported`'
-expect "implement-story silent on a forge with no checks fails" 1 "missing: no checks reported says the checks were skipped"
+drop_phrase docs/agents/orchestration.md '`checks: skipped: none reported`'
+expect "the rules doc silent on a forge with no checks fails (Delivery)" 1 "Delivery says no checks reported skips the checks"
 
 fresh
-drop_phrase skills/implement-story/SKILL.md '`checks: skipped: no forge`'
-expect "implement-story silent on a repo with no forge fails" 1 "missing: no forge says the checks were skipped"
+drop_phrase docs/agents/orchestration.md '`checks: skipped: no forge`'
+expect "the rules doc silent on a repo with no forge fails (Delivery)" 1 "Delivery says no forge skips the checks"
 
 fresh
 drop_line skills/implement-story/SKILL.md 'checks:  skipped: <no forge | no workflows | none reported>'
@@ -1393,6 +1393,41 @@ expect "implement-story whose report template has no checks: line fails" 1 "miss
 fresh
 drop_line skills/implement-story/SKILL.md 'or forge check <name> <run URL>'
 expect "implement-story whose report template has no forge check failure fails" 1 "missing (case-sensitive): report template's failed: line names a red forge check"
+
+# the check-record call is stated once in the rules doc and the Delivery section is pinned there,
+# parametrised by its unit (dev-b8d.1.3); each skill cites them and keeps only its own lines
+for case in 'mkdir -p <worktree path>/.tmp; mkdir -p <owner>/.tmp/checks/<tree>; export TMPDIR=<worktree path>/.tmp; make -C <worktree path> check > <owner>/.tmp/checks/<tree>/log 2>&1; echo "command=make check exit=$?" > <owner>/.tmp/checks/<tree>/record; cat <owner>/.tmp/checks/<tree>/record|missing (case-sensitive): Check record states the compound call' \
+  'parametrised by the unit it delivers: a **story**|missing (case-sensitive): Delivery is parametrised by the unit' \
+  'or a **standalone task** (delivered by its own skill)|missing (case-sensitive): Delivery names the standalone task' \
+  'Call the Skill tool with `mattpocock-skills:pr` to write the body|missing (case-sensitive): Delivery'"'"'s PR body is written by mattpocock-skills:pr' \
+  "its Evidence the delivered tip's check record|missing (case-sensitive): Delivery's Evidence is the delivered tip's check record"; do
+  fresh
+  drop_phrase docs/agents/orchestration.md "${case%%|*}"
+  expect "the rules doc without '${case%%|*}' fails" 1 "${case#*|}"
+done
+
+fresh
+drop_line docs/agents/orchestration.md '## Delivery'
+expect "the rules doc without its Delivery section fails" 1 "missing: Delivery section"
+
+for case in "as the rules doc's Delivery section says, with the story as its unit|missing (case-sensitive): step 8 delivers as the Delivery section says with the story as its unit" \
+  'open the draft after the push if step 3 could not|missing: step 8 opens the draft itself' \
+  'append the sibling line (rebuilt as in step 3)|missing: step 8 appends the sibling line' \
+  "only then run step 3's sibling refresh|missing: step 8 runs the sibling refresh"; do
+  fresh
+  drop_phrase skills/implement-story/SKILL.md "${case%%|*}"
+  expect "implement-story step 8 without '${case%%|*}' fails" 1 "${case#*|}"
+done
+
+# a second copy of what moved, seeded back into a skill, fails
+for case in '^(8\. .*)$|\1 Then wait: `gh pr checks <n> --repo <forge-slug> --watch`.|present: a second copy of the forge-check wait in step 8' \
+  '^(8\. .*)$|\1 Read `git -C <owner> log --no-merges --format=%H`.|present: a second copy of the stray-commit check in step 8' \
+  '^(> 3\. .*)$|\1 Run `make check > <owner>/.tmp/checks/<tree>/log 2>\&1`.|present: a second copy of the check-record call in the brief'; do
+  anchor=${case%%|*} rest=${case#*|}
+  fresh
+  swap_phrase skills/implement-story/SKILL.md "$anchor" "${rest%%|*}"
+  expect "implement-story regaining '${rest%%|*}' fails" 1 "${rest#*|}"
+done
 
 fresh
 drop_line docs/agents/harness.md "The other is the story orchestrator's forge-check wait"
@@ -2464,7 +2499,7 @@ for case in '`git -C <worktree path> rev-parse HEAD^{tree}`|missing: the gate ke
   'First confirm the worktree is clean, `git -C <worktree path> status --porcelain` prints nothing; a dirty worktree goes to a fresh implementer as a red does|missing: the gate reads the tree only of a clean worktree' \
   'a tree with a green record (`exit=0`) is checked: run nothing|missing: a tree with a green check record is not checked again' \
   'a red record is no check, so the tree is checked again|missing: a tree with a red check record is checked again' \
-  'mkdir -p <worktree path>/.tmp; mkdir -p <owner>/.tmp/checks/<tree>; export TMPDIR=<worktree path>/.tmp; make -C <worktree path> check > <owner>/.tmp/checks/<tree>/log 2>&1; echo "command=make check exit=$?" > <owner>/.tmp/checks/<tree>/record; cat <owner>/.tmp/checks/<tree>/record|missing: the gate writes the check record per tree' \
+  "the call the rules doc's Check record states|missing: the gate cites the rules doc's check-record call" \
   '`mattpocock-skills:code-review`|missing: the gate reviews with mattpocock-skills:code-review' \
   '`git -C <worktree path> diff <branch>...HEAD`|missing: the reviewer brief names the harness-route diff'; do
   fresh
@@ -2519,7 +2554,7 @@ for case in "the story row of the rules doc's table|a story gate not naming its 
   'Each pass runs the checks first|a pass not running the checks first|missing: the story gate runs the checks first in each pass' \
   'confirm the owner checkout is clean, `git -C <owner> status --porcelain` prints nothing|a story gate without its clean-checkout guard|missing: the story gate reads the tree only of a clean owner checkout' \
   '`git -C <owner> rev-parse <branch>^{tree}`|a story gate not keyed on the tree|missing: the story gate keys the check on the tip'"'"'s tree' \
-  "the task orchestrator brief's step 3 check-record call with \`<owner>\` as its \`<worktree path>\`|a story gate writing no check record|missing: the story gate writes the check record with the brief's step 3 call" \
+  "the rules doc's Check record call with \`<owner>\` as its \`<worktree path>\`|a story gate writing no check record|missing: the story gate writes the check record with the rules doc's call" \
   'The story keeps the reviewed tip in its notes: its `review:` note names the tip the gate exits on after a clean review, so a rerun reviews only a tip that has moved past it|a story gate without the reviewed-tip sentence|missing: the story keeps the reviewed tip in its notes' \
   '`git -C <owner> branch --show-current` prints `<branch>`|a story gate not confirming its branch|missing: the story gate confirms the owner checkout is on the integration branch' \
   '`failed: <story-id> not on <branch>`|a story gate without its off-branch failed line|missing: the story gate'"'"'s off-branch failed line' \
@@ -2544,7 +2579,6 @@ for case in "the story row of the rules doc's table|a story gate not naming its 
   "you land its branch as the task orchestrator brief's step 4 lands a task|a story gate not landing its fix-up|missing: the story gate lands its fix-up itself" \
   'the ten-minute limit on check and test runs|a story fix-up brief without its limit|missing: story fix-up brief names the check and test limit' \
   'The PR stays a draft|a deliver step not leaving the PR a draft|missing: the deliver step leaves the PR a draft' \
-  "its Evidence the delivered tip's check record|a deliver step not citing the check record|missing: the deliver step's Evidence is the delivered tip's check record" \
   '`rm -rf <owner>/.tmp/checks`|a clean-up step keeping the check records|missing: step 9 removes the check records' \
   'skips the removal and keeps the red check'"'"'s log in place|a clean-up step deleting a red check'"'"'s log|missing: step 9 keeps the red check'"'"'s log on a failed: check run' \
   'Every other run, a green delivery or one failed for any other reason, removes the records|a clean-up step keeping the records after a green run|missing: step 9 still removes the records on every other run' \

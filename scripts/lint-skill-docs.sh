@@ -895,6 +895,33 @@ hasc "Check record rule" '**Check record.**'
 para_has '**Check record.**' "keyed by the tree SHA" 'keyed by the tree SHA'
 para_has '**Check record.**' "only an orchestrator writes a record" 'Only an orchestrator writes a check record'
 para_has '**Check record.**' "the delivered tip's record is the Evidence" "the record of the delivered tip's tree"
+# the call that writes a record is stated once here, the brief and the story gate cite it
+hasc "Check record states the compound call" 'mkdir -p <worktree path>/.tmp; mkdir -p <owner>/.tmp/checks/<tree>; export TMPDIR=<worktree path>/.tmp; make -C <worktree path> check > <owner>/.tmp/checks/<tree>/log 2>&1; echo "command=make check exit=$?" > <owner>/.tmp/checks/<tree>/record; cat <owner>/.tmp/checks/<tree>/record'
+# the Delivery section, parametrised by the unit: the stray-commit check, the push, the PR body
+# with the check record as Evidence, the forge-check wait with its six-call bound, the notes order
+hase "Delivery section" '^## Delivery$'
+hasc "Delivery is parametrised by the unit" 'parametrised by the unit it delivers: a **story**'
+hasc "Delivery names the standalone task" 'or a **standalone task** (delivered by its own skill)'
+hasc "Delivery's stray-commit check precedes the push" '1. **Stray-commit check**, before any push'
+hasc "Delivery's stray-commit failed: line" 'failed: stray commit <sha> <subject>'
+hasc "Delivery's push command" 'git -C <owner> push -u origin <branch>'
+hasc "Delivery's refused push is a failed: line" 'failed: push <command>: <error>'
+hasc "Delivery's PR body is written by mattpocock-skills:pr" 'Call the Skill tool with `mattpocock-skills:pr` to write the body'
+hasc "Delivery's Evidence is the delivered tip's check record" "its Evidence the delivered tip's check record"
+hasc "Delivery waits for the forge checks" '4. **Forge-check wait**, before the delivery is recorded'
+hasc "Delivery watches the gh checks" 'gh pr checks <n> --repo <forge-slug> --watch'
+hasc "Delivery waits on the tea commit status" 'tea api --repo <owner> repos/{owner}/{repo}/commits/<tip SHA>/status | jq -e'
+hasc "Delivery's gh wait waits for the pushed tip as the PR head" '--json headRefOid -q .headRefOid)" = <tip SHA> ]'
+hasc "Delivery treats a failing forge read as an error, not a skip" 'is a forge error, never a skip'
+hasc "Delivery bounds the forge-check wait" 'at most six calls in all'
+hasc "Delivery says no workflows skips the checks" '`checks: skipped: no workflows`'
+hasc "Delivery says no checks reported skips the checks" '`checks: skipped: none reported`'
+hasc "Delivery says no forge skips the checks" '`checks: skipped: no forge`'
+hasc "Delivery's red forge check is a failed: line" 'one `failed: forge check <name> <run URL>` line per red check'
+hasc "Delivery's red forge check leaves the unit unfinished" 'note <unit-id> "checks red: <tip SHA>"'
+hasc "Delivery's red forge check records no delivery" 'no `delivered:` or `pr:` note is written;'
+hasc "Delivery records the delivered: note" 'note <unit-id> "delivered: <tip SHA> <check record>"'
+hasc "Delivery records delivered: ahead of pr:" 'The `delivered:` note goes ahead of the `pr:` note' 
 # the one gate semantics at every row (INFRA-33): the exit, the fix-up and its budget, the
 # minors fix-up and the conflict resolution that rerun the checks and spend nothing, the
 # reviewed tip as a sentence; the two-level loop with lint before the seams and the review
@@ -1126,16 +1153,11 @@ fi
 # ---- 8. /implement-story: the deliver step pushes and opens the PR on the typed command's authority ----
 if doc 8 "/implement-story" "$skills/implement-story/SKILL.md"; then
 hasc "delivery rule pointer" 'the rules doc'"'"'s Delivery'
-hasc "push command" 'git -C <owner> push -u origin <branch>'
-hasc "refused push is a failed line" 'failed: push'
+hasc "step 8 delivers as the Delivery section says with the story as its unit" "8. **Deliver**, as the rules doc's Delivery section says, with the story as its unit"
 # a commit from outside the run (21f770c: a test whose throwaway init failed committed into the
 # enclosing checkout) is refused before the push and before a merger's merge (dev-y1p)
-hasc "deliver step's stray-commit check" 'First the **stray-commit check**, before any push'
 hasc "the task orchestrator's landing runs the stray-commit check" 'run the **stray-commit check** on what the merge brings in'
-hasc "stray-commit failed: line" 'failed: stray commit <sha> <subject>'
 # the delivery records its tip and check record, which /dev:implement-spec's review set reads (dev-47z)
-hasc "deliver step's delivered: note" 'note <story-id> "delivered: <tip SHA> <check record>"'
-hasc "delivered: note ahead of the pr: note" 'It goes ahead of the `pr:` note'
 hasc "finished story backfills a missing delivered: note" 'a finished story with no `delivered:` line'
 lacks "profile-gated push" 'when the active profile permits|ask the user to run that exact command|give the user that exact command'
 hasc "gitignore commit keyed on a dirty file" 'git -C <owner> status --porcelain -- .gitignore'
@@ -1398,7 +1420,8 @@ line_has "$G3" "a tree with a red check record is checked again" 'a red record i
 line_lacks "$G3" "the gate skipping the run on a red record" 'a tree with a record is checked: read its exit and run nothing'
 # a fix-up that commits nothing leaves the tree red-recorded: checked again, budget spent (dev-vnf)
 line_has "$G3" "the task gate checks a red's fix-up that commits nothing again" 'After a red, a fix-up that commits nothing leaves the tree red-recorded, so the next pass checks it again'
-line_has "$G3" "the gate writes the check record per tree" 'mkdir -p <worktree path>/.tmp; mkdir -p <owner>/.tmp/checks/<tree>; export TMPDIR=<worktree path>/.tmp; make -C <worktree path> check > <owner>/.tmp/checks/<tree>/log 2>&1; echo "command=make check exit=$?" > <owner>/.tmp/checks/<tree>/record; cat <owner>/.tmp/checks/<tree>/record'
+line_has "$G3" "the gate cites the rules doc's check-record call" "the call the rules doc's Check record states"
+line_lacks "$G3" "a second copy of the check-record call in the brief" 'check > <owner>/.tmp/checks/<tree>/log' 
 line_has "$G3" "the gate reviews with mattpocock-skills:code-review" '`mattpocock-skills:code-review`'
 line_has "$G3" "the reviewer brief names the harness-route diff" '`git -C <worktree path> diff <branch>...HEAD`'
 line_lacks "$G3" "the per-round check log" 'checks-<round>-<k>.log'
@@ -1458,9 +1481,9 @@ line_has "$G7" "the story gate checks a red-recorded tree again" 'a red record i
 line_lacks "$G7" "the story gate skipping the run on a red record" 'a tree with a record is checked: read its exit and run nothing'
 line_has "$G7" "the story gate checks a red's fix-up that commits nothing again" 'After a red, a fix-up that commits nothing leaves the tree red-recorded, so the next pass checks it again'
 line_has "$G7" "the story gate exits on a green tip its review: note still names" 'a green on a tip the `review:` note still names exits'
-# the check-record call is defined once, in the task orchestrator brief's step 3, and step 7
+# the check-record call is defined once, in the rules doc's Check record, and step 7
 # names it with <owner> for the worktree path (dev-9k5.1.9 review 1)
-line_has "$G7" "the story gate writes the check record with the brief's step 3 call" "the task orchestrator brief's step 3 check-record call with \`<owner>\` as its \`<worktree path>\`"
+line_has "$G7" "the story gate writes the check record with the rules doc's call" "the rules doc's Check record call with \`<owner>\` as its \`<worktree path>\`"
 line_lacks "$G7" "a second copy of the check-record call" 'check > <owner>/.tmp/checks/<tree>/log'
 line_has "$G7" "the story keeps the reviewed tip in its notes" "The story keeps the reviewed tip in its notes: its \`review:\` note names the tip the gate exits on after a clean review, so a rerun reviews only a tip that has moved past it"
 # the story review round is numbered on from the notes, not from 1 per run, and its note names
@@ -1493,28 +1516,20 @@ unchanged_file || awk -v g='Each pass runs the checks first' -v m='the same SHA 
   '/^7\. / { i = index($0, g); k = index($0, m); j = index($0, r); ok = (i && k && j && i < k && k < j); seen = 1; exit } END { exit !(seen && ok) }' "$f" \
   || bad "missing: the story gate (step 7) runs the checks before the reviewed-tip compare and the two-axis review"
 line_has '^8\. ' "the deliver step leaves the PR a draft" 'The PR stays a draft'
+line_has '^8\. ' "step 8 opens the draft itself" 'open the draft after the push if step 3 could not' 
+line_has '^8\. ' "step 8 appends the sibling line" 'append the sibling line (rebuilt as in step 3)' 
+line_has '^8\. ' "step 8 runs the sibling refresh" "only then run step 3's sibling refresh" 
+line_lacks '^8\. ' "a second copy of the forge-check wait in step 8" 'gh pr checks <n> --repo <forge-slug> --watch' 
+line_lacks '^8\. ' "a second copy of the stray-commit check in step 8" '--no-merges --format=' 
 line_lacks '^8\. ' "the deliver step marking the PR ready" 'gh pr ready'
 line_lacks '^8\. ' "the deliver step marking the PR ready with tea" 'tea pr edit <n> --repo <owner> --ready'
-line_has '^8\. ' "the deliver step's Evidence is the delivered tip's check record" "its Evidence the delivered tip's check record"
 # step 8 waits for the PR's forge checks before recording the delivery, so a story is never
 # finished on a PR its CI rejects; a red check is a failed: line naming it and its run URL, and
 # no forge or no checks is a checks: skipped line (dev-xc2)
-line_has '^8\. ' "step 8 waits for the forge checks" 'Then the **forge-check wait**, before the delivery is recorded'
-line_has '^8\. ' "step 8 watches the gh checks" 'gh pr checks <n> --repo <forge-slug> --watch'
-line_has '^8\. ' "step 8 waits on the tea commit status" "tea api --repo <owner> repos/{owner}/{repo}/commits/<tip SHA>/status | jq -e"
-line_has '^8\. ' "a red forge check is a failed: line" 'one `failed: forge check <name> <run URL>` line per red check'
-line_has '^8\. ' "a red forge check leaves the story unfinished" 'note <story-id> "checks red: <tip SHA>"'
-line_has '^8\. ' "a red forge check records no delivery" 'no `delivered:` or `pr:` note is written'
 # step 1 does not count a story with a later checks red: note as finished, so a re-delivery's
 # red check is not hidden by the earlier delivery's pr: note (dev-xc2 review 1)
 line_has '^   The tasks are ' "a checks red: note unfinishes the story" 'with no `checks red:` line after it'
 # the gh wait keys on the pushed tip, so the last tip's finished checks never pass it (dev-xc2 review 1)
-line_has '^8\. ' "the gh wait waits for the pushed tip as the PR head" '--json headRefOid -q .headRefOid)" = <tip SHA> ]'
-line_has '^8\. ' "a failing forge read is an error, not a skip" 'is a forge error, as step 3 says, never a skip'
-line_has '^8\. ' "the forge-check wait is bounded" 'at most six calls in all'
-line_has '^8\. ' "no workflows says the checks were skipped" '`checks: skipped: no workflows`'
-line_has '^8\. ' "no checks reported says the checks were skipped" '`checks: skipped: none reported`'
-line_has '^8\. ' "no forge says the checks were skipped" '`checks: skipped: no forge`'
 hasc "report template shows the checks: line" 'checks:  skipped: <no forge | no workflows | none reported>'
 hasc "report template's failed: line names a red forge check" 'or forge check <name> <run URL>'
 line_has '^9\. ' "step 9 removes the check records" '`rm -rf <owner>/.tmp/checks`'
