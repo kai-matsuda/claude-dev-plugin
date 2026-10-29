@@ -1107,6 +1107,12 @@ line_has "$CUT" "the fresh start ignores earlier attempts' notes" 'whatever `che
 line_has "$CUT" "the fresh start points at the rules doc's Check gate" "your ticket starts over from \`<branch>\`'s tip (the rules doc's Check gate)"
 line_has "$CUT" "a replaced implementer's no reset holds within one ticket orchestrator" 'no reset within this ticket orchestrator'
 line_has '^7\. ' "story fix-up brief names the check and test limit" 'the ten-minute limit on check and test runs'
+# every story-level fix-up after the first reuses the first's worktree and branch, the harness
+# doc's fix-up route, where the skill had left it unstated whether up to three shared one slug,
+# and reaches it with git -C on either route (dev-6da)
+line_has '^7\. ' "a later story fix-up reuses the first's worktree and branch" "reuses the first's worktree and branch rather than taking a fresh one, on either route"
+line_has '^- `git` follows' "an implementer in a worktree another reported runs git -C" 'into a worktree another reported (a later story-level fix-up, a conflict resolution) runs `git -C <worktree path> …` on either route'
+line_has '^7\. ' "a later story fix-up is spawned without isolation into that worktree" 'without `isolation`, into the worktree and branch the first fix-up reported'
 # the per-ticket reviewer reads the standards the story review reads: the repo's own files and
 # the plugin's coding-standards doc by its literal path (dev-co6)
 for need in '`CODING_STANDARDS.md` or `CONTRIBUTING.md`' '<plugin root>/docs/agents/coding-standards.md` spelled as the path this session resolved'; do
