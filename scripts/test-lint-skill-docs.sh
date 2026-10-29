@@ -2836,8 +2836,8 @@ for case in 'Implement one standalone task bead|missing in the opening: the fron
   'make -C <owner> -pRrq : 2>/dev/null|missing (case-sensitive): the make probe for the check target' \
   '`failed: no check target in <owner>; run /dev:setup-repo there, then re-run`|missing (case-sensitive): the refusal with no check target' \
   "the rules doc's Gitignore rule|missing (case-sensitive): the gitignore rule" \
-  'git -C <owner> switch -c task/<task-id> <default branch>|missing (case-sensitive): the branch task/<id> off the default branch' \
-  'bd -C <owner> note <task-id> "branch: task/<task-id>"|missing (case-sensitive): the branch: note' \
+  'git -C <owner> switch -c feat/<task-id> <default branch>|missing (case-sensitive): the branch feat/<id> off the default branch' \
+  'bd -C <owner> note <task-id> "branch: feat/<task-id>"|missing (case-sensitive): the branch: note' \
   'Decide **once** which forge fronts the repo|missing (case-sensitive): the forge decided once' \
   'Call the Skill tool with `dev:task-orchestrator`|missing (case-sensitive): one task orchestrator through the skill' \
   'at `model: opus`|missing (case-sensitive): the task orchestrator at opus' \
