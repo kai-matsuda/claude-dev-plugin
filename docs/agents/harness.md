@@ -139,7 +139,8 @@ integration branch tip.
 **Literal paths.** Inside a harness worktree, a guard checks each `git` and `bd` call
 against the worktree and refuses one whose path comes from a shell variable or sits in a
 construct it cannot parse (seen in INFRA-26's `chezmoi-0jp.22` fixture run). Spell every
-path out literally, one plain command per Bash call.
+path out literally, one plain command per Bash call. File edits in a worktree go through
+the Edit tool, in place of `sed -f` or a python heredoc, so the guard refuses none of the calls.
 
 **TMPDIR.** Every worktree brief (implementer, fix-up included) starts with
 `mkdir -p <worktree>/.tmp && export TMPDIR=<worktree>/.tmp`, `<worktree>` the absolute
@@ -163,7 +164,8 @@ saw the sandbox's `/tmp/claude-502` there, and its heredocs passed with and with
 line, which makes the agent independent of the draw. Two riders, from that probe. Shell
 state does not survive a Bash call (the next call saw the old `TMPDIR` again), so the
 `export` is repeated at the head of every call that runs `mktemp`, a heredoc or a script:
-`export TMPDIR=<worktree>/.tmp; <command>`. And macOS `mktemp` (`/usr/bin/mktemp` on
+`export TMPDIR=<worktree>/.tmp; <command>`. A `git` call takes no such prefix: git runs alone,
+each git call its own Bash call with no `export` in front. And macOS `mktemp` (`/usr/bin/mktemp` on
 Darwin 27, whatever its manual says of `-t`) ignores `TMPDIR` altogether, with or without
 `-t`, and uses the user temp directory under `/var/folders`, so `mktemp -d` always takes
 an explicit template under the directory, `mktemp -d <worktree>/.tmp/<name>.XXXXXX` (the
