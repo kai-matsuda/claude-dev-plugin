@@ -289,7 +289,7 @@ missing, or no test at a story seam exercises the criteria the unit names
 (a standalone task whose body has no `## Test seams` names no seam, and the case does not apply to it);
 it is minor when it changes no behaviour an acceptance criterion names (wording, naming, a nit). The last line is
 `verdict: clean` when no finding is blocking, else `verdict: blocking (<n>)`, `<n>` the
-count of blocking findings. A round with no blocking findings is **clean**, whatever its
+count of blocking findings. A reviewer that fans its review out to sub-agents waits, by ending its turn, until every one of them has reported, then sends one report whose verdict covers the whole review; no orchestrator acts on a partial verdict (dev-f7k8). A round with no blocking findings is **clean**, whatever its
 minors: they go to one last fix-up, or to the inbox as a deferral when the
 orchestrator judges them out of the unit's scope (the tracker doc's "capture a retro item";
 Frontier, Deferrals, below), never to a bead of the story, and at the epic row, which has
