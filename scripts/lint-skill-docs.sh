@@ -84,7 +84,10 @@
 #      (chezmoi-49k), issue-tracker.md's
 #      one test of the session mode in its opening (ADR 0008), its epic bead gather with its
 #      refusals, its spec fetch with the Spec: fallback, its "epic bead writes" convention,
-#      and its close rule counting a story's children as the finished story does (chezmoi-afn);
+#      and its close rule counting a story's children as the finished story does (chezmoi-afn),
+#      and its "First time in a repo" running bd init from the repo's top level alone, never
+#      reinitting on an abort, checked with bd where, which /setup-repo and the story publish
+#      follow (dev-zyx);
 #   7. /story-to-tickets: the spec fetch pointer, the story cutter and publish triggers, the
 #      design field read, the one test and "home <home name>" in the template's Parent line,
 #      the pair read per edge (one bump per publish blocker, Dependency:/Dependent: lines),
@@ -526,6 +529,8 @@ hasc "beads-only writes in owner repos" 'writes no file and runs no git write in
 lacks "step 8 gitignore line or commit" 'chore: ignore spec notes|Gitignore step commits it|\.spec-notes|>> <owner>/\.gitignore|git -C <owner> (add|commit)'
 has "no Jira comment" 'No Jira comment'
 has "the design field names the other repo of a pair" "the other repo's name"
+# the user's bd init in <home> is checked before any bd call lands there (dev-zyx)
+hasc "the home database check after the user's init" '`bd -C <home> where` prints `<home>/.beads`'
 has "repo-session line" 'repo session in <home>: one story, in the home repo'
 has "repo-session refusal" 'refused: the spec changes <what> outside <home>; start this at the workspace root'
 has "one test pointer" 'the one test'
@@ -722,6 +727,9 @@ while IFS= read -r f; do
   lacksw "the retired lint command in $f" 'the lint command'
   lacksw "the retired test seams as checks in $f" 'test seams? as (the )?checks?'
   lacksw "a moved harness rule cited at the rules doc in $f" "$moved_rule"
+  # bd init does take -C, and lands on an ancestor's database through it, so the docs give that
+  # reason, the tracker doc's "First time in a repo" (dev-zyx)
+  lacksw "the retired bd init -C wording in $f" 'cannot take `-C`'
 done <<<"$swept"
 # the root glossary lists the retired vocabulary under _Avoid_ (and docs/adr/ keeps its
 # historical sense through .glossary-allow), so only the two-gate wording is swept there
@@ -1005,7 +1013,20 @@ hasc "epic bead writes convention" '- Epic bead writes:'
 # untriaged child an earlier run left under the story holds back neither its PR nor its close
 # (chezmoi-afn)
 hasc "close rule tolerates untriaged children" 'closed or carries `needs-triage` or `wontfix`'
+# bd init runs from the repo's top level alone: from anywhere else, and through -C, BEADS_DIR,
+# --db or --init-if-missing, it lands on an ancestor's database (gastownhall/beads#7985); an
+# abort naming one never reinits, and every init is checked with bd where (dev-zyx)
+hasc "init runs from the repo's top level" 'with the repo'"'"'s top level as the session'"'"'s current directory'
+hasc "init never runs through -C, BEADS_DIR, --db or --init-if-missing" 'never through `-C`, `BEADS_DIR`, `--db` or `--init-if-missing`'
+hasc "an init abort never reinits" 'never retry with `--reinit-local`, `--force` or `--destroy-token`'
+hasc "init is checked with bd where" '`bd -C <repo> where` must print `<repo>/.beads`'
+hasc "the story publish checks the user's init" '`bd -C <owner> where` prints `<owner>/.beads`'
 
+fi
+# /setup-repo runs bd init itself, by the tracker doc's rule (dev-zyx)
+if doc 6 "/setup-repo" "$skills/setup-repo/SKILL.md"; then
+hasc "setup-repo runs init from the repo's top level" 'from the repo'"'"'s top level, never through `-C` or `BEADS_DIR`'
+hasc "setup-repo checks init with bd where" '`bd -C <repo> where` must print `<repo>/.beads`'
 fi
 # ADR 0014 records the one loop and supersedes ADR 0001, which keeps its text and points at it
 if doc 6 "ADR 0014" "$docs/adr/0014-one-loop-at-three-rows.md"; then

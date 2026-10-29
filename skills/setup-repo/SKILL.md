@@ -44,8 +44,12 @@ in step 4.
 4. **Confirm.** Wait for the owner's explicit yes, to the plan as presented, the
    `check` recipe included. On a no, change nothing.
 5. **Write**, in this order, skipping what exists:
-   - `.beads/`: if missing, run `bd init --non-interactive --agents-file CLAUDE.md`. It
-     also generates `AGENTS.md`, `.codex/`, `.cursor/` and `.agents/` and makes a commit.
+   - `.beads/`: if missing, run `bd init --non-interactive --agents-file CLAUDE.md`
+     from the repo's top level, never through `-C` or `BEADS_DIR` (from anywhere else it
+     lands on an ancestor's database; an abort naming one is reported and setup stops,
+     never reinitialised). Then `bd -C <repo> where` must print `<repo>/.beads` on its
+     first line, `<repo>` the repo's top level; anything else is reported and setup stops.
+     `bd init` also generates `AGENTS.md`, `.codex/`, `.cursor/` and `.agents/` and makes a commit.
      Unless the repo uses those tools, `git rm -r` them and amend the init commit, keeping
      `.beads/`, `.claude/settings.json`, `CLAUDE.md` and the `.gitignore` additions (the
      tracker doc's "First time in a repo",

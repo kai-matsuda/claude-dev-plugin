@@ -579,7 +579,7 @@ sec=12 expect "section 12 fails alone: /retro without the transcript shape" 1
 # sections read fails both
 for case in '1 skills/implement-spec/SKILL.md' '2 skills/workflow/SKILL.md' '2 docs/WORKFLOW.md' \
   '3 skills/spec-to-stories/SKILL.md' '4 skills/spec-to-tickets/SKILL.md' '6 10 docs/agents/orchestration.md' \
-  '6 docs/agents/harness.md' '6 10 docs/agents/issue-tracker.md' '7 skills/story-to-tickets/SKILL.md' '8 skills/implement-story/SKILL.md' \
+  '6 docs/agents/harness.md' '6 10 docs/agents/issue-tracker.md' '6 skills/setup-repo/SKILL.md' '7 skills/story-to-tickets/SKILL.md' '8 skills/implement-story/SKILL.md' \
   '9 skills/close-story/SKILL.md' '12 skills/retro/SKILL.md' '0 CLAUDE.md' '0 GLOSSARY.md'; do
   doc=${case##* }
   fresh
@@ -822,6 +822,45 @@ expect "tracker doc without the Spec: line's canonical form fails" 1
 fresh
 drop_line docs/agents/issue-tracker.md '- Epic bead writes:'
 expect "tracker doc without the epic bead writes convention fails" 1
+
+# bd init runs from the repo's top level alone: -C, BEADS_DIR, --db and --init-if-missing land on
+# an ancestor's database, an abort naming one never reinits, and init is checked with bd where
+# (dev-zyx)
+fresh
+drop_phrase docs/agents/issue-tracker.md 'with the repo'"'"'s top level as the session'"'"'s current directory'
+expect "tracker doc whose init may run from anywhere fails" 1 "missing (case-sensitive): init runs from the repo's top level"
+
+fresh
+drop_phrase docs/agents/issue-tracker.md 'never through `-C`, `BEADS_DIR`, `--db` or `--init-if-missing`'
+expect "tracker doc whose init may run through -C fails" 1 "missing (case-sensitive): init never runs through -C, BEADS_DIR, --db or --init-if-missing"
+
+fresh
+drop_phrase docs/agents/issue-tracker.md 'never retry with `--reinit-local`, `--force` or `--destroy-token`'
+expect "tracker doc whose init abort may reinit fails" 1 "missing (case-sensitive): an init abort never reinits"
+
+fresh
+drop_phrase docs/agents/issue-tracker.md '`bd -C <repo> where` must print `<repo>/.beads`'
+expect "tracker doc with no check after init fails" 1 "missing (case-sensitive): init is checked with bd where"
+
+fresh
+drop_phrase docs/agents/issue-tracker.md '`bd -C <owner> where` prints `<owner>/.beads`'
+expect "tracker doc whose story publish skips the init check fails" 1 "missing (case-sensitive): the story publish checks the user's init"
+
+fresh
+drop_phrase skills/spec-to-stories/SKILL.md '`bd -C <home> where` prints `<home>/.beads`'
+expect "spec-to-stories skipping the init check fails" 1 "missing (case-sensitive): the home database check after the user's init"
+
+fresh
+drop_phrase skills/setup-repo/SKILL.md 'from the repo'"'"'s top level, never through `-C` or `BEADS_DIR`'
+expect "setup-repo whose init may run through -C fails" 1 "missing (case-sensitive): setup-repo runs init from the repo's top level"
+
+fresh
+drop_phrase skills/setup-repo/SKILL.md '`bd -C <repo> where` must print `<repo>/.beads`'
+expect "setup-repo with no check after init fails" 1 "missing (case-sensitive): setup-repo checks init with bd where"
+
+fresh
+echo '`bd init` cannot take `-C`, so give the user the command.' >> "$scratch/skills/sample/SKILL.md"
+expect "a skill saying bd init cannot take -C fails" 1 "the retired bd init -C wording"
 
 for skill in spec-to-stories spec-to-tickets story-to-tickets; do
   fresh

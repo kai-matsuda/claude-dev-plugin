@@ -80,11 +80,23 @@ version.
 
 ## First time in a repo
 
-If the repo has no `.beads/`, run:
+If the repo has no `.beads/`, run, with the repo's top level as the session's current directory:
 
 ```bash
 bd init --non-interactive --agents-file CLAUDE.md
 ```
+
+Run it from there alone, and never through `-C`, `BEADS_DIR`, `--db` or `--init-if-missing`:
+from anywhere else, an ancestor directory's `.beads/` (the workspace's, for a repo checked
+out inside it) is the database init finds, so it aborts with `Found existing Dolt database:
+<path>`, or with `--init-if-missing` exits 0 having created nothing
+(gastownhall/beads#7985). When the session's current directory is not the repo's top level,
+the shell rule forbids `cd`, so give the user the exact command to run there. An abort
+naming a `<path>` outside the repo is reported and the setup stops:
+never retry with `--reinit-local`, `--force` or `--destroy-token`, which act on that other
+database. After any init, `bd -C <repo> where` must print `<repo>/.beads` on its first
+line; anything else is reported and the setup stops, since every later `bd` call there
+would land on the other database.
 
 It also generates `AGENTS.md`, `.codex/`, `.cursor/`, and `.agents/` and makes a commit.
 Unless the repo uses those tools, `git rm -r` them and amend the init commit, keeping
@@ -158,8 +170,9 @@ path can lack it, which step 1 catches.
    <owner>/.beads`. Do not probe with `bd -C`: without its own database bd
    climbs to the workspace's and would file the story in the inbox. A repo without it is
    reported by name. Offer "First time in a repo" there and act only on the user's explicit
-   yes. `bd init` cannot take `-C` and the shell rule forbids `cd`, so give the user the
-   exact command to run in `<owner>` and continue once `.beads/` exists. On a
+   yes. `bd init` runs only from `<owner>`'s top level ("First time in a repo" says why),
+   so give the user the exact command to run in `<owner>`, and continue once
+   `bd -C <owner> where` prints `<owner>/.beads` on its first line. On a
    no, create neither that repo's story nor its tickets, and still publish every other
    story. When the skipped repo is a dependency, its dependent story's text blocker is
    `<dep repo> publish <crate> <version> (not created: no beads database)`, in place of
