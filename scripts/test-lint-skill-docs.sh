@@ -1150,6 +1150,16 @@ fresh
 echo 'a locked one is removed with `git -C <owner> worktree remove -f -f <absolute path>`' >> "$scratch/skills/implement-story/SKILL.md"
 expect "implement-story forcing a locked worktree with -f fails" 1
 
+# the sweep keeps to worktrees inside the owner checkout's resolved top level, so a
+# linked-worktree owner never removes another checkout's worktree (dev-114)
+fresh
+drop_phrase skills/implement-story/SKILL.md 'lies inside `<top>`'
+expect "implement-story whose sweep is not scoped to the owner checkout fails" 1 "missing: step 9 sweeps only worktrees inside the owner checkout"
+
+fresh
+drop_phrase skills/implement-story/SKILL.md '`git -C <owner> rev-parse --show-toplevel`'
+expect "implement-story whose sweep does not resolve the owner's top level fails" 1 "missing: step 9 resolves the owner's top level"
+
 fresh
 drop_line skills/implement-story/SKILL.md 'worktrees: <absolute path>'
 expect "implement-story whose report template has no worktrees: line fails" 1

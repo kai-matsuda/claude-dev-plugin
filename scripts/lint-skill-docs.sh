@@ -110,7 +110,8 @@
 #      ADR 0011), and its clean-up step removes worktrees with the sandbox disabled up front,
 #      sweeps every worktree-agent-* and .worktrees/ worktree whose branch is merged into the
 #      integration branch, earlier runs' included, and reports a locked or unmerged one in the
-#      report's worktrees: line instead of forcing it (chezmoi-73d), then names every untracked,
+#      report's worktrees: line instead of forcing it (chezmoi-73d), only inside the owner
+#      checkout's resolved top level (dev-114), then names every untracked,
 #      non-ignored file on the report's stray: line without deleting it (dev-9ft), its deliver
 #      step waits for the PR's forge checks and makes a red one a failed: line, a missing forge
 #      or check a checks: skipped line (dev-xc2), and its implementer,
@@ -1177,6 +1178,11 @@ hasc "worktree removal runs sandbox-disabled up front" 'worktree prune` run with
 lacks "worktree removal retried sandbox-disabled only after the denial" 'retry that one command with the sandbox disabled'
 hasc "the sweep covers harness and hand-rolled worktrees" 'whose branch is `worktree-agent-*` or whose path is under `<owner>/.worktrees/`'
 hasc "the sweep is keyed on the branch being merged into the integration branch" 'merged into `<branch>`'
+# the sweep keeps to entries whose resolved path lies inside the owner checkout's resolved top
+# level: a linked-worktree owner's list shows every checkout's worktrees, and git prints both
+# paths with symlinks followed (dev-114)
+line_has '^9\. ' "step 9 sweeps only worktrees inside the owner checkout" 'lies inside `<top>`'
+line_has '^9\. ' "step 9 resolves the owner's top level" '`git -C <owner> rev-parse --show-toplevel`'
 lacks "the sweep limited to this run's worktrees" 'every worktree the run made'
 hasc "a locked or unmerged worktree is reported, not removed" 'reported with its path'
 lacks "a locked or unmerged worktree forced" 'worktree remove[^`]* -(-force|f)'
