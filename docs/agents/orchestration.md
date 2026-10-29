@@ -263,7 +263,7 @@ A fresh orchestrator at any row starts its unit's budget at three whatever notes
 and an agent resumed with its context keeps its own count (Cut-off agents in `harness.md`).
 The epic orchestrator counts a story's spent budget from the story's `epic fix-up` notes after this invocation's `epic review 1` note (The epic row, above).
 The bound a person wants is per invocation (dev-l4j): a person who types `/dev:implement-spec` or `/dev:implement-story` again starts a new invocation,
-and a replaced task orchestrator's task starts over from the integration branch tip,
+and a replaced task orchestrator's budget starts afresh, from the integration branch tip at the claim entry or from the tip its brief hands it at the gate entry (`/dev:task-orchestrator`),
 so neither the task row nor the story row records spent fix-ups for a later invocation to count from.
 A minors fix-up and a conflict resolution move the tip, so the checks rerun, but no reviewer
 runs again and no budget is spent: the gate exits on the moved tip once its checks are green.

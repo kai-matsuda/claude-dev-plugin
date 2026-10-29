@@ -270,6 +270,20 @@ never typed, to which it reports one line (`reviewed`, `needs split` or `failed`
 discarded.
 _Avoid_: task agent, worker, task runner
 
+**Claim entry**:
+The task orchestrator's entry for a fresh task, a brief with no `gate entry:` line: it
+claims the task, spawns the implementer in a new worktree reset onto the integration
+branch tip, then runs the check gate. Every spawn is one but a gate entry.
+_Avoid_: fresh entry, cold start
+
+**Gate entry**:
+The task orchestrator's entry when the task's branch already carries commits: a cut-off
+task orchestrator's replacement on its surviving branch, or the one retry after a red on
+a conflict-resolved tree. It claims the task and goes straight to the check gate on the
+branch, worktree path and tip its brief names, with a fresh budget and no implementer
+build; after a red on a resolved tree, the brief also carries that red record's log.
+_Avoid_: re-entry, resume entry
+
 **Implementer**:
 The one agent kind that edits files: it builds a task, fixes a failed check or a review
 finding by pointer brief, or resolves a merge conflict, always fresh and in the unit's
