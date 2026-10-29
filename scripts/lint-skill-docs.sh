@@ -1102,6 +1102,13 @@ para_has '**Commits.**' "the commit -F form" '`git -C <worktree> commit -F <work
 # Write refuses a file the session has not Read, so a commit-msg an earlier agent or a cut-off
 # run left in the worktree is Read first (dev-cqf)
 para_has '**Commits.**' "a leftover message file Read before the Write" 'a leftover `<worktree>/.tmp/commit-msg` is Read first'
+# the literal example message: its four trailer lines are pinned, and none may have a blank line
+# before it, since they are one last paragraph (dev-i7u0)
+hasc "commit example: the Bead trailer line" 'Bead: <task-id>'
+hasc "commit example: the Refs trailer line" 'Refs: <KEY>-<n>'
+hasc "commit example: the Co-Authored-By trailer line" 'Co-Authored-By: <model> <noreply@anthropic.com>'
+hasc "commit example: the Claude-Session trailer line" 'Claude-Session: <session-url>'
+lacksw "no blank line between the commit example's trailers" '  (refs|co-authored-by|claude-session):'
 # the shell-commands discipline and the pointer back at the preflight kept in the rules doc
 hasc "the -C discipline" 'This section binds every session and subagent'
 hasc "the preflight stays in the rules doc" 'The working-directory preflight stays in `orchestration.md`'

@@ -73,6 +73,19 @@ worktree (a fix-up, a conflict resolution) or a re-run after a cut-off finds the
 message there and would spend a retry on it. Every brief to an agent that commits or merges
 (implementer, fix-up included, task orchestrator, story orchestrator) names this rule.
 
+The message is written whole, its trailers one last paragraph with no blank line between them:
+
+```
+docs(harness): show the trailer paragraph literally
+
+The Commits rule shows its example message as it is written.
+
+Bead: <task-id>
+Refs: <KEY>-<n>
+Co-Authored-By: <model> <noreply@anthropic.com>
+Claude-Session: <session-url>
+```
+
 **Cut-off agents.** An Agent call that returns an API error (`HTTP 429 You've hit your
 session limit`) in place of a report is a **cut-off**: the child and everything below it
 stop where they are, context, worktree and claimed task intact (INFRA-28's run 1,

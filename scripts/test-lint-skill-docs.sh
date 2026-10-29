@@ -1710,6 +1710,16 @@ fresh
 drop_phrase docs/agents/harness.md 'a leftover `<worktree>/.tmp/commit-msg` is Read first'
 expect "harness doc whose Commits rule skips Reading a leftover commit-msg fails" 1
 
+# the literal commit example's trailers: a drop-line case per trailer, and a blank line between two
+# of them (dev-i7u0)
+fresh
+drop_line docs/agents/harness.md 'Refs: <KEY>-<n>'
+expect "harness doc whose commit example drops its Refs line fails" 1 "the Refs trailer line"
+
+fresh
+awk '{ print } /^Bead: <task-id>$/ { print "" }' "$scratch/docs/agents/harness.md" > "$scratch/docs/agents/harness.md.new" && mv "$scratch/docs/agents/harness.md.new" "$scratch/docs/agents/harness.md"
+expect "harness doc whose commit example has a blank line among its trailers fails" 1 "no blank line between the commit example's trailers"
+
 fresh
 drop_phrase skills/implement-story/SKILL.md "commit it as the harness doc's Commits rule says"
 expect "implement-story whose Gitignore step drops the Commits rule reference fails" 1
