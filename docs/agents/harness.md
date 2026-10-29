@@ -198,6 +198,12 @@ act on another directory, use the flag the command gives (`git -C <dir>`, `bd -C
 The shell's `grep` is Claude Code's bundled ugrep, which fails a wide bounded repeat with
 "exceeds complexity limits"; `grep -n` piped to `cut` also works.
 
+**Spell each command out.** Write each command, `-C <dir>` and all, in full every time;
+never hold a command or an id list in a variable and expand it. The Bash tool runs the
+user's login shell, here zsh, which by default does not word-split an unquoted `$var`, so `cmd="bd -C x"; $cmd show` runs the whole
+string as one word and fails with exit 127, and `set -- $ids` hands `dev-a dev-b` on as one
+id (dev-0tz, and again in a 2026-10-27 `/dev:triage` run).
+
 **Branches from a remote ref.** Create a branch from a remote ref with
 `git switch --no-track -c <branch> origin/<x>` (or `git branch --no-track <branch> origin/<x>`
 and then switch to it). The sandbox denies the write to `.git/config` that upstream tracking
