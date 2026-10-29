@@ -199,7 +199,10 @@ The tier table above sets *subagent* models; this sets what your own session run
   with the same `branch:` and `pr:` notes. Set `/model opus` first: that session is the
   story orchestrator. While stage 4 runs, `/dev:workflow` lists each unfinished story's repo
   and id.
-- **Small bug, no spec needed** → describe it, and the route is one `bd create`, then `/dev:implement-task <task-id>` (give the task a `complexity:<tier>` and a `ready-for-agent` label): no epic bead, no Jira epic and nothing to close by hand. An accepted `/dev:triage` item takes the same route.
+- **Small bug, no spec needed** → describe it, and the route is
+  one `bd create`, then `/dev:implement-task <task-id>` (give the task a `complexity:<tier>`
+  and a `ready-for-agent` label): no epic bead, no Jira epic and nothing to close by hand.
+  An accepted `/dev:triage` item takes the same route.
 - **A branch you wrote by hand** → `/mattpocock-skills:pr` (`/model opus`) shapes the PR body: smallest
   visual that explains the change, before/after evidence, one-way vs two-way door and
   blast radius.

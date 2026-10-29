@@ -458,7 +458,8 @@ The skill adds its own refusals after these.
 ## When a skill says "start work on a task" (`/dev:implement-story`, `/dev:implement-task`)
 
 1. `bd update <id> --claim` (the bead already exists from the task cut; if it doesn't,
-   create it under the story, or under the epic bead when there is none, with a
+   create it under the story, or as a standalone task with no parent when there is none
+   (never under the epic bead: that makes the epic malformed), with a
    `complexity:<tier>` label first).
 2. Pick the implementation model from the bead's `complexity` tier (table below).
 3. Work it; `bd note <id>` for progress worth keeping across sessions.
