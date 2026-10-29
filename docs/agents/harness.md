@@ -12,7 +12,7 @@ An Agent call returns at once in this harness ("Async agent launched successfull
 whichever way `run_in_background` is written. `run_in_background` is a JSON boolean, so
 the string `"false"` is truthy and launches in the background, which is how every call in
 INFRA-29's run 2 was written (2026-10-23, Claude Code 2.1.306); the epic orchestrator's call that
-omitted the field launched async as well; and a ticket orchestrator of that run reported that
+omitted the field launched async as well; and a task orchestrator of that run reported that
 the Agent tool it saw had no `run_in_background` parameter at all. So on 2.1.306 the field
 is absent for a nested agent, and a boolean `false` there has nothing to switch; whether a
 top-level session's boolean `false` is honoured was not tested, and nothing here depends
@@ -22,18 +22,18 @@ work it spawned; so after spawning, the orchestrator ends its turn, the notifica
 resumes it with the report, and the epic orchestrator never has to relay a report by `SendMessage`.
 A batch is the same: spawn every call in one message, end the turn, and act on each
 report as its notification arrives. An orchestrator never polls: not in a Bash loop,
-foreground or background, on `bd show` of the ticket's status, on `sleep` or on the
+foreground or background, on `bd show` of the task's status, on `sleep` or on the
 process list, and not with a `Monitor` on a bead, which is a background call behind a
 filter (the Idle rule).
 `pgrep` cannot list processes in the sandbox (`sysmond service not found`,
 `Cannot get process list`), so a wait loop built on it exits at once and reports done over
 a child still running; a `bd show` loop holds a shell for as long as the child runs and
 tells the orchestrator nothing the report will not (INFRA-28's run 1, 2026-10-20: 21 of 45
-background shells were killed, one printing the same two `in_progress` tickets for an hour).
+background shells were killed, one printing the same two `in_progress` tasks for an hour).
 
 **Idle rule.** Every subagent below the epic orchestrator runs Bash in the foreground only (`timeout`
 up to 600000 ms) and never starts a background Bash call or a `Monitor` on a bead; the
-ticket orchestrator's lock wait is no exception. The harness notifies a parent of a child's turn ending
+task orchestrator's lock wait is no exception. The harness notifies a parent of a child's turn ending
 only when nothing is live below the child. A turn that ends with an Agent child mid-turn
 keeps the parent waiting, which is how a nested orchestrator waits (above); a turn that
 ends with a background Bash call or a `Monitor` still running counts as idle, not live.
@@ -50,13 +50,13 @@ in `orchestration.md`) and any other long lint or test run passes `timeout: 6000
 Bash call (INFRA-30's run: two `make lint` calls
 were backgrounded that way, and one agent went looking for its own process with `ps`).
 This is the mechanism behind the no-polling rule above, and why INFRA-29's until-loops
-and Monitors woke agents with stale state. There are two shell waits. One is a ticket orchestrator's wait on the owner checkout's lock (the
-ticket orchestrator brief's step 4): a single foreground Bash call running an `until` loop over
+and Monitors woke agents with stale state. There are two shell waits. One is a task orchestrator's wait on the owner checkout's lock (the
+task orchestrator brief's step 4): a single foreground Bash call running an `until` loop over
 the owner checkout's `index.lock` and `MERGE_HEAD`, at the paths
 `git rev-parse --path-format=absolute --git-path` prints (`.git` is a file in a linked
 worktree or a submodule, so a literal `.git/` path there names nothing), with the call's `timeout` as the five-minute
 bound, so it returns when the lock clears and is killed when it does not (chezmoi-sn1's
-check, 2026-10-22, saw the background form end the ticket orchestrator's turn with nothing reported).
+check, 2026-10-22, saw the background form end the task orchestrator's turn with nothing reported).
 The other is the story orchestrator's forge-check wait (`/dev:implement-story` step 8): one
 foreground Bash call that waits for the PR's forge checks on the pushed tip, bounded by its
 `timeout: 600000` and run again while a check is still pending, at most six calls.
@@ -78,18 +78,18 @@ and costs a retry (INFRA-35, 2026-10-27). Write refuses to overwrite a file the 
 has not Read, so a leftover `<worktree>/.tmp/commit-msg` is Read first: an agent following another into the same
 worktree (a fix-up, a conflict resolution) or a re-run after a cut-off finds the earlier
 message there and would spend a retry on it. Every brief to an agent that commits or merges
-(implementer, fix-up included, ticket orchestrator, story orchestrator) names this rule.
+(implementer, fix-up included, task orchestrator, story orchestrator) names this rule.
 
 **Cut-off agents.** An Agent call that returns an API error (`HTTP 429 You've hit your
 session limit`) in place of a report is a **cut-off**: the child and everything below it
-stop where they are, context, worktree and claimed ticket intact (INFRA-28's run 1,
+stop where they are, context, worktree and claimed task intact (INFRA-28's run 1,
 2026-10-20). The epic orchestrator's turn is the only one a `SendMessage` reply reaches, so only the
 epic orchestrator resumes an agent, and only a story orchestrator. First the **stop sweep**:
 `ListAgents`, then `TaskStop` on every agent id the epic orchestrator did not itself spawn (the
-orchestrators' ticket orchestrators, implementers and reviewers), since a child whose parent's
+orchestrators' task orchestrators, implementers and reviewers), since a child whose parent's
 turn was cut off is owned by no one else and stays listed as running however quiet it is
 (that run's implementer, "quiet for over 30 minutes"). Then one line to the same agent id,
-`resume: re-read the story and its tickets from the beads and carry on`. The beads and notes
+`resume: re-read the story and its tasks from the beads and carry on`. The beads and notes
 are the truth: a hand-written state summary (what that run sent) and a respawn both lose
 what the agent still holds. A story orchestrator missing from `ListAgents` with no
 notification is probed with that same line, and one whose reply says the user stopped it
@@ -99,11 +99,11 @@ spawns a fresh orchestrator that re-reads the beads (INFRA-30's run, 2026-10-24)
 Every other agent is replaced, never resumed: to its orchestrator a cut-off child is a
 `failed: cut off by <error>` report, and the next pass gives the work a fresh subagent,
 same tier, same worktree, as a child that needs another pass gets one. A cut-off
-is no verdict on the ticket: it rejoins the frontier with its failure count unchanged. Its
-claim outlives the orchestrator, and `bd ready` excludes an `in_progress` ticket, so the story
-orchestrator `bd -C <owner> unclaim <ticket-id>`s it before the next frontier read. The
-fresh ticket orchestrator's implementer resets the worktree onto the integration branch tip as its brief
-says, so what a cut-off implementer left unmerged on `ticket/<slug>` is lost and the ticket
+is no verdict on the task: it rejoins the frontier with its failure count unchanged. Its
+claim outlives the orchestrator, and `bd ready` excludes an `in_progress` task, so the story
+orchestrator `bd -C <owner> unclaim <task-id>`s it before the next frontier read. The
+fresh task orchestrator's implementer resets the worktree onto the integration branch tip as its brief
+says, so what a cut-off implementer left unmerged on `task/<slug>` is lost and the task
 starts over; what reached the integration branch stays.
 
 ## Scratch space
@@ -117,12 +117,12 @@ harness creates the worktree under `.claude/worktrees/agent-<id>/` on a branch n
 working directory, so the brief carries no paths and the subagent runs plain commands with
 no `cd`. The harness removes it again if the subagent changed nothing.
 
-Fall back to a hand-rolled `git worktree add .worktrees/<ticket-slug> -b ticket/<ticket-slug>`
+Fall back to a hand-rolled `git worktree add .worktrees/<task-slug> -b task/<task-slug>`
 only when `isolation` is unavailable. On that route the brief gives the subagent its absolute
 worktree path, and the subagent reaches it with `git -C <path>` and absolute file paths.
-Removing a worktree keeps its `ticket/<ticket-slug>` branch, so on a later run `-b` fails
+Removing a worktree keeps its `task/<task-slug>` branch, so on a later run `-b` fails
 with "branch already exists": run `git worktree prune`, then re-add it without `-b`
-(`git worktree add .worktrees/<ticket-slug> ticket/<ticket-slug>`).
+(`git worktree add .worktrees/<task-slug> task/<task-slug>`).
 
 Either way the worktree starts on the wrong base: the harness branches from
 `origin/<default-branch>` (unless the repo sets `worktree.baseRef: "head"`), and a

@@ -24,7 +24,7 @@ has	epic review model	the review model of the epic's max tier
 has	draft until clean	stays a draft until its verdict is clean
 has	mark ready with gh	gh pr ready <n> --repo <forge-slug>
 has	mark ready with tea	tea pr edit <n> --repo <owner> --ready
-has	fix-up: one ready-for-agent ticket per blocking finding	one per blocking finding
+has	fix-up: one ready-for-agent task per blocking finding	one per blocking finding
 has	fix-up: the story re-run in add mode	in add mode
 has	fix-up budget	three per story
 # the story orchestrator brief names the harness doc's Commits rule, as that rule asks of every
@@ -45,7 +45,7 @@ has	cut-off reviewer rule	reviewer that returns an error instead of a report
 has	tea fallback evidence	the delivered tip's check record
 has	batch clause's reason	reports no delivery this invocation
 # epic review 2 of dev-9k5.1.8
-has	fix-up tickets at the epic's max tier	complexity:<the epic's max tier>
+has	fix-up tasks at the epic's max tier	complexity:<the epic's max tier>
 has	no-CI fallback tied to the tip by the review: marker	the story's `review:` note names this same tip
 has	Done accepts closed or landed stories	is `closed` or has its PR landed
 has	Stall names a PR closed without landing	closed without landing
@@ -64,13 +64,13 @@ has	spent budget is the fix-up notes after the last epic review 1	the number of 
 has	Stall's two exits for a failed story	amend the spec and type <resume command> for three more rounds, or close the PR to drop the story
 has	Stall prints the two exits only after the epic-review failed: lines	After the `failed:` line of a story whose epic review failed (`epic review not clean after three fix-ups` or `checks red after three fix-ups`), print
 has	Human stop reports epic-review failures	step 6's `failed:` lines too
-has	files fix-up tickets, implements none	files fix-up tickets and implements none
-has	red check ticket body	the check, its command and its log pointer
+has	files fix-up tasks, implements none	files fix-up tasks and implements none
+has	red check task body	the check, its command and its log pointer
 # epic review 4 of dev-9k5.1.8: the minors
 has	Stall names a tip mismatch	current tip is not its delivered tip
 has	reviewer reads the story bead	bd -C <owner> show <story-id>` to tell them apart
 has	reviewer reports findings only	create no bead
-has	fix-up blocks the publish ticket	dep add <publish ticket id> <new id>
+has	fix-up blocks the publish task	dep add <publish task id> <new id>
 has	gh's no checks reported is none configured	`no checks reported`
 has	replaced reviewer's stop sweep	the stop sweep, then spawn a fresh one
 has	end state reads step 6's forge reads	step 6's forge reads

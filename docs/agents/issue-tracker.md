@@ -9,11 +9,11 @@ Issues live in two places with distinct roles:
 
 - **Jira** at https://micelabs.atlassian.net, project `<KEY>` — the human-facing layer.
   A feature is one Jira **Epic** holding the spec. Triage, stakeholder comments, and
-  status transitions happen here. Jira never sees individual implementation tickets.
+  status transitions happen here. Jira never sees individual implementation tasks.
 - **beads** (`bd`, database in the repo's `.beads/`) — the AI task layer. Every feature
   is an **epic bead** linked to its Jira epic via `--external-ref <KEY>-<n>`. A feature
   has one **story** bead per PR, usually one per repo it changes, the parent of that PR's
-  implementation tickets. Blocking edges inside a story are native beads deps, and `bd
+  implementation tasks. Blocking edges inside a story are native beads deps, and `bd
   ready` lists the native-edge frontier; edges between stories are text blockers.
 
 Jira access is through the Atlassian MCP tools (`createJiraIssue`, `getJiraIssue`,
@@ -42,8 +42,8 @@ plugin repo).
 ## Before the story quiz: one story per PR (`/dev:spec-to-stories`)
 
 A spec is cut in two typed stages: the story cut, `/dev:spec-to-stories`, splits the spec into
-stories; the ticket cut, `/dev:spec-to-tickets` (which drives `/dev:story-to-tickets` over each
-story), splits each story into tickets. Apply this before the story cut's quiz.
+stories; the task cut, `/dev:spec-to-tasks` (which drives `/dev:story-to-tasks` over each
+story), splits each story into tasks. Apply this before the story cut's quiz.
 
 A story is one PR (ADR 0011, `docs/adr/0011-a-story-is-one-pr-and-stories-form-a-dag.md`
 in the plugin repo), so a feature has one story per PR, usually one per repo. Resolve
@@ -56,7 +56,7 @@ ADR) is named in the story quiz as done by hand at the root, not cut. In a repo 
 every story is in the home repo; a spec that visibly changes another repo is refused, not
 cut to a one-repo subset: `refused: the spec changes <what> outside <home>; start this at
 the workspace root`. A story's repo is its **owner repo**, fixed here and never re-routed
-later; every ticket is cut inside one story, so a ticket never spans repos.
+later; every task is cut inside one story, so a task never spans repos.
 
 The story cut proposes a second story in a repo by itself only when the spec describes a
 deprecate-then-remove: the story that removes is split from the one that deprecates and
@@ -64,17 +64,17 @@ waits on the closure of the stories that migrate off it. The user may split a re
 at the quiz for any reason: two deliveries stacked on each other's closure, two
 independent slices, a step that is not a publish, such as a deploy. On a split at such a
 step, the later story waits on the earlier story's closure (a `<repo> <story-id>` blocker
-line), the deploy being a `ready-for-human` ticket inside the earlier story
+line), the deploy being a `ready-for-human` task inside the earlier story
 that `/dev:close-story` requires closed.
 
 The stories and their text blockers form the **story DAG**: each story's `## Blocked by`
-lines are its edges, each naming a **human gate ticket** (a `ready-for-human` ticket a
-person closes; the publish ticket is one) or a story. Cycles are refused, whatever kind
+lines are its edges, each naming a **human gate task** (a `ready-for-human` task a
+person closes; the publish task is one) or a story. Cycles are refused, whatever kind
 of edge closes them: the story DAG has none, so a cut whose edges would close one stops
 before creating anything and names the stories on the cycle. The story quiz shows, per
 story: the owner repo, one paragraph of what that PR must deliver, and its blockers, so
 the user sees the DAG. When the breakdown touches a dependency repo, it also shows each
-publish ticket with the version it proposes and each dependent's bump ticket, so the user
+publish task with the version it proposes and each dependent's bump task, so the user
 can correct the version before approving. Read "When the breakdown touches a dependency
 repo" below first: it says how to detect each dependency edge and how to propose the
 version.
@@ -130,13 +130,13 @@ repo already had `core.hooksPath` set, chain the old hook from the new one in
   link the ADR from the spec. Never put specs in `docs/adr/`.
 - Triage state is a Jira label on the epic (see `triage-labels.md`). Mirror it on the
   epic bead with `bd label add <id> <label>`.
-- Every ticket carries exactly one `complexity:<tier>` label (see "Complexity labels").
+- Every task carries exactly one `complexity:<tier>` label (see "Complexity labels").
 - Human-facing comments and decisions go to the Jira epic (`addCommentToJiraIssue`);
   `bd note` is for agent-local progress that nobody else needs to read.
 - Epic bead writes: of the cuts, only `/dev:spec-to-stories` writes on the epic bead, creating
   it when none exists and adding one `skipped: <repo> no beads database` note per skipped
-  repo ("publish the stories" step 2), while `/dev:spec-to-tickets` only reads those notes and
-  neither it nor `/dev:story-to-tickets` ever notes, updates or closes the epic bead.
+  repo ("publish the stories" step 2), while `/dev:spec-to-tasks` only reads those notes and
+  neither it nor `/dev:story-to-tasks` ever notes, updates or closes the epic bead.
 - Purely agent-internal work (wayfinding, research spikes, refactor sub-steps) stays in
   beads only and never gets a Jira issue unless a human needs to see it.
 - Commit messages are Conventional Commits, `type(scope): subject`: types feat, fix,
@@ -144,7 +144,7 @@ repo already had `core.hooksPath` set, chain the old hook from the new one in
   trailing period, at most 72 characters. A body only when the why is not obvious from
   the diff, never a bullet list restating it. Every commit carries its provenance as
   trailers, `Bead: <bead-id>` when the work came from a bead and `Refs: <KEY>-<n>` for
-  the Jira epic the bead's `--external-ref` points at (never a per-ticket Jira issue),
+  the Jira epic the bead's `--external-ref` points at (never a per-task Jira issue),
   both when both apply. Neither is inferable from a diff, so a commit without them loses
   the link for good. They go in the last paragraph with the attribution lines and no
   prose, since git parses only a last paragraph made of trailer lines as trailers. A
@@ -157,20 +157,20 @@ repo already had `core.hooksPath` set, chain the old hook from the new one in
 1. `createJiraIssue` in `<KEY>`: type Epic, summary = feature name, description = the
    spec, label `ready-for-agent` (or whatever the skill specifies). Report the key.
 2. `bd create "<feature>" --type epic --external-ref <KEY>-<n> -d "<Jira URL>" -l ready-for-agent`
-   so the beads side has an anchor for the tickets that follow. When the spec is also a
+   so the beads side has an anchor for the tasks that follow. When the spec is also a
    file in `<home>` (`docs/specs/<slug>.md`), the description carries its `Spec:` line
    too, in the form "gather the epic bead" gives below.
 
 ## When a skill says "publish the stories" (`/dev:spec-to-stories`)
 
-Run once the story quiz is approved, before any ticket is cut. `<home>`, `<owner>` and
+Run once the story quiz is approved, before any task is cut. `<home>`, `<owner>` and
 `<owner repo>` are as the one test above defines them. Every `bd [-C <owner>]` below
 takes `-C` when the owner is not `<home>`, which is every story in a workspace session.
 
 If `/dev:spec-to-stories` is run without a prior `/mattpocock-skills:to-spec` (its key argument finds no epic
 bead), create the epic bead first, carrying that key as its `--external-ref`; no Jira epic
 is created, since the key names one. The key is taken as given: one Jira does not know
-surfaces as `<KEY>-<n> is not in Jira` at the spec fetch or the ticket cut's comment. The
+surfaces as `<KEY>-<n> is not in Jira` at the spec fetch or the task cut's comment. The
 skill requires the key or a bead id ("gather the epic bead" below), so `/dev:spec-to-stories`
 never creates an epic bead without a key; one made by hand or by the flat `/mattpocock-skills:to-tickets`
 path can lack it, which step 1 catches.
@@ -192,7 +192,7 @@ path can lack it, which step 1 catches.
    `bd -C <owner> where` prints `<owner>/.beads` on its first line. When it does not (the
    user reports an abort,
    or `where` names another database), treat it as a no. On a
-   no, create neither that repo's story nor its tickets, and still publish every other
+   no, create neither that repo's story nor its tasks, and still publish every other
    story. When the skipped repo is a dependency, its dependent story's text blocker is
    `<dep repo> publish <crate> <version> (not created: no beads database)`, in place of
    step 4's `(not created yet)` line. List the skipped stories in the report, one whose
@@ -202,7 +202,7 @@ path can lack it, which step 1 catches.
    init made, if any (the note below keeps its exact text for its readers), and record
    each on the epic bead, `bd note <epic-id> "skipped: <repo> no beads database"`, one per
    skipped repo: a skipped repo has no story to carry it, so these notes are where the
-   ticket cut reads skips from for its Jira comment. They are the only notes a cut writes
+   task cut reads skips from for its Jira comment. They are the only notes a cut writes
    there (the "epic bead writes" convention above).
 3. Create the stories in the story DAG's topological order, each after every story it
    waits on, so a blocker line naming a story has its id (step 6 of "When the breakdown
@@ -222,8 +222,8 @@ path can lack it, which step 1 catches.
    databases. Every repo-session story, however many the home repo holds, is created
    with `--parent <epic-id>`, so the stories gather (`bd children <epic-id>`) finds them
    all. A story carries no labels. It has no `complexity:` tier (its review model is the
-   highest among its tickets) and no triage label, and `--no-inherit-labels` keeps the
-   epic bead's `ready-for-agent` off every repo-session story, so tickets created under a
+   highest among its tasks) and no triage label, and `--no-inherit-labels` keeps the
+   epic bead's `ready-for-agent` off every repo-session story, so tasks created under a
    story inherit nothing.
 4. The story body is never a copy of the spec. It holds, in order:
 
@@ -231,7 +231,7 @@ path can lack it, which step 1 catches.
    <one paragraph: what this repo must deliver for the feature>
 
    ## Test seams
-   <the seams in this repo the story's tickets test at>
+   <the seams in this repo the story's tasks test at>
 
    ## Parent
    Home <home name>, epic bead <epic-id>, <KEY>-<n>
@@ -242,78 +242,78 @@ path can lack it, which step 1 catches.
    ```
 
    `## Blocked by` holds one **text blocker** line per edge of the story DAG, each naming
-   a human gate ticket or a story, in any repo's database, the story's own included; a
+   a human gate task or a story, in any repo's database, the story's own included; a
    story may carry several, and the section is omitted when it has none. Write the edges
    minimally: the story's direct needs only, never one implied by a path through a gate
-   ticket. A line naming a story clears when `/dev:close-story` closes it after its PR merges;
-   one naming a human gate ticket clears when a person closes it. A blocker on a publish
-   ticket names a ticket the ticket cut creates, so write that line as
+   task. A line naming a story clears when `/dev:close-story` closes it after its PR merges;
+   one naming a human gate task clears when a person closes it. A blocker on a publish
+   task names a task the task cut creates, so write that line as
    `<dep repo> publish <crate> <version> (not created yet)` now; "publish a story's
-   tickets" fills in the id. A line with no id counts as open, so the story cannot start
-   in between. The story cut creates no tickets, so it never knows a gate ticket's id: it
+   tasks" fills in the id. A line with no id counts as open, so the story cannot start
+   in between. The story cut creates no tasks, so it never knows a gate task's id: it
    writes a story line or a publish placeholder (step 2's `(not created: no beads
-   database)` form included), never a line naming a gate ticket id.
+   database)` form included), never a line naming a gate task id.
 
-## When a skill says "publish a story's tickets" (`/dev:spec-to-tickets`, `/dev:story-to-tickets`)
+## When a skill says "publish a story's tasks" (`/dev:spec-to-tasks`, `/dev:story-to-tasks`)
 
-Under `/dev:spec-to-tickets` this runs after the one merged ticket quiz is approved;
-`/dev:story-to-tickets` run alone quizzes the user on its one story first.
+Under `/dev:spec-to-tasks` this runs after the one merged task quiz is approved;
+`/dev:story-to-tasks` run alone quizzes the user on its one story first.
 
-Tickets are beads, children of their story, in the story's owner repo. Publish in
+Tasks are beads, children of their story, in the story's owner repo. Publish in
 dependency order (blockers first) so edges can reference real ids, and the stories in the
 order of step 6 below:
 
 ```bash
-bd [-C <owner>] create "<ticket title>" --parent <story-id> \
+bd [-C <owner>] create "<task title>" --parent <story-id> \
   -l complexity:<tier>,ready-for-agent \
   --deps blocked-by:<id>,blocked-by:<id> --body-file -   # body = the issue template
 ```
 
-Omit `--deps` for tickets that can start immediately. A ticket has no `## Blocked by`:
+Omit `--deps` for tasks that can start immediately. A task has no `## Blocked by`:
 native edges carry its blockers inside the story, and the story holds the text blockers.
 The template's `## Parent` names the story and the feature, for example `Story lib-x2a in
 lib; home mice-labs, epic bead mice-labs-abc, INFRA-26`, where the home is a workspace. Do not create Jira issues per
-ticket.
+task.
 
-A re-cut of one story (`/dev:story-to-tickets` run alone) keeps the story's publish ticket, if
-it has one, and adds native edges from it to any new implementation ticket. The rest runs
+A re-cut of one story (`/dev:story-to-tasks` run alone) keeps the story's publish task, if
+it has one, and adds native edges from it to any new implementation task. The rest runs
 per edge of the story DAG. As the dependency of an edge, a re-cut of a story that has no
-publish ticket (the publish died before creating it) creates it as step 2 of "When the
+publish task (the publish died before creating it) creates it as step 2 of "When the
 breakdown touches a dependency repo" says, then fills in the blocker line of every
 dependent that names it (step 3). As the dependent of an edge, a re-cut keeps that text
-blocker line and its bump ticket; a publish blocker with no bump yet (a line the story
+blocker line and its bump task; a publish blocker with no bump yet (a line the story
 cut's add mode appended to the story body; ADR 0011) gets its own bump (step 4); and
-every open ticket of the story that is not a bump, its publish ticket included, is blocked
+every open task of the story that is not a bump, its publish task included, is blocked
 natively on every bump: new ones with `--deps`, existing ones with
-`bd [-C <owner>] dep add <ticket id> <bump id>`, so step 5 holds after the re-cut.
+`bd [-C <owner>] dep add <task id> <bump id>`, so step 5 holds after the re-cut.
 
-When a run has published any tickets, add one comment on the Jira epic, so a human
-can see the plan without opening `bd`. It lists the tickets grouped by story: one heading
+When a run has published any tasks, add one comment on the Jira epic, so a human
+can see the plan without opening `bd`. It lists the tasks grouped by story: one heading
 per story as `<repo> <story bead-id> <story title>`, the stories in dependency order
-(step 6 below), each followed by its tickets as `<bead-id> <title>`, with the epic bead id, plus one `<repo> skipped: no
+(step 6 below), each followed by its tasks as `<bead-id> <title>`, with the epic bead id, plus one `<repo> skipped: no
 beads database` line per `skipped: <repo> no beads database` note on the epic bead (left
-by "publish the stories" step 2). A `/dev:spec-to-tickets` run
-adds one comment covering every story of the feature that has tickets, earlier runs'
+by "publish the stories" step 2). A `/dev:spec-to-tasks` run
+adds one comment covering every story of the feature that has tasks, earlier runs'
 included; a re-cut's comment covers its one story. No Jira epic, no comment.
 
 ### When the breakdown touches a dependency repo
 
 Applies per edge of the story DAG: to each edge between stories in two repos where one
 imports the other's package, and to a re-cut of a story that is already one side of such
-an edge. For each edge, the story with a text blocker naming a publish ticket is the
-dependent, the story with that publish ticket is the dependency. Which repo is the **dependency** is read from the dependent's `Cargo.toml` (or
+an edge. For each edge, the story with a text blocker naming a publish task is the
+dependent, the story with that publish task is the dependency. Which repo is the **dependency** is read from the dependent's `Cargo.toml` (or
 `go.mod`); the repo that owns the crate is the manifest's `packages` entry for it
-(resolution rule 3), since the manifest holds nodes only. In a cargo workspace the import is named in the member's manifest, or in the virtual root's `[workspace.dependencies]` when the member inherits it, and a `path =` dependency counts like a registry one; the version is read from the crate's own manifest or `[workspace.package]`, and the direction stays dependent → dependency, so the publish ticket still gates the dependent. Any other edge (a story waiting on
-another story's closure, or on a human gate ticket that is not a publish) and two repos
-with no import between them get no publish ticket and none of the below. A dependency
+(resolution rule 3), since the manifest holds nodes only. In a cargo workspace the import is named in the member's manifest, or in the virtual root's `[workspace.dependencies]` when the member inherits it, and a `path =` dependency counts like a registry one; the version is read from the crate's own manifest or `[workspace.package]`, and the direction stays dependent → dependency, so the publish task still gates the dependent. Any other edge (a story waiting on
+another story's closure, or on a human gate task that is not a publish) and two repos
+with no import between them get no publish task and none of the below. A dependency
 pinned by git tag (or ssh URL) is outside this rule (ADR 0003 covers registry versions
 only, and a tagged dependency migrates to the registry first): stop and tell the user
-rather than create a publish ticket.
+rather than create a publish task.
 
 Chains are in scope: a story may be the dependent of one edge and the dependency of
 another (A depends on B depends on C), and a dependent may carry several publish
 blockers, each with its own bump. Cycles are refused for every edge, this kind included
-("Before the story quiz" above). A story has at most one publish ticket, since one PR publishes one version; a
+("Before the story quiz" above). A story has at most one publish task, since one PR publishes one version; a
 dependency repo publishing several crates in one story stays outside this rule. A story
 cut with a dependency edge runs in a workspace session, the only one with stories in two
 repos. A re-cut of one side typed in its owner repo is a repo session with no
@@ -323,20 +323,20 @@ leave its line as it is.
 1. Propose a version for each dependency's package from the change's semver impact (patch,
    minor, or major; for `0.x` a breaking change is a minor and an additive change proposes a patch bump). The user may correct it at
    the story quiz, and the publisher may correct it again at publish time.
-2. Add one **publish ticket**, a human gate ticket, to each dependency story, titled
-   `publish <crate> <version>`, created after that story's implementation tickets so it
+2. Add one **publish task**, a human gate task, to each dependency story, titled
+   `publish <crate> <version>`, created after that story's implementation tasks so it
    can name them; one per story, however many dependents name it:
 
    ```bash
    bd [-C <dep owner>] create "publish <crate> <version>" --parent <dep story-id> \
      --no-inherit-labels -l ready-for-human,complexity:low \
-     --deps blocked-by:<dep ticket id>,blocked-by:<dep ticket id> --body-file -
+     --deps blocked-by:<dep task id>,blocked-by:<dep task id> --body-file -
    ```
 
    `<dep owner>` is the dependency repo's `<owner>` (the one test above). Every
-   implementation ticket of the dependency's story is a native `blocked-by` edge, so
-   `bd ready` there omits the publish ticket until they all close. Here the implementation
-   tickets are every other ticket of the story, its bumps included when it is itself a
+   implementation task of the dependency's story is a native `blocked-by` edge, so
+   `bd ready` there omits the publish task until they all close. Here the implementation
+   tasks are every other task of the story, its bumps included when it is itself a
    dependent (step 6).
    `ready-for-human` is only a label (`bd ready` lists it like any other), so a person
    claims it, publishes, and closes it with the published version as the reason. The
@@ -346,48 +346,48 @@ leave its line as it is.
    whole body with `bd [-C <dependent owner>] update <dependent story-id> --body-file -`,
    where `<dependent owner>` is the dependent repo's `<owner>` (the one test above). The
    dependent's other blocker lines stay as they are. A skipped dependency (no beads
-   database) has no publish ticket, so its `(not created: no beads database)` line stays as
+   database) has no publish task, so its `(not created: no beads database)` line stays as
    it is.
-4. The dependent story gets one bump ticket per publish blocker, a bump to that published
-   version, titled with the proposed version, which is provisional: the publish ticket's
+4. The dependent story gets one bump task per publish blocker, a bump to that published
+   version, titled with the proposed version, which is provisional: the publish task's
    close reason is authoritative. Create the bumps before the dependent story's other
-   tickets, with no `--deps`; the story's text blockers hold them until every blocker
+   tasks, with no `--deps`; the story's text blockers hold them until every blocker
    closes. `bd ready` does not read text blockers, so it lists a bump as soon as its native
    edges allow; the frontier rule in `orchestration.md` holds it back.
-5. Every other ticket of the dependent story takes a native `--deps blocked-by:<bump id>`
+5. Every other task of the dependent story takes a native `--deps blocked-by:<bump id>`
    on every bump, on top of its own edges, so the bumps are the dependent story's only
-   tickets with no blocker inside the story.
+   tasks with no blocker inside the story.
 6. The order is the story DAG's topological one. In the story cut, every story after each
-   story it waits on. In the ticket cut, one topological pass over the stories: each
+   story it waits on. In the task cut, one topological pass over the stories: each
    story after every story it waits on, so every dependency it waits on already has its
-   publish ticket. Per story, its text blocker fill-ins (step 3, one per publish blocker),
-   then its bumps (step 4), then its other tickets (step 5), then, if it is a dependency,
-   its own publish ticket, blocked natively on all of them (step 2). A story
+   publish task. Per story, its text blocker fill-ins (step 3, one per publish blocker),
+   then its bumps (step 4), then its other tasks (step 5), then, if it is a dependency,
+   its own publish task, blocked natively on all of them (step 2). A story
    in the middle of a chain (B in A depends on B depends on C) is therefore cut after C's
-   publish ticket, its own publish ticket last, and before A's fill-in.
-7. The Jira comment lists each publish ticket, with its proposed version, under its
+   publish task, its own publish task last, and before A's fill-in.
+7. The Jira comment lists each publish task, with its proposed version, under its
    dependency's story, and each bump under its dependent's.
 
-## When a skill says "publish the tickets to the issue tracker" (`/mattpocock-skills:to-tickets`)
+## When a skill says "publish the tasks to the issue tracker" (`/mattpocock-skills:to-tickets`)
 
-The plugin words this as "publish the tickets to the configured tracker". The plugin's
+The plugin words this as "publish the tasks to the configured tracker". The plugin's
 `/mattpocock-skills:to-tickets` is the flat path for a small change in the session's repo alone (the
-runbook's small-bug variant): it has no stories, and its tickets are children of the epic
-bead, created as in "publish a story's tickets" with `--parent <epic-id>`. It creates no
+runbook's small-bug variant): it has no stories, and its tasks are children of the epic
+bead, created as in "publish a story's tasks" with `--parent <epic-id>`. It creates no
 Jira epic; without a prior `/mattpocock-skills:to-spec`, create the epic bead first.
-A breakdown with a slice in another repo belongs to `/dev:spec-to-stories` (then `/dev:spec-to-tickets`), typed at the workspace
+A breakdown with a slice in another repo belongs to `/dev:spec-to-stories` (then `/dev:spec-to-tasks`), typed at the workspace
 root: stop and tell the user so.
 
-## When a skill says "fetch the relevant ticket"
+## When a skill says "fetch the relevant task"
 
 A `<KEY>-<n>` key → `getJiraIssue`, then `bd list --type epic --external-ref <KEY>-<n>` to
 find the epic bead (a story carries the same ref). A bead id →
 `bd show <id>`; follow its nearest external ref to Jira when the human context matters:
 its own, else its parent's. A 404 from `getJiraIssue` means no such issue or no permission to see it; the skill reports which one it assumed.
 
-Tickets sit two levels below the epic bead: epic → stories → tickets. `bd children
+Tasks sit two levels below the epic bead: epic → stories → tasks. `bd children
 <epic-id>` lists one level, so it returns at most a repo session's home stories, never a
-ticket. To reach tickets:
+task. To reach tasks:
 
 - **Stories**: `bd children <epic-id>` (every story in a repo session; empty in a
   workspace session), plus, in a workspace session only, every bead of type `story`
@@ -401,7 +401,7 @@ ticket. To reach tickets:
   `Operation not permitted` is "bd writes outside the session's repo" below. A sweep that
   fails any other way → report the error and stop, since that repo's story would go
   unseen.
-- **Tickets of one story**: `bd -C <owner> children <story-id>` (plain `bd` in the
+- **Tasks of one story**: `bd -C <owner> children <story-id>` (plain `bd` in the
   owner repo), or `bd ready --parent <story-id>` for the frontier. `bd ready --parent`
   recurses through descendants and never crosses databases; with `<epic-id>` it would
   also list the open home stories, so name the story.
@@ -409,7 +409,7 @@ ticket. To reach tickets:
 An epic bead whose direct children include a non-story bead is the legacy flat shape; the
 story-tier skills refuse it.
 
-## When a skill says "fetch the spec" (`/dev:spec-to-stories`, `/dev:story-to-tickets`)
+## When a skill says "fetch the spec" (`/dev:spec-to-stories`, `/dev:story-to-tasks`)
 
 The skill names `<KEY>-<n>` (or none), how it reads the epic bead, its **last resort**,
 and `<id>`, the prefix of its refusals (empty for `/dev:spec-to-stories`). The spec is the
@@ -428,9 +428,9 @@ first of these that applies:
    <home>/<path>`. No epic bead, no `Spec:` line, or an unreadable file → go to 4.
 4. The skill's last resort.
 
-The spec only explains the work; at the ticket cut the story body bounds it.
+The spec only explains the work; at the task cut the story body bounds it.
 
-## When a skill says "gather the epic bead" (`/dev:spec-to-stories`, `/dev:spec-to-tickets`)
+## When a skill says "gather the epic bead" (`/dev:spec-to-stories`, `/dev:spec-to-tasks`)
 
 `<home>` is as the one test above defines it, and `<skill>` the skill running this. Both
 skills require the argument and stop on their usage line without one; neither recovers the
@@ -451,7 +451,7 @@ the argument:
 **The `Spec:` line.** An epic bead names its spec file with one `Spec: <path>` line in
 its description, `<path>` relative to the epic bead's repo, so the file is
 `<home>/<path>` (a reader reaches the epic bead only in `<home>`'s database: the
-other-repo refusal below, and `/dev:story-to-tickets` step 1). The path is the whole rest of
+other-repo refusal below, and `/dev:story-to-tasks` step 1). The path is the whole rest of
 the line: an ADR or glossary pointer goes on a line of its own. Never an absolute path:
 beads sync between machines, a checkout does not. Written when the spec is published
 ("publish the spec", step 2); read by "fetch the spec" fallback 3.
@@ -465,30 +465,30 @@ and create nothing and spawn nothing, when:
 - the bead is not an epic → `<id> refused: <id> is <type>, not an epic`;
 - its `status` is `closed` → `<epic-id> refused: epic bead is closed`;
 - it has a direct child (`bd list --parent <epic-id> --all --json`) whose `issue_type` is
-  not `story` → `<id> refused: flat epic (tickets directly under the epic bead); the story skills do not handle it — the small-bug path does: /mattpocock-skills:implement <ticket-id> per ticket, then bd close <epic-id>`.
+  not `story` → `<id> refused: flat epic (tasks directly under the epic bead); the story skills do not handle it — the small-bug path does: /mattpocock-skills:implement <task-id> per task, then bd close <epic-id>`.
 
 The skill adds its own refusals after these.
 
-## When a skill says "start work on a ticket" (`/mattpocock-skills:implement`, `/dev:implement-story`)
+## When a skill says "start work on a task" (`/mattpocock-skills:implement`, `/dev:implement-story`)
 
-1. `bd update <id> --claim` (the bead already exists from the ticket cut; if it doesn't,
+1. `bd update <id> --claim` (the bead already exists from the task cut; if it doesn't,
    create it under the story, or under the epic bead when there is none, with a
    `complexity:<tier>` label first).
 2. Pick the implementation model from the bead's `complexity` tier (table below).
 3. Work it; `bd note <id>` for progress worth keeping across sessions.
-4. Under `/dev:implement-story` every ticket passes the check gate before merge: the ticket
-   orchestrator runs the checks, and only `medium` and `high` tickets add the review. It spawns
+4. Under `/dev:implement-story` every task passes the check gate before merge: the task
+   orchestrator runs the checks, and only `medium` and `high` tasks add the review. It spawns
    a reviewer subagent at the tier's review model, briefed to run the
-   `mattpocock-skills:code-review` skill on the ticket's branch since the integration tip; a
+   `mattpocock-skills:code-review` skill on the task's branch since the integration tip; a
    red or a blocking verdict goes to a fresh implementer in the same worktree, never back to
    the first one by `SendMessage` (`orchestration.md`, Trust rules, rule 2). The implementer
    never calls the skill itself: it would run at the implementer's own model. Under
-   `/mattpocock-skills:implement` there is no ticket orchestrator: the session is the
-   implementer and runs the checks and then the ticket review itself. Why:
+   `/mattpocock-skills:implement` there is no task orchestrator: the session is the
+   implementer and runs the checks and then the task review itself. Why:
    `docs/adr/0014-one-loop-at-three-rows.md` in the plugin repo.
-5. On completion `bd close <id>`. Do not touch the Jira epic per ticket.
+5. On completion `bd close <id>`. Do not touch the Jira epic per task.
 
-Every `bd` call above runs in the ticket's owner repo (`-C <owner>` when that is not
+Every `bd` call above runs in the task's owner repo (`-C <owner>` when that is not
 the session's), and the commit's `Bead:` trailer is the id in that repo's database.
 Branch and PR notes go on the story bead (next section).
 
@@ -506,7 +506,7 @@ PR or branch.
 
 The Jira side belongs to `/dev:implement-spec` alone; `/dev:implement-story` has no Jira step,
 whoever runs it. `/dev:implement-spec` does it once, in the first invocation that ends with every
-story finished (`ready-for-human` tickets aside): `addCommentToJiraIssue` on the Jira
+story finished (`ready-for-human` tasks aside): `addCommentToJiraIssue` on the Jira
 epic listing every story's link once, with a one-paragraph summary, then
 `transitionJiraIssue` to the project's in-review state — an In-Progress-category status
 with `review` in its name; none → comment only. A run that starts with every story
@@ -521,8 +521,8 @@ The steps live in the skill; the rules it enforces are:
   in other repos, passes `/dev:close-story`. A story already `closed` is skipped.
   `retro`-labelled beads carrying the ref are not stories and are skipped.
 - `/dev:close-story` refuses, with no override, unless every child of the story is
-  closed or carries `needs-triage` or `wontfix` (the publish ticket is a ticket like any
-  other; a child carrying one of those labels is a note, not a ticket, as the finished
+  closed or carries `needs-triage` or `wontfix` (the publish task is a task like any
+  other; a child carrying one of those labels is a note, not a task, as the finished
   story above counts it, and it stays open for `/dev:triage`) and its `pr:` note exists and the forge state is `MERGED`
   (not merely `CLOSED`; no forge → ask for an explicit yes). The refusal names each open
   child with its status and triage label. Then it closes the story bead, with no Jira.
@@ -599,7 +599,7 @@ it still passes the permission gate.
 
 ## Complexity labels (beads only)
 
-Every ticket gets exactly one `complexity:<tier>` label when it is created; an epic bead,
+Every task gets exactly one `complexity:<tier>` label when it is created; an epic bead,
 a story, an inbox bead and a map bead carry none. The tier picks the model for
 implementation and for review. Jira never carries this label; it is an agent-routing
 concern.
@@ -618,7 +618,7 @@ Rules:
 - Re-label if the work turns out harder than estimated (`bd label remove <id> complexity:<old>`
   then `bd label add <id> complexity:<new>`) and say so with `bd note`, so estimate-vs-actual
   stays visible.
-- A story's tier is the max of its tickets'. The final two-axis review runs per story at
+- A story's tier is the max of its tasks'. The final two-axis review runs per story at
   that tier's review model, as `orchestration.md` "Complexity tier" says.
 
 Applying it: when a skill spawns an implementation or review subagent, pass the mapped
@@ -636,7 +636,7 @@ to humans.
 
 - **Map**: an epic bead (`bd create "<effort>" --type epic -l wayfinder:map`) whose
   description holds the Notes / Decisions-so-far / Fog body.
-- **Child ticket**: `bd create "<question>" --parent <map-id> -l type:<research|prototype|grilling|task>`.
+- **Child task**: `bd create "<question>" --parent <map-id> -l type:<research|prototype|grilling|task>`.
 - **Blocking**: `--deps blocked-by:<id>` at creation, or `bd dep add` later.
 - **Frontier**: `bd ready --parent <map-id>` — open, unblocked, unclaimed beads.
 - **Claim**: `bd update <id> --claim` before any work.

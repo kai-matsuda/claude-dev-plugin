@@ -97,7 +97,7 @@ assert() { # <case>
       s1=$(fx_one lib '.issue_type=="story"'); s2=$(fx_one consumer '.issue_type=="story"')
       fx_check "the epic bead is the root's only bead" fx_eq "$(fx_all . | jq length)" 1
       fx_check "one story in lib, one in consumer" fx_eq "$([ -n "$s1" ] && [ -n "$s2" ] && echo yes)" yes
-      fx_check "no tickets in lib or consumer" fx_eq "$(fx_all lib | jq length)$(fx_all consumer | jq length)" 11
+      fx_check "no tasks in lib or consumer" fx_eq "$(fx_all lib | jq length)$(fx_all consumer | jq length)" 11
       for pair in "lib $s1 consumer" "consumer $s2 lib"; do
         set -- $pair
         assert_owner "$1" "$2" "$3"
@@ -106,7 +106,7 @@ assert() { # <case>
         fx_check "$1 story ## Parent names the root as home" grep -Fqx "Home $(basename "$out"), epic bead $epic, FIX-1" \
           <<<"$(fx_field "$1" "$2" .description)"
       done
-      fx_check "consumer story is blocked by lib's publish ticket, not created yet" \
+      fx_check "consumer story is blocked by lib's publish task, not created yet" \
         grep -qE '^lib publish fixture-lib [0-9]+\.[0-9]+\.[0-9]+ \(not created yet\)$' <<<"$(fx_field consumer "$s2" .description)" ;;
     repo-refuse)
       fx_check "end block refuses with 'start this at the workspace root'" \

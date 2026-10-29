@@ -21,7 +21,7 @@ seed() { # <case>
   fx_bdj consumer create "Reviewer misses unused imports" --type chore \
     -l retro,needs-triage,retro:foreign --silent --body-file - >/dev/null <<'T' || { echo "FAIL seed inbox bead"; exit 1; }
 ## Moment
-The review of the multiply ticket passed an unused import.
+The review of the multiply task passed an unused import.
 
 ## Category
 Coding standards

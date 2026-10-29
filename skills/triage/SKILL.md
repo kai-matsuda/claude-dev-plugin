@@ -29,7 +29,7 @@ manifest; there is no manifest in a repo session. Then, plainly, in `<home>`:
 ## 2. Collapse repeats
 
 `bd find-duplicates` over the open beads. It has no label filter, and a repo session's
-home also holds the feature's epic, stories and tickets, so keep only pairs where both
+home also holds the feature's epic, stories and tasks, so keep only pairs where both
 beads carry `needs-triage`. Each such pair → `bd duplicate <later> --of <earlier>`, and
 the earlier one gains a recurrence. Then, per survivor, search the owner:
 `bd -C <target repo> search "<title words>"` for a manifest repo in a workspace session,
@@ -78,7 +78,7 @@ is what goes into them.
    → say so; when its `.beads/` is missing, run that doc's "First time in a repo" only on
    the user's yes, since it commits there. Without a database after that, skip the item:
    it stays open in the inbox, and nothing is created for it.
-2. **Body** in the to-tickets issue template. "What to build" is the behaviour the
+2. **Body** in the `to-tickets` issue template. "What to build" is the behaviour the
    environment will have afterwards, from the agent's point of view. Acceptance criteria
    are checkable without the original session: the check fails on a seeded violation; a
    fresh session follows the pointer; the reviewer cites the new rule. Name no file paths

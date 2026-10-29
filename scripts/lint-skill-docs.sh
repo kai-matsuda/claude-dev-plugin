@@ -2,12 +2,12 @@
 # Reference lint for skill-facing docs (INFRA-26): named commands exist, stale phrases are absent.
 # Not the test seam for any skill; that is a subagent following the skill against the fixture.
 # One section per doc (INFRA-27 added 3-6):
-#   1. the /implement-spec epic orchestrator text (chezmoi-0jp.24): no ticket-level procedure, names the
+#   1. the /implement-spec epic orchestrator text (chezmoi-0jp.24): no task-level procedure, names the
 #      refusals, the spawn with its pointer at the waiting rule (chezmoi-p4q) and the end states,
 #      the story-closure human stop and the add-mode stall hint pinned (chezmoi-9v4.1.6); the
 #      epic row (dev-9k5.1.8): the role named, the harness doc cited, the epic review (one PR at
 #      a time, the default-branch diff, the Jira Epic's spec, no standards axis, the epic's max
-#      tier), draft until clean with the mark-ready commands, the add-mode fix-up (one ticket per
+#      tier), draft until clean with the mark-ready commands, the add-mode fix-up (one task per
 #      blocking finding, three per story, the fourth failed in one of the Check gate's two lines
 #      and no other, dev-aeo) and the review: end-state line, with
 #      no epic-row role and no PR opened here; its home database gate cites the tracker doc's
@@ -36,14 +36,14 @@
 #      with the dependent's body rewritten and Jira untouched (chezmoi-9v4.1.7), and its home
 #      database checked with bd where after the user's bd init, refused when none was made
 #      (dev-zyx);
-#   4. /spec-to-tickets: user-typed, the same argument rule as 3, the refusals,
+#   4. /spec-to-tasks: user-typed, the same argument rule as 3, the refusals,
 #      cutters pointed at the waiting rule and without a model override, explicit dependent
 #      lines, the closed and publish-failed lines, a Jira comment over every story, no
 #      story-cut procedure; the cycle refusal, topological waves with every upstream
 #      breakdown in a dependent's brief, the inline re-cut of an already cut dependent keyed on
 #      its missing bump, a finished dependent excluded at step 1, a skipped repo's publish line
 #      as an edge with no dependency, the held-back cascade narrowed to a dependency without
-#      its publish ticket, and no two-wave cap (ADR 0011);
+#      its publish task, and no two-wave cap (ADR 0011);
 #   (3, 4 and 1 point at the shared preflight and epic gather that section 6 checks; 3, 4 and 7
 #   cite the "epic bead writes" convention that section 6 checks)
 #   5. one sweep over one file list: every file under the agent docs and the skills dir, the
@@ -59,7 +59,7 @@
 #      blocker", "two waves suffice"; ADR 0011); none of the check and review loop's retired
 #      two-gate wording ("Evidence run", "a later run reviews the fix", "a third round of
 #      either kind", "a second red"; dev-1xf.1.4), which the root GLOSSARY.md lacks too; and
-#      none of the retired vocabulary (dev-9k5.1.11): the epic, ticket and landing roles, the
+#      none of the retired vocabulary (dev-9k5.1.11): the epic, task and landing roles, the
 #      built-in review by name, the two-review-tools paragraph, the review marker, the lint
 #      command and the test seams as checks (the glossary lists them under _Avoid_, docs/adr/
 #      keeps them through .glossary-allow); and no rule that moved to harness.md cited at the
@@ -94,26 +94,26 @@
 #      which /setup-repo cites without restating and the story publish follows, a failed
 #      init there a no (dev-zyx), and its "Has a database" rule (.beads/ exists and bd where
 #      names it), which every other gating skill cites (dev-e87);
-#   7. /story-to-tickets: the spec fetch pointer, the story cutter and publish triggers, the
+#   7. /story-to-tasks: the spec fetch pointer, the story cutter and publish triggers, the
 #      design field read, the one test and "home <home name>" in the template's Parent line,
 #      the pair read per edge (one bump per publish blocker, Dependency:/Dependent: lines),
-#      the two refusals (two publish tickets; a finished story pointing at add mode) and the
+#      the two refusals (two publish tasks; a finished story pointing at add mode) and the
 #      re-cut's added bump, re-edge and citation of the per-edge rules (ADR 0011);
 #   8. /implement-story: the deliver step pushes and opens the PR on the typed command's
 #      authority (orchestration.md's delivery rule, checked in 6; ADR 0009), a refused push
 #      is a failed: line, so no step waits on the user, the Gitignore step commits a dirty
 #      .gitignore made of the rule's entries alone while an edit of the user's in it is a
 #      failed: line (chezmoi-hkn), its exploration subagent reads the story's design field
-#      and owns .spec-notes/<epic-id>/ (chezmoi-cdf), and a ticket whose ticket orchestrator failed is
+#      and owns .spec-notes/<epic-id>/ (chezmoi-cdf), and a task whose task orchestrator failed is
 #      unclaimed before the next frontier read, with the resume pointer noted on a second
 #      failure and step 9's resume: line naming when a human runs the unclaim (chezmoi-jvc;
 #      the Frontier's unclaim rule is checked in 6), its frontier read keeps ready-for-agent
-#      tickets only, its review step captures deferred findings in the inbox through the
+#      tasks only, its review step captures deferred findings in the inbox through the
 #      retro capture, its finished story tolerates an untriaged child (chezmoi-wgi), and its
-#      ticket orchestrator waits on the owner lock in one bounded until-loop, never a check-and-sleep loop
-#      by hand (chezmoi-sn1), and its frontier spawn and the ticket orchestrator brief end the turn
+#      task orchestrator waits on the owner lock in one bounded until-loop, never a check-and-sleep loop
+#      by hand (chezmoi-sn1), and its frontier spawn and the task orchestrator brief end the turn
 #      after spawning and carry the idle rule (chezmoi-p4q), and its integration branch is
-#      feat/<story-id> keyed or not, a delivered story with an open agent ticket passes one
+#      feat/<story-id> keyed or not, a delivered story with an open agent task passes one
 #      merge guard (MERGED, CLOSED unmerged, OPEN, ask), a story-closure wait says to merge
 #      and run /close-story, and the sibling line is <repo> <story-id> <url> (chezmoi-9v4.1.5,
 #      ADR 0011), and its clean-up step removes worktrees with the sandbox disabled up front,
@@ -122,19 +122,19 @@
 #      report's worktrees: line instead of forcing it (chezmoi-73d), only inside the owner
 #      checkout's resolved top level and not inside a linked worktree nested there (dev-114,
 #      dev-f61), nor that nested checkout itself while it holds a listed worktree (dev-wcv),
-#      nor any .worktrees/ entry but a hand-rolled ticket worktree (dev-dzu),
+#      nor any .worktrees/ entry but a hand-rolled task worktree (dev-dzu),
 #      then names every untracked, non-ignored file on the report's stray: line
 #      without deleting it (dev-9ft), its deliver
 #      step waits for the PR's forge checks and makes a red one a failed: line, a missing forge
 #      or check a checks: skipped line (dev-xc2), and its implementer,
 #      fix-up and conflict-resolution briefs start with the TMPDIR line, whose rule section 6
 #      checks in orchestration.md (chezmoi-3eg), and its reviewer brief tags every finding
-#      blocking or minor and ends on the verdict line, its ticket orchestrator step 3 and story review step 7
+#      blocking or minor and ends on the verdict line, its task orchestrator step 3 and story review step 7
 #      pointing at the rules doc's Review verdict, whose rule section 6 checks (chezmoi-49k),
-#      and its ticket orchestrator brief states the ticket row's parameters, the run's check
+#      and its task orchestrator brief states the task row's parameters, the run's check
 #      command (step 3 fails a run with no check target) and the harness doc in one line, writes a check
-#      record per tree SHA, reviews with mattpocock-skills:code-review and lands its own ticket
-#      (lock wait, stray-commit check, merge; a conflict to an implementer in the ticket's
+#      record per tree SHA, reviews with mattpocock-skills:code-review and lands its own task
+#      (lock wait, stray-commit check, merge; a conflict to an implementer in the task's
 #      worktree, then a fast-forward, the resolved tree checked and not reviewed again, three
 #      resolutions per landing, dev-6qi), a red record checked again, a fix-up that commits
 #      nothing checked again at steps 3 and 7, the story gate exiting on a reviewed tip (dev-vnf), with the
@@ -142,7 +142,7 @@
 #      and its story gate (step 7) is the rules doc's Check gate loop at the story row: it exits
 #      when the checks are green on the tip the review called clean, reads the checks from the
 #      check records, keeps the reviewed tip in the story's review: note, reviews the story's body
-#      (spec) and what entered since the ticket reviews (standards), sends a red or a blocking
+#      (spec) and what entered since the task reviews (standards), sends a red or a blocking
 #      verdict to a fresh fix-up, three per story, the fourth failed, and spends nothing on the
 #      minors fix-up; its deliver step (8) leaves the PR a draft, its Evidence the delivered tip's
 #      check record, and step 9 removes the records; "Running the checks" and "the command and
@@ -150,14 +150,14 @@
 #      branch, the Evidence run and the second-red stall) (dev-cq0.1.5, dev-1xf.1.3, dev-9k5.1.9); section 6 checks the
 #      rules doc's Check gate;
 #   9. /close-story: its Forgejo/Gitea query carries --repo <path> as the intro and
-#      /implement-story's merge guard do (dev-hac); its ticket check skips a child carrying
+#      /implement-story's merge guard do (dev-hac); its task check skips a child carrying
 #      needs-triage or wontfix, as the finished story does, and its refusal names each open
 #      child's status and label (chezmoi-afn);
-#  10. the tracker and orchestration docs: both name the story DAG and the human gate ticket,
+#  10. the tracker and orchestration docs: both name the story DAG and the human gate task,
 #      and neither puts chains out of scope in any wording (section 5 sweeps "only text
 #      blocker" and "chains are out of scope"); the orchestration
-#      doc ends a story-closure wait as a human stop and readies a publish ticket on its
-#      story's tickets; the tracker doc's story body shows no unfillable gate ticket line
+#      doc ends a story-closure wait as a human stop and readies a publish task on its
+#      story's tasks; the tracker doc's story body shows no unfillable gate task line
 #      and orders a middle story of a chain in one topological pass, creates every
 #      repo-session story under the epic bead, and makes a deploy split wait on the
 #      earlier story's closure (ADR 0011).
@@ -174,7 +174,7 @@
 #      gone (dev-qfz, INFRA-30).
 #  13. the brief rule: in every .md file under the skills dir, a brief block (a markdown quote,
 #      from a line starting with `>`, indented or not, to the next blank line: the blocks the
-#      orchestration skills send to ticket orchestrators, cutters, implementers and reviewers) never
+#      orchestration skills send to task orchestrators, cutters, implementers and reviewers) never
 #      names the plugin-root variable CLAUDE_PLUGIN_ROOT, which Bash never has and the harness
 #      fills in only in the skill text it loads (the rules doc's Plugin root rule); the skill's
 #      path and the line are named. Outside a brief, where the skill itself resolves the
@@ -418,18 +418,18 @@ while IFS=$'\t' read -r check d phrase; do
   case $check in has|hasc) "$check" "$d" "$phrase" ;; '#'*|'') ;; *) bad "implement-spec-pins.tsv: unknown check $check" ;; esac
 done < "$root/scripts/implement-spec-pins.tsv"
 epic_fourth_failure_lines
-# the glossary avoids "human ticket" for the human gate ticket ("ready-for-human ticket" is fine)
-lacks "glossary's avoided term human ticket" '(^|[^-])human ticket'
+# the glossary avoids "human task" for the human gate task ("ready-for-human task" is fine)
+lacks "glossary's avoided term human task" '(^|[^-])human task'
 # the epic row reviews and marks ready, but opening a PR stays the story orchestrator's
 lacks "PR-opening steps" 'draft PR|pr create|pulls create|open(s|ing)? (a|the) PR'
 lacks "a budget of blocking verdicts only" 'three blocking verdicts'
 lacks "a spent budget skipping the review" 'is failed and not reviewed again'
-lacks "nothing touches a ticket" 'nothing below touches a ticket'
+lacks "nothing touches a task" 'nothing below touches a task'
 # dev-47z: the review set reads the delivered: note, not a failed: report this run
 lacks "review set keyed on a failed: report this run" 'did not report `failed:` this run'
 lacks "the paginated tea pr list" 'tea pr list'
 has "frontmatter" 'disable-model-invocation: true'
-has "legacy line" 'refused: flat epic (tickets directly under the epic bead); the story skills do not handle it — the small-bug path does: /mattpocock-skills:implement <ticket-id> per ticket, then bd close <epic-id>'
+has "legacy line" 'refused: flat epic (tasks directly under the epic bead); the story skills do not handle it — the small-bug path does: /mattpocock-skills:implement <task-id> per task, then bd close <epic-id>'
 has "add-dir refusal" '/add-dir <'
 hasc "Human stop" '**Human stop**'
 hasc "Stall" '**Stall**'
@@ -454,7 +454,7 @@ fi
 # /workflow prints each next command with the argument filled in, so a fresh session types it as-is
 if doc 2 "/workflow" "$skills/workflow/SKILL.md"; then
 hasc "workflow prints the story cut's argument" 'next: `/dev:spec-to-stories <arg>`'
-hasc "workflow prints the ticket cut's argument" 'next: `/dev:spec-to-tickets <arg>`'
+hasc "workflow prints the task cut's argument" 'next: `/dev:spec-to-tasks <arg>`'
 fi
 doc 2 "/close-epic" "$skills/close-epic/SKILL.md" || true   # no pins of its own; section 5 sweeps it
 if doc 2 "runbook" "$runbook"; then
@@ -462,26 +462,26 @@ if doc 2 "runbook" "$runbook"; then
 # writes it in the 3a and 3b rows below (chezmoi-nz0)
 hasc "argument paragraph" '**The argument.**'
 # the flat path (row 4b) runs the checks before the one review tool, and its review is the
-# ticket review; "ticket gate" is retired so "gate" means the checks in every doc (dev-cq0.1.3)
+# task review; "task gate" is retired so "gate" means the checks in every doc (dev-cq0.1.3)
 line_has '^[|] 4b [|]' "flat path runs the checks before the review" "then the checks (the owner repo's check command), then \`/mattpocock-skills:code-review\`"
-line_has '^[|] 4a [|] `/dev:implement-spec`' "4a names the ticket orchestrators" '**ticket orchestrator**'
-# 4a's check gate reviews medium and high tickets, a low ticket's gate being its checks (ADR 0015)
-line_has '^[|] 4a [|] `/dev:implement-spec`' "4a reviews medium and high tickets" '(the checks, then, for `medium` and `high`, a review one tier up'
+line_has '^[|] 4a [|] `/dev:implement-spec`' "4a names the task orchestrators" '**task orchestrator**'
+# 4a's check gate reviews medium and high tasks, a low task's gate being its checks (ADR 0015)
+line_has '^[|] 4a [|] `/dev:implement-spec`' "4a reviews medium and high tasks" '(the checks, then, for `medium` and `high`, a review one tier up'
 hase "the one review tool paragraph" '^One review tool, three rows'
-# the ticket review is medium and high only, every owner repo having a check command (ADR 0015)
-hasc "the runbook reviews medium and high tickets" "ticket's review model, for \`medium\` and \`high\`; at the story"
-lacks "the runbook's ticket review limited to medium and high" '(`medium` and `high` only)'
+# the task review is medium and high only, every owner repo having a check command (ADR 0015)
+hasc "the runbook reviews medium and high tasks" "task's review model, for \`medium\` and \`high\`; at the story"
+lacks "the runbook's task review limited to medium and high" '(`medium` and `high` only)'
 line_has '^[|] 4a [|] opus [|]' "session model 4a: the epic orchestrator session" 'The epic orchestrator session'
 
-hasc "flat path's review is the ticket review" 'the ticket review (switch'
-lacks "retired ticket gate name in the runbook" 'ticket gate'
+hasc "flat path's review is the task review" 'the task review (switch'
+lacks "retired task gate name in the runbook" 'task gate'
 
 # flat /to-tickets appears only in the Variants section
 unchanged_file || awk '/^## /{sec=$0} /\/mattpocock-skills:to-tickets/ && sec !~ /Variants/ {print NR": "$0; n=1} END{exit n}' "$f" >/dev/null \
   || bad "/mattpocock-skills:to-tickets outside Variants"
 
 # stale wording
-for pat in 'cross-repo ticket' 'per-ticket `pr:`' 'single orchestrator' 'one orchestrator drives'; do
+for pat in 'cross-repo task' 'per-task `pr:`' 'single orchestrator' 'one orchestrator drives'; do
   lacksf "stale wording" "$pat"
 done
 # session mode (ADR 0008): runbook-only retired wording is absent (section 5 sweeps the walk-up list), the mode is named
@@ -496,17 +496,17 @@ hasc "inbox is the home's beads" "the home's beads"
 line_lacks '^\| 4a \|' "sonnet at 4a in session-model table" sonnet
 
 # required content
-hasc "one-line flow" '/mattpocock-skills:grill-with-docs → /mattpocock-skills:to-spec → /dev:spec-to-stories → /dev:spec-to-tickets → /dev:implement-spec → /dev:close-epic'
+hasc "one-line flow" '/mattpocock-skills:grill-with-docs → /mattpocock-skills:to-spec → /dev:spec-to-stories → /dev:spec-to-tasks → /dev:implement-spec → /dev:close-epic'
 hase "4a session model is opus" '^\| 4a \| opus'
 hase "3a row" '^\| 3a \| `/dev:spec-to-stories <KEY>-<n>`'
-hase "3b row" '^\| 3b \| `/dev:spec-to-tickets <KEY>-<n>`'
+hase "3b row" '^\| 3b \| `/dev:spec-to-tasks <KEY>-<n>`'
 hase "1-3b session model is fable" '^\| 1–3b \| fable'
 hasc "exploration notes path" '`<repo>/.spec-notes/<epic-id>/`'
 for need in '/dev:implement-story <story-id>' '/dev:close-story' 'story bead' 'GLOSSARY.md'; do
   hasc "runbook content" "$need"
 done
 # the story DAG's runbook text (ADR 0011): add mode, and the human stop's merge-then-close line
-# as the skills print it; the ticket cut's chain refusal is retired
+# as the skills print it; the task cut's chain refusal is retired
 hasc "add mode in the runbook" 'add mode'
 hasc "human-stop merge line in the runbook" 'merge its PR, then run `/dev:close-story <story-id>`'
 hasc "printed human-stop line in the runbook" 'the PR to merge and the /dev:close-story <story-id> to run'
@@ -600,7 +600,7 @@ hasc "several crates in one story out of scope" 'several crates in one story'
 has "add mode" 'add mode'
 lacks "unconditional stories-exist refusal" 'refused: stories exist'
 hasc "refusal only when every story is closed" 'refused: every story is closed'
-hasc "add mode shows each story's state" 'finished, open with failed tickets, waiting'
+hasc "add mode shows each story's state" 'finished, open with failed tasks, waiting'
 hasc "add mode reads the failed twice: notes" 'names the `failed twice:` reason it answers'
 hasc "add mode quizzes the additions only" 'quizzes the additions only'
 # one forge query per finished story an addition touches, sandbox-disabled as /close-story's
@@ -612,7 +612,7 @@ hasc "MERGED forces a new story on the old one's closure" 'a new story blocked o
 hasc "MERGED reminds the close" 'run `/dev:close-story <story-id>`'
 hasc "OPEN defaults to a re-cut" '`OPEN` defaults to a re-cut'
 hasc "no forge or a branch-form pr: asks the user" 'a branch-form `pr:` value asks the user'
-# OPEN's re-cut marks the finished dependent so the ticket cut may re-cut it past its pr: note;
+# OPEN's re-cut marks the finished dependent so the task cut may re-cut it past its pr: note;
 # a PR closed unmerged is refused, as /implement-story's merge guard refuses it (story review 1)
 hasc "OPEN marks the finished dependent for a re-cut" '`recut: <dep repo> publish <crate> <version>`'
 hasc "a PR closed unmerged is refused" 'refused: PR <url> is closed unmerged'
@@ -624,16 +624,16 @@ hasc "add mode leaves Jira untouched" 'the Jira description is untouched'
 
 fi
 
-# ---- 4. /spec-to-tickets ----
-if doc 4 "/spec-to-tickets" "$skills/spec-to-tickets/SKILL.md"; then
+# ---- 4. /spec-to-tasks ----
+if doc 4 "/spec-to-tasks" "$skills/spec-to-tasks/SKILL.md"; then
 has "frontmatter" 'disable-model-invocation: true'
 has "no-stories refusal" 'refused: no stories'
 has "every-story-cut refusal" 'refused: every story already cut'
-has "every-story-cut remedy" 're-cut one with /dev:story-to-tickets <story-id>'
+has "every-story-cut remedy" 're-cut one with /dev:story-to-tasks <story-id>'
 has "preflight pointer" '"Working-directory preflight"'
 has "epic gather pointer" '"gather the epic bead"'
 # the same argument rule as /spec-to-stories (chezmoi-nz0)
-hasc "usage line" 'usage: /dev:spec-to-tickets <KEY>-<n>|<epic-id>'
+hasc "usage line" 'usage: /dev:spec-to-tasks <KEY>-<n>|<epic-id>'
 lacks "no-argument epic recovery" 'ended on in the conversation|ask the user for it'
 has "already cut line" '<repo> <story-id> already cut'
 hasc "waiting rule pointer" 'the "Waiting" rule of `harness.md`'
@@ -649,37 +649,37 @@ has "all-closed refusal" 'refused: every story closed'
 has "closed-uncut dependency line" 'dependency story closed uncut'
 has "failed publish line" '<repo> <story-id> publish failed: <reason>'
 has "dependent of a failed publish line" 'waiting on <dep repo> publish'
-has "dependency cut without a publish ticket waits" 'has no `publish <crate> <version>` child'
+has "dependency cut without a publish task waits" 'has no `publish <crate> <version>` child'
 has "closed-uncut remedy reopens the dependency" 'bd -C <repo> reopen <id>'
-has "Jira comment covers every story" 'every story of the feature that has tickets'
-lacks "Jira comment limited to this run" 'tickets this run published'
+has "Jira comment covers every story" 'every story of the feature that has tasks'
+lacks "Jira comment limited to this run" 'tasks this run published'
 lacks "re-sync instruction" 're-sync'
 has "one test pointer" 'the one test'
 has "epic bead writes pointer" '"epic bead writes" convention'
 lacks "story-cut procedure" 'Resolve the spec to its repos|Draft the stories|Quiz the user on the stories|Write the story-cut notes'
-# the ticket cut cuts the story DAG (ADR 0011, chezmoi-9v4.1.8): a cycle is refused naming its
+# the task cut cuts the story DAG (ADR 0011, chezmoi-9v4.1.8): a cycle is refused naming its
 # stories; cutters run in topological waves, one per DAG level, each dependent's brief carrying
 # every upstream breakdown, a story-closure edge ordering no wave; an already cut dependent of a
-# new publish ticket is re-cut inline in the same run, so the rerun hint drops that case
+# new publish task is re-cut inline in the same run, so the rerun hint drops that case
 has "cycle refusal names the stories" 'refused: dependency cycle ('
 has "topological waves" 'topological waves'
 has "one wave per DAG level" 'one wave per level of the story DAG'
 has "dependent brief carries every upstream breakdown" 'one `Dependency:` line per publish blocker'
 has "story-closure edge orders no wave" 'a story-closure edge orders no wave'
-has "the ticket cut re-cuts an already cut dependent" 're-cuts that dependent itself'
+has "the task cut re-cuts an already cut dependent" 're-cuts that dependent itself'
 has "the re-cut adds a second bump" 'second bump'
 # a skipped repo's publish line has no dependency story; the inline re-cut is keyed on the
 # missing bump; a finished dependent is excluded at step 1, and a failed re-cut of a dependency
-# that has its publish ticket holds no dependent back (chezmoi-9v4.1.8 review 1)
+# that has its publish task holds no dependent back (chezmoi-9v4.1.8 review 1)
 has "skipped publish line is an edge with no dependency" 'an edge with no dependency in the run'
 has "re-cut keyed on the missing bump" 'has no bump child titled with that crate'
 has "finished dependent excluded at step 1" 'cut failed: finished story (pr: note present)'
-has "failed re-cut with a publish ticket holds nothing" 'already has its publish ticket holds nothing'
+has "failed re-cut with a publish task holds nothing" 'already has its publish task holds nothing'
 hasc "re-cut dependent also waits on a dependency without its publish" 'A dependent of the run (in the set to cut or to re-cut) with such an edge'
 # a re-cut dependent that is also a dependency joins the trigger until no story joins, and no
 # dependent waits on a publish the run creates; the cut-failure cascade covers only the run's
 # dependencies, after the closed-uncut rule, so no story gets two report lines (review 2)
-has "re-cut dependent without its publish joins the trigger" 'a dependent to re-cut without its publish ticket'
+has "re-cut dependent without its publish joins the trigger" 'a dependent to re-cut without its publish task'
 has "trigger applied to a fixed point" 'applied until no story joins'
 has "no wait on a publish the run creates" 'and is not re-cut in this run'
 has "cascade narrowed to the run's dependencies" 'a dependency of the run whose cutter failed or that was itself held back'
@@ -716,7 +716,7 @@ retired_dag='one story per repo|feat/<key>-<n>|chains are out of scope|only text
 # run that reviews a fix, the third-round wording and the second-red stall
 retired_loop='evidence run|a later run reviews the fix|a third round of either kind|a second red'
 # the gate with no check command (ADR 0015): every owner repo has a check target, so no doc names
-# a review-only gate or a repo, ticket or gate without a check command
+# a review-only gate or a repo, task or gate without a check command
 retired_gate='review-only|no check command|with(out)? a check command'
 # a rule that moved to harness.md (dev-9k5.1.2) cited at the rules doc, doc first as "the rules
 # doc's Worktrees", "the rules doc's worktree fallback", "the rules doc's Scratch space says
@@ -736,7 +736,7 @@ while IFS= read -r f; do
   lacksw "retired story-DAG wording in $f" "$retired_dag"
   lacksw "retired two-gate wording in $f" "$retired_loop"
   lacksw "retired review-only gate wording in $f" "$retired_gate"
-  # the retired vocabulary (dev-9k5.1.11): the epic, ticket and landing roles, the built-in
+  # the retired vocabulary (dev-9k5.1.11): the epic, task and landing roles, the built-in
   # review by name, the review marker, the lint command and the test seams as checks
   retired_row_names
   lacksw "the retired review marker in $f" 'review markers?'
@@ -779,10 +779,10 @@ lacks "profile-gated push in the rules doc" 'when the active profile permits'
 # and commits there are the story orchestrator's (chezmoi-cdf, ADR 0010)
 hasc "beads-only principle for the epic-level stages" 'only through its beads database'
 lacks "the story cut commits the /.spec-notes/ line" 'The story cut commits'
-# a ticket whose runner ended without closing it keeps its claim and bd ready omits it, so the
+# a task whose runner ended without closing it keeps its claim and bd ready omits it, so the
 # story orchestrator unclaims it; a human does so only when the orchestrator could not (chezmoi-jvc)
 hasc "frontier unclaim rule" '**Unclaim.**'
-# the frontier admits only ready-for-agent tickets, not merely those without ready-for-human,
+# the frontier admits only ready-for-agent tasks, not merely those without ready-for-human,
 # so a needs-triage child filed under a story never gets a runner (chezmoi-wgi)
 hasc "frontier admits ready-for-agent only" 'it is labelled `ready-for-agent`'
 lacks "frontier keyed on ready-for-human alone" 'it is not labelled `ready-for-human`'
@@ -816,20 +816,20 @@ para_has '**Review verdict.**' "every minor unfixed when the unit lands or fails
 # elsewhere in the doc cannot stand in
 hasc "the loop sentence" 'claim a unit, have a subagent build it, check it, review it, send a failure to a fresh fix-up or land it at the row above, and report one line'
 line_has '^[|] Row [|]' "the table's header names every parameter" '| Orchestrator | Builds | Checks | Review spec axis | Review standards axis | Reviewer and model | Fix-up | Lands by | Exits when | Budget |'
-row='^[|] [*][*]Ticket[*][*] [|]'
-line_has "$row" "ticket row: the ticket orchestrator" '| ticket orchestrator |'
-line_has "$row" "ticket row: one implementer in a worktree" '| one implementer in a worktree |'
-line_has "$row" "ticket row: the ticket's body as spec" "| the ticket's body |"
-line_has "$row" "ticket row: the ticket diff as standards" '| the ticket diff |'
-line_has "$row" "ticket row: both axes at the review model, none at low" "| both axes, at the ticket's review model; none at \`low\` |"
-line_has "$row" "ticket row: lands by merge under the lock after the stray-commit check" 'merge onto the integration branch under the lock, after the stray-commit check'
-line_has "$row" "ticket row: a fix-up by pointer brief, same worktree" '| an implementer by pointer brief, same worktree |'
-line_has "$row" "ticket row: three fix-ups and three conflict resolutions per landing" '| three fix-ups; three conflict resolutions per landing |'
+row='^[|] [*][*]Task[*][*] [|]'
+line_has "$row" "task row: the task orchestrator" '| task orchestrator |'
+line_has "$row" "task row: one implementer in a worktree" '| one implementer in a worktree |'
+line_has "$row" "task row: the task's body as spec" "| the task's body |"
+line_has "$row" "task row: the task diff as standards" '| the task diff |'
+line_has "$row" "task row: both axes at the review model, none at low" "| both axes, at the task's review model; none at \`low\` |"
+line_has "$row" "task row: lands by merge under the lock after the stray-commit check" 'merge onto the integration branch under the lock, after the stray-commit check'
+line_has "$row" "task row: a fix-up by pointer brief, same worktree" '| an implementer by pointer brief, same worktree |'
+line_has "$row" "task row: three fix-ups and three conflict resolutions per landing" '| three fix-ups; three conflict resolutions per landing |'
 row='^[|] [*][*]Story[*][*] [|]'
 line_has "$row" "story row: the story orchestrator" '| story orchestrator |'
-line_has "$row" "story row: ticket orchestrators over the frontier" '| ticket orchestrators in parallel over the frontier |'
+line_has "$row" "story row: task orchestrators over the frontier" '| task orchestrators in parallel over the frontier |'
 line_has "$row" "story row: the story's body as spec" "| the story's body |"
-line_has "$row" "story row: what entered since as standards" "what entered since the last standards review: conflict resolutions, cross-ticket coherence and the story gate's fix-up commits"
+line_has "$row" "story row: what entered since as standards" "what entered since the last standards review: conflict resolutions, cross-task coherence and the story gate's fix-up commits"
 line_has "$row" "story row: both axes at the review model of the story's max tier" "| both axes, at the review model of the story's max tier |"
 line_has "$row" "story row: a fix-up by pointer brief in a fix-up worktree" '| an implementer by pointer brief in a fix-up worktree |'
 line_has "$row" "story row: lands by a push, the PR a draft" '| push, the PR staying a draft |'
@@ -841,10 +841,10 @@ line_has "$row" "epic row: the check command as the forge runs it" '| the check 
 line_has "$row" "epic row: the Jira Epic's spec" "| the Jira Epic's spec |"
 line_has "$row" "epic row: no standards axis" '| none, the axis is skipped |'
 line_has "$row" "epic row: the spec axis only at the review model of the epic's max tier" "| the spec axis only, at the review model of the epic's max tier |"
-line_has "$row" "epic row: findings filed as tickets, the story re-run in add mode" '| findings filed as `ready-for-agent` tickets under the story, that story re-run in add mode |'
+line_has "$row" "epic row: findings filed as tasks, the story re-run in add mode" '| findings filed as `ready-for-agent` tasks under the story, that story re-run in add mode |'
 line_has "$row" "epic row: the PR marked ready, the human merges" 'the PR marked ready, the human merges'
 line_has "$row" "epic row: three per story" '| three per story |'
-for r in Ticket Story Epic; do
+for r in Task Story Epic; do
   line_has "^[|] [*][*]$r[*][*] [|]" "$r row: the check command" '| the check command'
   line_has "^[|] [*][*]$r[*][*] [|]" "$r row: the one exit" '| the checks green on the tip the review called clean |'
 done
@@ -871,17 +871,17 @@ para_has '**Check scope.**' "a fix-up that commits nothing has its tree checked 
 para_has '**Check gate.**' "a fix-up that commits nothing after a blocking verdict is reviewed again" 'After a blocking verdict the unchanged tree keeps its green record'
 lacks "a fix-up that commits nothing re-reading the red record" 'a fix-up that commits nothing re-reads the red record'
 # a landing's conflict resolutions are capped per landing, apart from the fix-up budget, the
-# fourth conflict failing the ticket (dev-6qi)
-para_has '**Landing a ticket.**' "a landing takes at most three conflict resolutions" 'A landing takes at most three conflict resolutions'
-para_has '**Landing a ticket.**' "the resolution cap is apart from the fix-up budget" 'apart from the fix-up budget'
-para_has '**Landing a ticket.**' "the fourth conflict fails the ticket" 'the fourth conflict ends the ticket `failed`'
+# fourth conflict failing the task (dev-6qi)
+para_has '**Landing a task.**' "a landing takes at most three conflict resolutions" 'A landing takes at most three conflict resolutions'
+para_has '**Landing a task.**' "the resolution cap is apart from the fix-up budget" 'apart from the fix-up budget'
+para_has '**Landing a task.**' "the fourth conflict fails the task" 'the fourth conflict ends the task `failed`'
 para_has '**Check scope.**' "a changed tree is checked again" 'changes the tree, so it is checked again'
 # the six trust rules, a closed list
 hasc "trust rule 1: reviewer one tier up" '1. The reviewer runs one tier of model above the implementer'
 hasc "trust rule 2: a fresh fix-up, never a message back" "2. A fix-up is a fresh implementer in the unit's worktree, never a message back"
 hasc "trust rule 3: an implementer's own check runs never count" "3. An implementer's own check runs never count"
 hasc "trust rule 4: the stray-commit check before every merge and push" '4. The stray-commit check runs before every merge and every push'
-hasc "trust rule 5: only ready-for-agent tickets are claimed" '5. Only `ready-for-agent` tickets are claimed'
+hasc "trust rule 5: only ready-for-agent tasks are claimed" '5. Only `ready-for-agent` tasks are claimed'
 hasc "trust rule 6: the typed command authorises delivery" '6. The typed command authorises delivery'
 hasc "the trust rules are a closed list" 'The list is closed: a rule that wants to join needs an ADR'
 # one check command, make check, every owner repo having the target and a story run failing in
@@ -914,9 +914,9 @@ para_has '**Check gate.**' "and spend nothing" 'no budget is spent'
 para_has '**Check gate.**' "the reviewed tip noted on the story" 'records the reviewed tip in its notes'
 para_has '**Check gate.**' "the gate exits on the moved tip" 'the gate exits on the moved tip once its checks are green'
 para_has '**Check gate.**' "the reviewed-tip note names the moved tip" 'the reviewed-tip note on the story bead'
-para_has '**Check gate.**' "the ticket row writes no reviewed-tip note" 'the ticket row writes no such note'
-# a low ticket's gate is its checks, every owner repo having a check command (ADR 0015)
-para_has '**Check gate.**' "a low ticket is gated by the checks alone" 'A `low` ticket'"'"'s gate is the checks alone, with no review'
+para_has '**Check gate.**' "the task row writes no reviewed-tip note" 'the task row writes no such note'
+# a low task's gate is its checks, every owner repo having a check command (ADR 0015)
+para_has '**Check gate.**' "a low task is gated by the checks alone" 'A `low` task'"'"'s gate is the checks alone, with no review'
 # the fix-up budget is bounded per invocation at every row (dev-gi1): a fresh orchestrator at any
 # row starts its unit's budget at three whatever notes earlier invocations left, the epic
 # orchestrator counts a story's spent budget from the notes after this invocation's epic review 1,
@@ -924,16 +924,16 @@ para_has '**Check gate.**' "a low ticket is gated by the checks alone" 'A `low` 
 para_has '**Check gate.**' "a fresh orchestrator starts its unit's budget at three" "starts its unit's budget at three whatever notes earlier invocations left"
 para_has '**Check gate.**' "the fresh budget holds at any row" 'A fresh orchestrator at any row'
 para_has '**Check gate.**' "a resumed agent keeps its own count" 'an agent resumed with its context keeps its own count'
-para_has '**Check gate.**' "neither the ticket row nor the story row records spent fix-ups" 'neither the ticket row nor the story row records spent fix-ups'
+para_has '**Check gate.**' "neither the task row nor the story row records spent fix-ups" 'neither the task row nor the story row records spent fix-ups'
 para_has '**Check gate.**' "the epic orchestrator counts from the notes after this invocation's epic review 1" "counts a story's spent budget from the story's \`epic fix-up\` notes after this invocation's \`epic review 1\` note"
 para_has '**Check gate.**' "the bound is per invocation, citing dev-l4j" 'bound a person wants is per invocation (dev-l4j)'
 lacks "the epic row named as the budget's exception" 'The epic row is the exception'
 para_has '**The epic row.**' "the epic row's checks are the forge's status on the PR tip" "the forge reports them green on the PR's tip"
 # the epic row settles its own red check and minors (dev-bwh): a red check is filed like a
-# blocking finding, a ticket under the story, and spends the budget; a clean verdict's minors
+# blocking finding, a task under the story, and spends the budget; a clean verdict's minors
 # take no last fix-up, which the epic orchestrator cannot run, and go to the inbox
 para_has '**The epic row.**' "a red check at the epic row is filed like a blocking verdict" 'On a blocking verdict or a red check'
-para_has '**The epic row.**' "the red check's ticket carries its check, command and log" 'carries its check, its command and its log pointer'
+para_has '**The epic row.**' "the red check's task carries its check, command and log" 'carries its check, its command and its log pointer'
 para_has '**The epic row.**' "a red check spends the epic row's budget" 'three such fix-ups per story per invocation, red or blocking alike'
 para_has '**The epic row.**' "a pending check leaves the PR a draft" 'the PR stays a draft and a later invocation reads it again'
 para_has '**The epic row.**' "the epic row's minors take no last fix-up" 'minors take no last fix-up at this row'
@@ -1012,10 +1012,10 @@ if doc 6 "tracker rules" "$agents/issue-tracker.md"; then
 para_has '**Has a database.**' "the rule checks bd where" '`bd -C <repo> where` then prints `<repo>/.beads`'
 para_has '**Has a database.**' "a .beads where does not name is no database" 'counts as no database'
 para_has '**Has a database.**' "every gate cites the rule" 'applies this rule and cites it'
-# every ticket passes the check gate; only the review is medium and high (ADR 0014, ADR 0015)
-lacks "medium and high tickets passing the check gate" '`medium` and `high` tickets pass the check gate'
-hasc "every ticket passes the check gate" 'every ticket passes the check gate'
-hasc "the tracker doc reviews medium and high tickets" 'only `medium` and `high` tickets add the review'
+# every task passes the check gate; only the review is medium and high (ADR 0014, ADR 0015)
+lacks "medium and high tasks passing the check gate" '`medium` and `high` tasks pass the check gate'
+hasc "every task passes the check gate" 'every task passes the check gate'
+hasc "the tracker doc reviews medium and high tasks" 'only `medium` and `high` tasks add the review'
 # the one test of the session mode (ADR 0008), stated once, in the opening before any section
 for need in '`<home>` is the session'"'"'s repo' '`<home>/repos.yaml`' '**workspace session**' '**repo session**' 'the only owner'; do
   opening_has "the tracker doc's one test" "$need"
@@ -1023,9 +1023,9 @@ done
 hasc "epic gather section" 'When a skill says "gather the epic bead"'
 has "other-repo refusal" 'refused: epic bead lives in <repo>'
 has "closed refusal" 'refused: epic bead is closed'
-has "flat epic refusal" 'refused: flat epic (tickets directly under the epic bead)'
-has "re-cut creates a missing publish ticket" 'has no publish ticket'
-lacks "Jira comment gated on every ticket" "When all of a run's tickets are published"
+has "flat epic refusal" 'refused: flat epic (tasks directly under the epic bead)'
+has "re-cut creates a missing publish task" 'has no publish task'
+lacks "Jira comment gated on every task" "When all of a run's tasks are published"
 hasc "spec fetch section" 'When a skill says "fetch the spec"'
 has "Spec: file fallback" 'The file a `Spec: <path>` line'
 # the line's one canonical form, stated in the gather section and read by the fallback (chezmoi-dz4)
@@ -1062,7 +1062,7 @@ fi
 # checks /implement-spec, whose skill may be passed as $1. A gating skill with a section of its
 # own fails there when missing, not here
 section "6. database gates"
-for g in spec-to-stories spec-to-tickets story-to-tickets close-epic retro; do
+for g in spec-to-stories spec-to-tasks story-to-tasks close-epic retro; do
   f=$skills/$g/SKILL.md
   [ -f "$f" ] || continue
   hasc "/$g cites the tracker doc's \"Has a database\" rule" '"Has a database" rule'
@@ -1089,8 +1089,8 @@ hasc "ADR 0001 is superseded by 0014" 'status: superseded by ADR 0014'
 hasc "ADR 0001 points at ADR 0014" 'docs/adr/0014-one-loop-at-three-rows.md'
 fi
 
-# ---- 7. /story-to-tickets ----
-if doc 7 "/story-to-tickets" "$skills/story-to-tickets/SKILL.md"; then
+# ---- 7. /story-to-tasks ----
+if doc 7 "/story-to-tasks" "$skills/story-to-tasks/SKILL.md"; then
 has "spec fetch pointer" 'Fetch the spec as the tracker doc'"'"'s "fetch the spec" says'
 has "story cutter trigger" '**Called, draft role ("story cutter"'
 has "publish trigger" 'opens `Publish this block`'
@@ -1100,25 +1100,25 @@ has "one test pointer" 'the one test'
 has "home name in the Parent line template" 'home <home name>'
 has "epic bead writes pointer" '"epic bead writes" convention'
 # the pair is read per edge of the story DAG (ADR 0011): a dependent for each publish
-# blocker, one bump per publish blocker, a dependency when it holds a publish ticket
+# blocker, one bump per publish blocker, a dependency when it holds a publish task
 has "pair read per edge" 'Dependency pair, per edge'
 has "one bump per publish blocker" 'one bump per publish blocker'
 has "brief carries a Dependency line per publish blocker" 'one `Dependency:` line per publish blocker'
 has "brief carries a Dependent line per dependent" 'one `Dependent:` line per dependent'
-# the two refusals: two publish tickets in one story, and a finished story pointing at add mode
-has "two publish tickets refusal" 'refused: block carries two publish tickets; one PR publishes one version'
+# the two refusals: two publish tasks in one story, and a finished story pointing at add mode
+has "two publish tasks refusal" 'refused: block carries two publish tasks; one PR publishes one version'
 has "finished-story refusal names add mode" 'add mode (/dev:spec-to-stories <KEY>-<n>, or the epic bead id when the story has no key)'
 has "finished story marked by add mode is re-cut" 'unless its notes carry a `recut:` line'
-# a re-cut that gained a publish blocker adds a second bump and re-edges open tickets
+# a re-cut that gained a publish blocker adds a second bump and re-edges open tasks
 has "re-cut adds a bump per new publish blocker" 'gained a publish blocker'
-has "re-cut re-edges kept tickets onto the new bump" 'kept ones with `bd dep add <ticket id> <bump id>`'
+has "re-cut re-edges kept tasks onto the new bump" 'kept ones with `bd dep add <task id> <bump id>`'
 has "re-cut matches a bump to its blocker by crate" 'a bump covers the blocker whose crate its title names'
-has "publish ticket line shapes" 'a line names a publish ticket when it reads'
+has "publish task line shapes" 'a line names a publish task when it reads'
 has "re-cut cites the tracker doc's per-edge rules" 'the tracker doc'"'"'s per-edge re-cut rules'
-# a story changing what a plugin ships bumps its version first, so no ticket runs red on the
+# a story changing what a plugin ships bumps its version first, so no task runs red on the
 # version-bump rule before the bump lands (dev-b9t)
-has "plugin version bump is the first ticket" 'the plugin version bump as its first ticket'
-has "every other ticket blocked on the plugin bump" 'every other ticket of the story blocked natively on that bump'
+has "plugin version bump is the first task" 'the plugin version bump as its first task'
+has "every other task blocked on the plugin bump" 'every other task of the story blocked natively on that bump'
 has "a re-cut keeps the plugin bump first" 'A re-cut keeps the plugin version bump first'
 
 fi
@@ -1131,7 +1131,7 @@ hasc "refused push is a failed line" 'failed: push'
 # a commit from outside the run (21f770c: a test whose throwaway init failed committed into the
 # enclosing checkout) is refused before the push and before a merger's merge (dev-y1p)
 hasc "deliver step's stray-commit check" 'First the **stray-commit check**, before any push'
-hasc "the ticket orchestrator's landing runs the stray-commit check" 'run the **stray-commit check** on what the merge brings in'
+hasc "the task orchestrator's landing runs the stray-commit check" 'run the **stray-commit check** on what the merge brings in'
 hasc "stray-commit failed: line" 'failed: stray commit <sha> <subject>'
 # the delivery records its tip and check record, which /dev:implement-spec's review set reads (dev-47z)
 hasc "deliver step's delivered: note" 'note <story-id> "delivered: <tip SHA> <check record>"'
@@ -1149,19 +1149,19 @@ hasc "gitignore commit follows the Commits rule" "commit it as the harness doc's
 lacks "a --trailer commit" 'commit [^`]*--trailer'
 hasc "exploration subagent reads the design field" '.[0].design'
 hasc "exploration subagent owns the notes directory" '`<owner>/.spec-notes/<epic-id>/`'
-# a failed ticket orchestrator's ticket is unclaimed at once, a second failure leaves the resume pointer on
+# a failed task orchestrator's task is unclaimed at once, a second failure leaves the resume pointer on
 # it, and the resume section says when a human runs the unclaim instead (chezmoi-jvc)
-hasc "a failed ticket orchestrator's ticket is unclaimed" 'first `bd -C <owner> unclaim <id>`'
+hasc "a failed task orchestrator's task is unclaimed" 'first `bd -C <owner> unclaim <id>`'
 hasc "second failure notes the resume pointer" 'failed twice: <reason>; resume:'
 hasc "hand unclaim condition in the resume section" 'by hand only when'
-# the frontier keeps only ready-for-agent tickets, a deferred review finding is captured in the
+# the frontier keeps only ready-for-agent tasks, a deferred review finding is captured in the
 # inbox through the retro capture and never as a story child, and a story counts as finished
 # with an untriaged child under it (chezmoi-wgi; the Frontier rule itself is checked in 6)
-hasc "frontier keeps ready-for-agent tickets only" 'keeping only the tickets labelled `ready-for-agent`'
-lacks "frontier minus ready-for-human alone" 'minus `ready-for-human` tickets|other than `ready-for-human` ones|non-`ready-for-human`'
+hasc "frontier keeps ready-for-agent tasks only" 'keeping only the tasks labelled `ready-for-agent`'
+lacks "frontier minus ready-for-human alone" 'minus `ready-for-human` tasks|other than `ready-for-human` ones|non-`ready-for-human`'
 hasc "deferred findings go through the retro capture" '"capture a retro item"'
 hasc "finished story tolerates untriaged children" '`needs-triage` or `wontfix`'
-# the ticket orchestrator landing its ticket waits on the owner checkout's lock in one bounded
+# the task orchestrator landing its task waits on the owner checkout's lock in one bounded
 # foreground until-loop, not a check-and-sleep loop by hand (chezmoi-sn1, dev-9k5.1.7; the
 # Waiting rule is checked in 6)
 hasc "the landing waits on the lock with an until-loop" 'until ! [ -e <index lock> ] && ! [ -e <merge head> ]'
@@ -1172,25 +1172,25 @@ hasc "step 9 finds the worktrees directory through git" '`git -C <owner> rev-par
 lacks "a literal <owner>/.git/ path" '<owner>/\.git/'
 hasc "the landing's lock wait is bounded by the call's timeout" 'timeout: 300000'
 lacks "a lock wait sleeping and re-checking the lock by hand" 'waits [0-9]+ seconds|checks again|re-?checks the lock|checks every [0-9]+ seconds'
-# the story orchestrator and the ticket orchestrator end their turn after spawning and are resumed
-# by the completion notification; the ticket orchestrator and its subagents run Bash in the
+# the story orchestrator and the task orchestrator end their turn after spawning and are resumed
+# by the completion notification; the task orchestrator and its subagents run Bash in the
 # foreground only (chezmoi-p4q; the rule itself is checked in 6)
-hasc "frontier spawn ends the turn" 'then end your turn: each ticket orchestrator'
-hasc "ticket orchestrator's spawn ends the turn" 'then end your turn: its report'
+hasc "frontier spawn ends the turn" 'then end your turn: each task orchestrator'
+hasc "task orchestrator's spawn ends the turn" 'then end your turn: its report'
 hasc "the skill names the harness doc's Idle rule" "the harness doc's Idle rule"
 # the implementer, fix-up and conflict-resolving implementer briefs (steps 2, 3 and 4's landing)
 # give check and test runs an explicit ten-minute timeout, so the 120 s default never backgrounds
 # them (dev-7k0, INFRA-30)
 for step in 2 3 4; do
-  line_has "^> $step\. " "the ticket orchestrator brief's step $step: check and test timeout" 'timeout: 600000'
+  line_has "^> $step\. " "the task orchestrator brief's step $step: check and test timeout" 'timeout: 600000'
 done
-# a fresh ticket orchestrator starts at round 1 whatever earlier attempts noted, the Check gate's
-# fresh budget; a replaced implementer's no reset holds within one ticket orchestrator (dev-drw)
+# a fresh task orchestrator starts at round 1 whatever earlier attempts noted, the Check gate's
+# fresh budget; a replaced implementer's no reset holds within one task orchestrator (dev-drw)
 CUT='^> A subagent that returns an API error'
-line_has "$CUT" "a fresh ticket orchestrator starts at round 1" 'so you start at round 1'
+line_has "$CUT" "a fresh task orchestrator starts at round 1" 'so you start at round 1'
 line_has "$CUT" "the fresh start ignores earlier attempts' notes" 'whatever `checks <n>:` or `review <n>:` notes earlier attempts left'
-line_has "$CUT" "the fresh start points at the rules doc's Check gate" "your ticket starts over from \`<branch>\`'s tip (the rules doc's Check gate)"
-line_has "$CUT" "a replaced implementer's no reset holds within one ticket orchestrator" 'no reset within this ticket orchestrator'
+line_has "$CUT" "the fresh start points at the rules doc's Check gate" "your task starts over from \`<branch>\`'s tip (the rules doc's Check gate)"
+line_has "$CUT" "a replaced implementer's no reset holds within one task orchestrator" 'no reset within this task orchestrator'
 line_has '^7\. ' "story fix-up brief names the check and test limit" 'the ten-minute limit on check and test runs'
 # every story-level fix-up after the first reuses the first's worktree and branch, the harness
 # doc's fix-up route, where the skill had left it unstated whether up to three shared one slug,
@@ -1198,19 +1198,19 @@ line_has '^7\. ' "story fix-up brief names the check and test limit" 'the ten-mi
 line_has '^7\. ' "a later story fix-up reuses the first's worktree and branch" "reuses the first's worktree and branch rather than taking a fresh one, on either route"
 line_has '^- `git` follows' "an implementer in a worktree another reported runs git -C" 'into a worktree another reported (a later story-level fix-up, a conflict resolution) runs `git -C <worktree path> …` on either route'
 line_has '^7\. ' "a later story fix-up is spawned without isolation into that worktree" 'without `isolation`, into the worktree and branch the first fix-up reported'
-# the per-ticket reviewer reads the standards the story review reads: the repo's own files and
+# the per-task reviewer reads the standards the story review reads: the repo's own files and
 # the plugin's coding-standards doc by its literal path (dev-co6)
 for need in '`CODING_STANDARDS.md` or `CONTRIBUTING.md`' '<plugin root>/docs/agents/coding-standards.md` spelled as the path this session resolved'; do
-  line_has '^> 3\. ' "the ticket reviewer brief's standards source" "$need"
+  line_has '^> 3\. ' "the task reviewer brief's standards source" "$need"
 done
 # one story is one PR on `feat/<story-id>` (keyed or not); a finished story with an open agent
-# ticket is guarded by one forge query; a story-closure wait says to merge and close; the
+# task is guarded by one forge query; a story-closure wait says to merge and close; the
 # sibling line carries the story id (chezmoi-9v4.1.5, ADR 0011)
 hasc "integration branch is feat/<story-id> for keyed and keyless stories" 'named `feat/<story-id>`, keyed or not'
-hasc "merge guard names the delivered story with an open agent ticket" 'a delivered story with an open `ready-for-agent` ticket'
+hasc "merge guard names the delivered story with an open agent task" 'a delivered story with an open `ready-for-agent` task'
 hasc "merge guard covers a pr: line, a URL or the branch form" 'whose notes carry a `pr:` line'
 hasc "merge guard's MERGED refusal says add mode" 'in add mode (or /dev:spec-to-stories'
-hasc "merge guard's MERGED refusal closes the stray ticket" '; then close <ticket-id> (moved to the new story)'
+hasc "merge guard's MERGED refusal closes the stray task" '; then close <task-id> (moved to the new story)'
 hasc "step 3 defers to the forge decision of the merge guard" '(already decided in step 1 when the merge guard ran)'
 hasc "merge guard decides the forge as step 3 does" 'the forge decided as step 3 says'
 hasc "merge guard's Forgejo query names the repo" 'tea api --repo <owner> repos/{owner}/{repo}/pulls/<n>'
@@ -1221,7 +1221,7 @@ hasc "merge guard refuses a MERGED PR" 'MERGED: refuse'
 hasc "merge guard: OPEN continues on the branch: note's branch" "OPEN: continue on the \`branch:\` note's branch"
 hasc "merge guard asks when the forge cannot tell" '(no forge, or a branch-form `pr:` note)'
 hasc "merge guard asks whether the PR or branch has merged" 'whether the PR, or for the branch form the branch, has merged into the default branch'
-hasc "merge guard leaves the stray ticket until add mode carries its work over" 'until add mode has carried its work into a new story, so close it there then'
+hasc "merge guard leaves the stray task until add mode carries its work over" 'until add mode has carried its work into a new story, so close it there then'
 hasc "story-closure wait says to merge the PR and run /dev:close-story" 'merge its PR and run /dev:close-story <blocker-id>`'
 hasc "a keyless story's branch is still feat/<story-id>" 'its branch is `feat/<story-id>`, as every story'"'"'s is (step 3)'
 hasc "merge guard fires on a child that is not closed" 'while a child that is not closed (open, in_progress or blocked) is labelled `ready-for-agent`'
@@ -1233,7 +1233,7 @@ hasc "merge guard skips the fetch with no origin" '`git -C <owner> fetch origin`
 hasc "merge guard finds the default branch as step 3 says" 'find `<default branch>` as step 3 says; with no `origin`, compare against the local `<default branch>`'
 hasc "sibling line format carries the story id" '`<repo> <story-id> <url>`'
 lacks "the sibling line as <repo> <url>" '`<repo> <url>`'
-lacks "glossary's avoided term human ticket" '(^|[^-])human ticket'
+lacks "glossary's avoided term human task" '(^|[^-])human task'
 # step 9 removes worktrees with the sandbox disabled up front (the sandbox denies deletes under
 # .git/worktrees/ and no setting lifts that), never as a retry after the denial; it sweeps every
 # worktree-agent-* and .worktrees/ worktree whose branch is merged into the integration branch,
@@ -1256,12 +1256,13 @@ line_has '^9\. ' "step 9 skips worktrees of a checkout nested in the owner" 'ins
 line_has '^9\. ' "step 9 spares a nested owner that holds worktrees" 'holds another listed worktree'
 hasc "report template names a nested owner in use" 'in use: holds <child path>'
 # a nested owner that holds no listed worktree yet (before its run's first spawn) is still
-# another run's checkout: under .worktrees/ only a hand-rolled ticket worktree, ticket/<slug>
+# another run's checkout: under .worktrees/ only a hand-rolled task worktree, task/<slug>
 # at .worktrees/<slug>, is swept, and any other entry is reported, not removed (dev-dzu)
-line_has '^9\. ' "step 9 sweeps only a hand-rolled ticket worktree under .worktrees/" 'only a hand-rolled ticket worktree is swept'
-line_has '^9\. ' "step 9 names a ticket worktree by its branch and path" '`refs/heads/ticket/<slug>` at `<top>/.worktrees/<slug>`'
-line_has '^9\. ' "step 9 matches a ticket worktree's branch and path on one slug" 'the same `<slug>` in both'
-hasc "report template names a .worktrees/ entry that is not a ticket worktree" 'not a ticket worktree'
+line_has '^9\. ' "step 9 sweeps only a hand-rolled task worktree under .worktrees/" 'only a hand-rolled task worktree is swept'
+line_has '^9\. ' "step 9 names a task worktree by its branch and path" '`refs/heads/task/<slug>` at `<top>/.worktrees/<slug>`'
+line_has '^9\. ' "step 9 matches a task worktree's branch and path on one slug" 'the same `<slug>` in both'
+line_has '^9\. ' "step 9 leaves a ticket/ worktree in place as not a task worktree" 'a `ticket/<slug>` worktree, the prefix before the rename, is not a task worktree and is left in place'
+hasc "report template names a .worktrees/ entry that is not a task worktree" 'not a task worktree'
 lacks "a nested owner with no children swept by path alone" 'swept like any merged entry'
 lacks "the sweep limited to this run's worktrees" 'every worktree the run made'
 hasc "a locked or unmerged worktree is reported, not removed" 'reported with its path'
@@ -1279,17 +1280,17 @@ hasc "report template shows the stray: line" 'stray:   <path>'
 lacks "step 9 deleting a stray file" 'git -C <owner> clean'
 lacks "the resume: line printed only with content" '`resume:` lines appear only'
 # the implementer, fix-up and conflict-resolving briefs start with the
-# TMPDIR line, stated once in the Owner repo section with its two riders and named in the ticket
+# TMPDIR line, stated once in the Owner repo section with its two riders and named in the task
 # orchestrator brief's steps 2, 3 and 4 (the landing) and the story review's fix-up (step 7); the
 # Gitignore step counts the rule's four
 # entries, /.tmp/ included (chezmoi-3eg)
 hasc "TMPDIR line stated in the skill" 'mkdir -p <worktree>/.tmp && export TMPDIR=<worktree>/.tmp'
 hasc "export repeated per Bash call" 'repeated at the head of every Bash call'
 hasc "mktemp -d takes a template under .tmp" 'mktemp -d <worktree>/.tmp/<name>.XXXXXX'
-# the ticket orchestrator reads the harness doc, not this skill, so its brief points there
-hasc "ticket orchestrator brief points at the harness doc's TMPDIR rule" "the harness doc's TMPDIR rule"
+# the task orchestrator reads the harness doc, not this skill, so its brief points there
+hasc "task orchestrator brief points at the harness doc's TMPDIR rule" "the harness doc's TMPDIR rule"
 for step in 2 3 4; do
-  hase "ticket orchestrator step $step's brief starts with the TMPDIR line" "^> $step\. .*TMPDIR line"
+  hase "task orchestrator step $step's brief starts with the TMPDIR line" "^> $step\. .*TMPDIR line"
 done
 hase "the story review's fix-up brief starts with the TMPDIR line" '^7\. .*TMPDIR line'
 # next to its TMPDIR line, every worktree brief carries the plain-command line inline: briefs that
@@ -1298,40 +1299,40 @@ hase "the story review's fix-up brief starts with the TMPDIR line" '^7\. .*TMPDI
 hasc "plain-command line stated in the skill" 'plain-command line, one plain `git` or `bd` command per Bash call, every path spelled out'
 line_hase 'starts with the \*\*TMPDIR line\*\*' "the Owner repo bullet states the plain-command line" 'TMPDIR line.*plain-command line, one plain .git. or .bd. command per Bash call, every path spelled out'
 for step in 2 4; do
-  hase "ticket orchestrator step $step's brief carries the plain-command line" "^> $step\\. .*TMPDIR line.*plain-command line, one plain .git. or .bd. command per Bash call, every path spelled out"
+  hase "task orchestrator step $step's brief carries the plain-command line" "^> $step\\. .*TMPDIR line.*plain-command line, one plain .git. or .bd. command per Bash call, every path spelled out"
 done
-hase "ticket orchestrator step 3's brief carries the plain-command line" '^> 3\. .*TMPDIR line.*plain-command line, one plain .git. or .bd. command per Bash call, every path spelled out.*TMPDIR line.*plain-command line, one plain .git. or .bd. command per Bash call, every path spelled out'
+hase "task orchestrator step 3's brief carries the plain-command line" '^> 3\. .*TMPDIR line.*plain-command line, one plain .git. or .bd. command per Bash call, every path spelled out.*TMPDIR line.*plain-command line, one plain .git. or .bd. command per Bash call, every path spelled out'
 hase "the story review's fix-up brief carries the plain-command line" '^7\. .*TMPDIR line.*plain-command line, one plain .git. or .bd. command per Bash call, every path spelled out'
-hase "the ticket orchestrator header carries the plain-command line" '^> You are the \*\*ticket orchestrator\*\*.*TMPDIR line.*plain-command line, one plain .git. or .bd. command per Bash call, every path spelled out'
+hase "the task orchestrator header carries the plain-command line" '^> You are the \*\*task orchestrator\*\*.*TMPDIR line.*plain-command line, one plain .git. or .bd. command per Bash call, every path spelled out'
 # on the harness route the TMPDIR line is two steps: a bare pwd as the first Bash call, then the
 # path it printed spelled literally in every later export, since agents left to fill in the path
 # wrote $PWD and the guard refused it in INFRA-35's run (dev-r1p)
 line_hase 'starts with the \*\*TMPDIR line\*\*' "the Owner repo bullet states the bare pwd step" 'first Bash call is .pwd. alone.*spelled literally in every later .export.'
-hase "ticket orchestrator step 2's brief names the bare pwd step" '^> 2\. .*TMPDIR line.*first Bash call is .pwd. alone.*spelled literally in every later .export.'
+hase "task orchestrator step 2's brief names the bare pwd step" '^> 2\. .*TMPDIR line.*first Bash call is .pwd. alone.*spelled literally in every later .export.'
 lacks "the retired fill-in-the-pwd-path wording" 'fills in the path `pwd` prints'
 hasc "Gitignore step counts four entries" "the rule's four entries"
 lacks "Gitignore step counts three entries" "the rule's three entries"
-# the reviewer brief in the ticket orchestrator's step 3 carries the two tags with their definitions and
+# the reviewer brief in the task orchestrator's step 3 carries the two tags with their definitions and
 # the verdict line (the reviewer never reads the rules doc), and step 3 and the story review's
 # step 7 point at the rules doc's Review verdict for what a clean round does; the retired bar,
 # clean as no finding at all, is gone (chezmoi-49k). The brief's phrases are read on the step 3
 # line alone, since step 7 carries the same ones
 for phrase in 'verdict: clean' 'verdict: blocking (<n>)' '**blocking** or **minor**' 'within the budget above'; do
-  line_has '^> 3\. ' "ticket orchestrator step 3's reviewer brief" "$phrase"
+  line_has '^> 3\. ' "task orchestrator step 3's reviewer brief" "$phrase"
 done
-hase "ticket orchestrator step 3 points at the rules doc's Review verdict" "^> 3\. .*the rules doc's Review verdict"
+hase "task orchestrator step 3 points at the rules doc's Review verdict" "^> 3\. .*the rules doc's Review verdict"
 hase "the story review (step 7) points at the rules doc's Review verdict" "^7\. .*the rules doc's Review verdict"
 lacks "the zero-findings bar" 'not clean after three rounds|no findings at all|clean means zero findings'
 # the brief states its row of the rules doc's table, the run's check command in its header
 # and cites the harness doc in one line; step 3's lint-command resolution,
 # the old brief's lint header and its step 2 lint list are retired (dev-9k5.1.7). Each row
 # parameter is its own pin, with its own description
-H='^> You are the \*\*ticket orchestrator\*\*'
-hase "the brief opens on the ticket orchestrator" "$H"
-for pin in "your row is the ticket row of the rules doc's table|the brief names its row of the rules doc's table" \
+H='^> You are the \*\*task orchestrator\*\*'
+hase "the brief opens on the task orchestrator" "$H"
+for pin in "your row is the task row of the rules doc's table|the brief names its row of the rules doc's table" \
   'you build with one implementer in a worktree|the row builds with one implementer in a worktree' \
   'check with the check command|the row checks with the check command' \
-  "review the ticket's body as the spec axis and the ticket diff as the standards axis, one tier up, none at \`low\`, fix up|the row reviews the ticket body and diff one tier up, none at low" \
+  "review the task's body as the spec axis and the task diff as the standards axis, one tier up, none at \`low\`, fix up|the row reviews the task body and diff one tier up, none at low" \
   'fix up by pointer brief in the same worktree|the row fixes up by pointer brief in the same worktree' \
   'land by merging onto `<branch>` under the lock after the stray-commit check|the row lands by merging under the lock after the stray-commit check' \
   'exit when the checks are green on the tip the review called clean|the row exits on green checks at the tip the review called clean' \
@@ -1341,19 +1342,19 @@ done
 line_has "$H" "the brief cites the harness doc in one line" 'The harness mechanics are in `<plugin root>/docs/agents/harness.md`'
 line_has "$H" "every brief it sends cites the harness doc" 'every brief you send cites it in one line'
 # the story orchestrator resolves the check command once per run, in step 3, and the brief's header
-# carries it, so parallel tickets of one run share one gate even when a ticket adds a check target
+# carries it, so parallel tasks of one run share one gate even when a task adds a check target
 # mid-run; the brief never resolves it itself (dev-yyu)
 line_has "$H" "the brief's header carries the run's check command" 'integration branch `<branch>`, check command `<check command>`'
 line_has "$H" "the brief never resolves the check command itself" 'never resolve it yourself'
-line_lacks "$H" "the per-ticket check target lookup" 'make -C <owner> -pRrq'
-line_lacks "$H" "the per-ticket check command by Makefile convention" "Makefile has a \`check\` target"
+line_lacks "$H" "the per-task check target lookup" 'make -C <owner> -pRrq'
+line_lacks "$H" "the per-task check command by Makefile convention" "Makefile has a \`check\` target"
 C='^   \*\*Check command\.\*\* Resolve'
 hase "step 3 resolves the check command" "$C"
 line_has "$C" "the check command is resolved once per run" 'Resolve the check command **once per run**'
 line_has "$C" "the check command is make check" '`make check`, since every owner repo has a `check` target (the rules doc'"'"'s Check command)'
-# a repo with no check target ends the run before any ticket orchestrator starts (ADR 0015)
-line_has "$C" "step 3 fails a run with no check target" 'with none, end the run now with `failed: no check target in <owner>; run /dev:setup-repo there, then re-run`, before any ticket orchestrator starts'
-line_has "$C" "the run's check command goes in every brief's header" 'every ticket orchestrator brief carries it in its header'
+# a repo with no check target ends the run before any task orchestrator starts (ADR 0015)
+line_has "$C" "step 3 fails a run with no check target" 'with none, end the run now with `failed: no check target in <owner>; run /dev:setup-repo there, then re-run`, before any task orchestrator starts'
+line_has "$C" "the run's check command goes in every brief's header" 'every task orchestrator brief carries it in its header'
 # the check target comes from make's own database, never a grep of the Makefile, which missed
 # GNUmakefile, makefile, included files and multi-target rules and took check:= for a target
 # (dev-de4), or a .PHONY: check with no rule (dev-b3p); scripts/test-check-target.sh runs the
@@ -1364,30 +1365,30 @@ line_has "$C" "a missing Makefile reads as no check target" 'a missing Makefile 
 lacks "the retired grep for the check target" "grep -q .\\^check:"
 lacks "the retired lint-command resolution" 'resolve the owner repo.s \*\*lint command\*\*|`make lint` when `<owner>`.s makefile has a `lint` target'
 lacksf "the retired lint placeholder" '`<lint>`'
-# the ticket orchestrator's check and review loop sits between the implementer (step 2) and the
+# the task orchestrator's check and review loop sits between the implementer (step 2) and the
 # landing (step 4) as one step: it opens step 3 for every tier, checks ahead of the reviewer; each check
-# is one logged Bash call under the worktree's .tmp/; a red is noted on the ticket; a red and a
+# is one logged Bash call under the worktree's .tmp/; a red is noted on the task; a red and a
 # blocking verdict both spawn a fresh implementer on the fix-up and start the loop over from the checks,
-# on one budget of three fix-ups; a low ticket exits on green; the implementer runs no checks
+# on one budget of three fix-ups; a low task exits on green; the implementer runs no checks
 # (dev-cq0.1.4, dev-1xf.1.2)
 G3='^> 3\. \*\*Check gate\*\*, every tier'
-hase "ticket orchestrator step 3 opens with the check gate, every tier" "$G3"
+hase "task orchestrator step 3 opens with the check gate, every tier" "$G3"
 line_has "$G3" "the loop step cites the rules doc's loop" "as the rules doc's Check gate says"
 line_has "$G3" "a red starts the loop over from the checks" 'A red spawns a fresh implementer on the fix-up and the loop starts over from the checks'
 line_has "$G3" "a blocking verdict starts the loop over from the checks, never straight to the reviewers" 'a blocking verdict spawns a fresh implementer on the fix-up and the loop starts over from the checks, never straight to the reviewers'
 line_has "$G3" "a clean verdict exits the loop" '**Clean** exits the loop'
 line_hase "$G3" "the check gate runs before step 3's reviewer" '\*\*Check gate\*\*.*Green:.*for `medium` and `high`, spawn two \*\*reviewers\*\*'
-unchanged_file || ! grep -E "$G3" "$f" | sed 's/Green: .*//' | grep -qF -- 'spawn two **reviewers**' || bad "present: ticket orchestrator step 3 spawns a reviewer ahead of the checks' green"
-# a ticket's review spawns one reviewer per axis, as the story row runs one sub-agent per axis,
-# since a reviewer has no Agent tool to spawn the skill's sub-agents with; the ticket
+unchanged_file || ! grep -E "$G3" "$f" | sed 's/Green: .*//' | grep -qF -- 'spawn two **reviewers**' || bad "present: task orchestrator step 3 spawns a reviewer ahead of the checks' green"
+# a task's review spawns one reviewer per axis, as the story row runs one sub-agent per axis,
+# since a reviewer has no Agent tool to spawn the skill's sub-agents with; the task
 # orchestrator combines the two reports into one verdict line (dev-bzd)
-line_has "$G3" "the ticket review spawns one reviewer per axis" 'spawn two **reviewers**, one per axis'
+line_has "$G3" "the task review spawns one reviewer per axis" 'spawn two **reviewers**, one per axis'
 line_has "$G3" "the two reviewers combine their reports into one verdict line" 'Combine the two reports into one verdict line'
 line_lacks "$G3" "the reviewer told to spawn the skill's sub-agents" "the skill's two sub-agents spawned"
-line_has "$G3" "a low ticket exits the loop on green checks" 'Green: a `low` ticket exits the loop, go to step 4'
-line_has '^> 2\. ' "ticket orchestrator step 2's implementer runs no gate and spawns no one" 'The implementer runs no gate and spawns no one'
+line_has "$G3" "a low task exits the loop on green checks" 'Green: a `low` task exits the loop, go to step 4'
+line_has '^> 2\. ' "task orchestrator step 2's implementer runs no gate and spawns no one" 'The implementer runs no gate and spawns no one'
 # the check record (dev-9k5.1.7): keyed by the tree SHA under the owner checkout's .tmp/checks/,
-# written only by the ticket orchestrator, a tree with a record not checked again
+# written only by the task orchestrator, a tree with a record not checked again
 line_has "$G3" "the gate keys the check on the tree SHA" '`git -C <worktree path> rev-parse HEAD^{tree}`'
 line_has "$G3" "the gate reads the tree only of a clean worktree" 'First confirm the worktree is clean, `git -C <worktree path> status --porcelain` prints nothing; a dirty worktree goes to a fresh implementer as a red does'
 line_lacks "$G3" "the clean-worktree guard that hides untracked files" '`git -C <worktree path> status --porcelain --untracked-files=no`'
@@ -1396,37 +1397,37 @@ line_has "$G3" "a tree with a green check record is not checked again" 'a tree w
 line_has "$G3" "a tree with a red check record is checked again" 'a red record is no check, so the tree is checked again'
 line_lacks "$G3" "the gate skipping the run on a red record" 'a tree with a record is checked: read its exit and run nothing'
 # a fix-up that commits nothing leaves the tree red-recorded: checked again, budget spent (dev-vnf)
-line_has "$G3" "the ticket gate checks a red's fix-up that commits nothing again" 'After a red, a fix-up that commits nothing leaves the tree red-recorded, so the next pass checks it again'
+line_has "$G3" "the task gate checks a red's fix-up that commits nothing again" 'After a red, a fix-up that commits nothing leaves the tree red-recorded, so the next pass checks it again'
 line_has "$G3" "the gate writes the check record per tree" 'mkdir -p <worktree path>/.tmp; mkdir -p <owner>/.tmp/checks/<tree>; export TMPDIR=<worktree path>/.tmp; make -C <worktree path> check > <owner>/.tmp/checks/<tree>/log 2>&1; echo "command=make check exit=$?" > <owner>/.tmp/checks/<tree>/record; cat <owner>/.tmp/checks/<tree>/record'
 line_has "$G3" "the gate reviews with mattpocock-skills:code-review" '`mattpocock-skills:code-review`'
 line_has "$G3" "the reviewer brief names the harness-route diff" '`git -C <worktree path> diff <branch>...HEAD`'
 line_lacks "$G3" "the per-round check log" 'checks-<round>-<k>.log'
 line_has "$G3" "a red gate reads a forty-line tail of the log, never the whole output" 'tail -n 40 <log>'
-line_has "$G3" "a red gate's note form (checks <round>: red <command>)" '`bd -C <owner> note <ticket-id> "checks <round>: red <command>"`'
+line_has "$G3" "a red gate's note form (checks <round>: red <command>)" '`bd -C <owner> note <task-id> "checks <round>: red <command>"`'
 line_has "$G3" "a green gate writes no note" 'a green writes no note'
 line_has "$G3" "the gate's fix-up brief points at the log path" 'the log path, and no pasted output'
 line_has "$G3" "red and blocking fix-ups share one budget of three, the fourth failure is failed" 'The budget is three fix-ups of either cause; the fourth red or blocking verdict is `failed`'
 line_has "$G3" "the minors fix-up after a clean verdict spends no budget and advances no round" 'The minors fix-up spends no budget and advances no round'
-line_has "$G3" "the blocking fix-up fixes the note's in-scope minors" "fixes the note's blocking findings and its minors in the ticket's scope"
-line_has "$G3" "a minor unfixed when the ticket lands or fails goes to the inbox" 'Every minor still unfixed when the ticket lands or fails goes to the inbox'
-line_has "$G3" "a blocking round's out-of-scope minors go to the inbox" "the note's minors you judge out of the ticket's scope go to the inbox at once"
+line_has "$G3" "the blocking fix-up fixes the note's in-scope minors" "fixes the note's blocking findings and its minors in the task's scope"
+line_has "$G3" "a minor unfixed when the task lands or fails goes to the inbox" 'Every minor still unfixed when the task lands or fails goes to the inbox'
+line_has "$G3" "a blocking round's out-of-scope minors go to the inbox" "the note's minors you judge out of the task's scope go to the inbox at once"
 lacks "the retired run-the-gate-again wording" 'run the check gate again, and on green spawn a reviewer again'
-# the ticket orchestrator lands its own ticket (step 4): lock wait, stray-commit check, merge; a
-# conflict goes to an implementer in the ticket's worktree, then a fast-forward; the resolved
+# the task orchestrator lands its own task (step 4): lock wait, stray-commit check, merge; a
+# conflict goes to an implementer in the task's worktree, then a fast-forward; the resolved
 # tree is checked and not reviewed again; the old separate merge brief is retired (dev-9k5.1.7)
-L4='^> 4\. \*\*Land the ticket\*\*'
-hase "step 4 lands the ticket" "$L4"
-line_has "$L4" "a conflict goes to an implementer in the ticket's worktree" 'A conflict goes to an implementer in the ticket'"'"'s worktree'
-line_has "$L4" "the conflict implementer merges the integration tip into the ticket branch" 'briefed to merge `<branch>`'"'"'s tip into the ticket branch'
+L4='^> 4\. \*\*Land the task\*\*'
+hase "step 4 lands the task" "$L4"
+line_has "$L4" "a conflict goes to an implementer in the task's worktree" 'A conflict goes to an implementer in the task'"'"'s worktree'
+line_has "$L4" "the conflict implementer merges the integration tip into the task branch" 'briefed to merge `<branch>`'"'"'s tip into the task branch'
 line_has "$L4" "a conflicted merge is aborted, never resolved by the orchestrator" '`git -C <owner> merge --abort`'
-line_has "$L4" "the orchestrator then fast-forwards" '`git -C <owner> merge --ff-only <ticket branch>`'
+line_has "$L4" "the orchestrator then fast-forwards" '`git -C <owner> merge --ff-only <task branch>`'
 line_has "$L4" "the resolved tree is checked and not reviewed again" 'step 3'"'"'s checks run on the resolved tree and no reviewer runs'
 # a red on the resolved tree goes to a fix-up that spends budget and restarts the whole loop,
 # review included: the rules doc exempts only the minors fix-up and the resolution (story
 # dev-9k5.1 review)
-# a landing takes at most three resolutions, the fourth conflict failing the ticket (dev-6qi)
+# a landing takes at most three resolutions, the fourth conflict failing the task (dev-6qi)
 line_has "$L4" "a landing takes at most three conflict resolutions" 'A landing takes at most three conflict resolutions'
-line_has "$L4" "the fourth conflict of a landing fails the ticket" 'the fourth conflict is `<ticket-id> failed: conflict <ticket branch> after three resolutions`'
+line_has "$L4" "the fourth conflict of a landing fails the task" 'the fourth conflict is `<task-id> failed: conflict <task branch> after three resolutions`'
 line_has "$L4" "a red after a resolution restarts the whole loop, review included" 'restarts step 3'"'"'s whole loop, review included'
 line_lacks "$L4" "a red fix-up after a resolution skipping its review" 'starts over from the checks only'
 # the story gate (step 7) is the rules doc's Check gate loop on the integration branch tip, the
@@ -1434,7 +1435,7 @@ line_lacks "$L4" "a red fix-up after a resolution skipping its review" 'starts o
 # called clean; each pass reads the checks from the check records first (a recorded tree runs
 # nothing, an unrecorded one is checked once in the clean owner checkout and recorded), then
 # compares the reviewed tip the story keeps in its review: note; the review's spec axis is the
-# story's body and its standards axis what entered since the ticket reviews; a red or a blocking
+# story's body and its standards axis what entered since the task reviews; a red or a blocking
 # verdict goes to a fresh fix-up and the loop starts over, three per story, the fourth failed; the
 # minors fix-up reruns the checks and spends nothing; the story orchestrator lands its fix-up
 # itself, no separate landing agent (section 5 sweeps the merger); "Running the checks" is gone. Step 8 leaves the PR a
@@ -1457,9 +1458,9 @@ line_has "$G7" "the story gate checks a red-recorded tree again" 'a red record i
 line_lacks "$G7" "the story gate skipping the run on a red record" 'a tree with a record is checked: read its exit and run nothing'
 line_has "$G7" "the story gate checks a red's fix-up that commits nothing again" 'After a red, a fix-up that commits nothing leaves the tree red-recorded, so the next pass checks it again'
 line_has "$G7" "the story gate exits on a green tip its review: note still names" 'a green on a tip the `review:` note still names exits'
-# the check-record call is defined once, in the ticket orchestrator brief's step 3, and step 7
+# the check-record call is defined once, in the task orchestrator brief's step 3, and step 7
 # names it with <owner> for the worktree path (dev-9k5.1.9 review 1)
-line_has "$G7" "the story gate writes the check record with the brief's step 3 call" "the ticket orchestrator brief's step 3 check-record call with \`<owner>\` as its \`<worktree path>\`"
+line_has "$G7" "the story gate writes the check record with the brief's step 3 call" "the task orchestrator brief's step 3 check-record call with \`<owner>\` as its \`<worktree path>\`"
 line_lacks "$G7" "a second copy of the check-record call" 'check > <owner>/.tmp/checks/<tree>/log'
 line_has "$G7" "the story keeps the reviewed tip in its notes" "The story keeps the reviewed tip in its notes: its \`review:\` note names the tip the gate exits on after a clean review, so a rerun reviews only a tip that has moved past it"
 # the story review round is numbered on from the notes, not from 1 per run, and its note names
@@ -1469,7 +1470,7 @@ line_has "$G7" "the story review round continues across runs" "\`<round>\` one m
 line_has "$G7" "the story review note names the reviewed tip" '`bd -C <owner> note <story-id> "story review <round> <tip SHA>: <findings>; <verdict line>"`'
 line_has "$G7" "a green tip the review called clean exits the gate" 'the same SHA exits the gate'
 line_has "$G7" "the story review's spec axis is the story's body" "the spec axis is the story's body"
-line_has "$G7" "the story review's standards axis is what entered since the ticket reviews" 'the standards axis is what entered since the ticket reviews: the conflict resolutions and the coherence across tickets'
+line_has "$G7" "the story review's standards axis is what entered since the task reviews" 'the standards axis is what entered since the task reviews: the conflict resolutions and the coherence across tasks'
 # the standards axis gets its inputs: the base SHA, each merge's resolution and the fix-up
 # commits since the last story review (dev-9k5.1.9 review 1)
 line_has "$G7" "the story review names the base SHA" '`<base>`, `git -C <owner> merge-base <default branch> <branch>`'
@@ -1484,7 +1485,7 @@ line_has "$G7" "the story gate's budget is three fix-ups, red or blocking" 'The 
 line_has "$G7" "the story gate's fourth failure skips delivery" 'the fourth failure skips step 8 and goes to step 9'
 line_has "$G7" "the story gate's stall line" '`failed: <check> <command>`'
 line_has "$G7" "the story gate's stall line for a review" "(a review's as \`failed: review mattpocock-skills:code-review\`)"
-line_has "$G7" "the story gate lands its fix-up itself" "you land its branch as the ticket orchestrator brief's step 4 lands a ticket"
+line_has "$G7" "the story gate lands its fix-up itself" "you land its branch as the task orchestrator brief's step 4 lands a task"
 line_lacks "$G7" "the story gate's minors fix-up spending budget" "a minors-only review's included"
 lacksf "the retired Running the checks paragraph" '**Running the checks.**'
 # on the first step 7 line, the checks come before the reviewed-tip compare and the review
@@ -1506,7 +1507,7 @@ line_has '^8\. ' "a red forge check leaves the story unfinished" 'note <story-id
 line_has '^8\. ' "a red forge check records no delivery" 'no `delivered:` or `pr:` note is written'
 # step 1 does not count a story with a later checks red: note as finished, so a re-delivery's
 # red check is not hidden by the earlier delivery's pr: note (dev-xc2 review 1)
-line_has '^   The tickets are ' "a checks red: note unfinishes the story" 'with no `checks red:` line after it'
+line_has '^   The tasks are ' "a checks red: note unfinishes the story" 'with no `checks red:` line after it'
 # the gh wait keys on the pushed tip, so the last tip's finished checks never pass it (dev-xc2 review 1)
 line_has '^8\. ' "the gh wait waits for the pushed tip as the PR head" '--json headRefOid -q .headRefOid)" = <tip SHA> ]'
 line_has '^8\. ' "a failing forge read is an error, not a skip" 'is a forge error, as step 3 says, never a skip'
@@ -1530,14 +1531,14 @@ lacks "the retired Evidence phrase" 'the command and its output'
 
 fi
 
-# ---- 9. /close-story: the ticket check counts children as the finished-story definition does ----
+# ---- 9. /close-story: the task check counts children as the finished-story definition does ----
 if doc 9 "/close-story" "$skills/close-story/SKILL.md"; then
-# a child carrying needs-triage or wontfix is a note with nothing to implement, not a ticket
+# a child carrying needs-triage or wontfix is a note with nothing to implement, not a task
 # to wait for; any other open child is named with its status and label, so the remedy is
 # readable from the refusal line (chezmoi-afn)
-hasc "ticket check skips untriaged children" 'carries `needs-triage` or `wontfix`'
-hasc "refusal names status and label" 'open tickets <child> <status> <label>'
-lacks "refusal without the label" 'open tickets <child> <status>, \.\.\.'
+hasc "task check skips untriaged children" 'carries `needs-triage` or `wontfix`'
+hasc "refusal names status and label" 'open tasks <child> <status> <label>'
+lacks "refusal without the label" 'open tasks <child> <status>, \.\.\.'
 # the Forgejo/Gitea query names the story's repo, as the intro promises for every forge
 # command and as /implement-story's merge guard does; without --repo, a workspace session
 # reads whichever repo the shell sits in (dev-hac)
@@ -1547,13 +1548,13 @@ lacks "Forgejo/Gitea query without --repo" 'tea api repos/'
 fi
 
 # ---- 10. the story DAG in the tracker and orchestration docs (ADR 0011) ----
-# a feature's stories form a DAG of text blockers, each naming a human gate ticket or a story;
+# a feature's stories form a DAG of text blockers, each naming a human gate task or a story;
 # the one-text-blocker and no-chains rules are retired. Section 5 sweeps "only text blocker"
 # and "chains are out of scope"; the wider chains wording is scoped to these two docs.
 for d in "$agents/issue-tracker.md" "$agents/orchestration.md"; do
   doc 10 "story DAG" "$d" || continue
   has "story DAG" 'story DAG'
-  has "human gate ticket" 'human gate ticket'
+  has "human gate task" 'human gate task'
   # read as one line, so a phrase wrapped across a line break is still caught; the match stops
   # at a period, so it spans a paragraph break only where a paragraph ends without one. Section
   # 5's "chains are out of scope" is blanked first, so a seed of it fails there alone
@@ -1561,40 +1562,40 @@ for d in "$agents/issue-tracker.md" "$agents/orchestration.md"; do
     | grep -qE -- 'chains[^.]{0,120}out of scope' || bad "present: retired story-DAG wording in $f (chains[^.]{0,120}out of scope)"
 done
 # a story held only by a story-closure blocker ends the run as a human stop naming the merge
-# and the /close-story; a publish ticket waits on its story's tickets, not its repo's
+# and the /close-story; a publish task waits on its story's tasks, not its repo's
 f=$agents/orchestration.md
 if [ -f "$f" ]; then
 section "10. story DAG: $f"
 hasc "story-closure human stop" 'merge its PR, then run `/dev:close-story <story-id>`'
-has "publish ticket ready on its story's tickets" "as soon as its story's implementation tickets close"
-lacks "publish ticket ready on its repo's tickets" "its repo's implementation tickets close"
+has "publish task ready on its story's tasks" "as soon as its story's implementation tasks close"
+lacks "publish task ready on its repo's tasks" "its repo's implementation tasks close"
 fi
 # the story body shows only blocker lines a step fills; a middle story of a chain is ordered
 f=$agents/issue-tracker.md
 if [ -f "$f" ]; then
 section "10. story DAG: $f"
-lacks "gate ticket line no step fills" '<repo> <gate ticket id>'
+lacks "gate task line no step fills" '<repo> <gate task id>'
 # the story cut writes a story line or a publish placeholder (step 2's skipped form too), so
 # "the only lines" of step 4 would contradict step 2
-has "story cut writes no gate ticket id" 'never a line naming a gate ticket id'
+has "story cut writes no gate task id" 'never a line naming a gate task id'
 lacks "story cut's lines contradict step 2" 'the only lines the story cut writes'
 has "middle story of a chain" 'in the middle of a chain'
 # a repo session may hold several home stories, each the epic bead's child, or the stories
-# gather (bd children <epic-id>) misses one; the ticket cut is one topological pass, since a
+# gather (bd children <epic-id>) misses one; the task cut is one topological pass, since a
 # dependency wave is one batch of cutters per DAG level and never splits a story
 has "every repo-session story under the epic" '# repo session: every story'
 lacks "one home story with a parent" 'Only the home story has a parent'
-has "ticket cut in one topological pass" 'one topological pass'
+has "task cut in one topological pass" 'one topological pass'
 # the pass is per story, not per edge: a dependent with two publish blockers gets every bump
-# before its other tickets (steps 4 and 5)
-has "ticket cut ordered per story" 'one topological pass over the stories'
-lacks "ticket cut ordered per edge" 'one topological pass over the edges'
+# before its other tasks (steps 4 and 5)
+has "task cut ordered per story" 'one topological pass over the stories'
+lacks "task cut ordered per edge" 'one topological pass over the edges'
 lacks "middle story split across waves" 'opens its own wave'
 has "deploy split waits on the earlier story's closure" 'that `/dev:close-story` requires closed'
-# a re-cut blocks every open ticket but the bumps on every bump, so no bump blocks on itself
+# a re-cut blocks every open task but the bumps on every bump, so no bump blocks on itself
 # or on another bump and step 5 holds
-has "re-cut exempts the bumps" 'every open ticket of the story that is not a bump'
-lacks "re-cut blocks a bump on itself" 'every open ticket of the story is blocked'
+has "re-cut exempts the bumps" 'every open task of the story that is not a bump'
+lacks "re-cut blocks a bump on itself" 'every open task of the story is blocked'
 
 fi
 
@@ -1700,7 +1701,9 @@ pairs=
 [ "${#scanned[@]}" -eq 0 ] || pairs=$(cmd_tokens "${scanned[@]}") || bad "token extractor failed on ${scanned[*]}"
 while IFS=$'\t' read -r f tok; do
   [ -n "$tok" ] || continue
-  case "$f" in "$docs/specs/"*) ;; *) cmds "$tok" ;; esac
+  # specs and ADRs keep the words of their day, so no existence check runs on them; the glossary
+  # names two skills the task row adds (dev-b8d.1.4 and .1.6), which the check waits for
+  case "$f" in "$docs/specs/"*|"$docs/adr/"*) ;; "$glossary_md") case "$tok" in dev:implement-task|dev:task-orchestrator) ;; *) cmds "$tok" ;; esac ;; *) cmds "$tok" ;; esac
   case "$tok" in dev:*|mattpocock-skills:*) continue;; esac
   case "$builtin" in *" $tok "*) continue;; esac
   bad "bare or unknown skill namespace in $f: /$tok (use dev:<skill> or mattpocock-skills:<skill>)"

@@ -27,13 +27,13 @@ fx_check "lib has no Dolt remote configured" fx_eq "$(grep -cE '^ *(sync\.)?remo
 # read the YAML: bd config get reports the env-effective value, and BD_EXPORT_AUTO=true is in the shell env
 fx_check "lib has auto-export off (its repair line would name the enclosing origin)" fx_eq "$(grep -A1 '^export:' "$out/lib/.beads/config.yaml" | grep -c 'auto: false')" 1
 
-# 2. shape: one epic, one story per repo, no tickets
+# 2. shape: one epic, one story per repo, no tasks
 epic=$(fx_one . '.issue_type=="epic"')
 cstory=$(fx_one consumer '.issue_type=="story"')
 lstory=$(fx_one lib '.issue_type=="story"')
 fx_check "exactly one epic and one story per repo" fx_eq "$([ -n "$epic" ] && [ -n "$cstory" ] && [ -n "$lstory" ] && echo yes)" yes
-fx_check "no tickets in lib" fx_eq "$(fx_all lib | jq '[.[] | select(.issue_type != "story")] | length')" 0
-fx_check "no tickets in consumer" fx_eq "$(fx_all consumer | jq '[.[] | select(.issue_type != "story")] | length')" 0
+fx_check "no tasks in lib" fx_eq "$(fx_all lib | jq '[.[] | select(.issue_type != "story")] | length')" 0
+fx_check "no tasks in consumer" fx_eq "$(fx_all consumer | jq '[.[] | select(.issue_type != "story")] | length')" 0
 fx_check "no epic in consumer" fx_eq "$(fx_all consumer | jq '[.[] | select(.issue_type=="epic")] | length')" 0
 fx_check "epic has external ref FIX-1" fx_eq "$(fx_field . "$epic" .external_ref)" FIX-1
 fx_check "epic is labelled ready-for-agent" fx_eq "$(fx_field . "$epic" '.labels | index("ready-for-agent") != null')" true
