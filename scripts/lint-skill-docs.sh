@@ -1042,6 +1042,8 @@ para_has '**The standalone task.**' "the paragraph: no story gate" 'no story bea
 para_has '**The standalone task.**' "the paragraph: the PR opened ready" 'a PR opened ready'
 para_has '**The standalone task.**' "the paragraph: the close at delivery" 'closes the task at delivery'
 para_has '**The standalone task.**' "the paragraph: the table keeps three rows" 'the table keeps its three rows'
+# a rerun's merge guard applies to an open task only, as implement-task's step 1 says (INFRA-37)
+para_has '**The standalone task.**' "the paragraph: the merge guard on a rerun is for an open task only, a closed task is reported from its notes" 'a rerun applies the merge guard on the `pr:` note only to an open task; a closed task with one is finished and reported from its notes'
 lackse "a fourth row in the table" '^[|] [*][*](Standalone|Standalone task|Implement-task)[*][*] [|]'
 fi
 if doc 6 "harness rules" "$agents/harness.md"; then

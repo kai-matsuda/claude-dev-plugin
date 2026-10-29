@@ -2885,7 +2885,8 @@ for case in '`/dev:implement-task <id>`|the paragraph names /dev:implement-task'
   'no story bead and no story gate|the paragraph: no story gate' \
   'a PR opened ready|the paragraph: the PR opened ready' \
   'closes the task at delivery|the paragraph: the close at delivery' \
-  'the table keeps its three rows|the paragraph: the table keeps three rows'; do
+  'the table keeps its three rows|the paragraph: the table keeps three rows' \
+  'a rerun applies the merge guard on the `pr:` note only to an open task; a closed task with one is finished and reported from its notes|the paragraph: the merge guard on a rerun is for an open task only, a closed task is reported from its notes'; do
   fresh
   drop_phrase docs/agents/orchestration.md "${case%%|*}" -i
   sec=6 expect "orchestration without '${case%%|*}' fails" 1 "missing in the **The standalone task.** paragraph: ${case#*|}"
