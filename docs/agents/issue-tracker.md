@@ -181,7 +181,11 @@ path can lack it, which step 1 catches.
    no, create neither that repo's story nor its tickets, and still publish every other
    story. When the skipped repo is a dependency, its dependent story's text blocker is
    `<dep repo> publish <crate> <version> (not created: no beads database)`, in place of
-   step 4's `(not created yet)` line. List the skipped stories in the report, and record
+   step 4's `(not created yet)` line. List the skipped stories in the report, one whose
+   init failed with
+   `(bd init failed: <reason>, commit <hash>)`
+   after it, `<reason>` the abort's error or `where`'s first line and the commit the user's
+   init made, if any (the note below keeps its exact text for its readers), and record
    each on the epic bead, `bd note <epic-id> "skipped: <repo> no beads database"`, one per
    skipped repo: a skipped repo has no story to carry it, so these notes are where the
    ticket cut reads skips from for its Jira comment. They are the only notes a cut writes

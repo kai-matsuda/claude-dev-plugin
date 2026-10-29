@@ -47,7 +47,9 @@ in step 4.
    - `.beads/`: if missing, run `bd init --non-interactive --agents-file CLAUDE.md` as
      the tracker doc's "First time in a repo"
      (`${CLAUDE_PLUGIN_ROOT}/docs/agents/issue-tracker.md`) says,
-     which says where it runs from and when setup stops. It also generates `AGENTS.md`,
+     which says where it runs from and when setup stops.
+     A stop there comes before the pruning below, so the hash it reports is the init
+     commit's, and its report replaces step 6's. It also generates `AGENTS.md`,
      `.codex/`, `.cursor/` and `.agents/` and makes a commit. Unless the repo uses those
      tools, `git rm -r` them and amend the init commit, keeping `.beads/`,
      `.claude/settings.json`, `CLAUDE.md` and the `.gitignore` additions. If `core.hooksPath` was

@@ -535,7 +535,8 @@ has "the design field names the other repo of a pair" "the other repo's name"
 # the user's bd init in <home> is checked before any bd call lands there, and refused when it
 # made no <home>/.beads (dev-zyx)
 hasc "the home database check after the user's init" '`bd -C <home> where` prints `<home>/.beads`'
-hasc "a failed init in the home is refused" '`refused: bd init in <home> did not create <home>/.beads`'
+hasc "an aborted init in the home is refused" '`refused: bd init in <home> aborted: <error>`'
+hasc "an init in the home that where does not name is refused" '`refused: bd -C <home> where names <path>, not <home>/.beads`'
 has "repo-session line" 'repo session in <home>: one story, in the home repo'
 has "repo-session refusal" 'refused: the spec changes <what> outside <home>; start this at the workspace root'
 has "one test pointer" 'the one test'
@@ -1028,12 +1029,16 @@ hasc "init is checked with bd where" '`bd -C <repo> where` must print `<repo>/.b
 hasc "a failed init check names the init commit" 'the report names the init commit'"'"'s hash'
 hasc "the story publish checks the user's init" '`bd -C <owner> where` prints `<owner>/.beads`'
 hasc "a failed init in the story publish is a no" 'or `where` names another database), treat it as a no'
+# the skip note keeps its exact text for its readers; only the report says why init failed
+hasc "the report gives a failed init's reason" '`(bd init failed: <reason>, commit <hash>)`'
 
 fi
 # /setup-repo runs bd init itself by the tracker doc's rule, cited and not restated (dev-zyx)
 if doc 6 "/setup-repo" "$skills/setup-repo/SKILL.md"; then
 hasc "setup-repo runs init by the tracker doc's rule" 'which says where it runs from and when setup stops'
 lacks "setup-repo restating the init rule" 'never through `-C`'
+# the stop reports the init commit as init made it, before the pruning amends it
+hasc "setup-repo stops before the pruning" 'A stop there comes before the pruning'
 fi
 # ADR 0014 records the one loop and supersedes ADR 0001, which keeps its text and points at it
 if doc 6 "ADR 0014" "$docs/adr/0014-one-loop-at-three-rows.md"; then

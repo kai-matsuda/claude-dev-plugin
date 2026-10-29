@@ -859,8 +859,20 @@ drop_phrase skills/spec-to-stories/SKILL.md '`bd -C <home> where` prints `<home>
 expect "spec-to-stories skipping the init check fails" 1 "missing (case-sensitive): the home database check after the user's init"
 
 fresh
-drop_phrase skills/spec-to-stories/SKILL.md '`refused: bd init in <home> did not create <home>/.beads`'
-expect "spec-to-stories with no failed-init refusal fails" 1 "missing (case-sensitive): a failed init in the home is refused"
+drop_phrase docs/agents/issue-tracker.md '`(bd init failed: <reason>, commit <hash>)`'
+expect "tracker doc whose report drops a failed init's reason fails" 1 "missing (case-sensitive): the report gives a failed init's reason"
+
+fresh
+drop_phrase skills/spec-to-stories/SKILL.md '`refused: bd init in <home> aborted: <error>`'
+expect "spec-to-stories with no aborted-init refusal fails" 1 "missing (case-sensitive): an aborted init in the home is refused"
+
+fresh
+drop_phrase skills/spec-to-stories/SKILL.md '`refused: bd -C <home> where names <path>, not <home>/.beads`'
+expect "spec-to-stories with no wrong-database refusal fails" 1 "missing (case-sensitive): an init in the home that where does not name is refused"
+
+fresh
+drop_phrase skills/setup-repo/SKILL.md 'A stop there comes before the pruning'
+expect "setup-repo not ordering the stop before the pruning fails" 1 "missing (case-sensitive): setup-repo stops before the pruning"
 
 fresh
 drop_phrase skills/setup-repo/SKILL.md 'which says where it runs from and when setup stops'
