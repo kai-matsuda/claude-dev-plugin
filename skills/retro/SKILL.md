@@ -84,8 +84,8 @@ watching, straight after an unattended `/dev:implement-spec`.
    "capture a retro item" section has the command; this is the procedure around it.
 
    - The session mode is the tracker doc's one test: the inbox is the home's `.beads/`,
-     the session's repo root, and nothing above it is read. No `<home>/.beads` → say so
-     and stop. The list from step 4 stands as the result; create nothing.
+     the session's repo root, and nothing above it is read. No database in `<home>` by
+     the tracker doc's "Has a database" rule ("First time in a repo") → say so and stop. The list from step 4 stands as the result; create nothing.
    - Run `bd create`, `bd search` and `bd note` plainly, in the home, never pointed at
      another directory.
    - The target label and the body's location follow the tracker doc's "capture a retro

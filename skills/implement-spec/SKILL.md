@@ -30,7 +30,7 @@ The harness mechanics (Waiting, the Idle rule, Cut-off agents, literal paths, Co
 
 ## Steps
 
-1. **Pick the epic bead.** Before any `bd` call, check `test -d <home>/.beads`: without it, plain `bd` climbs to an ancestor's database (another home's inbox). Missing → `refused: no beads database in <home>`, and stop. A bead id → `bd show <id> --json` (an array; `.[0]`); an `issue_type` other than `epic` → `<id> is of type <type>, not an epic; /dev:implement-spec takes an epic bead id or <KEY>-<n>.` and stop. A `<KEY>-<n>` → `bd list --type epic --external-ref <KEY>-<n>`; none → say so and stop; several → list them and ask which. `<KEY>-<n>` is then the epic's `external_ref`.
+1. **Pick the epic bead.** Before any `bd` call, check that `<home>` has a database by the tracker doc's "Has a database" rule ("First time in a repo"): without one, plain `bd` climbs to an ancestor's database (another home's inbox). Missing → `refused: no beads database in <home>`, and stop. A bead id → `bd show <id> --json` (an array; `.[0]`); an `issue_type` other than `epic` → `<id> is of type <type>, not an epic; /dev:implement-spec takes an epic bead id or <KEY>-<n>.` and stop. A `<KEY>-<n>` → `bd list --type epic --external-ref <KEY>-<n>`; none → say so and stop; several → list them and ask which. `<KEY>-<n>` is then the epic's `external_ref`.
 
 2. **Gather the stories** with the "Stories" gather of "fetch the relevant ticket" in `${CLAUDE_PLUGIN_ROOT}/docs/agents/issue-tracker.md`, its fallback and failure rules included. A sweep that stops there spawns nothing, since that repo's story would go unseen and Done could fire early. Skip `retro`-labelled beads. Each story's `<owner>` and `<owner repo>` follow from where it was found (Names).
 

@@ -26,7 +26,8 @@ is depends only on where it starts.
 
 **Session mode, the one test.** `<home>` is the session's repo, `git rev-parse
 --show-toplevel`, and nothing above it is ever read (plain `bd` climbs to an ancestor's
-database when `<home>/.beads` is missing, so the skills check it first). If
+database when `<home>` has none, so the skills check it first by the "Has a database"
+rule below). If
 `<home>/repos.yaml` exists, the session is a **workspace session**: `<workspace>` is
 `<home>`, the repo manifest routes (its header gives the resolution order), and a
 manifest repo `<owner repo>` (the entry's name) is at `<owner>`,
@@ -79,6 +80,17 @@ repo" below first: it says how to detect each dependency edge and how to propose
 version.
 
 ## First time in a repo
+
+**Has a database.** A repo `<repo>` has its own beads database only when `<repo>/.beads/`
+exists **and** `bd -C <repo> where` then prints `<repo>/.beads` on its first line, both
+paths resolved through symlinks (`realpath`). Every skill that checks for a database before
+a `bd` call in a repo applies this rule and cites it, never the directory test alone, and
+runs the `where` before its first write there. Check the directory first: without it, any
+`bd` call there, `where` included, climbs to an ancestor's database. Once it exists,
+`where` is read-only, so it is a safe probe. A `.beads/` that `where` does not name (an
+init that committed a directory bd does not resolve to) counts as no database: the gate
+stops or skips as for a missing one and says what `where` printed, so a rerun never files
+into the other database.
 
 If the repo has no `.beads/`, run this
 with the repo's top level as the session's current directory:
@@ -169,12 +181,14 @@ path can lack it, which step 1 catches.
    anything and tell the user to publish the spec with `/mattpocock-skills:to-spec` (or add the key with
    `bd update <epic-id> --external-ref <KEY>-<n>`). In a repo session the key is not
    needed: every story there is the epic bead's child.
-2. Check each owner repo for `.beads/` before creating anything, with `test -d
-   <owner>/.beads`. Do not probe with `bd -C`: without its own database bd
-   climbs to the workspace's and would file the story in the inbox. A repo without it is
-   reported by name. Offer "First time in a repo" there and act only on the user's explicit
-   yes. `bd init` runs only from `<owner>`'s top level ("First time in a repo" says why),
-   so give the user the exact command to run in `<owner>`, and continue once
+2. Check each owner repo for a database before creating anything, by the "Has a
+   database" rule above. Do not write with `bd -C` before it passes: without its own
+   database bd climbs to the workspace's and would file the story in the inbox. A repo
+   without one is reported by name, with what `where` printed when its `.beads/` exists;
+   such a repo is a no at once (below), with no init offered. Where the directory is
+   missing, offer "First time in a repo" and act only on the user's explicit yes.
+   `bd init` runs only from `<owner>`'s top level ("First time in a repo" says why), so
+   give the user the exact command to run in `<owner>`, and continue once
    `bd -C <owner> where` prints `<owner>/.beads` on its first line. When it does not (the
    user reports an abort,
    or `where` names another database), treat it as a no. On a
@@ -377,9 +391,11 @@ ticket. To reach tickets:
 
 - **Stories**: `bd children <epic-id>` (every story in a repo session; empty in a
   workspace session), plus, in a workspace session only, every bead of type `story`
-  carrying `<KEY>-<n>` in each of the manifest's repos with `.beads/` (`bd -C <repo> list
-  --type story --external-ref <KEY>-<n> --all --json`). A workspace-session story has
-  no parent; its external ref ties it to the feature. A repo session runs no sweep and
+  carrying `<KEY>-<n>` in each of the manifest's repos with a database by the "Has a
+  database" rule (`bd -C <repo> list --type story --external-ref <KEY>-<n> --all
+  --json`); a repo with a `.beads/` that `where` does not name stops the gather, named
+  with what `where` printed, since its story would go unseen. A
+  workspace-session story has no parent; its external ref ties it to the feature. A repo session runs no sweep and
   says so. In a workspace session whose epic bead has no external ref, gather the epic's
   story children only and say the sweep was skipped, and why. A `bd -C` failing with
   `Operation not permitted` is "bd writes outside the session's repo" below. A sweep that
@@ -422,12 +438,12 @@ epic from the conversation or from the open epics (chezmoi-nz0). Find the epic b
 the argument:
 
 - **A key `<KEY>-<n>`**: `bd list --type epic --external-ref <KEY>-<n> --all --json` in
-  `<home>`, and in a workspace session only, in every manifest repo with `.beads/` (the
+  `<home>`, and in a workspace session only, in every manifest repo with a database (the
   guard of the "Stories" gather above). None → the skill says what that means; several →
   ask the user which one.
 - **A bead id**: `bd show <id> --json` (an array; `.[0]`). When `<home>`'s database has no
   such bead and the session is a workspace session, run `bd -C <repo> show <id> --json` in
-  every manifest repo with `.beads/` (the same guard): a bead found there that is not an
+  every manifest repo with a database (the same guard): a bead found there that is not an
   epic gets the not-an-epic refusal below, and one that is an epic is an epic bead in
   another repo. Found nowhere → `<id> refused: no such bead in <home> or any manifest
   repo`; in a repo session, which searches `<home>` alone, the line ends at `<home>`.
@@ -518,7 +534,8 @@ The steps live in the skill; the rules it enforces are:
 
 The **inbox** is the home's beads database (the one test above): the workspace's in a
 workspace session, the home repo's in a repo session. `bd` runs plainly, in `<home>`.
-When `<home>/.beads` is missing, stop: no skill initialises a database unattended. Every
+When `<home>` has no database by the "Has a database" rule, stop: no skill initialises
+a database unattended. Every
 surviving candidate becomes one bead there:
 
 ```bash

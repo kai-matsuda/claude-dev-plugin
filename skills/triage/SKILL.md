@@ -19,7 +19,8 @@ sandbox allows. A repo session runs plain `bd` only.
 
 ## 1. Load the inbox
 
-Apply the one test. `<home>/.beads` missing → stop; no skill initialises a database
+Apply the one test. No database in `<home>` by the tracker doc's "Has a database" rule
+("First time in a repo") → stop; no skill initialises a database
 unattended, and plain `bd` would climb to an ancestor's. In a workspace session read the
 manifest; there is no manifest in a repo session. Then, plainly, in `<home>`:
 `bd list -l needs-triage -s open --json`. An argument narrows it: a label such as
@@ -73,8 +74,10 @@ is what goes into them.
 
 1. **Owner path**: in a workspace session, `<owner>` from the manifest, or `<home>` when
    the file is the workspace's own or foreign (step 3). In a repo session, `<home>`. An
-   owner other than `<home>` with no `.beads/` → say so and run the tracker doc's "First
-   time in a repo" only on the user's yes, since it commits there.
+   owner other than `<home>` with no database by the tracker doc's "Has a database" rule
+   → say so; when its `.beads/` is missing, run that doc's "First time in a repo" only on
+   the user's yes, since it commits there. Without a database after that, skip the item:
+   it stays open in the inbox, and nothing is created for it.
 2. **Body** in the to-tickets issue template. "What to build" is the behaviour the
    environment will have afterwards, from the agent's point of view. Acceptance criteria
    are checkable without the original session: the check fails on a seeded violation; a

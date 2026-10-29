@@ -13,8 +13,9 @@ individual tickets or stories.
 
 ## 1. Pick the epic bead
 
-Before any `bd` call, check `test -d <home>/.beads` (`<home>` and the session mode are as
-**the one test** in `${CLAUDE_PLUGIN_ROOT}/docs/agents/issue-tracker.md`'s opening defines them): without it, plain `bd`
+Before any `bd` call, check that `<home>` has a database by the "Has a database" rule in
+`${CLAUDE_PLUGIN_ROOT}/docs/agents/issue-tracker.md`'s "First time in a repo" (`<home>` and the session mode are as
+**the one test** in its opening defines them): without one, plain `bd`
 climbs to an ancestor's database (another home's inbox). Missing →
 `refused: no beads database in <home>`, and stop.
 

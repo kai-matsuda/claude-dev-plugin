@@ -580,7 +580,7 @@ sec=12 expect "section 12 fails alone: /retro without the transcript shape" 1
 for case in '1 skills/implement-spec/SKILL.md' '2 skills/workflow/SKILL.md' '2 docs/WORKFLOW.md' \
   '3 skills/spec-to-stories/SKILL.md' '4 skills/spec-to-tickets/SKILL.md' '6 10 docs/agents/orchestration.md' \
   '6 docs/agents/harness.md' '6 10 docs/agents/issue-tracker.md' '6 skills/setup-repo/SKILL.md' '7 skills/story-to-tickets/SKILL.md' '8 skills/implement-story/SKILL.md' \
-  '9 skills/close-story/SKILL.md' '12 skills/retro/SKILL.md' '0 CLAUDE.md' '0 GLOSSARY.md'; do
+  '9 skills/close-story/SKILL.md' '6 skills/triage/SKILL.md' '12 skills/retro/SKILL.md' '0 CLAUDE.md' '0 GLOSSARY.md'; do
   doc=${case##* }
   fresh
   rm "$scratch/$doc"
@@ -869,6 +869,38 @@ expect "spec-to-stories with no aborted-init refusal fails" 1 "missing (case-sen
 fresh
 drop_phrase skills/spec-to-stories/SKILL.md '`refused: bd -C <home> where names <path>, not <home>/.beads`'
 expect "spec-to-stories with no wrong-database refusal fails" 1 "missing (case-sensitive): an init in the home that where does not name is refused"
+
+# one has-a-database rule: .beads/ exists and bd where names it, stated once in the tracker doc
+# and cited by every gate; a gate testing only that .beads/ exists fails the sweep (dev-e87)
+fresh
+printf '%s\n' 'Before any `bd` call, check `test -d <home>/.beads`.' >> "$scratch/skills/close-epic/SKILL.md"
+sec=5 expect "a gate testing only that .beads exists fails" 1 "present: an existence-only beads database gate in $scratch/skills/close-epic/SKILL.md"
+
+fresh
+printf '%s\n' '   owner other than `<home>` with no `.beads/` → say so.' 'No `<home>/.beads` → say so' >> "$scratch/skills/triage/SKILL.md"
+sec=5 expect "a gate worded as a missing .beads fails" 1 "present: an existence-only beads database gate in $scratch/skills/triage/SKILL.md"
+
+fresh
+printf '%s\n' 'in every manifest repo with `.beads/` (the same guard)' >> "$scratch/docs/agents/issue-tracker.md"
+sec=5 expect "a sweep guarded on .beads alone fails" 1 "present: an existence-only beads database gate in $scratch/docs/agents/issue-tracker.md"
+
+fresh
+drop_line docs/agents/issue-tracker.md '**Has a database.**'
+sec=6 expect "tracker doc without the has-a-database rule fails" 1 "missing in the **Has a database.** paragraph: the rule checks bd where"
+
+fresh
+drop_phrase docs/agents/issue-tracker.md 'counts as no database'
+sec=6 expect "tracker doc whose rule lets an unresolved .beads pass fails" 1 "missing in the **Has a database.** paragraph: a .beads where does not name is no database"
+
+fresh
+drop_phrase skills/implement-spec/SKILL.md '"Has a database" rule'
+sec=1 expect "/implement-spec not citing the has-a-database rule fails" 1 "missing (case-sensitive): /implement-spec cites the tracker doc's \"Has a database\" rule"
+
+for g in spec-to-stories spec-to-tickets story-to-tickets close-epic retro triage; do
+  fresh
+  drop_phrase "skills/$g/SKILL.md" '"Has a database" rule'
+  sec=6 expect "/$g not citing the has-a-database rule fails" 1 "missing (case-sensitive): /$g cites the tracker doc's \"Has a database\" rule"
+done
 
 fresh
 drop_phrase skills/setup-repo/SKILL.md 'A stop there comes before the pruning'

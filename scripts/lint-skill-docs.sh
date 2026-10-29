@@ -10,7 +10,8 @@
 #      tier), draft until clean with the mark-ready commands, the add-mode fix-up (one ticket per
 #      blocking finding, three per story, the fourth failed in one of the Check gate's two lines
 #      and no other, dev-aeo) and the review: end-state line, with
-#      no epic-row role and no PR opened here;
+#      no epic-row role and no PR opened here; its home database gate cites the tracker doc's
+#      "Has a database" rule (dev-e87);
 #   2. the human runbook docs/WORKFLOW.md (chezmoi-0jp.25) and the /workflow skill:
 #      names only commands that exist, no stale cross-repo wording, the cut skills' argument
 #      written in the runbook and filled in on /workflow's next lines (chezmoi-nz0);
@@ -62,7 +63,8 @@
 #      built-in review by name, the two-review-tools paragraph, the review marker, the lint
 #      command and the test seams as checks (the glossary lists them under _Avoid_, docs/adr/
 #      keeps them through .glossary-allow); and no rule that moved to harness.md cited at the
-#      rules doc (dev-zra). docs/specs keeps every list. No other section repeats a phrase this
+#      rules doc (dev-zra), nor a beads database gate on the .beads/ directory alone
+#      (dev-e87). docs/specs keeps every list. No other section repeats a phrase this
 #      sweep covers, so a seeded one fails here alone;
 #   6. the shared rules: orchestration.md's working-directory preflight, and harness.md's
 #      waiting rule (an Agent call returns at once, the orchestrator ends its turn and the
@@ -90,7 +92,8 @@
 #      and its "First time in a repo" running bd init from the repo's top level alone, never
 #      reinitialising on an abort, checked with bd where whose failure names the init commit,
 #      which /setup-repo cites without restating and the story publish follows, a failed
-#      init there a no (dev-zyx);
+#      init there a no (dev-zyx), and its "Has a database" rule (.beads/ exists and bd where
+#      names it), which every other gating skill cites (dev-e87);
 #   7. /story-to-tickets: the spec fetch pointer, the story cutter and publish triggers, the
 #      design field read, the one test and "home <home name>" in the template's Parent line,
 #      the pair read per edge (one bump per publish blocker, Dependency:/Dependent: lines),
@@ -400,6 +403,8 @@ done
 # ---- 1. /implement-spec epic orchestrator ----
 if doc 1 "/implement-spec epic orchestrator" "${1:-$skills/implement-spec/SKILL.md}"; then
 lacks "worktree steps" 'worktree'
+# its home database gate is the tracker doc's rule, which section 6 checks (dev-e87)
+hasc "/implement-spec cites the tracker doc's \"Has a database\" rule" '"Has a database" rule'
 # no merge steps; the one allowed use is the human stop naming "the PR to merge" for the user
 # (chezmoi-9v4.1.6), so that phrase is blanked before the scan
 if ! unchanged_file; then
@@ -718,6 +723,9 @@ retired_gate='review-only|no check command|with(out)? a check command'
 # (Literal paths)" or "(`orchestration.md`, Commits)", or rule first as 'the "Waiting" rule of
 # `orchestration.md`'; the worktree fallback moved too, so the rules doc holds no fallback (dev-zra)
 moved_names='(waiting|idle rule|commits|cut-off agents|worktrees|hand-rolled|fallback|literal paths|tmpdir|diff two files|python'\''s cache line|recursive deletes|shell commands)'
+# a database gate that tests only that .beads/ exists (dev-e87): as the shell test, as a missing
+# <x>/.beads, or as a repo "with `.beads/`"; the gates cite the tracker doc's "Has a database" rule
+beads_gate='test -d [^ ]*/\.beads|`<[a-z ]+>/\.beads` (is )?missing|no `<[a-z ]+>/\.beads`|with (no )?`\.beads/`'
 moved_rule='(rules doc|orchestration\.md)`?(, |'\''s (([a-z-]+ ){1,3}says \(|scratch space \(|[a-z-]+ )?)'"$moved_names"'([^a-z]|$)|'"$moved_names"'"?( rule)? (of|in) (the )?`?(rules doc|orchestration\.md)'
 while IFS= read -r f; do
   lacksw "retired phrase in $f" "$retired"
@@ -738,6 +746,9 @@ while IFS= read -r f; do
   # bd init does take -C but lands on an ancestor's database through it, so the docs cite the
   # tracker doc's "First time in a repo" for why it runs from the repo instead (dev-zyx)
   lacksw "the retired bd init -C wording in $f" 'cannot take `-C`'
+  # a .beads/ that bd where does not resolve to is no database, so a gate on the directory alone
+  # lets a rerun file into the database bd climbs to (dev-e87)
+  lacksw "an existence-only beads database gate in $f" "$beads_gate"
 done <<<"$swept"
 # the root glossary lists the retired vocabulary under _Avoid_ (and docs/adr/ keeps its
 # historical sense through .glossary-allow), so only the two-gate wording is swept there
@@ -997,6 +1008,10 @@ para_has '**Branches from a remote ref.**' "the --no-track switch" '`git switch 
 para_has '**Branches from a remote ref.**' "the sandbox denies the tracking write" 'denies the write to `.git/config`'
 fi
 if doc 6 "tracker rules" "$agents/issue-tracker.md"; then
+# the "Has a database" rule: .beads/ exists and bd where names it (dev-e87)
+para_has '**Has a database.**' "the rule checks bd where" '`bd -C <repo> where` then prints `<repo>/.beads`'
+para_has '**Has a database.**' "a .beads where does not name is no database" 'counts as no database'
+para_has '**Has a database.**' "every gate cites the rule" 'applies this rule and cites it'
 # every ticket passes the check gate; only the review is medium and high (ADR 0014, ADR 0015)
 lacks "medium and high tickets passing the check gate" '`medium` and `high` tickets pass the check gate'
 hasc "every ticket passes the check gate" 'every ticket passes the check gate'
@@ -1041,6 +1056,20 @@ hasc "setup-repo runs init by the tracker doc's rule" 'which says where it runs 
 lacks "setup-repo restating the init rule" 'never through `-C`'
 # the stop reports the init commit as init made it, before the pruning amends it
 hasc "setup-repo stops before the pruning" 'A stop there comes before the pruning'
+fi
+# one has-a-database rule, stated once in the tracker doc and cited by every gate: .beads/ exists
+# and bd where names it (dev-e87); section 5 sweeps a gate on the directory alone, and section 1
+# checks /implement-spec, whose skill may be passed as $1. A gating skill with a section of its
+# own fails there when missing, not here
+section "6. database gates"
+for g in spec-to-stories spec-to-tickets story-to-tickets close-epic retro; do
+  f=$skills/$g/SKILL.md
+  [ -f "$f" ] || continue
+  hasc "/$g cites the tracker doc's \"Has a database\" rule" '"Has a database" rule'
+done
+# /triage has no section of its own, so its document is this one's
+if doc 6 "/triage" "$skills/triage/SKILL.md"; then
+hasc "/triage cites the tracker doc's \"Has a database\" rule" '"Has a database" rule'
 fi
 # ADR 0014 records the one loop and supersedes ADR 0001, which keeps its text and points at it
 if doc 6 "ADR 0014" "$docs/adr/0014-one-loop-at-three-rows.md"; then
