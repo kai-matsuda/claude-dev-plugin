@@ -966,6 +966,7 @@ sec_has "## Delivery" "Delivery's stray-commit check precedes the push" '1. **St
 sec_has "## Delivery" "Delivery's stray-commit failed: line" 'failed: stray commit <sha> <subject>'
 sec_has "## Delivery" "Delivery's push command" 'git -C <owner> push -u origin <branch>'
 sec_has "## Delivery" "Delivery's refused push is a failed: line" 'failed: push <command>: <error>'
+sec_has "## Delivery" "Delivery's push runs with the sandbox disabled, and only an error outside it is a refused push" 'The push runs with the sandbox disabled, as forge commands do; only an error outside the sandbox is a refused push'
 sec_has "## Delivery" "Delivery's PR body is written by mattpocock-skills:pr" 'the Skill tool with `mattpocock-skills:pr` to write the body'
 sec_has "## Delivery" "Delivery's PR body is written with a forge" '3. **PR body.** With a forge, call the Skill tool'
 sec_has "## Delivery" "Delivery's Evidence is the delivered tip's check record" "its Evidence the delivered tip's check record"

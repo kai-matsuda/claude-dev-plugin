@@ -650,6 +650,10 @@ drop_phrase docs/agents/orchestration.md 'failed: push <command>: <error>'
 expect "the rules doc without the refused-push failed: line fails (Delivery)" 1 "Delivery's refused push is a failed: line"
 
 fresh
+drop_phrase docs/agents/orchestration.md 'The push runs with the sandbox disabled, as forge commands do; only an error outside the sandbox is a refused push'
+expect "the rules doc without the sandbox-disabled push rule fails (Delivery)" 1 "Delivery's push runs with the sandbox disabled"
+
+fresh
 drop_phrase docs/agents/orchestration.md '1. **Stray-commit check**, before any push'
 expect "the rules doc whose deliver step pushes without the stray-commit check fails (Delivery)" 1 "Delivery's stray-commit check precedes the push"
 
