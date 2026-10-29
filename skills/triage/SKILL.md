@@ -78,7 +78,8 @@ is what goes into them.
    → say so; when its `.beads/` is missing, run that doc's "First time in a repo" only on
    the user's yes, since it commits there. Without a database after that, skip the item:
    it stays open in the inbox, and nothing is created for it.
-2. **Body** in the `to-tickets` issue template. "What to build" is the behaviour the
+2. **Body** in the issue template in `/dev:story-to-tasks`
+   (`${CLAUDE_PLUGIN_ROOT}/skills/story-to-tasks/SKILL.md`, from its `## What to build`). "What to build" is the behaviour the
    environment will have afterwards, from the agent's point of view. Acceptance criteria
    are checkable without the original session: the check fails on a seeded violation; a
    fresh session follows the pointer; the reviewer cites the new rule. Name no file paths
@@ -87,7 +88,8 @@ is what goes into them.
    `ready-for-human` when the fix needs a person: an access grant, a tool install, a vendor
    dashboard. A `retro:foreign` item is always `ready-for-human`, and so is a foreign one
    in a workspace session; either keeps its intended location in the body.
-4. Create the bead in the owner repo, then close the inbox bead with `--reason "routed:
+4. Create the bead in the owner repo, a standalone task (`--type task`, the one type
+   `/dev:implement-task` takes), then close the inbox bead with `--reason "routed:
    <owner repo> <new id>"`: the tracker doc's two routing commands, unchanged when the
    owner is `<home>`. A new bead and a closed inbox bead, never a relabel in place.
 

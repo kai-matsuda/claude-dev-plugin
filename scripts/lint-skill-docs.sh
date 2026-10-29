@@ -496,6 +496,11 @@ hasc "argument paragraph" '**The argument.**'
 line_has '^[|] 4b [|]' "4b names implement-task" '`/dev:implement-task <task-id>`'
 hasc "the small-bug route is one bd create then implement-task" 'one `bd create`, then `/dev:implement-task <task-id>`'
 line_has '^[|] 4a [|] `/dev:implement-spec`' "4a names the task orchestrators" '**task orchestrator**'
+# the story row lands (ADR 0016): 4a's task orchestrator reports a reviewed branch that its
+# story orchestrator lands, and 4b's session lands its one task's (dev-b8d.1 story review 1)
+line_has '^[|] 4a [|] `/dev:implement-spec`' "4a: the story orchestrator lands each task" 'the story orchestrator lands each reviewed branch'
+line_has '^[|] 4b [|]' "4b: the session lands the task" 'the session lands its reviewed branch'
+lacks "a task orchestrator landing its own task in the runbook" 'lands the task itself'
 # 4a's check gate reviews medium and high tasks, a low task's gate being its checks (ADR 0015)
 line_has '^[|] 4a [|] `/dev:implement-spec`' "4a reviews medium and high tasks" '(the checks, then, for `medium` and `high`, a review one tier up'
 hase "the one review tool paragraph" '^One review tool, three rows'
@@ -1112,6 +1117,12 @@ para_has '**Has a database.**' "every gate cites the rule" 'applies this rule an
 lacks "medium and high tasks passing the check gate" '`medium` and `high` tasks pass the check gate'
 hasc "every task passes the check gate" 'every task passes the check gate'
 hasc "the tracker doc reviews medium and high tasks" 'only `medium` and `high` tasks add the review'
+# the task gate's review is two reviewers, one per axis, as /dev:task-orchestrator spawns them
+sec_has '## When a skill says "start work on a task" (`/dev:implement-story`, `/dev:implement-task`)' "the task gate's review is two-axis" 'two reviewers, one per axis'
+# a routed triage item is a standalone task, the one type /dev:implement-task takes; the
+# inbox bead stays a chore, a retro item and no task (dev-b8d.1 story review 1)
+sec_has '## When a skill says "route a triaged item" (`/dev:triage`)' "the routed bead is a task" 'create "<title>" --type task -l complexity:<tier>,retro'
+lacks "a routed bead of type chore" '--type chore -l complexity:'
 # the one test of the session mode (ADR 0008), stated once, in the opening before any section
 for need in '`<home>` is the session'"'"'s repo' '`<home>/repos.yaml`' '**workspace session**' '**repo session**' 'the only owner'; do
   opening_has "the tracker doc's one test" "$need"
@@ -1167,6 +1178,11 @@ done
 if doc 6 "/triage" "$skills/triage/SKILL.md"; then
 hasc "/triage cites the tracker doc's \"Has a database\" rule" '"Has a database" rule'
 hasc "/triage hands a standalone task to implement-task" '`/dev:implement-task <id>` in the owner repo'
+# the bead it routes is a task, and its body follows the issue template /dev:story-to-tasks
+# holds, not the retired to-tickets one (dev-b8d.1 story review 1)
+hasc "/triage creates a standalone task" 'a standalone task (`--type task`'
+hasc "/triage writes the body in story-to-tasks' issue template" 'the issue template in `/dev:story-to-tasks`'
+lacks "/triage citing the retired to-tickets template" 'to-tickets` issue template'
 fi
 # ADR 0014 records the one loop and supersedes ADR 0001, which keeps its text and points at it
 if doc 6 "ADR 0014" "$docs/adr/0014-one-loop-at-three-rows.md"; then

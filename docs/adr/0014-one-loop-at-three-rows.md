@@ -8,7 +8,7 @@ status: accepted
 > checked; a tree with a red record is checked again, so a flaky or environmental red never
 > sticks to its tree. A ticket's landing takes at most three conflict resolutions, apart from
 > the fix-up budget. The why is in `docs/agents/orchestration.md`, Check scope and Landing a
-> ticket.
+> task (so named since ADR 0016).
 >
 > Amended by ADR 0015 (`docs/adr/0015-every-owner-repo-has-a-check-target.md`, dev-0l6,
 > INFRA-33, 2026-10-27): every owner repo has a `check` target, so the review-only gate below is retired,

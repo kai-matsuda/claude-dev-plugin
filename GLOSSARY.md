@@ -227,8 +227,9 @@ tasks under the story) and the loop starts over, three such
 fix-ups per unit (per story at the epic row) per invocation and the fourth `failed`; a minors fix-up and
 a conflict resolution move the tip, so the checks rerun, but no reviewer runs again and no
 budget is spent: the gate exits on the moved tip once its checks are green. The story
-orchestrator records that tip in the reviewed-tip note on the story bead
-(`review: <tip SHA>`), so a rerun knows it; the task row writes no such note.
+orchestrator records that tip in the reviewed-tip note (`review: <tip SHA>`), so a rerun
+knows it: on the story bead under `/dev:implement-story`, on the task bead under
+`/dev:implement-task`, which has no story bead; the task row writes no such note.
 _Avoid_: test gate, lint gate, seam gate, check and review loop, review marker
 
 **Review verdict**:
@@ -385,7 +386,7 @@ same word for askable questions; in this repo it means tasks.)
 _Avoid_: ready list, todo, backlog
 
 **Invocation**:
-One typed `/dev:implement-spec` or `/dev:implement-story`, from the command to its end
+One typed `/dev:implement-spec`, `/dev:implement-story` or `/dev:implement-task`, from the command to its end
 state. It includes everything the command does before it reports: its re-polls of pending
 checks, and its continuation from the person's next message after a session limit cut it
 off. Every fix-up budget is bounded per invocation: three fix-ups per unit, and only a

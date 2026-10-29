@@ -465,7 +465,8 @@ The skill adds its own refusals after these.
 3. Work it; `bd note <id>` for progress worth keeping across sessions.
 4. Under `/dev:implement-story` and `/dev:implement-task` every task passes the check gate before merge: the task
    orchestrator runs the checks, and only `medium` and `high` tasks add the review. It spawns
-   a reviewer subagent at the tier's review model, briefed to run the
+   two reviewers, one per axis (the task's body as the spec axis, the task diff as the
+   standards axis), both at the tier's review model, each briefed to run the
    `mattpocock-skills:code-review` skill on the task's branch since the integration tip; a
    red or a blocking verdict goes to a fresh implementer in the same worktree, never back to
    the first one by `SendMessage` (`orchestration.md`, Trust rules, rule 2). The implementer
@@ -547,11 +548,13 @@ the Jira epic of the spec the session implemented, when there was one. The retro
 
 ## When a skill says "route a triaged item" (`/dev:triage`)
 
-An accepted item becomes a bead in the repo that owns the change, using the issue
-template, then its inbox bead closes pointing at it:
+An accepted item becomes a **standalone task** in the repo that owns the change, using the
+issue template, then its inbox bead closes pointing at it. Its type is `task`, the one type
+`/dev:implement-task` takes; the inbox bead it came from stays a `chore`, a retro item and
+no task:
 
 ```bash
-bd [-C <owner>] create "<title>" --type chore -l complexity:<tier>,retro,<ready label> \
+bd [-C <owner>] create "<title>" --type task -l complexity:<tier>,retro,<ready label> \
   [--external-ref <KEY>-<n>] --acceptance "<criteria>" --body-file -
 bd close <inbox-id> --reason "routed: <owner repo> <new-id>"
 ```

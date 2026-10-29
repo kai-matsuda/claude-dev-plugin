@@ -745,6 +745,18 @@ fresh
 drop_phrase docs/WORKFLOW.md 'one `bd create`, then `/dev:implement-task <task-id>`'
 expect "runbook without the one-bd-create small-bug route fails" 1 "the small-bug route is one bd create then implement-task"
 
+# the story row lands (ADR 0016): 4a's and 4b's landing pins, each dropped alone, and the
+# retired task-orchestrator landing seeded back (dev-b8d.1 story review 1)
+fresh
+drop_phrase docs/WORKFLOW.md 'the story orchestrator lands each reviewed branch'
+sec=2 expect "4a without the story orchestrator's landing fails" 1 "4a: the story orchestrator lands each task"
+fresh
+drop_phrase docs/WORKFLOW.md 'the session lands its reviewed branch'
+sec=2 expect "4b without the session's landing fails" 1 "4b: the session lands the task"
+fresh
+echo 'each task orchestrator lands the task itself' >> "$scratch/docs/WORKFLOW.md"
+sec=2 expect "a runbook task orchestrator landing its task fails" 1 "a task orchestrator landing its own task in the runbook"
+
 # the row pins sit on their own row: the phrase kept on another line cannot stand in
 fresh
 drop_phrase docs/WORKFLOW.md '**task orchestrator**'
@@ -2225,6 +2237,26 @@ sec=2 expect "close-epic without the malformed-epic refusal fails" 1 "close-epic
 fresh
 drop_phrase skills/triage/SKILL.md '`/dev:implement-task <id>` in the owner repo'
 sec=6 expect "triage without the implement-task hand-off fails" 1 "/triage hands a standalone task to implement-task"
+# a routed triage item is a task, the one type /dev:implement-task takes, and /triage's body
+# cites the template that exists (dev-b8d.1 story review 1)
+fresh
+drop_line docs/agents/issue-tracker.md 'create "<title>" --type task -l complexity:<tier>,retro'
+sec=6 expect "tracker doc without the routed task's create line fails" 1 "the routed bead is a task"
+fresh
+swap_phrase docs/agents/issue-tracker.md 'create "<title>" --type task -l complexity:' 'create "<title>" --type chore -l complexity:'
+sec=6 expect "a routed bead of type chore fails" 1 "a routed bead of type chore"
+fresh
+drop_phrase docs/agents/issue-tracker.md 'two reviewers, one per axis'
+sec=6 expect "tracker doc without the two-axis task review fails" 1 "the task gate's review is two-axis"
+fresh
+drop_phrase skills/triage/SKILL.md 'a standalone task (`--type task`'
+sec=6 expect "triage without the task type fails" 1 "/triage creates a standalone task"
+fresh
+drop_phrase skills/triage/SKILL.md 'the issue template in `/dev:story-to-tasks`'
+sec=6 expect "triage without the story-to-tasks issue template fails" 1 "/triage writes the body in story-to-tasks' issue template"
+fresh
+echo 'Body in the `to-tickets` issue template.' >> "$scratch/skills/triage/SKILL.md"
+sec=6 expect "triage citing the to-tickets template fails" 1 "/triage citing the retired to-tickets template"
 
 for case in 'a flat epic of tasks|flat epic' 'the legacy flat shape|flat shape' 'The flat-epic refusal.|flat-epic' \
   'the small-bug path does it|small-bug path' 'the small bug path|small bug path' \
