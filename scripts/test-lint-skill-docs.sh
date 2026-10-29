@@ -1288,6 +1288,14 @@ swap_phrase docs/agents/harness.md 'heredoc' 'here-document'
 printf '\nA heredoc elsewhere in the doc.\n' >> "$scratch/docs/agents/harness.md"
 expect "harness doc whose TMPDIR rule names no heredoc fails" 1
 
+# the Check gate names the epic row's two fourth-failure lines and allows no third (dev-aeo)
+for line in 'failed: <story-id> checks red after three fix-ups' 'failed: <story-id> epic review not clean after three fix-ups'; do
+  fresh
+  drop_phrase docs/agents/orchestration.md "$line"
+  sec=6 expect "orchestration doc whose Check gate lacks \`$line\` fails" 1
+done
+section_case 6 docs/agents/orchestration.md 'At the epic row it is `failed: <story-id> checks failed after three fix-ups`' "a Check gate allowing a third epic-row fourth-failure line"
+
 fresh
 drop_phrase docs/agents/orchestration.md ' and `/.tmp/`'
 expect "orchestration doc whose Gitignore rule lacks /.tmp/ fails" 1
@@ -1797,6 +1805,15 @@ expect "implement-spec opening a PR with tea pulls create fails" 1 "PR-opening s
 fresh_spec
 echo "three blocking verdicts are fixed up" >> "$spec"
 expect "implement-spec counting only blocking verdicts fails" 1 "a budget of blocking verdicts only" "$spec" "$scratch/docs/WORKFLOW.md"
+
+# the epic row's fourth failure reads only the Check gate's two lines (dev-aeo)
+fresh_spec
+echo 'report `failed: <story-id> epic gate not clean after three fix-ups`' >> "$spec"
+expect "implement-spec with a fourth-failure line the Check gate does not allow fails" 1 "an epic-row fourth-failure line the Check gate does not allow" "$spec" "$scratch/docs/WORKFLOW.md"
+
+fresh_spec
+echo 'report `failed: <story-id> epic review failed after 3 fix-ups`' >> "$spec"
+expect "implement-spec with a reworded fix-up count fails" 1 "an epic-row fourth-failure line the Check gate does not allow" "$spec" "$scratch/docs/WORKFLOW.md"
 
 fresh_spec
 echo "one with three fix-ups is failed and not reviewed again" >> "$spec"

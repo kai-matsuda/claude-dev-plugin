@@ -8,7 +8,8 @@
 #      epic row (dev-9k5.1.8): the role named, the harness doc cited, the epic review (one PR at
 #      a time, the default-branch diff, the Jira Epic's spec, no standards axis, the epic's max
 #      tier), draft until clean with the mark-ready commands, the add-mode fix-up (one ticket per
-#      blocking finding, three per story, the fourth failed) and the review: end-state line, with
+#      blocking finding, three per story, the fourth failed in one of the Check gate's two lines
+#      and no other, dev-aeo) and the review: end-state line, with
 #      no epic-row role and no PR opened here;
 #   2. the human runbook docs/WORKFLOW.md (chezmoi-0jp.25) and the /workflow skill:
 #      names only commands that exist, no stale cross-repo wording, the cut skills' argument
@@ -67,7 +68,8 @@
 #      sandbox) with its idle rule (Bash in the foreground only below the epic orchestrator, chezmoi-p4q), the
 #      model (dev-9k5.1.3): the loop sentence, the table's header and each of its three rows, the
 #      two scoping rules (only a green check record skips a run, dev-6qi), the six trust rules as a
-#      closed list, the check command, the check record, the one gate exit, a fix-up that commits
+#      closed list, the check command, the check record, the one gate exit, the epic row's two
+#      fourth-failure lines and no third (dev-aeo), a fix-up that commits
 #      nothing rerunning the checks and spending budget (dev-vnf), a landing's cap of three
 #      conflict resolutions, the seam-test blocking case and the one review tool, with the two-level
 #      loop's lint-first order retired (section 5 sweeps the review marker and the built-in
@@ -246,6 +248,18 @@ retired_row_names() {
   lacksw "the built-in code-review named in $f" 'built-in `code-review`'
   lacksw "the two review tools paragraph in $f" 'Two review tools'
 }
+# the epic row's fourth failure reads only the Check gate's two lines, red or blocking (dev-aeo):
+# both are blanked, so any other `failed: <story-id> ...` naming a fix-up left in $f is a FAIL
+epic_fourth_failure_lines() {
+  local scan other='failed: <story-id> [^`]*fix-up'
+  unchanged_file && return 0
+  scan=$(sed -e 's/failed: <story-id> checks red after three fix-ups//g' \
+    -e 's/failed: <story-id> epic review not clean after three fix-ups//g' "$f")
+  if grep -q "$other" <<<"$scan"; then
+    bad "present: an epic-row fourth-failure line the Check gate does not allow"
+    grep -n "$other" <<<"$scan" | head -3
+  fi
+}
 # run the queued checks: a missing pattern or a present lacks one is a FAIL line; a lacks, lacksf,
 # lackse or lacksw one is followed by its first three matching lines, numbered as grep -n numbers them,
 # an anchored one names its anchor, a paragraph or opening one the scope it searched
@@ -388,6 +402,7 @@ fi
 while IFS=$'\t' read -r check d phrase; do
   case $check in has|hasc) "$check" "$d" "$phrase" ;; '#'*|'') ;; *) bad "implement-spec-pins.tsv: unknown check $check" ;; esac
 done < "$root/scripts/implement-spec-pins.tsv"
+epic_fourth_failure_lines
 # the glossary avoids "human ticket" for the human gate ticket ("ready-for-human ticket" is fine)
 lacks "glossary's avoided term human ticket" '(^|[^-])human ticket'
 # the epic row reviews and marks ready, but opening a PR stays the story orchestrator's
@@ -861,6 +876,10 @@ para_has '**Check gate.**' "a red or blocking verdict goes to a fresh implemente
 para_has '**Check gate.**' "three fix-ups per unit" 'three such fix-ups per unit'
 para_has '**Check gate.**' "the epic row budgets per story" 'at the epic row, three per story'
 para_has '**Check gate.**' "a fourth failure is failed" 'the fourth is `failed`'
+# the epic row's fourth-failure lines, the same two step 6 of /dev:implement-spec reports (dev-aeo)
+para_has '**Check gate.**' "the epic row's red fourth-failure line" '`failed: <story-id> checks red after three fix-ups` after a red check'
+para_has '**Check gate.**' "the epic row's blocking fourth-failure line" '`failed: <story-id> epic review not clean after three fix-ups` after a blocking verdict'
+epic_fourth_failure_lines
 para_has '**Check gate.**' "a minors fix-up and a conflict resolution rerun the checks" 'A minors fix-up and a conflict resolution move the tip, so the checks rerun'
 para_has '**Check gate.**' "and spend nothing" 'no budget is spent'
 para_has '**Check gate.**' "the reviewed tip noted on the story" 'records the reviewed tip in its notes'

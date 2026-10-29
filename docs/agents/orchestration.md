@@ -240,7 +240,8 @@ A `low` ticket's gate is the checks alone, with no review.
 A red or a blocking verdict goes to a fresh implementer by pointer brief and the loop starts over
 (at the epic row, to `ready-for-agent` tickets under the story, The epic row above);
 three such fix-ups per unit (at the epic row, three per story), and the fourth is `failed`,
-one line, the same words at every row.
+one line whose reason names the last failure's cause, a red check or a blocking verdict (dev-aeo).
+At the epic row it is `failed: <story-id> checks red after three fix-ups` after a red check and `failed: <story-id> epic review not clean after three fix-ups` after a blocking verdict, and no other wording.
 A fix-up that commits nothing (a flaky red it could not reproduce, say) leaves the tip and its tree
 where they were, and the loop starts over from the checks all the same: after a red that tree's
 record is red, and a red record skips nothing (Check scope), so the checks rerun on the unchanged tree

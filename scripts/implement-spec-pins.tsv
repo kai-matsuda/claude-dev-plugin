@@ -74,7 +74,9 @@ has	fix-up blocks the publish ticket	dep add <publish ticket id> <new id>
 has	gh's no checks reported is none configured	`no checks reported`
 has	replaced reviewer's stop sweep	the stop sweep, then spawn a fresh one
 has	end state reads step 6's forge reads	step 6's forge reads
-has	red-check budget failure line	checks red after three fix-ups
+has	red-check budget failure line	failed: <story-id> checks red after three fix-ups
+has	blocking-verdict budget failure line	failed: <story-id> epic review not clean after three fix-ups
+has	the budget failure line is the Check gate's	report the rules doc's Check gate line for the last failure
 has	pending checks re-polled after a fix-up batch	any whose checks were pending
 has	end state's checks pending outcome	clean with checks pending
 hasc	waiting rule pointer	the harness doc's Waiting
