@@ -1259,6 +1259,12 @@ sec_has "## Landing" "the story orchestrator never gates a task" 'so you never g
 sec_has "## Landing" "a landing takes at most three conflict resolutions" 'A landing takes at most **three conflict resolutions**'
 sec_has "## Landing" "the fourth conflict fails the task" '`<task-id> failed: conflict <task branch> after three resolutions`'
 sec_has "## Landing" "a landing closes the task" 'A landing closes the task: `bd -C <owner> close <task-id>`'
+# a resolution always moves the task branch past the reviewed tip, so the fast-forward guards the
+# resolved tip, the tree just checked, never the reviewed one; a story fix-up reports no tip SHA,
+# so its tip is read from its worktree (dev-b8d.1.4 review 1)
+sec_has "## Landing" "the fast-forward guards the resolved tip" 'confirm `git -C <owner> rev-parse <task branch>` prints the resolved tip, `git -C <worktree path> rev-parse HEAD`'
+sec_has "## Landing" "a story fix-up's tip is read from its worktree" 'its `<tip SHA>` is `git -C <worktree path> rev-parse HEAD`'
+lacksf "the reviewed-tip guard repeated after a conflict resolution" "repeat 1's guards"
 hase "the conflict implementer's brief starts with the TMPDIR line and the plain-command line" '^3\. A conflict goes to an implementer.*TMPDIR line.*plain-command line, one plain .git. or .bd. command per Bash call, every path spelled out'
 line_has '^3\. A conflict goes to an implementer' "the conflict implementer's check and test timeout" 'timeout: 600000'
 line_has '^   - `<id> failed: <reason>`' "a first failure after a red on a resolved tree retries at the gate" 'that one enters at the gate on the resolved branch'
@@ -1267,6 +1273,9 @@ lacks "a closed report from the task orchestrator" '`<id> closed`'
 # opus, and the brief carries only what the run alone knows, a gate entry adding the branch,
 # worktree, tip and the red record's log
 line_has '^4\. \*\*Work the frontier\.\*\*' "the frontier spawn is at opus" 'at `model: opus`'
+# a cut-off task whose hand-rolled branch carries commits past the integration branch is respawned
+# at the gate, found by a probe of that branch (dev-b8d.1.4 review 1)
+line_has '^4\. \*\*Work the frontier\.\*\*' "step 4 probes a cut-off task's branch for a gate entry" '`git -C <owner> log --oneline <branch>..task/<task-slug>` prints anything'
 sec_has "## Task orchestrator brief" "the brief calls the task-orchestrator skill" 'Call the Skill tool with `dev:task-orchestrator`'
 sec_has "## Task orchestrator brief" "the brief carries only what the run alone knows" 'It carries only what this run alone knows'
 sec_has "## Task orchestrator brief" "the brief carries the plugin root literally" 'plugin root `<plugin root>`, spelled out as the absolute path'

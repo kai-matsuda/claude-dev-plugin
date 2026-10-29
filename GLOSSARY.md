@@ -281,16 +281,16 @@ _Avoid_: fix-up implementer, fixer
 The read of every commit a push or a merge would carry but merges, before it runs: one whose
 author is not the run's `user.email`, or that has no `Bead:` trailer, came from outside the
 run (a test whose throwaway repo failed to init commits into the enclosing checkout).
-The orchestrator runs it before every merge and every push (a trust rule): the task
-orchestrator before landing its task, the story orchestrator before each push of the
-integration branch; a hit stops the merge or push with `failed: stray commit <sha> <subject>`.
+The story orchestrator runs it before every merge and every push (a trust rule): before
+each landing of a reviewed branch onto the integration branch, and before each push of it;
+a hit stops the merge or push with `failed: stray commit <sha> <subject>`.
 _Avoid_: push guard, stray check
 
 **Forge-check wait**:
 The story orchestrator's wait, after the delivery push, for the PR's forge checks on the
 pushed tip, before the delivery is recorded: a red check is a `failed: forge check <name>
 <run URL>` line and leaves the story unfinished; a repo with no forge or no checks delivers
-with a `checks: skipped` line. One of the two shell waits the Idle rule allows.
+with a `checks: skipped` line. The one shell wait the Idle rule allows.
 _Avoid_: CI wait, check poll
 
 **Cut-off**:

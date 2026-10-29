@@ -2634,7 +2634,9 @@ for case in 'Landings are **serial**: one runs at a time, one per report|landing
   'so you never gate a task yourself|the story orchestrator never gates a task' \
   'A landing takes at most **three conflict resolutions**|a landing takes at most three conflict resolutions' \
   '`<task-id> failed: conflict <task branch> after three resolutions`|the fourth conflict fails the task' \
-  'A landing closes the task: `bd -C <owner> close <task-id>`|a landing closes the task'; do
+  'A landing closes the task: `bd -C <owner> close <task-id>`|a landing closes the task' \
+  'confirm `git -C <owner> rev-parse <task branch>` prints the resolved tip, `git -C <worktree path> rev-parse HEAD`|the fast-forward guards the resolved tip' \
+  'its `<tip SHA>` is `git -C <worktree path> rev-parse HEAD`|a story fix-up'"'"'s tip is read from its worktree'; do
   fresh
   drop_phrase skills/implement-story/SKILL.md "${case%%|*}"
   sec=8 expect "implement-story's Landing without '${case%%|*}' fails" 1 "missing in the ## Landing section: ${case#*|}"
@@ -2647,11 +2649,16 @@ sec=8 expect "implement-story with the no-lock sentence outside the Landing sect
 fresh
 swap_phrase skills/implement-story/SKILL.md '^## Landing$' '## Merging'
 sec=8 expect "implement-story without its Landing section fails" 1 "missing: the Landing section"
+# the reviewed-tip guard seeded back after a conflict resolution fails (dev-b8d.1.4 review 1)
+fresh
+swap_phrase skills/implement-story/SKILL.md '^(3\. A conflict goes to an implementer.*)Green: ' "\\1Green: repeat 1's guards and 2's stray-commit check. "
+sec=8 expect "implement-story repeating the reviewed-tip guard after a resolution fails" 1 "present: the reviewed-tip guard repeated after a conflict resolution"
 # step 5 lands a reviewed: report in its turn and retries a red on a resolved tree at the gate;
 # the conflict implementer's brief keeps its ten-minute limit; only the story orchestrator writes
 # to the owner checkout
 for case in 'land it now, in the turn this report resumes you|missing: a reviewed: report is landed in the turn it resumes' \
   'that one enters at the gate on the resolved branch|missing: a first failure after a red on a resolved tree retries at the gate' \
+  '`git -C <owner> log --oneline <branch>..task/<task-slug>` prints anything|missing: step 4 probes a cut-off task'"'"'s branch for a gate entry' \
   'and you alone write there: a task orchestrator never touches it|missing: only the story orchestrator writes to the owner checkout'; do
   fresh
   drop_phrase skills/implement-story/SKILL.md "${case%%|*}"
