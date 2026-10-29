@@ -90,3 +90,4 @@ has	Done keeps a failed: line raised after delivery	a `failed:` line a story orc
 has	every epic review's minors go to the inbox	The minors of every epic review, clean or blocking, go to the inbox
 # a reviewer that fans out reports once, after every sub-agent has (dev-f7k8)
 has	epic reviewer brief: wait for every sub-agent, then one whole-review report	end your turn until every one of them has reported
+has	epic reviewer brief: one report whose verdict covers the whole review, never a partial one	then send one report whose verdict covers the whole review; the epic orchestrator never acts on a partial verdict
