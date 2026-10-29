@@ -84,8 +84,5 @@ has	review set: the last delivered: note names the current tip	its last `deliver
 has	the delivered: note's shape	delivered: <tip SHA> <check record>
 has	Stall names a story with no delivered: note	no delivered: note
 has	Done keeps a failed: line raised after delivery	a `failed:` line a story orchestrator raised after its `delivered:` note
-has	Jira step runs in the first invocation that ends Done	In the first invocation that ends Done
-has	a resumed invocation leaves finished stories untouched	A resumed invocation leaves finished stories untouched
-has	cut-off continuation is the same invocation	this continues, as the same invocation, from the user's next message
 # every epic review's minors go to the inbox, blocking verdicts included (dev-a9a)
 has	every epic review's minors go to the inbox	The minors of every epic review, clean or blocking, go to the inbox

@@ -85,8 +85,7 @@ The harness mechanics (Waiting, the Idle rule, Cut-off agents, literal paths, Co
    checks:  skipped: <reason>                              (as the orchestrator's block has it)
    human:   <bead-id> <title>                              (one per open ready-for-human ticket in the story)
    human:   <owner repo> <story-id> <pr url>: the PR to merge and the /dev:close-story <story-id> to run
-                                                           (in the blocking story's block: a finished story another story waits on, not yet closed;
-                                                            or, after the failed: line of a story whose epic review failed, the Stall's two exits: amend the spec and resume, or close the PR)
+                                                           (in the blocking story's block: a finished story another story waits on, not yet closed)
    waiting: <repo> <story-id>                              (each story whose text blocker names a human gate ticket or a finished story not yet closed)
    resume:  <command>
    state:   <finished | stopped at <bead-id> | waiting on <blocker line as written> | failed>
