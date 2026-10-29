@@ -118,7 +118,8 @@
 #      integration branch, earlier runs' included, and reports a locked or unmerged one in the
 #      report's worktrees: line instead of forcing it (chezmoi-73d), only inside the owner
 #      checkout's resolved top level and not inside a linked worktree nested there (dev-114,
-#      dev-f61), then names every untracked, non-ignored file on the report's stray: line
+#      dev-f61), nor that nested checkout itself while it holds a listed worktree (dev-wcv),
+#      then names every untracked, non-ignored file on the report's stray: line
 #      without deleting it (dev-9ft), its deliver
 #      step waits for the PR's forge checks and makes a red one a failed: line, a missing forge
 #      or check a checks: skipped line (dev-xc2), and its implementer,
@@ -1220,6 +1221,10 @@ line_has '^9\. ' "step 9 resolves the owner's top level" '`git -C <owner> rev-pa
 # an entry inside another listed worktree that itself lies inside <top> belongs to a linked
 # worktree nested in the owner, and that worktree's own sweep is the one to remove it (dev-f61)
 line_has '^9\. ' "step 9 skips worktrees of a checkout nested in the owner" 'inside another listed worktree'
+# and spares that nested checkout itself: a .worktrees/ entry holding a listed worktree is
+# another run's owner, whose remove would delete its children's unmerged work (dev-wcv)
+line_has '^9\. ' "step 9 spares a nested owner that holds worktrees" 'holds another listed worktree'
+hasc "report template names a nested owner in use" 'in use: holds <child path>'
 lacks "the sweep limited to this run's worktrees" 'every worktree the run made'
 hasc "a locked or unmerged worktree is reported, not removed" 'reported with its path'
 lacks "a locked or unmerged worktree forced" 'worktree remove[^`]* -(-force|f)'

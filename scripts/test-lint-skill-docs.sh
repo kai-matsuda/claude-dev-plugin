@@ -1229,6 +1229,16 @@ fresh
 drop_phrase skills/implement-story/SKILL.md 'inside another listed worktree'
 expect "implement-story whose sweep takes a nested checkout's worktrees fails" 1 "missing: step 9 skips worktrees of a checkout nested in the owner"
 
+# a merged, unlocked .worktrees/ entry that holds a listed worktree is another run's owner
+# checkout, so the sweep leaves it and its children in place (dev-wcv)
+fresh
+drop_phrase skills/implement-story/SKILL.md 'holds another listed worktree'
+expect "implement-story whose sweep removes a nested owner in use fails" 1 "missing: step 9 spares a nested owner that holds worktrees"
+
+fresh
+drop_phrase skills/implement-story/SKILL.md 'in use: holds <child path>'
+expect "implement-story whose report drops the in-use worktree reason fails" 1 "missing (case-sensitive): report template names a nested owner in use"
+
 fresh
 drop_line skills/implement-story/SKILL.md 'worktrees: <absolute path>'
 expect "implement-story whose report template has no worktrees: line fails" 1
