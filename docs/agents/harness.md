@@ -32,8 +32,7 @@ tells the orchestrator nothing the report will not (INFRA-28's run 1, 2026-10-20
 background shells were killed, one printing the same two `in_progress` tasks for an hour).
 
 **Idle rule.** Every subagent below the epic orchestrator runs Bash in the foreground only (`timeout`
-up to 600000 ms) and never starts a background Bash call or a `Monitor` on a bead; the
-task orchestrator's lock wait is no exception. The harness notifies a parent of a child's turn ending
+up to 600000 ms) and never starts a background Bash call or a `Monitor` on a bead. The harness notifies a parent of a child's turn ending
 only when nothing is live below the child. A turn that ends with an Agent child mid-turn
 keeps the parent waiting, which is how a nested orchestrator waits (above); a turn that
 ends with a background Bash call or a `Monitor` still running counts as idle, not live.
@@ -50,18 +49,12 @@ in `orchestration.md`) and any other long lint or test run passes `timeout: 6000
 Bash call (INFRA-30's run: two `make lint` calls
 were backgrounded that way, and one agent went looking for its own process with `ps`).
 This is the mechanism behind the no-polling rule above, and why INFRA-29's until-loops
-and Monitors woke agents with stale state. There are two shell waits. One is a task orchestrator's wait on the owner checkout's lock (the
-task orchestrator brief's step 4): a single foreground Bash call running an `until` loop over
-the owner checkout's `index.lock` and `MERGE_HEAD`, at the paths
-`git rev-parse --path-format=absolute --git-path` prints (`.git` is a file in a linked
-worktree or a submodule, so a literal `.git/` path there names nothing), with the call's `timeout` as the five-minute
-bound, so it returns when the lock clears and is killed when it does not (chezmoi-sn1's
-check, 2026-10-22, saw the background form end the task orchestrator's turn with nothing reported).
-The other is the story orchestrator's forge-check wait (the rules doc's Delivery section): one
+and Monitors woke agents with stale state. The one shell wait is the story orchestrator's
+forge-check wait (the rules doc's Delivery section): one
 foreground Bash call that waits for the PR's forge checks on the pushed tip, bounded by its
 `timeout: 600000` and run again while a check is still pending, at most six calls.
-The Bash tool's text says foreground `sleep` is blocked and points at `Monitor`; the same
-check ran the foreground loop unblocked in a session and in a subagent alike, and the
+The Bash tool's text says foreground `sleep` is blocked and points at `Monitor`; chezmoi-sn1's
+check (2026-10-22) ran a foreground `until` loop unblocked in a session and in a subagent alike, and the
 observed run wins.
 
 **Commits.** A commit a hook rejects (commit-msg or pre-commit) is fixed and retried
@@ -101,10 +94,11 @@ Every other agent is replaced, never resumed: to its orchestrator a cut-off chil
 same tier, same worktree, as a child that needs another pass gets one. A cut-off
 is no verdict on the task: it rejoins the frontier with its failure count unchanged. Its
 claim outlives the orchestrator, and `bd ready` excludes an `in_progress` task, so the story
-orchestrator `bd -C <owner> unclaim <task-id>`s it before the next frontier read. The
-fresh task orchestrator's implementer resets the worktree onto the integration branch tip as its brief
-says, so what a cut-off implementer left unmerged on `task/<slug>` is lost and the task
-starts over; what reached the integration branch stays.
+orchestrator `bd -C <owner> unclaim <task-id>`s it before the next frontier read. A
+fresh task orchestrator at the claim entry has its implementer reset the worktree onto the
+integration branch tip, so what a cut-off implementer left unmerged there is lost and the task
+starts over; one at the gate entry (`/dev:task-orchestrator`), sent when a hand-rolled
+`task/<slug>` already carries commits, gates them instead. What reached the integration branch stays.
 
 ## Scratch space
 

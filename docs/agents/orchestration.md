@@ -2,7 +2,7 @@
 
 How the agents that run a feature behave: one loop, run at three rows. Read by every
 orchestrating skill: `/dev:implement-spec` (the **epic orchestrator**), `/dev:implement-story`
-(the **story orchestrator**) and the **task orchestrator** brief it sends. A skill owns its
+(the **story orchestrator**) and `/dev:task-orchestrator` (the **task orchestrator** it spawns). A skill owns its
 own steps; the rules here are the ones they share. Terms are those of `GLOSSARY.md` in the
 plugin repo. The cut skills, `/dev:spec-to-stories` and `/dev:spec-to-tasks`, read only the
 Orchestrator role's epic-level sentence and its "Working-directory preflight", and the task
@@ -22,23 +22,28 @@ human is not a row: a ready PR is theirs to merge.
 
 | Row | Orchestrator | Builds | Checks | Review spec axis | Review standards axis | Reviewer and model | Fix-up | Lands by | Exits when | Budget |
 |---|---|---|---|---|---|---|---|---|---|---|
-| **Task** | task orchestrator | one implementer in a worktree | the check command | the task's body | the task diff | both axes, at the task's review model; none at `low` | an implementer by pointer brief, same worktree | merge onto the integration branch under the lock, after the stray-commit check | the checks green on the tip the review called clean | three fix-ups; three conflict resolutions per landing |
-| **Story** | story orchestrator | task orchestrators in parallel over the frontier | the check command | the story's body | what entered since the last standards review: conflict resolutions, cross-task coherence and the story gate's fix-up commits | both axes, at the review model of the story's max tier | an implementer by pointer brief in a fix-up worktree | push, the PR staying a draft | the checks green on the tip the review called clean | three fix-ups |
+| **Task** | task orchestrator | one implementer in a worktree | the check command | the task's body | the task diff | both axes, at the task's review model; none at `low` | an implementer by pointer brief, same worktree | reports its reviewed branch, which the story orchestrator merges | the checks green on the tip the review called clean | three fix-ups |
+| **Story** | story orchestrator | task orchestrators in parallel over the frontier | the check command | the story's body | what entered since the last standards review: conflict resolutions, cross-task coherence and the story gate's fix-up commits | both axes, at the review model of the story's max tier | an implementer by pointer brief in a fix-up worktree | merges each reviewed task branch after the stray-commit check; push, the PR staying a draft | the checks green on the tip the review called clean | three fix-ups; three conflict resolutions per landing |
 | **Epic** | epic orchestrator | story orchestrators in parallel over the frontier | the check command as the forge runs it | the Jira Epic's spec | none, the axis is skipped | the spec axis only, at the review model of the epic's max tier | findings filed as `ready-for-agent` tasks under the story, that story re-run in add mode | the PR marked ready, the human merges, then `/dev:close-story` and `/dev:close-epic` | the checks green on the tip the review called clean | three per story |
 
-**Landing a task.** The task orchestrator waits on the owner checkout's lock, runs the
-stray-commit check and merges its task branch onto the integration branch. A `git merge`
-that applies is a command, not an edit, so it does not break the never-implement rule. A
-conflict goes to an implementer in the task's worktree, briefed to merge the integration
-tip into the task branch; the task orchestrator then fast-forwards. The resolved tree is
-a new tree, so it is checked, and it is not reviewed again at the task row: the story
-row's standards axis sees it.
+**Landing a task.** The story row lands: the task orchestrator reports its reviewed
+branch and never touches the owner checkout, and the story orchestrator, in the turn that
+report resumes it, runs the stray-commit check and merges the task branch onto the
+integration branch. A `git merge` that applies is a command, not an edit, so it does not
+break the never-implement rule. Landings are serial, one per report, so no lock is
+needed. A conflict goes to an implementer in the task's worktree, briefed to merge the
+integration tip into the task branch; the story orchestrator checks the resolved tree, a
+new tree, with the Check record call, then fast-forwards. The resolved tree is not reviewed
+again: the story row's standards axis sees it. A landing closes the task. The story gate's
+fix-up branches land by the same procedure.
 A landing takes at most three conflict resolutions, apart from the fix-up budget, since a
 sibling that moved the integration branch is no failure of the task's. A landing runs from
-the first lock wait until a merge applies, a refused fast-forward's conflict counting among
+its first merge until a merge applies, a refused fast-forward's conflict counting among
 its three, and the fourth conflict ends the task `failed` with the merge aborted. A red on a
-resolved tree goes to a fix-up, which spends the budget and starts a new landing, so the
-budget bounds the landings and the cap the resolutions in each (dev-6qi).
+resolved tree ends the landing `failed: red after conflict resolution`: the story
+orchestrator never gates a task itself, so the task's one retry is a fresh task
+orchestrator entering at the gate on the resolved branch, whose fix-up spends the task's
+budget, and the budget bounds the landings and the cap the resolutions in each (dev-6qi).
 
 **The epic row.** The epic orchestrator runs its review once every story reports
 delivered, one PR at a time in its owner repo: the diff from the default branch to the
@@ -60,8 +65,8 @@ verdict the PR is marked ready once its checks are green.
 Five roles run a feature, named by their row: the **epic orchestrator**, the **story
 orchestrator**, the **task orchestrator**, the **implementer** and the **reviewer**. The
 plain word "orchestrator" in these rules means any of the three. A fix-up is a
-brief shape of the implementer, not a role, and no agent merges for another: the task
-orchestrator lands its own task.
+brief shape of the implementer, not a role, and only the story orchestrator merges: it lands
+each task's reviewed branch (Landing a task, above).
 
 - The **epic orchestrator** is the session running `/dev:implement-spec`: it spawns one story
   orchestrator per startable story, runs the epic row's review and reads the end state;
@@ -69,12 +74,14 @@ orchestrator lands its own task.
   alone resumes a cut-off story orchestrator (Cut-off agents, in `harness.md`), and its
   `TaskStop` reaches every agent of the run, since both belong to being the session.
 - The **story orchestrator** implements one story: it works the story's frontier in its
-  owner repo, one task orchestrator per task, runs the story row's gate and delivers the
+  owner repo, one task orchestrator per task, lands each reviewed task branch serially and
+  closes its task, runs the story row's gate and delivers the
   integration branch and its PR. Spawned per story by the epic orchestrator, or the session
   itself when `/dev:implement-story` is typed in the story's repo.
-- The **task orchestrator** owns one task from claim to landing: its implementer, its
-  gate and its fix-ups. It reports one line to its story orchestrator and is discarded, so no
-  task's churn outlives it.
+- The **task orchestrator**, the subagent running `/dev:task-orchestrator`, owns one task
+  from claim to a reviewed branch: its implementer, its gate and its fix-ups. It never
+  touches the owner checkout, reports one line to its story orchestrator and is discarded,
+  so no task's churn outlives it.
 - The **implementer** builds a unit or fixes one, test-first at the story's test seams, and
   commits; it is the only role that edits a file.
 - The **reviewer** runs the row's review and reports its findings and its verdict line.
@@ -350,7 +357,7 @@ A publish task, like every human gate task, is `ready-for-human`, so it is off t
 until someone unclaims it (INFRA-27's run 1, 2026-10-20: `chezmoi-a0q.1.5` stayed
 `in_progress` and assigned after two failed runs of its orchestrator, and the user ran
 `bd unclaim` by hand twice). So the story orchestrator `bd -C <owner> unclaim <id>`s every
-task whose task orchestrator returned without closing it, a `failed` report or a
+task that ended unlanded, a `failed` report (its task orchestrator's or its landing's) or a
 cut-off, before its next frontier read, and when a task leaves the frontier after its
 second failure it also notes the resume pointer on the task: open, unassigned, listed by
 `bd ready`, the note saying what to type. A person runs `bd unclaim` by hand only when the

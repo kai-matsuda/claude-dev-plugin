@@ -68,20 +68,22 @@ sequenceDiagram
         opt minors out of scope, a minor a fix-up reported as left unfixed, and every minor at the epic row
             O->>IN: capture a retro item (needs-triage), never to a bead of the story
         end
-        alt task row
-            O->>O: wait on the owner checkout's lock
-            O->>O: stray-commit check
-            O->>O: merge onto the integration branch
+        alt task row, the owner checkout untouched
+            O->>U: reviewed, one line with the task branch, its worktree and its tip
+            Note over U: the story row lands it, serially, one landing per report, no lock
+            U->>U: stray-commit check
+            U->>U: merge onto the integration branch
             opt the merge conflicts, at most three resolutions per landing (the fourth fails the task)
-                O->>F: an implementer in the task worktree merges the integration tip in
-                F-->>O: report, O runs the check command on the resolved tree, then fast-forwards
+                U->>F: an implementer in the task worktree merges the integration tip in
+                F-->>U: report, U runs the check command on the resolved tree, then fast-forwards
+                Note over U: a red there fails the landing, and the task's retry enters at the gate on the resolved branch
             end
-            O->>BD: close the task's bead
+            U->>BD: close the task's bead
         else story or epic row
             O->>O: stray-commit check
             O->>U: push (story, draft PR) or mark the PR ready (epic)
             Note over BD: the story and epic beads stay open, /dev:close-story and /dev:close-epic close them after the merge
+            O->>U: landed, one line
         end
-        O->>U: landed, one line
     end
 ```
