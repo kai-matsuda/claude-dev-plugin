@@ -2491,6 +2491,26 @@ sec=6 expect "ADR 0014 with 'status: accepted, amended' in the frontmatter fails
 fresh
 rm "$scratch/docs/adr/0014-one-loop-at-three-rows.md"
 sec=6 expect "a missing ADR 0014 fails" 1 "missing document: $scratch/docs/adr/0014-one-loop-at-three-rows.md"
+# ADR 0016 and ADR 0014's note keep their decision lines
+for case in '> Superseded in part by ADR 0016|ADR 0014 superseded in part by ADR 0016'; do
+  fresh
+  drop_phrase docs/adr/0014-one-loop-at-three-rows.md "${case%%|*}"
+  sec=6 expect "ADR 0014 without '${case%%|*}' fails" 1 "${case#*|}"
+done
+for case in 'status: accepted|ADR 0016 is accepted' 'Supersedes in part ADR 0014|ADR 0016 supersedes ADR 0014 in part' \
+  '**The story row lands its tasks.**|ADR 0016 decides the story row lands its tasks' \
+  '## Considered options|ADR 0016 has considered options' \
+  '**The story row sending a red resolved tree to a fix-up itself**|ADR 0016 option: the story row sends a red tree to a fix-up' \
+  '**A typed skill that is also the spawned one**|ADR 0016 option: a typed skill that is also the spawned one' \
+  '**A chore skill**|ADR 0016 option: a chore skill' \
+  'three conflict resolutions per landing|ADR 0016 moves the resolution budget to the story row' \
+  'run a task-row gate|ADR 0016 rejects the red-tree fix-up for the task-row gate it would run' \
+  'two modes in one skill|ADR 0016 rejects the typed-and-spawned skill for its two modes' \
+  'would deliver `fix:` commits|ADR 0016 rejects the chore skill for the branch it would deliver'; do
+  fresh
+  drop_phrase docs/adr/0016-the-story-row-lands-its-tasks.md "${case%%|*}"
+  sec=6 expect "ADR 0016 without '${case%%|*}' fails" 1 "${case#*|}"
+done
 for case in 'status: superseded by ADR 0014|ADR 0001 is superseded by 0014' \
   'docs/adr/0014-one-loop-at-three-rows.md|ADR 0001 points at ADR 0014'; do
   fresh
