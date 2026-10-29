@@ -395,9 +395,6 @@ task. To reach tasks:
   recurses through descendants and never crosses databases; with `<epic-id>` it would
   also list the open home stories, so name the story.
 
-An epic bead whose direct children include a non-story bead is the legacy flat shape; the
-story-tier skills refuse it.
-
 ## When a skill says "fetch the spec" (`/dev:spec-to-stories`, `/dev:story-to-tasks`)
 
 The skill names `<KEY>-<n>` (or none), how it reads the epic bead, its **last resort**,

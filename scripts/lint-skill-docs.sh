@@ -756,7 +756,7 @@ moved_rule='(rules doc|orchestration\.md)`?(, |'\''s (([a-z-]+ ){1,3}says \(|scr
 # the task row as a skill (INFRA-37): one route per unit. No doc names a flat epic, the small-bug
 # path, the two upstream skills it replaces or the rejected chore names (never the bare word
 # chore, which the gitignore commit subject and the Conventional Commits type use)
-retired_route='flat[ -]epics?|small[ -]bug path|mattpocock-skills:(implement|to-tickets)([^-a-z]|$)|implement-chore|chore orchestrator|chore/'
+retired_route='flat[ -](epics?|shape)|small[ -]bug path|mattpocock-skills:(implement|to-tickets)([^-a-z]|$)|implement-chore|chore orchestrator|chore/'
 while IFS= read -r f; do
   lacksw "retired phrase in $f" "$retired"
   # no foreground spawn instruction: an Agent call returns at once whatever run_in_background
@@ -785,7 +785,7 @@ while IFS= read -r f; do
   lacksw "the retired lock wait in $f" 'lock wait|index\.lock|under the lock'
   # one route per unit (INFRA-37): a standalone task goes to /dev:implement-task, an epic bead
   # with a non-story child is refused as malformed, and the upstream skills are not named
-  lacksw "a retired route (flat epic, small-bug path, upstream skill or chore name) in $f" "$retired_route"
+  lacksw "a retired route (flat epic or shape, small-bug path, upstream skill or chore name) in $f" "$retired_route"
 done <<<"$swept"
 # the root glossary lists the retired vocabulary under _Avoid_ (and docs/adr/ keeps its
 # historical sense through .glossary-allow), so only the two-gate wording is swept there
@@ -1239,7 +1239,7 @@ fi
 # ---- 8. /implement-story: the deliver step pushes and opens the PR on the typed command's authority ----
 if doc 8 "/implement-story" "$skills/implement-story/SKILL.md"; then
 # an epic bead with a non-story child is malformed, and the refusal points nowhere (INFRA-37)
-hasc "malformed epic refusal" '`<id> refused: <child-id> is not a story`'
+hasc "malformed epic refusal" '`<epic-id> refused: <child-id> is not a story`'
 hasc "delivery rule pointer" 'the rules doc'"'"'s Delivery authority'
 hasc "step 8 delivers as the Delivery section says with the story as its unit" "8. **Deliver**, as the rules doc's Delivery section says, with the story as its unit"
 # a commit from outside the run (21f770c: a test whose throwaway init failed committed into the

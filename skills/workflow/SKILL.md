@@ -28,7 +28,7 @@ calls. Print, don't act: the next command is always the user's to type.
 Read the epic's direct children with `bd list --parent <id> --all --json` (`--all` keeps
 closed ones, which the default filter hides). Any child that is not of type `story` → the
 epic is malformed, which this skill reports and does not position. Print
-`<bead-id> (<KEY>-<n>) "<title>" — <epic-id> refused: <child-id> is not a story`, suggest
+`<epic-id> (<KEY>-<n>) "<title>" refused: <child-id> is not a story`, suggest
 nothing, and go to the next epic.
 
 ## Position of a story-shaped epic

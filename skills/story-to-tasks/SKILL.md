@@ -4,8 +4,9 @@ description: "Break one story bead into tracer-bullet tasks for its owner repo, 
 ---
 
 <!-- Derived from mattpocock-skills 1.3.1 `engineering/to-tickets`, steps 1-5 kept in the
-     plugin's order. Local changes: the input is one story bead (non-story, closed and finished stories refused, a finished one unless add mode
-     marked it with a recut: note), optionally in another repo (bd -C);
+     plugin's order. Local changes: the input is one story bead (non-story, closed and
+     finished stories refused, a finished one unless add mode marked it with a recut: note),
+     optionally in another repo (bd -C);
      context is the story body and its Jira epic; tasks for the owner repo only; one
      complexity tier per task; two modes, alone (quiz, then publish) and called (a "story
      cutter" brief returns the breakdown, a "Publish this block" brief publishes it); Spec: file

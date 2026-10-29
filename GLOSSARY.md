@@ -18,6 +18,12 @@ The beads issue that anchors a feature on the agent side, linked to its Jira Epi
 either.
 _Avoid_: root bead
 
+**Malformed epic**:
+An epic bead with a direct child that is not a story. The story-tier skills refuse it with
+`<epic-id> refused: <child-id> is not a story` and suggest nothing; `/dev:workflow`
+reports it without positioning it.
+_Avoid_: flat epic
+
 **Story**:
 The part of one feature that lands in one repo as one PR: what that PR must deliver, and
 the parent of the feature's tasks there. A story is one PR, with one integration branch
@@ -41,7 +47,7 @@ by its tool, never by the bare word.
 _Avoid_: ticket (any level of something to do; a story is not one), sub-task
 
 **Standalone task**:
-A task with no story: a triaged retro item, or a small bug. It is
+A task with no story: a triaged retro item or a small bug. It is
 the task row's unit all the same.
 _Avoid_: loose bead, orphan task
 

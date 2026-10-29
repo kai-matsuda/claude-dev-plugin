@@ -2211,7 +2211,7 @@ fresh
 drop_phrase skills/implement-spec/SKILL.md '<epic-id> refused: <child-id> is not a story'
 expect "implement-spec without the malformed-epic refusal fails" 1 "malformed epic refusal"
 fresh
-drop_phrase skills/implement-story/SKILL.md '`<id> refused: <child-id> is not a story`'
+drop_phrase skills/implement-story/SKILL.md '`<epic-id> refused: <child-id> is not a story`'
 sec=8 expect "implement-story without the malformed-epic refusal fails" 1 "malformed epic refusal"
 fresh
 drop_phrase docs/agents/issue-tracker.md 'refused: <child-id> is not a story'
@@ -2226,7 +2226,7 @@ fresh
 drop_phrase skills/triage/SKILL.md '`/dev:implement-task <id>` in the owner repo'
 sec=6 expect "triage without the implement-task hand-off fails" 1 "/triage hands a standalone task to implement-task"
 
-for case in 'a flat epic of tasks|flat epic' 'The flat-epic refusal.|flat-epic' \
+for case in 'a flat epic of tasks|flat epic' 'the legacy flat shape|flat shape' 'The flat-epic refusal.|flat-epic' \
   'the small-bug path does it|small-bug path' 'the small bug path|small bug path' \
   'run /mattpocock-skills:implement <id>|mattpocock-skills:implement' \
   'run /mattpocock-skills:to-tickets now|mattpocock-skills:to-tickets' \
@@ -2235,7 +2235,7 @@ for case in 'a flat epic of tasks|flat epic' 'The flat-epic refusal.|flat-epic' 
   for file in skills/sample/SKILL.md docs/agents/issue-tracker.md docs/WORKFLOW.md skills/implement-story/SKILL.md; do
     fresh
     echo "${case%%|*}" >> "$scratch/$file"
-    sec=5 expect "$file saying '${case%%|*}' fails section 5" 1 "a retired route (flat epic, small-bug path, upstream skill or chore name) in $scratch/$file"
+    sec=5 expect "$file saying '${case%%|*}' fails section 5" 1 "a retired route (flat epic or shape, small-bug path, upstream skill or chore name) in $scratch/$file"
   done
 done
 fresh
