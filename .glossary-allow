@@ -54,3 +54,4 @@ docs/adr/0011-a-story-is-one-pr-and-stories-form-a-dag.md ticket cut  # written 
 docs/adr/0012-nested-orchestrators-wait-on-the-completion-notification.md ticket  # written before the rename of ticket to task
 docs/adr/0014-one-loop-at-three-rows.md ticket  # written before the rename of ticket to task
 docs/adr/0015-every-owner-repo-has-a-check-target.md ticket  # written before the rename of ticket to task
+docs/adr/0016-the-story-row-lands-its-tasks.md ticket  # quotes ADR 0014 and names the unit it renamed to task

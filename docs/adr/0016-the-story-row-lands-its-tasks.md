@@ -39,7 +39,7 @@ that any orchestrator could run with a frontier of one.
 ## Considered options
 
 - **The story row sending a red resolved tree to a fix-up itself**: after a conflict
-  resolution, a red check goes straight to a fix-up implementer from the story row.
+  resolution, a red check goes straight to an implementer on a fix-up brief from the story row.
   Rejected because the resolution is already an implementer's work in the task's worktree;
   a red check on that tree is that implementer's to fix within the landing's budget, and a
   second path for the same failure would split the budget in two.
