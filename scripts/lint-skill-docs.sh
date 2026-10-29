@@ -119,6 +119,7 @@
 #      report's worktrees: line instead of forcing it (chezmoi-73d), only inside the owner
 #      checkout's resolved top level and not inside a linked worktree nested there (dev-114,
 #      dev-f61), nor that nested checkout itself while it holds a listed worktree (dev-wcv),
+#      nor any .worktrees/ entry but a hand-rolled ticket worktree (dev-dzu),
 #      then names every untracked, non-ignored file on the report's stray: line
 #      without deleting it (dev-9ft), its deliver
 #      step waits for the PR's forge checks and makes a red one a failed: line, a missing forge
@@ -1225,6 +1226,14 @@ line_has '^9\. ' "step 9 skips worktrees of a checkout nested in the owner" 'ins
 # another run's owner, whose remove would delete its children's unmerged work (dev-wcv)
 line_has '^9\. ' "step 9 spares a nested owner that holds worktrees" 'holds another listed worktree'
 hasc "report template names a nested owner in use" 'in use: holds <child path>'
+# a nested owner that holds no listed worktree yet (before its run's first spawn) is still
+# another run's checkout: under .worktrees/ only a hand-rolled ticket worktree, ticket/<slug>
+# at .worktrees/<slug>, is swept, and any other entry is reported, not removed (dev-dzu)
+line_has '^9\. ' "step 9 sweeps only a hand-rolled ticket worktree under .worktrees/" 'only a hand-rolled ticket worktree is swept'
+line_has '^9\. ' "step 9 names a ticket worktree by its branch and path" '`refs/heads/ticket/<slug>` at `<top>/.worktrees/<slug>`'
+line_has '^9\. ' "step 9 matches a ticket worktree's branch and path on one slug" 'the same `<slug>` in both'
+hasc "report template names a .worktrees/ entry that is not a ticket worktree" 'not a ticket worktree'
+lacks "a nested owner with no children swept by path alone" 'swept like any merged entry'
 lacks "the sweep limited to this run's worktrees" 'every worktree the run made'
 hasc "a locked or unmerged worktree is reported, not removed" 'reported with its path'
 lacks "a locked or unmerged worktree forced" 'worktree remove[^`]* -(-force|f)'

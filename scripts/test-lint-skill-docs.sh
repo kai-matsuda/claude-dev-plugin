@@ -1239,6 +1239,28 @@ fresh
 drop_phrase skills/implement-story/SKILL.md 'in use: holds <child path>'
 expect "implement-story whose report drops the in-use worktree reason fails" 1 "missing (case-sensitive): report template names a nested owner in use"
 
+# a merged, unlocked .worktrees/ entry that holds no listed worktree and is not a hand-rolled
+# ticket worktree (a nested owner before its run's first spawn) is left and reported (dev-dzu)
+fresh
+drop_phrase skills/implement-story/SKILL.md 'only a hand-rolled ticket worktree is swept'
+expect "implement-story whose sweep removes any merged .worktrees/ entry fails" 1 "missing: step 9 sweeps only a hand-rolled ticket worktree under .worktrees/"
+
+fresh
+drop_phrase skills/implement-story/SKILL.md '`refs/heads/ticket/<slug>` at `<top>/.worktrees/<slug>`'
+expect "implement-story whose sweep does not name a ticket worktree's shape fails" 1 "missing: step 9 names a ticket worktree by its branch and path"
+
+fresh
+drop_phrase skills/implement-story/SKILL.md 'the same `<slug>` in both'
+expect "implement-story whose ticket worktree's branch and path need not share a slug fails" 1 "missing: step 9 matches a ticket worktree's branch and path on one slug"
+
+fresh
+drop_phrase skills/implement-story/SKILL.md 'not a ticket worktree'
+expect "implement-story whose report drops the not-a-ticket-worktree reason fails" 1 "missing (case-sensitive): report template names a .worktrees/ entry that is not a ticket worktree"
+
+fresh
+echo 'A nested owner that holds none is swept like any merged entry.' >> "$scratch/skills/implement-story/SKILL.md"
+expect "implement-story sweeping a childless nested owner fails" 1
+
 fresh
 drop_line skills/implement-story/SKILL.md 'worktrees: <absolute path>'
 expect "implement-story whose report template has no worktrees: line fails" 1
