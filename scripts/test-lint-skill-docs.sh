@@ -1286,7 +1286,7 @@ drop_phrase skills/implement-story/SKILL.md 'the same `<slug>` in both'
 expect "implement-story whose task worktree's branch and path need not share a slug fails" 1 "missing: step 9 matches a task worktree's branch and path on one slug"
 
 fresh
-drop_phrase skills/implement-story/SKILL.md 'a `ticket/<slug>` worktree, the prefix before the rename, is not a task worktree and is left in place'
+drop_phrase skills/implement-story/SKILL.md 'reported as `not a task worktree`, a `ticket/<slug>` worktree (the prefix before the rename) included'
 expect "implement-story whose sweep takes a ticket/ worktree for a task worktree fails" 1 "missing: step 9 leaves a ticket/ worktree in place as not a task worktree"
 
 fresh
