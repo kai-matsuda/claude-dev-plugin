@@ -2505,16 +2505,28 @@ expect "ticket orchestrator step 3 not opening with the loop fails" 1 "missing: 
 # position, each pin on its own: the opener kept, a reviewer spawned ahead of the checks' green
 # (the green's own spawn kept too), then a green that spawns no reviewer
 fresh
-swap_phrase skills/implement-story/SKILL.md '^(> 3\. \*\*Check gate\*\*, every tier, )' '\1for `medium` and `high` spawn a **reviewer** alongside it, '
-expect "ticket orchestrator step 3 spawning the reviewer before the checks' green fails" 1 "present: ticket orchestrator step 3 spawns a reviewer ahead of the checks' green"
+swap_phrase skills/implement-story/SKILL.md '^(> 3\. \*\*Check gate\*\*, every tier, )' '\1for `medium` and `high` spawn two **reviewers** alongside it, '
+expect "ticket orchestrator step 3 spawning the reviewers before the checks' green fails" 1 "present: ticket orchestrator step 3 spawns a reviewer ahead of the checks' green"
 
 fresh
-swap_phrase skills/implement-story/SKILL.md '^(> 3\. .*Green: a `low` ticket exits the loop, go to step 4; for `medium` and `high`, )spawn a \*\*reviewer\*\*' '\1hand the ticket to a **reviewer**'
+swap_phrase skills/implement-story/SKILL.md '^(> 3\. .*Green: a `low` ticket exits the loop, go to step 4; for `medium` and `high`, )spawn two \*\*reviewers\*\*' '\1hand the ticket to two **reviewers**'
 expect "ticket orchestrator step 3 whose green spawns no reviewer fails" 1 "missing: the check gate runs before step 3's reviewer"
+
+# the per-axis spawn and the combined verdict line, each dropped from step 3's line, fail; the
+# old brief that sent one reviewer to spawn the skill's sub-agents, seeded back, fails (dev-bzd)
+for case in 'spawn two **reviewers**, one per axis|missing: the ticket review spawns one reviewer per axis' \
+  'Combine the two reports into one verdict line|missing: the two reviewers combine their reports into one verdict line'; do
+  fresh
+  drop_phrase skills/implement-story/SKILL.md "${case%%|*}"
+  expect "ticket orchestrator step 3 without '${case%%|*}' fails" 1 "${case#*|}"
+done
+fresh
+swap_phrase skills/implement-story/SKILL.md '^(> 3\. .*)$' "\\1 Brief the reviewer with the skill's two sub-agents spawned at the tier's review model too."
+expect "ticket orchestrator step 3 regaining the reviewer's sub-agents fails" 1 "present: the reviewer told to spawn the skill's sub-agents"
 
 for case in "as the rules doc's Check gate says|a loop step not citing the rules doc's loop|missing: the loop step cites the rules doc's loop" \
   'A red spawns a fresh implementer on the fix-up and the loop starts over from the checks|a red not starting the loop over|missing: a red starts the loop over from the checks' \
-  'and the loop starts over from the checks, never straight to the reviewer|a blocking verdict not starting over from the checks|missing: a blocking verdict starts the loop over from the checks' \
+  'and the loop starts over from the checks, never straight to the reviewers|a blocking verdict not starting over from the checks|missing: a blocking verdict starts the loop over from the checks' \
   '**Clean** exits the loop|a clean verdict not exiting the loop|missing: a clean verdict exits the loop' \
   'Green: a `low` ticket exits the loop, go to step 4|a low ticket not exiting on green|missing: a low ticket exits the loop on green checks' \
   'tail -n 40 <log>|a red read without a forty-line tail|missing: a red gate reads a forty-line tail' \

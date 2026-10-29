@@ -1263,10 +1263,16 @@ G3='^> 3\. \*\*Check gate\*\*, every tier'
 hase "ticket orchestrator step 3 opens with the check gate, every tier" "$G3"
 line_has "$G3" "the loop step cites the rules doc's loop" "as the rules doc's Check gate says"
 line_has "$G3" "a red starts the loop over from the checks" 'A red spawns a fresh implementer on the fix-up and the loop starts over from the checks'
-line_has "$G3" "a blocking verdict starts the loop over from the checks, never straight to the reviewer" 'a blocking verdict spawns a fresh implementer on the fix-up and the loop starts over from the checks, never straight to the reviewer'
+line_has "$G3" "a blocking verdict starts the loop over from the checks, never straight to the reviewers" 'a blocking verdict spawns a fresh implementer on the fix-up and the loop starts over from the checks, never straight to the reviewers'
 line_has "$G3" "a clean verdict exits the loop" '**Clean** exits the loop'
-line_hase "$G3" "the check gate runs before step 3's reviewer" '\*\*Check gate\*\*.*Green:.*for `medium` and `high`, spawn a \*\*reviewer\*\*'
-unchanged_file || ! grep -E "$G3" "$f" | sed 's/Green: .*//' | grep -qF -- 'spawn a **reviewer**' || bad "present: ticket orchestrator step 3 spawns a reviewer ahead of the checks' green"
+line_hase "$G3" "the check gate runs before step 3's reviewer" '\*\*Check gate\*\*.*Green:.*for `medium` and `high`, spawn two \*\*reviewers\*\*'
+unchanged_file || ! grep -E "$G3" "$f" | sed 's/Green: .*//' | grep -qF -- 'spawn two **reviewers**' || bad "present: ticket orchestrator step 3 spawns a reviewer ahead of the checks' green"
+# a ticket's review spawns one reviewer per axis, as the story row runs one sub-agent per axis,
+# since a reviewer has no Agent tool to spawn the skill's sub-agents with; the ticket
+# orchestrator combines the two reports into one verdict line (dev-bzd)
+line_has "$G3" "the ticket review spawns one reviewer per axis" 'spawn two **reviewers**, one per axis'
+line_has "$G3" "the two reviewers combine their reports into one verdict line" 'Combine the two reports into one verdict line'
+line_lacks "$G3" "the reviewer told to spawn the skill's sub-agents" "the skill's two sub-agents spawned"
 line_has "$G3" "a low ticket exits the loop on green checks" 'Green: a `low` ticket exits the loop, go to step 4'
 line_has '^> 2\. ' "ticket orchestrator step 2's implementer runs no gate and spawns no one" 'The implementer runs no gate and spawns no one'
 # the check record (dev-9k5.1.7): keyed by the tree SHA under the owner checkout's .tmp/checks/,
