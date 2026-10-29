@@ -1422,6 +1422,14 @@ fresh
 drop_line docs/agents/harness.md 'This section binds every session and subagent'
 expect "harness doc without the -C discipline fails" 1
 
+# a branch from a remote ref is created with --no-track, since the sandbox denies the
+# .git/config write upstream tracking needs (dev-rlr)
+for phrase in '**Branches from a remote ref.**' '`git switch --no-track -c <branch> origin/<x>`' 'denies the write to `.git/config`'; do
+  fresh
+  drop_line docs/agents/harness.md "$phrase"
+  expect "harness doc without '$phrase' fails" 1
+done
+
 fresh
 mv "$scratch/docs/agents/harness.md" "$scratch/docs/agents/harness-gone.md"
 expect "a missing harness doc fails naming it" 1 "missing document: $scratch/docs/agents/harness.md"

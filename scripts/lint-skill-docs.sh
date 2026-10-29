@@ -953,6 +953,11 @@ para_has '**Commits.**' "a leftover message file Read before the Write" 'a lefto
 # the shell-commands discipline and the pointer back at the preflight kept in the rules doc
 hasc "the -C discipline" 'This section binds every session and subagent'
 hasc "the preflight stays in the rules doc" 'The working-directory preflight stays in `orchestration.md`'
+# a branch from a remote ref is created with --no-track, since the sandbox denies the
+# .git/config write upstream tracking needs (dev-rlr)
+hasc "branches from a remote ref rule" '**Branches from a remote ref.**'
+para_has '**Branches from a remote ref.**' "the --no-track switch" '`git switch --no-track -c <branch> origin/<x>`'
+para_has '**Branches from a remote ref.**' "the sandbox denies the tracking write" 'denies the write to `.git/config`'
 fi
 if doc 6 "tracker rules" "$agents/issue-tracker.md"; then
 # every ticket passes the check gate; only the review is medium and high (ADR 0014, ADR 0015)

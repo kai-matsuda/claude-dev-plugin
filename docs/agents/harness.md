@@ -197,3 +197,9 @@ act on another directory, use the flag the command gives (`git -C <dir>`, `bd -C
 `cargo --manifest-path`, `make -C <dir>`) or an absolute path, rather than moving the shell.
 The shell's `grep` is Claude Code's bundled ugrep, which fails a wide bounded repeat with
 "exceeds complexity limits"; `grep -n` piped to `cut` also works.
+
+**Branches from a remote ref.** Create a branch from a remote ref with
+`git switch --no-track -c <branch> origin/<x>` (or `git branch --no-track <branch> origin/<x>`
+and then switch to it). The sandbox denies the write to `.git/config` that upstream tracking
+needs, so a plain `git switch -c <branch> origin/<x>` creates the branch, fails on the
+tracking write and leaves the agent on the old branch (twice in INFRA-33's session).
