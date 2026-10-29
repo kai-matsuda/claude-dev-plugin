@@ -843,20 +843,32 @@ drop_phrase docs/agents/issue-tracker.md '`bd -C <repo> where` must print `<repo
 expect "tracker doc with no check after init fails" 1 "missing (case-sensitive): init is checked with bd where"
 
 fresh
+drop_phrase docs/agents/issue-tracker.md 'the report names the init commit'"'"'s hash'
+expect "tracker doc whose failed init check drops the commit fails" 1 "missing (case-sensitive): a failed init check names the init commit"
+
+fresh
 drop_phrase docs/agents/issue-tracker.md '`bd -C <owner> where` prints `<owner>/.beads`'
 expect "tracker doc whose story publish skips the init check fails" 1 "missing (case-sensitive): the story publish checks the user's init"
+
+fresh
+drop_phrase docs/agents/issue-tracker.md 'or `where` names another database), treat it as a no'
+expect "tracker doc whose story publish has no failed-init path fails" 1 "missing (case-sensitive): a failed init in the story publish is a no"
 
 fresh
 drop_phrase skills/spec-to-stories/SKILL.md '`bd -C <home> where` prints `<home>/.beads`'
 expect "spec-to-stories skipping the init check fails" 1 "missing (case-sensitive): the home database check after the user's init"
 
 fresh
-drop_phrase skills/setup-repo/SKILL.md 'from the repo'"'"'s top level, never through `-C` or `BEADS_DIR`'
-expect "setup-repo whose init may run through -C fails" 1 "missing (case-sensitive): setup-repo runs init from the repo's top level"
+drop_phrase skills/spec-to-stories/SKILL.md '`refused: bd init in <home> did not create <home>/.beads`'
+expect "spec-to-stories with no failed-init refusal fails" 1 "missing (case-sensitive): a failed init in the home is refused"
 
 fresh
-drop_phrase skills/setup-repo/SKILL.md '`bd -C <repo> where` must print `<repo>/.beads`'
-expect "setup-repo with no check after init fails" 1 "missing (case-sensitive): setup-repo checks init with bd where"
+drop_phrase skills/setup-repo/SKILL.md 'which says where it runs from and when setup stops'
+expect "setup-repo not citing the init rule fails" 1 "missing (case-sensitive): setup-repo runs init by the tracker doc's rule"
+
+fresh
+echo '     from the repo'"'"'s top level, never through `-C` or `BEADS_DIR`' >> "$scratch/skills/setup-repo/SKILL.md"
+expect "setup-repo restating the init rule fails" 1 "present: setup-repo restating the init rule"
 
 fresh
 echo '`bd init` cannot take `-C`, so give the user the command.' >> "$scratch/skills/sample/SKILL.md"
