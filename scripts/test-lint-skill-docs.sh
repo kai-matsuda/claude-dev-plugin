@@ -1544,6 +1544,16 @@ for phrase in 'mkdir -p <worktree>/.tmp && export TMPDIR=<worktree>/.tmp' 'expor
   expect "harness doc without '$phrase' fails" 1
 done
 
+# the TMPDIR rider's calls and its git-runs-alone sentence, and the Literal paths rule's Edit-tool
+# sentence, each dropped alone (dev-xvq5)
+for phrase in 'every call that runs `mktemp`, a heredoc or a script' 'git runs alone,' \
+  'each git call its own Bash call with no `export` in front' \
+  'the Edit tool, in place of `sed -f` or a python heredoc'; do
+  fresh
+  drop_phrase docs/agents/harness.md "$phrase"
+  sec=6 expect "harness doc without '$phrase' fails" 1
+done
+
 fresh
 swap_phrase docs/agents/harness.md 'heredoc' 'here-document'
 printf '\nA heredoc elsewhere in the doc.\n' >> "$scratch/docs/agents/harness.md"

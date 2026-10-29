@@ -1082,6 +1082,13 @@ para_has '**TMPDIR.**' "the heredoc failure" 'heredoc'
 para_has '**TMPDIR.**' "the directory is gitignored" '`.tmp/` is gitignored'
 para_has '**TMPDIR.**' "export repeated per Bash call" 'export TMPDIR=<worktree>/.tmp; <command>'
 para_has '**TMPDIR.**' "mktemp -d takes a template under .tmp" 'mktemp -d <worktree>/.tmp/<name>.XXXXXX'
+# the export prefixes the calls that run mktemp, a heredoc or a script; a git call takes none and
+# runs alone, each its own Bash call (dev-xvq5, INFRA-37)
+para_has '**TMPDIR.**' "the calls the export prefixes" 'every call that runs `mktemp`, a heredoc or a script'
+para_has '**TMPDIR.**' "git runs alone" 'git runs alone,'
+para_has '**TMPDIR.**' "a git call takes no export in front" 'each git call its own Bash call with no `export` in front'
+# file edits in a worktree go through the Edit tool, not sed -f or a python heredoc (dev-xvq5)
+para_has '**Literal paths.**' "file edits go through the Edit tool" 'the Edit tool, in place of `sed -f` or a python heredoc'
 para_has '**Idle rule.**' "the Idle rule names the check command" 'every run of the check command'
 # the story orchestrator's forge-check wait is the one shell wait the rule allows (dev-xc2),
 # the task orchestrator's lock wait gone with the lock (dev-b8d.1.4; section 5 sweeps it)
