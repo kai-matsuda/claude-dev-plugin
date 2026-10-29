@@ -2,7 +2,7 @@
 
 How the agents that run a feature behave: one loop, run at three rows. Read by every
 orchestrating skill: `/dev:implement-spec` (the **epic orchestrator**), `/dev:implement-story`
-(the **story orchestrator**) and `/dev:task-orchestrator` (the **task orchestrator** it spawns). A skill owns its
+and `/dev:implement-task` (the **story orchestrator**) and `/dev:task-orchestrator` (the **task orchestrator** it spawns). A skill owns its
 own steps; the rules here are the ones they share. Terms are those of `GLOSSARY.md` in the
 plugin repo. The cut skills, `/dev:spec-to-stories` and `/dev:spec-to-tasks`, read only the
 Orchestrator role's epic-level sentence and its "Working-directory preflight", and the task
@@ -133,9 +133,9 @@ in the plugin repo). Only the epic orchestrator resumes an agent, and only a cut
 orchestrator. A child that needs another pass gets a fresh subagent, same tier, same
 worktree, with the findings in its brief.
 
-**Delivery authority.** The typed command is the authority for what it delivers. `/dev:implement-spec`
-and `/dev:implement-story` are typed to deliver a PR, so the commits, the push of the
-integration branch and the PR are what the user asked for, the "explicitly asked" of the
+**Delivery authority.** The typed command is the authority for what it delivers. `/dev:implement-spec`,
+`/dev:implement-story` and `/dev:implement-task` are typed to deliver a PR, so the commits, the push of the
+integration branch (or the standalone task's branch) and the PR are what the user asked for, the "explicitly asked" of the
 Beads profile block in the user-level `CLAUDE.md`: the orchestrator pushes and opens the
 PR as steps of the run (ADR 0009 in the plugin repo). A story orchestrator spawned by
 the epic orchestrator has no user to ask in any case (INFRA-28's run 2, 2026-10-20: its
@@ -273,7 +273,7 @@ still fails at the fourth.
 A fresh orchestrator at any row starts its unit's budget at three whatever notes earlier invocations left,
 and an agent resumed with its context keeps its own count (Cut-off agents in `harness.md`).
 The epic orchestrator counts a story's spent budget from the story's `epic fix-up` notes after this invocation's `epic review 1` note (The epic row, above).
-The bound a person wants is per invocation (dev-l4j): a person who types `/dev:implement-spec` or `/dev:implement-story` again starts a new invocation,
+The bound a person wants is per invocation (dev-l4j): a person who types `/dev:implement-spec`, `/dev:implement-story` or `/dev:implement-task` again starts a new invocation,
 and a replaced task orchestrator's budget starts afresh, from the integration branch tip at the claim entry or from the tip its brief hands it at the gate entry (`/dev:task-orchestrator`),
 so neither the task row nor the story row records spent fix-ups for a later invocation to count from.
 A minors fix-up and a conflict resolution move the tip, so the checks rerun, but no reviewer

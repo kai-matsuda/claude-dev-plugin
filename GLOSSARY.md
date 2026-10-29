@@ -186,7 +186,8 @@ The one forge query `/dev:implement-story` runs before committing to a delivered
 `pr:` note) that has an open `ready-for-agent` task: a merged PR refuses and points at
 add mode, a PR closed unmerged refuses, an open one continues on the story's branch, and
 a branch-form note or no forge is decided locally, else asked. It is how a sealed story
-stays sealed.
+stays sealed. `/dev:implement-task` runs the same guard on an open standalone task with a
+`pr:` note: merged and closed-unmerged refuse, an open one delivers again.
 _Avoid_: merge check, PR check, seal check
 
 **Check command**:

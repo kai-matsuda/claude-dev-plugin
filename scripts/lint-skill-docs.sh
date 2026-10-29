@@ -805,6 +805,8 @@ has "preflight remedy" '/add-dir <'
 # the typed implement command is the authority to push and open the PR, so the push is a step
 # of the run, with a failed: line when it is refused (ADR 0009, chezmoi-g61)
 hasc "delivery authority rule" '**Delivery authority.**'
+# /dev:implement-task is typed to deliver a PR too (dev-b8d.1.6 review 2)
+para_has '**Delivery authority.**' "/dev:implement-task is typed to deliver a PR" 'and `/dev:implement-task` are typed to deliver a PR'
 # the paragraph and the ## Delivery section are named apart, so a citation names one of them
 lacksf "a paragraph named like the Delivery section" '**Delivery.**'
 lacks "profile-gated push in the rules doc" 'when the active profile permits'
@@ -1659,6 +1661,9 @@ line_has "$R4" "step 4 reads the reviewed tip" '`git -C <worktree path> rev-pars
 # not apply to it, and its implementer's tests go where tdd agrees them (dev-b8d.1.6)
 line_has "$G3" "the no-seam-test case skips a standalone task without test seams" 'a standalone task whose body has no `## Test seams` names no seam, so this case does not apply'
 line_has '^2\. Spawn the \*\*implementer\*\*' "a standalone task's implementer tests where tdd agrees them" "where \`tdd\` agrees them when it has none"
+# the spec reviewer reads a standalone task's own ## Test seams, as the implementer's brief does
+# (dev-b8d.1.6 review 2)
+line_has "$G3" "the spec reviewer reads a standalone task's own test seams" "and the story's test seams, or a standalone task's own body's \`## Test seams\`, where those criteria must be exercised"
 fi
 
 # ---- 17. /implement-task: a standalone task delivered as a PR opened ready ----
@@ -1706,6 +1711,9 @@ hasc "the merge guard" '**Merge guard.**'
 hasc "the merge guard's merged refusal" '`<task-id> refused: PR <url> already merged'
 hasc "the merge guard's closed-unmerged refusal" '`<task-id> refused: PR <url> is closed unmerged`'
 hasc "the merge guard's open PR delivers again" 'OPEN: continue on the `branch:` note'"'"'s branch and deliver again'
+hasc "the branch form's refusals name the pr: value" 'the `pr:` value stands in for `<url>` in the refusals'
+# a finished task touches nothing: no worktree removed, no check record deleted (review 2)
+hasc "a finished task runs only the stray scan" "run only step 6's stray scan"
 hasc "a failed run re-enters at the gate" 'its next spawn is a gate entry'
 hasc "the gate entry starts a fresh budget" 'with a fresh budget'
 # the report: the story block minus the story lines, ending on resume:

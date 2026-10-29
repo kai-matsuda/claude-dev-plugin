@@ -625,6 +625,11 @@ drop_line docs/agents/orchestration.md '**Delivery authority.**'
 expect "orchestration doc without the delivery rule fails" 1
 
 fresh
+drop_phrase docs/agents/orchestration.md 'and `/dev:implement-task` are typed to deliver a PR'
+sec=6 expect "orchestration whose Delivery authority omits /dev:implement-task fails" 1 \
+  "missing in the **Delivery authority.** paragraph: /dev:implement-task is typed to deliver a PR"
+
+fresh
 echo "push when the active profile permits" >> "$scratch/docs/agents/orchestration.md"
 expect "profile-gated push in the orchestration doc fails" 1
 
@@ -2756,6 +2761,8 @@ for case in 'Implement one standalone task bead|missing in the opening: the fron
   '`<task-id> refused: PR <url> already merged|missing (case-sensitive): the merge guard'"'"'s merged refusal' \
   '`<task-id> refused: PR <url> is closed unmerged`|missing (case-sensitive): the merge guard'"'"'s closed-unmerged refusal' \
   'OPEN: continue on the `branch:` note'"'"'s branch and deliver again|missing (case-sensitive): the merge guard'"'"'s open PR delivers again' \
+  'the `pr:` value stands in for `<url>` in the refusals|missing (case-sensitive): the branch form'"'"'s refusals name the pr: value' \
+  "run only step 6's stray scan|missing (case-sensitive): a finished task runs only the stray scan" \
   'its next spawn is a gate entry|missing (case-sensitive): a failed run re-enters at the gate' \
   'with a fresh budget|missing (case-sensitive): the gate entry starts a fresh budget' \
   'task:    <task-id> <title>|missing (case-sensitive): the report'"'"'s task line' \
@@ -2798,7 +2805,8 @@ fresh
 printf '%s\n' '| **Standalone task** | story orchestrator | one task orchestrator |' >> "$scratch/docs/agents/orchestration.md"
 sec=6 expect "orchestration with a fourth table row fails" 1 "present: a fourth row in the table"
 for case in 'a standalone task whose body has no `## Test seams` names no seam, so this case does not apply|missing: the no-seam-test case skips a standalone task without test seams' \
-  'where `tdd` agrees them when it has none|missing: a standalone task'"'"'s implementer tests where tdd agrees them'; do
+  'where `tdd` agrees them when it has none|missing: a standalone task'"'"'s implementer tests where tdd agrees them' \
+  'or a standalone task'"'"'s own body'"'"'s `## Test seams`|missing: the spec reviewer reads a standalone task'"'"'s own test seams'; do
   fresh
   drop_phrase skills/task-orchestrator/SKILL.md "${case%%|*}"
   sec=16 expect "task-orchestrator without '${case%%|*}' fails" 1 "${case#*|}"
