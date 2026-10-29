@@ -1160,12 +1160,15 @@ fi
 if doc 6 "ADR 0016" "$docs/adr/0016-the-story-row-lands-its-tasks.md"; then
 line_hase '^status: accepted$' "ADR 0016 is accepted" '^status: accepted$'
 hasc "ADR 0016 supersedes ADR 0014 in part" 'Supersedes in part ADR 0014'
-hasc "ADR 0016 decides the story row lands its tasks" 'The story row lands its tasks'
+hasc "ADR 0016 decides the story row lands its tasks" '**The story row lands its tasks.**'
 hasc "ADR 0016 has considered options" '## Considered options'
 hasc "ADR 0016 option: the story row sends a red tree to a fix-up" '**The story row sending a red resolved tree to a fix-up itself**'
 hasc "ADR 0016 option: a typed skill that is also the spawned one" '**A typed skill that is also the spawned one**'
 hasc "ADR 0016 option: a chore skill" '**A chore skill**'
 hasc "ADR 0016 moves the resolution budget to the story row" 'three conflict resolutions per landing'
+hasc "ADR 0016 rejects the red-tree fix-up for the task-row gate it would run" 'run a task-row gate'
+hasc "ADR 0016 rejects the typed-and-spawned skill for its two modes" 'two modes in one skill'
+hasc "ADR 0016 rejects the chore skill for the branch it would deliver" 'would deliver `fix:` commits'
 fi
 if doc 6 "ADR 0001" "$docs/adr/0001-two-stage-review.md"; then
 hasc "ADR 0001 is superseded by 0014" 'status: superseded by ADR 0014'

@@ -2492,12 +2492,15 @@ for case in '> Superseded in part by ADR 0016|ADR 0014 superseded in part by ADR
   sec=6 expect "ADR 0014 without '${case%%|*}' fails" 1 "${case#*|}"
 done
 for case in 'status: accepted|ADR 0016 is accepted' 'Supersedes in part ADR 0014|ADR 0016 supersedes ADR 0014 in part' \
-  'The story row lands its tasks|ADR 0016 decides the story row lands its tasks' \
+  '**The story row lands its tasks.**|ADR 0016 decides the story row lands its tasks' \
   '## Considered options|ADR 0016 has considered options' \
   '**The story row sending a red resolved tree to a fix-up itself**|ADR 0016 option: the story row sends a red tree to a fix-up' \
   '**A typed skill that is also the spawned one**|ADR 0016 option: a typed skill that is also the spawned one' \
   '**A chore skill**|ADR 0016 option: a chore skill' \
-  'three conflict resolutions per landing|ADR 0016 moves the resolution budget to the story row'; do
+  'three conflict resolutions per landing|ADR 0016 moves the resolution budget to the story row' \
+  'run a task-row gate|ADR 0016 rejects the red-tree fix-up for the task-row gate it would run' \
+  'two modes in one skill|ADR 0016 rejects the typed-and-spawned skill for its two modes' \
+  'would deliver `fix:` commits|ADR 0016 rejects the chore skill for the branch it would deliver'; do
   fresh
   drop_phrase docs/adr/0016-the-story-row-lands-its-tasks.md "${case%%|*}"
   sec=6 expect "ADR 0016 without '${case%%|*}' fails" 1 "${case#*|}"
