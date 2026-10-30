@@ -132,8 +132,9 @@
 #      or check a checks: skipped line (dev-xc2), and its story fix-up and conflict-resolution
 #      briefs start with the TMPDIR line, whose rule section 6 checks in orchestration.md
 #      (chezmoi-3eg), and its story review step 7 points at the rules doc's Review verdict,
-#      whose rule section 6 checks (chezmoi-49k), and its step 3 resolves the run's check
-#      command once and fails a run with no check target, a red record checked again and a
+#      whose rule section 6 checks (chezmoi-49k), and its step 3 applies the rules doc's
+#      Story plumbing (check target resolved once, forge decision, Gitignore commit and merge
+#      guard, which section 6 pins, dev-yykg), a red record checked again and a
 #      fix-up that commits nothing checked again at step 7, the story gate exiting on a
 #      reviewed tip (dev-vnf), with the lint-command resolution retired (dev-9k5.1.7),
 #      and its story gate (step 7) is the rules doc's Check gate loop at the story row: it exits
@@ -986,6 +987,40 @@ sec_has "## Delivery" "Delivery's red forge check leaves the unit unfinished" 'n
 sec_has "## Delivery" "Delivery's red forge check records no delivery" 'no `delivered:` or `pr:` note is written;'
 sec_has "## Delivery" "Delivery records the delivered: note" 'note <unit-id> "delivered: <tip SHA> <check record>"'
 sec_has "## Delivery" "Delivery records delivered: ahead of pr:" 'The `delivered:` note goes ahead of the `pr:` note'
+# the Story plumbing section, parametrised by the unit like Delivery: the check target probe, the
+# forge decision, the Gitignore commit recipe and the merge guard, stated once; both skills cite it
+# and the skill lints below pin only their own lines (dev-yykg)
+hase "Story plumbing section" '^## Story plumbing$'
+sec_has "## Story plumbing" "Story plumbing is parametrised by the unit" 'a **story** (`/dev:implement-story`) and a **standalone task** (`/dev:implement-task`)'
+sec_has "## Story plumbing" "the check command is resolved once per run" 'Resolve the check command once per run'
+sec_has "## Story plumbing" "the check command is make check" '`make check`, since every owner repo has a `check` target (Check command, above)'
+sec_has "## Story plumbing" "a repo with no check target fails the run before any task orchestrator starts" 'with none, end the run now with `failed: no check target in <owner>; run /dev:setup-repo there, then re-run`, before any task orchestrator starts'
+sec_has "## Story plumbing" "every task orchestrator brief carries the check command" 'every task orchestrator brief carries it'
+sec_has "## Story plumbing" "the check target is asked of make, never grepped from a Makefile" 'Ask make whether it has one, never grep a Makefile'
+sec_has "## Story plumbing" "the check target is read from make's database" '`make -C <owner> -pRrq : 2>/dev/null | awk '"'"'/^# Not a target:/{n=1;next} /^check::?([^=:]|$)/&&!n{c=1; if (/^check::? *[^ :]/) f=1} c&&/^#  (commands|recipe) to execute/{f=1} /^$/{c=0} {n=0} END{exit !f}'"'"'`'
+sec_has "## Story plumbing" "a missing Makefile reads as no check target" 'a missing Makefile prints no database and exits 1, so all three read as no check target'
+sec_has "## Story plumbing" "the forge CLI takes the repo by --repo, tea by its absolute path" 'the repo'"'"'s absolute path (a sibling'"'"'s: `<workspace>/<repo>`)'
+sec_has "## Story plumbing" "the forge is decided once" 'Decide **once** which forge fronts the repo'
+sec_has "## Story plumbing" "the forge is pre-checked on the origin URL" 'Pre-check `git -C <owner> remote get-url origin`'
+sec_has "## Story plumbing" "every forge command names its repo" 'every forge command names its repo'
+sec_has "## Story plumbing" "the forge is proved outside the sandbox" 'run each forge command with the sandbox disabled'
+sec_has "## Story plumbing" "the Gitignore commit is keyed on a dirty file" 'git -C <owner> status --porcelain -- .gitignore'
+sec_has "## Story plumbing" "the Gitignore commit counts the rule's four entries" "is one of the rule's four entries and no line is removed"
+sec_has "## Story plumbing" "the Gitignore commit follows the Commits rule" "commit it as the harness doc's Commits rule says"
+sec_has "## Story plumbing" "the Gitignore commit goes through a message file" '`git -C <owner> commit -F <owner>/.tmp/commit-msg`'
+sec_has "## Story plumbing" "a user edit in .gitignore is a failed: line, not absorbed" 'failed: <owner>/.gitignore has uncommitted edits'
+sec_has "## Story plumbing" "the merge guard runs the forge query sandbox-disabled" 'with the sandbox disabled, as `/dev:close-story` step 4 does'
+sec_has "## Story plumbing" "the merge guard's GitHub query" 'gh pr view <url> --json state'
+sec_has "## Story plumbing" "the merge guard's Forgejo query names the repo" 'tea api --repo <owner> repos/{owner}/{repo}/pulls/<n>'
+sec_has "## Story plumbing" "the merge guard refuses a MERGED PR" 'MERGED: refuse'
+sec_has "## Story plumbing" "the merge guard refuses a PR closed unmerged" 'CLOSED unmerged: refuse'
+sec_has "## Story plumbing" "the merge guard: OPEN continues on the branch: note's branch and delivers again" "OPEN: continue on the \`branch:\` note's branch and deliver again"
+sec_has "## Story plumbing" "the merge guard decides the branch form locally first" 'is decided locally first, then asked: `git -C <owner> fetch origin`'
+sec_has "## Story plumbing" "the merge guard skips the fetch with no origin" '(skipped with no `origin`)'
+sec_has "## Story plumbing" "the merge guard compares by ancestry" '`git -C <owner> merge-base --is-ancestor <tip SHA> origin/<default branch>`'
+sec_has "## Story plumbing" "the merge guard maps each ancestry exit and a failed fetch" '(exit 0: as MERGED; exit 1: as OPEN; a failed fetch of an existing origin or any other exit: it cannot decide (ask))'
+sec_has "## Story plumbing" "the merge guard compares against the local default branch with no origin" 'with the local `<default branch>` in place of `origin/<default branch>` when there is no `origin`'
+sec_has "## Story plumbing" "a failing forge command is an error, never no forge" 'never as "no forge"'
 # the one gate semantics at every row (INFRA-33): the exit, the fix-up and its budget, the
 # minors fix-up and the conflict resolution that rerun the checks and spend nothing, the
 # reviewed tip as a sentence; the two-level loop with lint before the seams and the review
@@ -1286,14 +1321,15 @@ hasc "the story orchestrator's landing runs the stray-commit check" 'the **stray
 # the delivery records its tip and check record, which /dev:implement-spec's review set reads (dev-47z)
 hasc "finished story backfills a missing delivered: note" 'a finished story with no `delivered:` line'
 lacks "profile-gated push" 'when the active profile permits|ask the user to run that exact command|give the user that exact command'
-hasc "gitignore commit keyed on a dirty file" 'git -C <owner> status --porcelain -- .gitignore'
 lacks "a gitignore hand-off from the story cut" 'the story cut appended|story cut could not commit'
-hasc "a user edit in .gitignore is a failed: line, not absorbed" 'failed: <owner>/.gitignore has uncommitted edits'
-# the gitignore commit carries trailers, so it goes through a message file as the harness doc's
-# Commits rule says, never --trailer (dev-7gu)
-hasc "gitignore commit through a message file" '`git -C <owner> commit -F <owner>/.tmp/commit-msg`'
-# the step inherits the rule's Read of a leftover commit-msg only through this reference (dev-cqf)
-hasc "gitignore commit follows the Commits rule" "commit it as the harness doc's Commits rule says"
+# the Gitignore commit recipe is the rules doc's Story plumbing (section 6 pins it, dev-yykg); the
+# step cites it, naming its trailers, and repeats none of it
+hasc "step 3 cites the rules doc's Story plumbing" "the rules doc's Story plumbing"
+hasc "step 3 names the Gitignore commit's trailers" '`Bead: <story-id>` and `Refs: <KEY>-<n>`'
+lacksf "a second copy of the Gitignore commit recipe" 'git -C <owner> status --porcelain -- .gitignore'
+lacksf "a second copy of the Gitignore commit's message file" 'git -C <owner> commit -F <owner>/.tmp/commit-msg'
+lacksf "a second copy of the Gitignore commit's user-edit failure" 'has uncommitted edits'
+# the commit carries trailers, so it goes through a message file, never --trailer (dev-7gu)
 lacks "a --trailer commit" 'commit [^`]*--trailer'
 hasc "exploration subagent reads the design field" '.[0].design'
 hasc "exploration subagent owns the notes directory" '`<owner>/.spec-notes/<epic-id>/`'
@@ -1383,25 +1419,25 @@ hasc "merge guard covers a pr: line, a URL or the branch form" 'whose notes carr
 hasc "merge guard's MERGED refusal says add mode" 'in add mode (or /dev:spec-to-stories'
 hasc "merge guard's MERGED refusal closes the stray task" '; then close <task-id> (moved to the new story)'
 hasc "step 3 defers to the forge decision of the merge guard" '(already decided in step 1 when the merge guard ran)'
-hasc "merge guard decides the forge as step 3 does" 'the forge decided as step 3 says'
-hasc "merge guard's Forgejo query names the repo" 'tea api --repo <owner> repos/{owner}/{repo}/pulls/<n>'
-hasc "merge guard refuses a PR closed unmerged" 'CLOSED unmerged: refuse'
+# the guard's mechanism (the forge decision, the queries, the three outcomes, the local decision of a
+# branch form) is the rules doc's Story plumbing, pinned in section 6 (dev-yykg); the step cites it
+# and keeps its trigger, its refusal lines and what it does when the state is unknown
+hasc "merge guard cites the rules doc's Story plumbing for its mechanism" "the rules doc's Story plumbing Merge guard"
+hasc "merge guard: OPEN continues on the re-delivery path" 'the re-delivery path of steps 3 and 8'
+hasc "merge guard's MERGED refusal line" 'MERGED: refuse with `<story-id> refused: PR <url> already merged;'
+hasc "merge guard's closed-unmerged refusal line" 'CLOSED unmerged: refuse with `<story-id> refused: PR <url> is closed unmerged`'
+lacksf "a second copy of the merge guard's forge query" 'gh pr view <url> --json state'
+lacksf "a second copy of the merge guard's Forgejo query" 'tea api --repo <owner> repos/{owner}/{repo}/pulls/<n>'
+lacksf "a second copy of the merge guard's ancestry check" 'merge-base --is-ancestor <tip SHA>'
 hasc "merge guard's add-mode hint covers an epic with no external ref" '(or /dev:spec-to-stories <epic-id> when the epic has no external ref)'
-hasc "merge guard runs the forge query sandbox-disabled" 'with the sandbox disabled, as `/dev:close-story` step 4 does'
-hasc "merge guard refuses a MERGED PR" 'MERGED: refuse'
-hasc "merge guard: OPEN continues on the branch: note's branch" "OPEN: continue on the \`branch:\` note's branch"
-hasc "merge guard asks when the forge cannot tell" '(no forge, or a branch-form `pr:` note)'
+hasc "merge guard asks when the forge cannot tell" 'the forge cannot tell (no forge, or a branch-form `pr:` note)'
 hasc "merge guard asks whether the PR or branch has merged" 'whether the PR, or for the branch form the branch, has merged into the default branch'
 hasc "merge guard leaves the stray task until add mode carries its work over" 'until add mode has carried its work into a new story, so close it there then'
 hasc "story-closure wait says to merge the PR and run /dev:close-story" 'merge its PR and run /dev:close-story <blocker-id>`'
 hasc "a keyless story's branch is still feat/<story-id>" 'its branch is `feat/<story-id>`, as every story'"'"'s is (step 3)'
 hasc "merge guard fires on a child that is not closed" 'while a child that is not closed (open, in_progress or blocked) is labelled `ready-for-agent`'
-hasc "merge guard decides the branch form locally first" '`git -C <owner> merge-base --is-ancestor <tip SHA> origin/<default branch>`'
 hasc "merge guard ends a spawned run with a failed: line" 'failed: <story-id> merge state unknown (<pr: value>): say whether it merged, then re-run'
-hasc "merge guard summary says the branch form is decided locally first" 'the branch form or no forge is decided locally first, then asked (below)'
-hasc "merge guard maps each ancestry exit and a failed fetch" '(exit 0: as MERGED; exit 1: as OPEN; a failed fetch of an existing origin or any other exit: it cannot decide (ask))'
-hasc "merge guard skips the fetch with no origin" '`git -C <owner> fetch origin` (skipped with no `origin`), then'
-hasc "merge guard finds the default branch as step 3 says" 'find `<default branch>` as step 3 says; with no `origin`, compare against the local `<default branch>`'
+hasc "merge guard finds the default branch as step 3 says" '`<default branch>` is found as step 3 says'
 hasc "sibling line format carries the story id" '`<repo> <story-id> <url>`'
 lacks "the sibling line as <repo> <url>" '`<repo> <url>`'
 lacks "glossary's avoided term human task" '(^|[^-])human task'
@@ -1470,24 +1506,22 @@ hase "the story review's fix-up brief carries the plain-command line" '^7\. .*TM
 # wrote $PWD and the guard refused it in INFRA-35's run (dev-r1p)
 line_hase 'starts with the \*\*TMPDIR line\*\*' "the Owner repo bullet states the bare pwd step" 'first Bash call is .pwd. alone.*spelled literally in every later .export.'
 lacks "the retired fill-in-the-pwd-path wording" 'fills in the path `pwd` prints'
-hasc "Gitignore step counts four entries" "the rule's four entries"
 lacks "Gitignore step counts three entries" "the rule's three entries"
 hase "the story review (step 7) points at the rules doc's Review verdict" "^7\. .*the rules doc's Review verdict"
 lacks "the zero-findings bar" 'not clean after three rounds|no findings at all|clean means zero findings'
-C='^   \*\*Check command\.\*\* Resolve'
-hase "step 3 resolves the check command" "$C"
-line_has "$C" "the check command is resolved once per run" 'Resolve the check command **once per run**'
-line_has "$C" "the check command is make check" '`make check`, since every owner repo has a `check` target (the rules doc'"'"'s Check command)'
-# a repo with no check target ends the run before any task orchestrator starts (ADR 0015)
-line_has "$C" "step 3 fails a run with no check target" 'with none, end the run now with `failed: no check target in <owner>; run /dev:setup-repo there, then re-run`, before any task orchestrator starts'
-line_has "$C" "the run's check command goes in every brief" 'every task orchestrator brief carries it and step 7 gates on it'
-# the check target comes from make's own database, never a grep of the Makefile, which missed
-# GNUmakefile, makefile, included files and multi-target rules and took check:= for a target
-# (dev-de4), or a .PHONY: check with no rule (dev-b3p); scripts/test-check-target.sh runs the
-# pinned query on scratch repos
-line_has "$C" "step 3 asks make for the check target" 'Ask make whether it has one, never grep a Makefile'
-line_has "$C" "step 3 reads the check target from make's database" '`make -C <owner> -pRrq : 2>/dev/null | awk '"'"'/^# Not a target:/{n=1;next} /^check::?([^=:]|$)/&&!n{c=1; if (/^check::? *[^ :]/) f=1} c&&/^#  (commands|recipe) to execute/{f=1} /^$/{c=0} {n=0} END{exit !f}'"'"'`'
-line_has "$C" "a missing Makefile reads as no check target" 'a missing Makefile prints no database and exits 1, so all three read as no check target'
+# the check target probe, its refusal and the once-per-run resolution are the rules doc's Story
+# plumbing, pinned in section 6 (dev-yykg; dev-de4, dev-b3p and ADR 0015 behind them, and
+# scripts/test-check-target.sh runs the pinned query on scratch repos); step 3 cites it, and the
+# run's check command still goes in every brief and gates step 7
+C='^   Apply the rules doc'"'"'s Story plumbing'
+hase "step 3 applies the rules doc's Story plumbing" "$C"
+line_has "$C" "step 3 resolves the check command through the Story plumbing" 'its Check target, whose `<check command>`'
+line_has "$C" "the run's check command goes in every brief" 'every task orchestrator brief carries and step 7 gates on'
+line_has "$C" "the Gitignore commit is the rule's, in the Story plumbing" 'its Gitignore commit'
+line_has "$C" "the forge decision is the Story plumbing's" 'its Forge decision'
+lacksf "a second copy of the check target probe" 'make -C <owner> -pRrq'
+lacksf "a second copy of the check target refusal" 'failed: no check target in <owner>'
+lacksf "a second copy of the forge decision" 'Decide **once** which forge fronts the repo'
 lacks "the retired grep for the check target" "grep -q .\\^check:"
 lacks "the retired lint-command resolution" 'resolve the owner repo.s \*\*lint command\*\*|`make lint` when `<owner>`.s makefile has a `lint` target'
 lacksf "the retired lint placeholder" '`<lint>`'
@@ -1748,12 +1782,23 @@ hasc "the not-ready refusal" '`<id> refused: not ready-for-agent'
 hasc "the story row with a frontier of one" 'the story row with a frontier of one'
 hasc "no story gate" 'no story bead and no story gate'
 # the plumbing: the same make probe and refusal, the forge decision, the gitignore rule, the branch
-hasc "the make probe for the check target" 'make -C <owner> -pRrq : 2>/dev/null'
-hasc "the refusal with no check target" '`failed: no check target in <owner>; run /dev:setup-repo there, then re-run`'
-hasc "the gitignore rule" "the rules doc's Gitignore rule"
+# the make probe, its refusal, the forge decision, the Gitignore commit and the merge guard's
+# mechanism are the rules doc's Story plumbing (section 6 pins them, dev-yykg); the skill cites
+# it and repeats none of it
+hasc "the Story plumbing cited for the check target" "the rules doc's Story plumbing"
+hasc "the Story plumbing's Check target" 'its Check target'
+hasc "the Story plumbing's Gitignore commit" 'its Gitignore commit'
+hasc "the Story plumbing's Forge decision" 'its Forge decision'
+lacksf "a second copy of the check target probe" 'make -C <owner> -pRrq'
+lacksf "a second copy of the check target refusal" 'failed: no check target in <owner>'
+lacksf "a second copy of the forge decision" 'Decide **once** which forge fronts the repo'
+lacksf "a second copy of the Gitignore commit recipe" 'git -C <owner> status --porcelain -- .gitignore'
+lacksf "a second copy of the Gitignore commit's message file" 'git -C <owner> commit -F <owner>/.tmp/commit-msg'
+lacksf "a second copy of the merge guard's forge query" 'gh pr view <url> --json state'
+lacksf "a second copy of the merge guard's Forgejo query" 'tea api --repo <owner> repos/{owner}/{repo}/pulls/<n>'
+lacksf "a second copy of the merge guard's ancestry check" 'merge-base --is-ancestor <tip SHA>'
 hasc "the branch feat/<id> off the default branch" 'git -C <owner> switch -c feat/<task-id> <default branch>'
 hasc "the branch: note" 'bd -C <owner> note <task-id> "branch: feat/<task-id>"'
-hasc "the forge decided once" 'Decide **once** which forge fronts the repo'
 # one task orchestrator, the short brief
 hasc "one task orchestrator through the skill" 'Call the Skill tool with `dev:task-orchestrator`'
 hasc "the task orchestrator at opus" 'at `model: opus`'
@@ -1773,7 +1818,8 @@ hasc "no forge: the skipped-checks line" 'checks: skipped: no forge'
 hasc "the merge guard" '**Merge guard.**'
 hasc "the merge guard's merged refusal" '`<task-id> refused: PR <url> already merged'
 hasc "the merge guard's closed-unmerged refusal" '`<task-id> refused: PR <url> is closed unmerged`'
-hasc "the merge guard's open PR delivers again" 'OPEN: continue on the `branch:` note'"'"'s branch and deliver again'
+hasc "the merge guard cites the rules doc's Story plumbing for its mechanism" "the rules doc's Story plumbing Merge guard"
+hasc "the merge guard's open PR delivers again" 'and deliver again (steps 2 to 5 once more, on it)'
 hasc "the branch form's refusals name the pr: value" 'the `pr:` value stands in for `<url>` in the refusals'
 # a finished task touches nothing: no worktree removed, no check record deleted (review 2)
 hasc "a finished task runs only the stray scan" "run only step 6's stray scan"
