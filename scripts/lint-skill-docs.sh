@@ -472,8 +472,7 @@ has "orchestration pointer" 'orchestration.md'
 # of /dev:implement-story (dev-b8d.1.3 review 1)
 hasc "the epic review cites the Delivery section for the delivered: note" "the rules doc's Delivery section writes \`delivered: <tip SHA> <check record>\`"
 hasc "draft until clean cites the Delivery section's forge-check wait" "the rules doc's Delivery section's forge-check wait"
-lacksf "a step number of /dev:implement-story for the delivery" '`/dev:implement-story` step 8'
-lacksf "a step 7 of /dev:implement-story credited for the Evidence" '`/dev:implement-story` step 7'
+# (no skill cites another skill's step number: section 5 sweeps every skill, dev-0ohl)
 has "preflight pointer" '"Working-directory preflight"'
 
 fi
@@ -640,7 +639,7 @@ hasc "add mode quizzes the additions only" 'quizzes the additions only'
 hasc "forge query, GitHub" 'gh pr view <url> --json state'
 hasc "forge query, Forgejo/Gitea" 'tea api --repo <owner> repos/{owner}/{repo}/pulls/<n>'
 lacks "Forgejo/Gitea forge query without --repo" 'tea api repos/'
-hasc "forge query runs sandbox-disabled" 'with the sandbox disabled, as `/dev:close-story` step 4 does'
+hasc "forge query runs sandbox-disabled" 'with the sandbox disabled, as `/dev:close-story`'"'"'s "The forge shows MERGED" section does'
 hasc "MERGED forces a new story on the old one's closure" 'a new story blocked on its closure and on the new publish'
 hasc "MERGED reminds the close" 'run `/dev:close-story <story-id>`'
 hasc "OPEN defaults to a re-cut" '`OPEN` defaults to a re-cut'
@@ -764,7 +763,21 @@ moved_rule='(rules doc|orchestration\.md)`?(, |'\''s (([a-z-]+ ){1,3}says \(|scr
 # path, the two upstream skills it replaces or the rejected chore names (never the bare word
 # chore, which the gitignore commit subject and the Conventional Commits type use)
 retired_route='flat[ -](epics?|shape)|small[ -]bug path|mattpocock-skills:(implement|to-tickets)([^-a-z]|$)|implement-chore|chore orchestrator|chore/'
+# no skill cites another skill's step number: steps renumber, so a citation like "/dev:close-story
+# step 4" goes stale without a failing test; it names the rule by its section or the rules doc
+# instead (dev-0ohl). A skill's own steps are its own to cite, and the docs under docs/agents are
+# not skills, so only a file under the skills dir is swept, for every skill but its own.
+skill_names='|'
+for given in "$skills"/*/; do
+  [ -d "$given" ] && skill_names+="$(basename "$given")|"
+done
 while IFS= read -r f; do
+  case $f in
+    "$skills"/*/*)
+      own=${f#"$skills"/}; own=${own%%/*}
+      others=${skill_names//|$own|/|}; others=${others#|}; others=${others%|}
+      [ -z "$others" ] || lacksw "another skill's step number cited in $f (name the rule by its section or the rules doc)" "dev:($others)[^ ]* steps? [0-9]" ;;
+  esac
   lacksw "retired phrase in $f" "$retired"
   # no foreground spawn instruction: an Agent call returns at once whatever run_in_background
   # says, so skills and agent docs point at the waiting rule instead (chezmoi-p4q)

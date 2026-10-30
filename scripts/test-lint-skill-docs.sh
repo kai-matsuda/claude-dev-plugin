@@ -572,6 +572,14 @@ section_case 12 skills/retro/SKILL.md 'grep the whole slug directory' "/retro wi
 section_case 13 skills/sample/SKILL.md '> read ${CLAUDE_PLUGIN_ROOT}/docs/agents/orchestration.md' "the plugin-root variable in a brief"
 section_case 16 skills/task-orchestrator/SKILL.md 'then merge it with `git -C <owner> merge <task branch>`' "/task-orchestrator merging onto the owner checkout"
 section_case 17 skills/implement-task/SKILL.md 'then run `gh pr create --draft`' "/implement-task opening a draft PR"
+section_case 5 skills/sample/SKILL.md 'run it with the sandbox disabled, as `/dev:close-story` step 4 does' "a skill citing another skill's step number"
+# a skill's own steps, another skill named without a step number, and a rules doc citing a step
+# are outside the rule
+fresh
+printf '%s\n' 'Read `/dev:close-story` for the merge guard, then go on to step 4.' \
+  'This skill has steps 1 to 4, and /dev:sample step 2 is its own.' >> "$scratch/skills/sample/SKILL.md"
+printf '%s\n' 'the forge query, as `/dev:close-story` step 4 does' >> "$scratch/docs/agents/sample.md"
+sec=5 expect "own steps, a step-free skill name and a rules doc's citation pass section 5" 0
 # the version-bump rule (14) has its own cases at the end, each on a throwaway repo
 fresh
 drop_phrase skills/retro/SKILL.md 'one JSON object per line'
@@ -1537,11 +1545,11 @@ done
 
 fresh
 echo 'Step 8 writes it: see `/dev:implement-story` step 8.' >> "$scratch/skills/implement-spec/SKILL.md"
-expect "implement-spec pointing at /dev:implement-story step 8 fails" 1 "present: a step number of /dev:implement-story for the delivery"
+sec=5 expect "implement-spec pointing at /dev:implement-story step 8 fails" 1 "another skill's step number cited in"
 
 fresh
 echo 'Evidence is recorded by `/dev:implement-story` step 7.' >> "$scratch/skills/implement-spec/SKILL.md"
-expect "implement-spec pointing at /dev:implement-story step 7 fails" 1 "present: a step 7 of /dev:implement-story credited for the Evidence"
+sec=5 expect "implement-spec pointing at /dev:implement-story step 7 fails" 1 "another skill's step number cited in"
 
 fresh
 echo 'The wait is `/dev:implement-story` step 8.' >> "$scratch/docs/agents/harness.md"
@@ -2063,7 +2071,7 @@ expect "spec-to-stories refusing on existing stories fails" 1
 for phrase in 'refused: every story is closed' 'finished, open with failed tasks, waiting' \
   'names the `failed twice:` reason it answers' 'quizzes the additions only' \
   'gh pr view <url> --json state' 'tea api --repo <owner> repos/{owner}/{repo}/pulls/<n>' \
-  'with the sandbox disabled, as `/dev:close-story` step 4 does' \
+  'with the sandbox disabled, as `/dev:close-story`'"'"'s "The forge shows MERGED" section does' \
   'a new story blocked on its closure and on the new publish' 'run `/dev:close-story <story-id>`' \
   '`OPEN` defaults to a re-cut' 'a branch-form `pr:` value asks the user' \
   'publishes the additions only' 'update <story-id> --body-file -' \
