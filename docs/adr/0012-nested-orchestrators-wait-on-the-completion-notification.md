@@ -2,6 +2,12 @@
 status: accepted
 ---
 
+> Superseded in part by ADR 0016 (`docs/adr/0016-the-story-row-lands-its-tasks.md`): its
+> decision "The ticket orchestrator lands its ticket" is replaced, so the landing lock wait
+> this ADR names (the merger's lock wait on the owner checkout, `chezmoi-sn1`, in the idle
+> rule's examples and Consequences) is gone, the story row landing each task with no lock;
+> the rest of this ADR stands.
+
 # Nested orchestrators wait on the completion notification; there is no foreground spawn
 
 INFRA-27's run (2026-10-19) saw a story orchestrator spawn a child in the background,
