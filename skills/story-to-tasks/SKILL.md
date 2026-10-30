@@ -132,4 +132,6 @@ The end-to-end behaviour this task makes work, from the user's perspective, not 
 
 </issue-template>
 
+When a criterion limits a file to a set number of changed lines (one, say), that limit allows for the lines a lint sweep the same task adds forces to change; otherwise the criterion conflicts with its own sweep.
+
 Avoid specific file paths or code snippets: they go stale fast. Exception: if a prototype produced a snippet that encodes a decision more precisely than prose can (state machine, reducer, schema, type shape), inline it and note briefly that it came from a prototype. Trim to the decision-rich parts, not a working demo, just the important bits.
