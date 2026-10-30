@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Tests for the check target detection the story orchestrator resolves once per invocation in
-# skills/implement-story/SKILL.md (step 3): the command is lifted from the doc as written and run on
+# docs/agents/orchestration.md (Story plumbing, Check target): the command is lifted from the doc as written and run on
 # scratch repos, so it finds a check target however the Makefile defines it (GNUmakefile,
 # makefile, an included file, one of several targets in a rule, a double-colon rule), takes
 # neither a check:= variable, a prerequisite-only check nor a .PHONY: check with no rule for one,
@@ -10,10 +10,10 @@
 set -uo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 source "$repo_root/scripts/fixture-test-lib.sh"   # fx_scratch_dir, fx_check, fx_report_fails
-skill=$repo_root/skills/implement-story/SKILL.md
+skill=$repo_root/docs/agents/orchestration.md
 
 detect=$(grep -o '`make -C <owner> -pRrq[^`]*`' "$skill" | tr -d '`')
-fx_check "the brief names one make database query" test "$(grep -c . <<<"$detect")" = 1
+fx_check "the rules doc names one make database query" test "$(grep -c . <<<"$detect")" = 1
 setup=$(grep -o '`make -pRrq[^`]*`' "$repo_root/skills/setup-repo/SKILL.md" | tr -d '`')
 fx_check "setup-repo asks the same query from the repo's root" test "$setup" = "${detect/-C <owner> /}"
 

@@ -677,17 +677,24 @@ fresh
 drop_phrase skills/implement-story/SKILL.md 'a finished story with no `delivered:` line'
 expect "implement-story without the finished story's delivered: backfill fails" 1
 
-fresh
-drop_line skills/implement-story/SKILL.md 'git -C <owner> status --porcelain -- .gitignore'
-expect "implement-story whose Gitignore step commits only what it appended fails" 1
-
-fresh
-drop_line skills/implement-story/SKILL.md 'failed: <owner>/.gitignore has uncommitted edits'
-expect "implement-story whose Gitignore step absorbs a user edit fails" 1
-
-fresh
-drop_phrase skills/implement-story/SKILL.md '`git -C <owner> commit -F <owner>/.tmp/commit-msg`'
-expect "implement-story whose Gitignore step commits without a message file fails" 1
+# the Gitignore commit recipe is stated once, in the rules doc's Story plumbing (dev-yykg): each
+# pinned line dropped from there fails, and a copy seeded back into either skill fails
+for case in 'git -C <owner> status --porcelain -- .gitignore|the Gitignore commit is keyed on a dirty file' \
+  "is one of the rule's four entries and no line is removed|the Gitignore commit counts the rule's four entries" \
+  "commit it as the harness doc's Commits rule says|the Gitignore commit follows the Commits rule" \
+  '`git -C <owner> commit -F <owner>/.tmp/commit-msg`|the Gitignore commit goes through a message file' \
+  'failed: <owner>/.gitignore has uncommitted edits|a user edit in .gitignore is a failed: line, not absorbed'; do
+  fresh
+  drop_phrase docs/agents/orchestration.md "${case%%|*}"
+  sec=6 expect "the rules doc's Story plumbing without '${case%%|*}' fails" 1 "missing in the ## Story plumbing section: ${case#*|}"
+done
+for skill in implement-story implement-task; do
+  for phrase in 'git -C <owner> status --porcelain -- .gitignore' '`git -C <owner> commit -F <owner>/.tmp/commit-msg`'; do
+    fresh
+    printf '%s\n' "$phrase" >> "$scratch/skills/$skill/SKILL.md"
+    expect "$skill repeating the Gitignore commit recipe ('$phrase') fails" 1 "present: a second copy of the Gitignore commit"
+  done
+done
 
 fresh
 echo 'git -C <owner> commit -m "chore: x" --trailer "Bead: <story-id>"' >> "$scratch/skills/implement-story/SKILL.md"
@@ -1092,36 +1099,82 @@ fresh
 drop_phrase skills/implement-story/SKILL.md 'a delivered story with an open `ready-for-agent` task'
 expect "implement-story without the delivered-story merge guard fails" 1
 
+# the guard's mechanism is the rules doc's Story plumbing, stated once (dev-yykg): each pinned
+# phrase dropped from there fails section 6 alone; the skills keep their trigger, refusal lines and
+# the cite
+for case in 'with the sandbox disabled, as `/dev:close-story` step 4 does|the merge guard runs the forge query sandbox-disabled' \
+  'gh pr view <url> --json state|the merge guard'"'"'s GitHub query' \
+  'tea api --repo <owner> repos/{owner}/{repo}/pulls/<n>|the merge guard'"'"'s Forgejo query names the repo' \
+  'MERGED: refuse|the merge guard refuses a MERGED PR' \
+  'CLOSED unmerged: refuse|the merge guard refuses a PR closed unmerged' \
+  "OPEN: continue on the \`branch:\` note's branch|the merge guard: OPEN continues on the branch: note's branch" \
+  'is decided locally first, then asked: `git -C <owner> fetch origin`|the merge guard decides the branch form locally first' \
+  '(skipped with no `origin`)|the merge guard skips the fetch with no origin' \
+  '`git -C <owner> merge-base --is-ancestor <tip SHA> origin/<default branch>`|the merge guard compares by ancestry' \
+  '(exit 0: as MERGED; exit 1: as OPEN; a failed fetch of an existing origin or any other exit: it cannot decide (ask))|the merge guard maps each ancestry exit and a failed fetch' \
+  'with the local `<default branch>` in place of `origin/<default branch>` when there is no `origin`|the merge guard compares against the local default branch with no origin' \
+  'never as "no forge"|a failing forge command is an error, never no forge' \
+  'Decide **once** which forge fronts the repo|the forge is decided once' \
+  'Pre-check `git -C <owner> remote get-url origin`|the forge is pre-checked on the origin URL' \
+  'run each forge command with the sandbox disabled|the forge is proved outside the sandbox' \
+  'Ask make whether it has one, never grep a Makefile|the check target is asked of make, never grepped from a Makefile' \
+  'a missing Makefile prints no database and exits 1, so all three read as no check target|a missing Makefile reads as no check target' \
+  'before any task orchestrator starts|a repo with no check target fails the run before any task orchestrator starts' \
+  'Resolve the check command once per run|the check command is resolved once per run'; do
+  fresh
+  drop_phrase docs/agents/orchestration.md "${case%%|*}"
+  expect "the rules doc's Story plumbing without '${case%%|*}' fails" 1 "missing in the ## Story plumbing section: ${case#*|}"
+done
+# a pinned phrase moved out of the section, to the end of the file, still fails
+for phrase in 'CLOSED unmerged: refuse' 'Decide **once** which forge fronts the repo' 'Resolve the check command once per run'; do
+  fresh
+  drop_phrase docs/agents/orchestration.md "$phrase"
+  printf '%s\n' "$phrase" >> "$scratch/docs/agents/orchestration.md"
+  expect "the rules doc with '$phrase' outside the Story plumbing section fails" 1 "missing in the ## Story plumbing section"
+done
 fresh
-drop_phrase skills/implement-story/SKILL.md 'the forge decided as step 3 says'
-expect "implement-story whose guard skips the forge decision fails" 1
+drop_line docs/agents/orchestration.md '## Story plumbing'
+expect "the rules doc without its Story plumbing section fails" 1 "missing: Story plumbing section"
+
+# neither skill repeats the guard's mechanism, the forge decision or the check target probe
+for skill in implement-story implement-task; do
+  for phrase in 'gh pr view <url> --json state' 'tea api --repo <owner> repos/{owner}/{repo}/pulls/<n>' \
+    'merge-base --is-ancestor <tip SHA> origin/<default branch>' 'Decide **once** which forge fronts the repo' \
+    'make -C <owner> -pRrq : 2>/dev/null' 'failed: no check target in <owner>; run /dev:setup-repo there'; do
+    fresh
+    printf '%s\n' "$phrase" >> "$scratch/skills/$skill/SKILL.md"
+    expect "$skill repeating the Story plumbing's '$phrase' fails" 1 "present: a second copy of"
+  done
+done
+# each skill cites the section for what moved
+for case in 'implement-story|the rules doc'"'"'s Story plumbing Merge guard|merge guard cites the rules doc'"'"'s Story plumbing for its mechanism' \
+  'implement-story|its Check target, whose `<check command>`|step 3 resolves the check command through the Story plumbing' \
+  'implement-story|its Gitignore commit|the Gitignore commit is the rule'"'"'s, in the Story plumbing' \
+  'implement-story|its Forge decision|the forge decision is the Story plumbing'"'"'s' \
+  'implement-task|the rules doc'"'"'s Story plumbing Merge guard|the merge guard cites the rules doc'"'"'s Story plumbing for its mechanism' \
+  'implement-task|its Check target|the Story plumbing'"'"'s Check target' \
+  'implement-task|its Gitignore commit|the Story plumbing'"'"'s Gitignore commit' \
+  'implement-task|its Forge decision|the Story plumbing'"'"'s Forge decision'; do
+  IFS='|' read -r skill phrase msg <<<"$case"
+  fresh
+  drop_phrase "skills/$skill/SKILL.md" "$phrase"
+  expect "$skill without '$phrase' fails" 1 "$msg"
+done
 
 fresh
-drop_phrase skills/implement-story/SKILL.md 'tea api --repo <owner> repos/{owner}/{repo}/pulls/<n>'
-expect "implement-story whose guard query names no repo fails" 1
+drop_phrase skills/implement-story/SKILL.md 'MERGED: refuse with `<story-id> refused: PR <url> already merged;'
+expect "implement-story whose guard has no MERGED refusal line fails" 1 "missing (case-sensitive): merge guard's MERGED refusal line"
 
 fresh
-drop_phrase skills/implement-story/SKILL.md 'CLOSED unmerged: refuse'
-expect "implement-story whose guard lets a closed unmerged PR through fails" 1
+drop_phrase skills/implement-story/SKILL.md 'CLOSED unmerged: refuse with `<story-id> refused: PR <url> is closed unmerged`'
+expect "implement-story whose guard lets a closed unmerged PR through fails" 1 "missing (case-sensitive): merge guard's closed-unmerged refusal line"
 
 fresh
 drop_phrase skills/implement-story/SKILL.md ' when the epic has no external ref'
 expect "implement-story whose add-mode hint needs an external ref fails" 1
 
 fresh
-drop_phrase skills/implement-story/SKILL.md 'with the sandbox disabled, as `/dev:close-story` step 4 does'
-expect "implement-story whose merge guard runs sandboxed fails" 1
-
-fresh
-drop_phrase skills/implement-story/SKILL.md 'MERGED: refuse'
-expect "implement-story whose guard does not refuse a MERGED PR fails" 1
-
-fresh
-drop_phrase skills/implement-story/SKILL.md "OPEN: continue on the \`branch:\` note's branch"
-expect "implement-story whose guard does not continue on an OPEN PR fails" 1
-
-fresh
-drop_phrase skills/implement-story/SKILL.md '(no forge, or a branch-form `pr:` note)'
+drop_phrase skills/implement-story/SKILL.md 'the forge cannot tell (no forge, or a branch-form `pr:` note)'
 expect "implement-story whose guard does not ask when the forge cannot tell fails" 1
 
 fresh
@@ -1137,28 +1190,12 @@ drop_phrase skills/implement-story/SKILL.md 'that is not closed (open, in_progre
 expect "implement-story whose guard misses an in_progress or blocked task fails" 1
 
 fresh
-drop_phrase skills/implement-story/SKILL.md '`git -C <owner> merge-base --is-ancestor <tip SHA> origin/<default branch>`'
-expect "implement-story whose guard asks before deciding the branch form locally fails" 1
-
-fresh
 drop_phrase skills/implement-story/SKILL.md 'failed: <story-id> merge state unknown (<pr: value>): say whether it merged, then re-run'
 expect "implement-story whose guard waits on a user in a spawned run fails" 1
 
 fresh
-drop_phrase skills/implement-story/SKILL.md 'the branch form or no forge is decided locally first, then asked (below)'
-expect "implement-story whose guard summary says the branch form asks the user fails" 1
-
-fresh
-drop_phrase skills/implement-story/SKILL.md '(exit 0: as MERGED; exit 1: as OPEN; a failed fetch of an existing origin or any other exit: it cannot decide (ask))'
-expect "implement-story whose ancestry check maps every other exit to OPEN fails" 1
-
-fresh
-drop_phrase skills/implement-story/SKILL.md '(skipped with no `origin`)'
-expect "implement-story whose local check fetches even with no origin fails" 1
-
-fresh
-drop_phrase skills/implement-story/SKILL.md 'find `<default branch>` as step 3 says; with no `origin`, compare against the local `<default branch>`'
-expect "implement-story whose local check ignores a missing origin fails" 1
+drop_phrase skills/implement-story/SKILL.md '`<default branch>` is found as step 3 says'
+expect "implement-story whose local check ignores where step 3 finds the default branch fails" 1
 
 fresh
 drop_phrase skills/implement-story/SKILL.md '`<repo> <story-id> <url>`'
@@ -1676,7 +1713,7 @@ sec=16 expect "task-orchestrator without the harness doc's TMPDIR rule fails" 1 
   "missing (case-sensitive): task orchestrator brief points at the harness doc's TMPDIR rule"
 
 fresh
-swap_phrase skills/implement-story/SKILL.md "the rule's four entries" "the rule's three entries"
+echo "its commit holds one of the rule's three entries" >> "$scratch/skills/implement-story/SKILL.md"
 expect "implement-story whose Gitignore step counts three entries fails" 1
 
 # there is no foreground spawn: an Agent call returns at once, a nested orchestrator ends its
@@ -1731,8 +1768,8 @@ awk '{ print } /^Bead: <task-id>$/ { print "" }' "$scratch/docs/agents/harness.m
 expect "harness doc whose commit example has a blank line among its trailers fails" 1 "no blank line between the commit example's trailers"
 
 fresh
-drop_phrase skills/implement-story/SKILL.md "commit it as the harness doc's Commits rule says"
-expect "implement-story whose Gitignore step drops the Commits rule reference fails" 1
+drop_phrase docs/agents/orchestration.md "commit it as the harness doc's Commits rule says"
+expect "the rules doc's Gitignore commit dropping the Commits rule reference fails" 1
 
 fresh
 drop_line docs/agents/harness.md 'This section binds every session and subagent'
@@ -2668,24 +2705,26 @@ for case in 'The harness mechanics are in `<plugin root>/docs/agents/harness.md`
   sec=16 expect "task-orchestrator without '${case%%|*}' fails" 1 "${case#*|}"
 done
 
-for case in '**once per run**|missing: the check command is resolved once per run' \
-  '`make check`, since every owner repo has a `check` target|missing: the check command is make check' \
-  'with none, end the run now with `failed: no check target in <owner>; run /dev:setup-repo there, then re-run`|missing: step 3 fails a run with no check target' \
-  'every task orchestrator brief carries it and step 7 gates on it|missing: the run'"'"'s check command goes in every brief' \
-  'Ask make whether it has one, never grep a Makefile|missing: step 3 asks make for the check target' \
-  '`make -C <owner> -pRrq : 2>/dev/null|missing: step 3 reads the check target from make'"'"'s database' \
-  'a missing Makefile prints no database and exits 1, so all three read as no check target|missing: a missing Makefile reads as no check target'; do
+# the check target probe is the rules doc's Story plumbing; the skills cite it (dev-yykg)
+for case in '`make check`, since every owner repo has a `check` target (Check command, above)|the check command is make check' \
+  'with none, end the run now with `failed: no check target in <owner>; run /dev:setup-repo there, then re-run`, before any task orchestrator starts|a repo with no check target fails the run before any task orchestrator starts' \
+  'every task orchestrator brief carries it|every task orchestrator brief carries the check command' \
+  '`make -C <owner> -pRrq : 2>/dev/null|the check target is read from make'"'"'s database'; do
   fresh
-  drop_phrase skills/implement-story/SKILL.md "${case%%|*}"
-  expect "implement-story without '${case%%|*}' fails" 1 "${case#*|}"
+  drop_phrase docs/agents/orchestration.md "${case%%|*}"
+  expect "the rules doc's Story plumbing without '${case%%|*}' fails" 1 "missing in the ## Story plumbing section: ${case#*|}"
 done
 
 fresh
-swap_phrase skills/implement-story/SKILL.md '^   \*\*Check command\.\*\* Resolve' '   Resolve'
-expect "a step 3 without its check command paragraph fails" 1 "missing: step 3 resolves the check command"
+drop_phrase skills/implement-story/SKILL.md 'every task orchestrator brief carries and step 7 gates on'
+expect "implement-story whose check command stays out of the briefs fails" 1 "missing: the run's check command goes in every brief"
 
 fresh
-swap_phrase skills/implement-story/SKILL.md 'Ask make whether it has one, never grep a Makefile' "grep -q '^check:' <owner>/Makefile tells which"
+swap_phrase skills/implement-story/SKILL.md "^   Apply the rules doc's Story plumbing" '   Apply the plumbing'
+expect "a step 3 that does not apply the Story plumbing fails" 1 "missing: step 3 applies the rules doc's Story plumbing"
+
+fresh
+echo "grep -q '^check:' <owner>/Makefile tells which" >> "$scratch/skills/implement-story/SKILL.md"
 expect "a step 3 that greps the Makefile for the check target fails" 1 "present: the retired grep for the check target"
 
 # a task orchestrator that resolves the check command per task again fails, so parallel tasks
@@ -2857,12 +2896,12 @@ for case in 'Implement one standalone task bead|missing in the opening: the fron
   '`<id> refused: not ready-for-agent|missing (case-sensitive): the not-ready refusal' \
   'the story row with a frontier of one|missing (case-sensitive): the story row with a frontier of one' \
   'no story bead and no story gate|missing (case-sensitive): no story gate' \
-  'make -C <owner> -pRrq : 2>/dev/null|missing (case-sensitive): the make probe for the check target' \
-  '`failed: no check target in <owner>; run /dev:setup-repo there, then re-run`|missing (case-sensitive): the refusal with no check target' \
-  "the rules doc's Gitignore rule|missing (case-sensitive): the gitignore rule" \
+  "the rules doc's Story plumbing|missing (case-sensitive): the Story plumbing cited for the check target" \
+  'its Check target|missing (case-sensitive): the Story plumbing'"'"'s Check target' \
+  'its Gitignore commit|missing (case-sensitive): the Story plumbing'"'"'s Gitignore commit' \
+  'its Forge decision|missing (case-sensitive): the Story plumbing'"'"'s Forge decision' \
   'git -C <owner> switch -c feat/<task-id> <default branch>|missing (case-sensitive): the branch feat/<id> off the default branch' \
   'bd -C <owner> note <task-id> "branch: feat/<task-id>"|missing (case-sensitive): the branch: note' \
-  'Decide **once** which forge fronts the repo|missing (case-sensitive): the forge decided once' \
   'Call the Skill tool with `dev:task-orchestrator`|missing (case-sensitive): one task orchestrator through the skill' \
   'at `model: opus`|missing (case-sensitive): the task orchestrator at opus' \
   '`gate entry: <task branch> <worktree path> <tip SHA>`|missing (case-sensitive): the brief'"'"'s gate entry' \
@@ -2877,7 +2916,6 @@ for case in 'Implement one standalone task bead|missing in the opening: the fron
   '**Merge guard.**|missing (case-sensitive): the merge guard' \
   '`<task-id> refused: PR <url> already merged|missing (case-sensitive): the merge guard'"'"'s merged refusal' \
   '`<task-id> refused: PR <url> is closed unmerged`|missing (case-sensitive): the merge guard'"'"'s closed-unmerged refusal' \
-  'OPEN: continue on the `branch:` note'"'"'s branch and deliver again|missing (case-sensitive): the merge guard'"'"'s open PR delivers again' \
   'the `pr:` value stands in for `<url>` in the refusals|missing (case-sensitive): the branch form'"'"'s refusals name the pr: value' \
   "run only step 6's stray scan|missing (case-sensitive): a finished task runs only the stray scan" \
   'its next spawn is a gate entry|missing (case-sensitive): a failed run re-enters at the gate' \
