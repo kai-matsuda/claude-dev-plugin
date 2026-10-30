@@ -13,7 +13,8 @@ calls. Print, don't act: the next command is always the user's to type.
   Stop.
 - `bd list -t epic -s open,in_progress --json`, dropping any bead labelled
   `wayfinder:map` (a map is not a feature). None left → "nothing in flight — start at
-  `/mattpocock-skills:grill-with-docs`". Stop.
+  `/mattpocock-skills:grill-with-docs`", and go on to the standalone tasks below (stop there
+  only when they print nothing either).
 - For each remaining epic, print one line:
 
   `<bead-id> (<KEY>-<n>) "<title>" — <position> · next: <command>`
@@ -22,6 +23,20 @@ calls. Print, don't act: the next command is always the user's to type.
   the next commands below is `<KEY>-<n>`, or `<bead-id>` when it has none: the argument
   `/dev:spec-to-stories`, `/dev:spec-to-tasks` and `/dev:implement-spec` take, printed filled in so
   the user types the line as-is.
+
+## Standalone tasks
+
+A **standalone task** is an open task bead with no parent, such as an accepted retro item or a
+small bug; a story's tasks have a parent and are positioned under their story. Run
+`bd list -t task -s open --json` and keep the tasks with no parent. For each, print one line,
+with its id filled in:
+
+`<task-id> (<KEY>-<n>) "<title>" — standalone task · next: /dev:implement-task <task-id>`
+
+Print the `<KEY>-<n>` parenthesis only when the bead has an external ref, as for epics. Print
+the `next:` form as-is; `/dev:implement-task <task-id>` takes the bead id, not `<KEY>-<n>`. Print
+these lines after the epic lines, under a `standalone tasks:` heading, and only when at least one
+is open.
 
 ## Malformed epic
 

@@ -483,6 +483,7 @@ fi
 if doc 2 "/workflow" "$skills/workflow/SKILL.md"; then
 hasc "workflow prints the story cut's argument" 'next: `/dev:spec-to-stories <arg>`'
 hasc "workflow prints the task cut's argument" 'next: `/dev:spec-to-tasks <arg>`'
+hasc "workflow prints a standalone task's next line" 'next: /dev:implement-task <task-id>'
 hasc "workflow prints the malformed-epic line" '<child-id> is not a story'
 fi
 if doc 2 "/close-epic" "$skills/close-epic/SKILL.md"; then

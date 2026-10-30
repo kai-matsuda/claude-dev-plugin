@@ -738,6 +738,10 @@ drop_line skills/workflow/SKILL.md 'next: `/dev:spec-to-tasks <arg>`'
 expect "workflow printing the task cut without its argument fails" 1
 
 fresh
+drop_line skills/workflow/SKILL.md 'next: /dev:implement-task <task-id>'
+expect "workflow listing a standalone task without its next line fails" 1
+
+fresh
 drop_line docs/WORKFLOW.md '| 3a | `/dev:spec-to-stories <KEY>-<n>`'
 expect "runbook copy without the story cut's argument in its row fails" 1
 
