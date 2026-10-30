@@ -1054,6 +1054,15 @@ sec_has "## Story plumbing" "the cut-off probe's hit is a gate entry, its miss a
 sec_has "## Story plumbing" "the plumbing defines the probe's task-id" 'and, per cut-off task, its Cut-off probe, where `<task-id>` is the task probed'
 sec_has "## Story plumbing" "the cut-off probe compares an entry against the owner's top level" '`<top>` being what `git -C <owner> rev-parse --show-toplevel` prints'
 sec_has "## Story plumbing" "the cut-off probe skips detached entries" 'detached entries are skipped'
+sec_has "## Story plumbing" "the cut-off probe also checks a local branch whose worktree was pruned" 'a local branch with no registered worktree'
+sec_has "## Story plumbing" "the cut-off probe enumerates the local branches" "git -C <owner> for-each-ref --format='%(refname:short)' refs/heads/"
+sec_has "## Story plumbing" "the cut-off probe counts a prunable entry as unregistered" 'counts as unregistered, not as a worktree'
+sec_has "## Story plumbing" "the cut-off probe's pruned branch is a gate entry too" 'that lists `<task-id>` is a gate entry too'
+sec_has "## Story plumbing" "the cut-off probe restores only the newest hit's worktree" 'only the winner'"'"'s worktree is restored'
+sec_has "## Story plumbing" "the cut-off probe restores a harness branch to its harness path, which step 9 sweeps" 'git -C <owner> worktree add <owner>/.claude/worktrees/agent-<id> <its branch>'
+sec_has "## Story plumbing" "the cut-off probe restores a task branch to its hand-rolled path, which step 9 sweeps" 'git -C <owner> worktree add <owner>/.worktrees/<slug> <its branch>'
+sec_has "## Story plumbing" "the cut-off probe stops and reports when the restore path is taken" 'stop and report it rather than choose another path'
+sec_has "## Story plumbing" "the cut-off probe's restore prunes with the sandbox disabled" 'git -C <owner> worktree prune` with the sandbox disabled'
 sec_has "## Story plumbing" "the Bead trailer match is an exact line match" 'an exact line match'
 # the one gate semantics at every row (INFRA-33): the exit, the fix-up and its budget, the
 # minors fix-up and the conflict resolution that rerun the checks and spend nothing, the
