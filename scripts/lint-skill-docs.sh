@@ -1027,6 +1027,10 @@ sec_has "## Story plumbing" "the cut-off probe matches the Bead trailer" "log --
 sec_has "## Story plumbing" "the cut-off probe takes the newest of several" 'log -1 --format=%ct <its branch>'
 sec_has "## Story plumbing" "the cut-off probe never keys on a branch name" 'never by branch name'
 sec_has "## Story plumbing" "the cut-off probe's hit is a gate entry, its miss a claim entry" 'with none, a claim entry'
+sec_has "## Story plumbing" "the plumbing defines the probe's task-id" 'and, per cut-off task, its Cut-off probe, where `<task-id>` is the task probed'
+sec_has "## Story plumbing" "the cut-off probe compares an entry against the owner's top level" 'compared to `git -C <owner> rev-parse --show-toplevel`'
+sec_has "## Story plumbing" "the cut-off probe skips detached entries" 'detached entries are skipped'
+sec_has "## Story plumbing" "the Bead trailer match is an exact line match" 'an exact line match'
 # the one gate semantics at every row (INFRA-33): the exit, the fix-up and its budget, the
 # minors fix-up and the conflict resolution that rerun the checks and spend nothing, the
 # reviewed tip as a sentence; the two-level loop with lint before the seams and the review
@@ -1398,11 +1402,13 @@ lacks "a closed report from the task orchestrator" '`<id> closed`'
 # opus, and the brief carries only what the run alone knows, a gate entry adding the branch,
 # worktree, tip and the red record's log
 line_has '^4\. \*\*Work the frontier\.\*\*' "the frontier spawn is at opus" 'at `model: opus`'
-# a cut-off task whose hand-rolled branch carries commits past the integration branch is respawned
-# at the gate, found by a probe of that branch (dev-b8d.1.4 review 1)
+# a cut-off task the Story plumbing's Cut-off probe hits, on either worktree route, is respawned
+# at the gate on the branch, worktree and tip the probe found (dev-b8d.1.4 review 1, dev-ndfi)
 line_has '^4\. \*\*Work the frontier\.\*\*' "step 4 probes a cut-off task through the Story plumbing's Cut-off probe" "the rules doc's Story plumbing Cut-off probe"
 lacksf "a second copy of the cut-off probe's old hand-rolled branch test" 'log --oneline <branch>..task/<task-slug>'
 lacksf "a second copy of the cut-off probe's trailer query" "log --format='%(trailers:key=Bead,valueonly)'"
+sec_has "## Task orchestrator brief" "the gate entry covers a probe hit on either route" "a replacement for which step 4's Cut-off probe hits"
+lacksf "the gate entry limited to the hand-rolled route" 'whose hand-rolled `task/<task-slug>` carries commits'
 sec_has "## Task orchestrator brief" "the brief calls the task-orchestrator skill" 'Call the Skill tool with `dev:task-orchestrator`'
 sec_has "## Task orchestrator brief" "the brief carries only what the run alone knows" 'It carries only what this run alone knows'
 sec_has "## Task orchestrator brief" "the brief carries the plugin root literally" 'plugin root `<plugin root>`, spelled out as the absolute path'

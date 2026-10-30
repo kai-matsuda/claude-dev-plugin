@@ -1129,7 +1129,11 @@ for case in 'with the sandbox disabled, as `/dev:close-story` step 4 does|the me
   "log --format='%(trailers:key=Bead,valueonly)' <branch>..<its branch>|the cut-off probe matches the Bead trailer" \
   'log -1 --format=%ct <its branch>|the cut-off probe takes the newest of several' \
   'never by branch name|the cut-off probe never keys on a branch name' \
-  'with none, a claim entry|the cut-off probe'"'"'s hit is a gate entry, its miss a claim entry'; do
+  'with none, a claim entry|the cut-off probe'"'"'s hit is a gate entry, its miss a claim entry' \
+  'and, per cut-off task, its Cut-off probe, where `<task-id>` is the task probed|the plumbing defines the probe'"'"'s task-id' \
+  'compared to `git -C <owner> rev-parse --show-toplevel`|the cut-off probe compares an entry against the owner'"'"'s top level' \
+  'detached entries are skipped|the cut-off probe skips detached entries' \
+  'an exact line match|the Bead trailer match is an exact line match'; do
   fresh
   drop_phrase docs/agents/orchestration.md "${case%%|*}"
   expect "the rules doc's Story plumbing without '${case%%|*}' fails" 1 "missing in the ## Story plumbing section: ${case#*|}"
@@ -2851,11 +2855,15 @@ for case in 'Call the Skill tool with `dev:task-orchestrator`|the brief calls th
   'plugin root `<plugin root>`, spelled out as the absolute path|the brief carries the plugin root literally' \
   '`retry: <first failure'"'"'s reason>`|the brief carries a retry'"'"'s reason' \
   '`gate entry: <task branch> <worktree path> <tip SHA>`|the brief'"'"'s gate entry' \
-  '`red log: <log>`|the gate entry'"'"'s red log'; do
+  '`red log: <log>`|the gate entry'"'"'s red log' \
+  "a replacement for which step 4's Cut-off probe hits|the gate entry covers a probe hit on either route"; do
   fresh
   drop_phrase skills/implement-story/SKILL.md "${case%%|*}"
   sec=8 expect "implement-story's brief without '${case%%|*}' fails" 1 "missing in the ## Task orchestrator brief section: ${case#*|}"
 done
+fresh
+printf '%s\n' 'whose hand-rolled `task/<task-slug>` carries commits' >> "$scratch/skills/implement-story/SKILL.md"
+sec=8 expect "implement-story's brief limiting the gate entry to the hand-rolled route fails" 1 "present: the gate entry limited to the hand-rolled route"
 fresh
 swap_phrase skills/implement-story/SKILL.md '^(4\. \*\*Work the frontier\.\*\*.*)at `model: opus`' '\1at `model: sonnet`'
 sec=8 expect "implement-story spawning task orchestrators below opus fails" 1 "missing: the frontier spawn is at opus"
