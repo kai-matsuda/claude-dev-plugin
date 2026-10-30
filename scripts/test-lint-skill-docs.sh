@@ -573,6 +573,13 @@ section_case 13 skills/sample/SKILL.md '> read ${CLAUDE_PLUGIN_ROOT}/docs/agents
 section_case 16 skills/task-orchestrator/SKILL.md 'then merge it with `git -C <owner> merge <task branch>`' "/task-orchestrator merging onto the owner checkout"
 section_case 17 skills/implement-task/SKILL.md 'then run `gh pr create --draft`' "/implement-task opening a draft PR"
 section_case 5 skills/sample/SKILL.md 'run it with the sandbox disabled, as `/dev:close-story` step 4 does' "a skill citing another skill's step number"
+section_case 5 skills/sample/SKILL.md 'run it as `/dev:close-story`
+step 4 does' "a citation wrapped across a line break"
+# a skill citing its own step when its name is a prefix of another skill's (setup, setup-repo)
+fresh
+printf '%s\n' 'Run `/dev:setup-repo` step 2 again.' >> "$scratch/skills/setup-repo/SKILL.md"
+sec=5 expect "setup-repo citing its own step passes section 5" 0
+section_case 5 skills/setup-repo/SKILL.md 'as `/dev:setup` step 2 does' "setup-repo citing /dev:setup's step"
 # a skill's own steps, another skill named without a step number, and a rules doc citing a step
 # are outside the rule
 fresh

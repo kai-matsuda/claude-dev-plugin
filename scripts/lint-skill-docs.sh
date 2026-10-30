@@ -428,9 +428,10 @@ lacks "worktree steps" 'worktree'
 # its home database gate is the tracker doc's rule, which section 6 checks (dev-e87)
 hasc "/implement-spec cites the tracker doc's \"Has a database\" rule" '"Has a database" rule'
 # no merge steps; the one allowed use is the human stop naming "the PR to merge" for the user
-# (chezmoi-9v4.1.6), so that phrase is blanked before the scan
+# (chezmoi-9v4.1.6) and the rules doc's section named "Merge guard" it cites, so both are
+# blanked before the scan
 if ! unchanged_file; then
-  merge_scan=$(sed 's/the PR to merge//gI' "$f")
+  merge_scan=$(sed -e 's/the PR to merge//gI' -e "s/Story plumbing Merge guard//g" "$f")
   if grep -qi 'merge' <<<"$merge_scan"; then
     bad "present: merge steps (merge)"; grep -ni 'merge' <<<"$merge_scan" | head -3
   fi
@@ -766,7 +767,9 @@ retired_route='flat[ -](epics?|shape)|small[ -]bug path|mattpocock-skills:(imple
 # no skill cites another skill's step number: steps renumber, so a citation like "/dev:close-story
 # step 4" goes stale without a failing test; it names the rule by its section or the rules doc
 # instead (dev-0ohl). A skill's own steps are its own to cite, and the docs under docs/agents are
-# not skills, so only a file under the skills dir is swept, for every skill but its own.
+# not skills, so only a file under the skills dir is swept, for every skill but its own. The
+# name ends at a boundary (setup is not setup-repo), and the sweep reads "dev:<skill> step N"
+# in that order only: a "step N of /dev:<skill>" citation is not caught.
 skill_names='|'
 for given in "$skills"/*/; do
   [ -d "$given" ] && skill_names+="$(basename "$given")|"
@@ -776,7 +779,7 @@ while IFS= read -r f; do
     "$skills"/*/*)
       own=${f#"$skills"/}; own=${own%%/*}
       others=${skill_names//|$own|/|}; others=${others#|}; others=${others%|}
-      [ -z "$others" ] || lacksw "another skill's step number cited in $f (name the rule by its section or the rules doc)" "dev:($others)[^ ]* steps? [0-9]" ;;
+      [ -z "$others" ] || lacksw "another skill's step number cited in $f (name the rule by its section or the rules doc)" "dev:($others)([^a-z -][^ ]*)? steps? [0-9]" ;;
   esac
   lacksw "retired phrase in $f" "$retired"
   # no foreground spawn instruction: an Agent call returns at once whatever run_in_background
