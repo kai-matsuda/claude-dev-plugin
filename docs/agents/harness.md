@@ -128,8 +128,9 @@ Fall back to a hand-rolled `git worktree add .worktrees/<task-slug> -b task/<tas
 only when `isolation` is unavailable. On that route the brief gives the subagent its absolute
 worktree path, and the subagent reaches it with `git -C <path>` and absolute file paths.
 Removing a worktree keeps its `task/<task-slug>` branch, so on a later run `-b` fails
-with "branch already exists": run `git worktree prune` with the sandbox disabled, then re-add it without `-b`
-(`git worktree add .worktrees/<task-slug> task/<task-slug>`).
+with "branch already exists": run `git worktree prune` with the sandbox disabled (the
+sandbox denies deletes under the git common directory's `worktrees/`), then re-add it
+without `-b` (`git worktree add .worktrees/<task-slug> task/<task-slug>`).
 
 Either way the worktree starts on the wrong base: the harness branches from
 `origin/<default-branch>` (unless the repo sets `worktree.baseRef: "head"`), and a

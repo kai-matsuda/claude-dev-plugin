@@ -1055,6 +1055,8 @@ sec_has "## Story plumbing" "the plumbing defines the probe's task-id" 'and, per
 sec_has "## Story plumbing" "the cut-off probe compares an entry against the owner's top level" '`<top>` being what `git -C <owner> rev-parse --show-toplevel` prints'
 sec_has "## Story plumbing" "the cut-off probe skips detached entries" 'detached entries are skipped'
 sec_has "## Story plumbing" "the cut-off probe also checks a local branch whose worktree was pruned" 'a local branch with no registered worktree'
+sec_has "## Story plumbing" "the cut-off probe enumerates the local branches" "git -C <owner> for-each-ref --format='%(refname:short)' refs/heads/"
+sec_has "## Story plumbing" "the cut-off probe counts a prunable entry as unregistered" 'counts as unregistered, not as a worktree'
 sec_has "## Story plumbing" "the cut-off probe's pruned branch is a gate entry too" 'that lists `<task-id>` is a gate entry too'
 sec_has "## Story plumbing" "the cut-off probe restores only the newest hit's worktree" 'only the winner'"'"'s worktree is restored'
 sec_has "## Story plumbing" "the cut-off probe restores a harness branch to its harness path, which step 9 sweeps" 'git -C <owner> worktree add <owner>/.claude/worktrees/agent-<id> <its branch>'
