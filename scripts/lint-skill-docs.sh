@@ -1021,6 +1021,12 @@ sec_has "## Story plumbing" "the merge guard compares by ancestry" '`git -C <own
 sec_has "## Story plumbing" "the merge guard maps each ancestry exit and a failed fetch" '(exit 0: as MERGED; exit 1: as OPEN; a failed fetch of an existing origin or any other exit: it cannot decide (ask))'
 sec_has "## Story plumbing" "the merge guard compares against the local default branch with no origin" 'with the local `<default branch>` in place of `origin/<default branch>` when there is no `origin`'
 sec_has "## Story plumbing" "a failing forge command is an error, never no forge" 'never as "no forge"'
+sec_has "## Story plumbing" "the cut-off probe reads the worktree list" 'git -C <owner> worktree list --porcelain'
+sec_has "## Story plumbing" "the cut-off probe covers the hand-rolled and the harness worktree alike" 'a hand-rolled `<owner>/.worktrees/<slug>` or a harness `isolation` worktree alike'
+sec_has "## Story plumbing" "the cut-off probe matches the Bead trailer" "log --format='%(trailers:key=Bead,valueonly)' <branch>..<its branch>"
+sec_has "## Story plumbing" "the cut-off probe takes the newest of several" 'log -1 --format=%ct <its branch>'
+sec_has "## Story plumbing" "the cut-off probe never keys on a branch name" 'never by branch name'
+sec_has "## Story plumbing" "the cut-off probe's hit is a gate entry, its miss a claim entry" 'with none, a claim entry'
 # the one gate semantics at every row (INFRA-33): the exit, the fix-up and its budget, the
 # minors fix-up and the conflict resolution that rerun the checks and spend nothing, the
 # reviewed tip as a sentence; the two-level loop with lint before the seams and the review
@@ -1394,7 +1400,9 @@ lacks "a closed report from the task orchestrator" '`<id> closed`'
 line_has '^4\. \*\*Work the frontier\.\*\*' "the frontier spawn is at opus" 'at `model: opus`'
 # a cut-off task whose hand-rolled branch carries commits past the integration branch is respawned
 # at the gate, found by a probe of that branch (dev-b8d.1.4 review 1)
-line_has '^4\. \*\*Work the frontier\.\*\*' "step 4 probes a cut-off task's branch for a gate entry" '`git -C <owner> log --oneline <branch>..task/<task-slug>` prints anything'
+line_has '^4\. \*\*Work the frontier\.\*\*' "step 4 probes a cut-off task through the Story plumbing's Cut-off probe" "the rules doc's Story plumbing Cut-off probe"
+lacksf "a second copy of the cut-off probe's old hand-rolled branch test" 'log --oneline <branch>..task/<task-slug>'
+lacksf "a second copy of the cut-off probe's trailer query" "log --format='%(trailers:key=Bead,valueonly)'"
 sec_has "## Task orchestrator brief" "the brief calls the task-orchestrator skill" 'Call the Skill tool with `dev:task-orchestrator`'
 sec_has "## Task orchestrator brief" "the brief carries only what the run alone knows" 'It carries only what this run alone knows'
 sec_has "## Task orchestrator brief" "the brief carries the plugin root literally" 'plugin root `<plugin root>`, spelled out as the absolute path'
@@ -1824,6 +1832,8 @@ hasc "the branch form's refusals name the pr: value" 'the `pr:` value stands in 
 # a finished task touches nothing: no worktree removed, no check record deleted (review 2)
 hasc "a finished task runs only the stray scan" "run only step 6's stray scan"
 hasc "a failed run re-enters at the gate" 'its next spawn is a gate entry'
+hasc "the probe for a failed run's commits is the Story plumbing's Cut-off probe" "the rules doc's Story plumbing Cut-off probe"
+lacksf "a second copy of the cut-off probe's trailer query" "log --format='%(trailers:key=Bead,valueonly)'"
 hasc "the gate entry starts a fresh budget" 'with a fresh budget'
 # the report: the story block minus the story lines, ending on resume:
 hasc "the report's task line" 'task:    <task-id> <title>'
