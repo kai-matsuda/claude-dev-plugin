@@ -1123,7 +1123,17 @@ for case in 'with the sandbox disabled, as `/dev:close-story` step 4 does|the me
   'Ask make whether it has one, never grep a Makefile|the check target is asked of make, never grepped from a Makefile' \
   'a missing Makefile prints no database and exits 1, so all three read as no check target|a missing Makefile reads as no check target' \
   'before any task orchestrator starts|a repo with no check target fails the run before any task orchestrator starts' \
-  'Resolve the check command once per run|the check command is resolved once per run'; do
+  'Resolve the check command once per run|the check command is resolved once per run' \
+  'git -C <owner> worktree list --porcelain|the cut-off probe reads the worktree list' \
+  'a hand-rolled `<owner>/.worktrees/<slug>` or a harness `isolation` worktree alike|the cut-off probe covers the hand-rolled and the harness worktree alike' \
+  "log --format='%(trailers:key=Bead,valueonly)' <branch>..<its branch>|the cut-off probe matches the Bead trailer" \
+  'log -1 --format=%ct <its branch>|the cut-off probe takes the newest of several' \
+  'never by branch name|the cut-off probe never keys on a branch name' \
+  'with none, a claim entry|the cut-off probe'"'"'s hit is a gate entry, its miss a claim entry' \
+  'and, per cut-off task, its Cut-off probe, where `<task-id>` is the task probed|the plumbing defines the probe'"'"'s task-id' \
+  '`<top>` being what `git -C <owner> rev-parse --show-toplevel` prints|the cut-off probe compares an entry against the owner'"'"'s top level' \
+  'detached entries are skipped|the cut-off probe skips detached entries' \
+  'an exact line match|the Bead trailer match is an exact line match'; do
   fresh
   drop_phrase docs/agents/orchestration.md "${case%%|*}"
   expect "the rules doc's Story plumbing without '${case%%|*}' fails" 1 "missing in the ## Story plumbing section: ${case#*|}"
@@ -1143,7 +1153,8 @@ expect "the rules doc without its Story plumbing section fails" 1 "missing: Stor
 for skill in implement-story implement-task; do
   for phrase in 'gh pr view <url> --json state' 'tea api --repo <owner> repos/{owner}/{repo}/pulls/<n>' \
     'merge-base --is-ancestor <tip SHA> origin/<default branch>' 'Decide **once** which forge fronts the repo' \
-    'make -C <owner> -pRrq : 2>/dev/null' 'failed: no check target in <owner>; run /dev:setup-repo there'; do
+    'make -C <owner> -pRrq : 2>/dev/null' 'failed: no check target in <owner>; run /dev:setup-repo there' \
+    "log --format='%(trailers:key=Bead,valueonly)'"; do
     fresh
     printf '%s\n' "$phrase" >> "$scratch/skills/$skill/SKILL.md"
     expect "$skill repeating the Story plumbing's '$phrase' fails" 1 "present: a second copy of"
@@ -2827,7 +2838,7 @@ sec=8 expect "implement-story repeating the reviewed-tip guard after a resolutio
 # to the owner checkout
 for case in 'land it now, in the turn this report resumes you|missing: a reviewed: report is landed in the turn it resumes' \
   'that one enters at the gate on the resolved branch|missing: a first failure after a red on a resolved tree retries at the gate' \
-  '`git -C <owner> log --oneline <branch>..task/<task-slug>` prints anything|missing: step 4 probes a cut-off task'"'"'s branch for a gate entry' \
+  "the rules doc's Story plumbing Cut-off probe|missing: step 4 probes a cut-off task through the Story plumbing's Cut-off probe" \
   'and you alone write there: a task orchestrator never touches it|missing: only the story orchestrator writes to the owner checkout'; do
   fresh
   drop_phrase skills/implement-story/SKILL.md "${case%%|*}"
@@ -2844,11 +2855,18 @@ for case in 'Call the Skill tool with `dev:task-orchestrator`|the brief calls th
   'plugin root `<plugin root>`, spelled out as the absolute path|the brief carries the plugin root literally' \
   '`retry: <first failure'"'"'s reason>`|the brief carries a retry'"'"'s reason' \
   '`gate entry: <task branch> <worktree path> <tip SHA>`|the brief'"'"'s gate entry' \
-  '`red log: <log>`|the gate entry'"'"'s red log'; do
+  '`red log: <log>`|the gate entry'"'"'s red log' \
+  "a cut-off task orchestrator's replacement for which step 4's Cut-off probe hits|the gate entry covers a probe hit on either route"; do
   fresh
   drop_phrase skills/implement-story/SKILL.md "${case%%|*}"
   sec=8 expect "implement-story's brief without '${case%%|*}' fails" 1 "missing in the ## Task orchestrator brief section: ${case#*|}"
 done
+fresh
+printf '%s\n' 'whose hand-rolled `task/<task-slug>` carries commits' >> "$scratch/skills/implement-story/SKILL.md"
+sec=8 expect "implement-story's brief limiting the gate entry to the hand-rolled route fails" 1 "present: the gate entry limited to the hand-rolled route"
+fresh
+printf '%s\n' 'git log --oneline <branch>..task/<task-slug>' >> "$scratch/skills/implement-story/SKILL.md"
+sec=8 expect "implement-story carrying the cut-off probe's old branch test fails" 1 "present: a second copy of the cut-off probe's old hand-rolled branch test"
 fresh
 swap_phrase skills/implement-story/SKILL.md '^(4\. \*\*Work the frontier\.\*\*.*)at `model: opus`' '\1at `model: sonnet`'
 sec=8 expect "implement-story spawning task orchestrators below opus fails" 1 "missing: the frontier spawn is at opus"
@@ -2927,6 +2945,7 @@ for case in 'Implement one standalone task bead|missing in the opening: the fron
   'the `pr:` value stands in for `<url>` in the refusals|missing (case-sensitive): the branch form'"'"'s refusals name the pr: value' \
   "run only step 6's stray scan|missing (case-sensitive): a finished task runs only the stray scan" \
   'its next spawn is a gate entry|missing (case-sensitive): a failed run re-enters at the gate' \
+  "the rules doc's Story plumbing Cut-off probe|missing (case-sensitive): the probe for a failed run's commits is the Story plumbing's Cut-off probe" \
   'with a fresh budget|missing (case-sensitive): the gate entry starts a fresh budget' \
   'task:    <task-id> <title>|missing (case-sensitive): the report'"'"'s task line' \
   'resume:  /dev:implement-task <task-id>|missing (case-sensitive): the report'"'"'s resume line'; do
