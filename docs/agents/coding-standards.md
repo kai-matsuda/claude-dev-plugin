@@ -1,9 +1,9 @@
 # Coding standards (the dev plugin's defaults)
 
 Rules the **reviewer** applies to every diff, in every repo: the Standards axis of
-`mattpocock-skills:code-review` in `/dev:implement-story` step 7. A repo's own
-`CODING_STANDARDS.md` adds to these and wins where they conflict. Anything a linter,
-type checker, test or hook can enforce belongs in that tool, not here.
+`mattpocock-skills:code-review` in `/dev:implement-story`'s **Story gate**. A repo's
+own `CODING_STANDARDS.md` adds to these and wins where they conflict. Anything a
+linter, type checker, test or hook can enforce belongs in that tool, not here.
 
 Rules are judgement calls unless their heading is tagged *hard*. Report each breach with
 the rule's heading, the file and line, and the concrete reader who would be misled or
