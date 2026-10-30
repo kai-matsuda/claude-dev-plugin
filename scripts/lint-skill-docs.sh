@@ -133,7 +133,7 @@
 #      briefs start with the TMPDIR line, whose rule section 6 checks in orchestration.md
 #      (chezmoi-3eg), and its story review step 7 points at the rules doc's Review verdict,
 #      whose rule section 6 checks (chezmoi-49k), and its step 3 applies the rules doc's
-#      Story plumbing (check target resolved once, forge decision, Gitignore commit and merge
+#      Plumbing and Cut-off probe (check target resolved once, forge decision, Gitignore commit and merge
 #      guard, which section 6 pins, dev-yykg), a red record checked again and a
 #      fix-up that commits nothing checked again at step 7, the story gate exiting on a
 #      reviewed tip (dev-vnf), with the lint-command resolution retired (dev-9k5.1.7),
@@ -428,12 +428,12 @@ lacks "worktree steps" 'worktree'
 # its home database gate is the tracker doc's rule, which section 6 checks (dev-e87)
 hasc "/implement-spec cites the tracker doc's \"Has a database\" rule" '"Has a database" rule'
 # no merge steps; the one allowed use is the human stop naming "the PR to merge" for the user
-# (chezmoi-9v4.1.6) and the rules doc's "Story plumbing Merge guard" (item 4 of Story plumbing,
+# (chezmoi-9v4.1.6) and the rules doc's "Plumbing and Cut-off probe Merge guard" (item 4 of Plumbing and Cut-off probe,
 # which implement-story and implement-task cite the same way), so both are blanked before the
 # scan. The first blanking ignores case (any "The PR to merge"); the second is exact on purpose,
 # so a variant spelling of the citation, or the phrase beside a real merge step, still fails
 if ! unchanged_file; then
-  merge_scan=$(sed -e 's/the PR to merge//gI' -e "s/Story plumbing Merge guard//g" "$f")
+  merge_scan=$(sed -e 's/the PR to merge//gI' -e "s/Plumbing and Cut-off probe Merge guard//g" "$f")
   if grep -qi 'merge' <<<"$merge_scan"; then
     bad "present: merge steps (merge)"; grep -ni 'merge' <<<"$merge_scan" | head -3
   fi
@@ -743,7 +743,7 @@ section "5. retired phrases"
 swept=$({ find "$agents" "$skills" -type f 2>/dev/null
   printf '%s\n' "$user_claude_md" "$runbook" "$docs/SEQUENCES.md" "${1:-}"; } | grep . | sort -u | drop_unchanged)
 # whole words only ("shortcut one", "cut ones" pass); "re-cut one" is the spec's wording, not the retired name
-retired='(^|[^-A-Za-z0-9_])cut (one|two)([^-A-Za-z0-9_]|$)|<spec-slug>|story-cut\.md'
+retired='(^|[^-A-Za-z0-9_])cut (one|two)([^-A-Za-z0-9_]|$)|<spec-slug>|story-cut\.md|Story plumbing'
 # Session mode (ADR 0008): the walk-up wording.
 walkup='nearest ancestor|walking up|walk up|one level up|the home repo included|the workspace root included|no repos\.yaml above|workspace inbox|workspace'\''s inbox|home repo <home repo>'
 # The story-DAG wording (ADR 0011): one story per repo (now one per PR), the keyed branch
@@ -1015,59 +1015,60 @@ sec_has "## Delivery" "Delivery's red forge check leaves the unit unfinished" 'n
 sec_has "## Delivery" "Delivery's red forge check records no delivery" 'no `delivered:` or `pr:` note is written;'
 sec_has "## Delivery" "Delivery records the delivered: note" 'note <unit-id> "delivered: <tip SHA> <check record>"'
 sec_has "## Delivery" "Delivery records delivered: ahead of pr:" 'The `delivered:` note goes ahead of the `pr:` note'
-# the Story plumbing section, parametrised by the unit like Delivery: the check target probe, the
+# the Plumbing and Cut-off probe section, parametrised by the unit like Delivery: the check target probe, the
 # forge decision, the Gitignore commit recipe and the merge guard, stated once; both skills cite it
 # and the skill lints below pin only their own lines (dev-yykg)
-hase "Story plumbing section" '^## Story plumbing$'
-sec_has "## Story plumbing" "Story plumbing is parametrised by the unit" 'a **story** (`/dev:implement-story`) and a **standalone task** (`/dev:implement-task`)'
-sec_has "## Story plumbing" "the check command is resolved once per run" 'Resolve the check command once per run'
-sec_has "## Story plumbing" "the check command is make check" '`make check`, since every owner repo has a `check` target (Check command, above)'
-sec_has "## Story plumbing" "a repo with no check target fails the run before any task orchestrator starts" 'with none, end the run now with `failed: no check target in <owner>; run /dev:setup-repo there, then re-run`, before any task orchestrator starts'
-sec_has "## Story plumbing" "every task orchestrator brief carries the check command" 'every task orchestrator brief carries it'
-sec_has "## Story plumbing" "the check target is asked of make, never grepped from a Makefile" 'Ask make whether it has one, never grep a Makefile'
-sec_has "## Story plumbing" "the check target is read from make's database" '`make -C <owner> -pRrq : 2>/dev/null | awk '"'"'/^# Not a target:/{n=1;next} /^check::?([^=:]|$)/&&!n{c=1; if (/^check::? *[^ :]/) f=1} c&&/^#  (commands|recipe) to execute/{f=1} /^$/{c=0} {n=0} END{exit !f}'"'"'`'
-sec_has "## Story plumbing" "a missing Makefile reads as no check target" 'a missing Makefile prints no database and exits 1, so all three read as no check target'
-sec_has "## Story plumbing" "the forge CLI takes the repo by --repo, tea by its absolute path" 'the repo'"'"'s absolute path (a sibling'"'"'s: `<workspace>/<repo>`)'
-sec_has "## Story plumbing" "the forge is decided once" 'Decide **once** which forge fronts the repo'
-sec_has "## Story plumbing" "the forge is pre-checked on the origin URL" 'Pre-check `git -C <owner> remote get-url origin`'
-sec_has "## Story plumbing" "every forge command names its repo" 'every forge command names its repo'
-sec_has "## Story plumbing" "the forge is proved outside the sandbox" 'run each forge command with the sandbox disabled'
-sec_has "## Story plumbing" "the Gitignore commit is keyed on a dirty file" 'git -C <owner> status --porcelain -- .gitignore'
-sec_has "## Story plumbing" "the Gitignore commit counts the rule's four entries" "is one of the rule's four entries and no line is removed"
-sec_has "## Story plumbing" "the Gitignore commit follows the Commits rule" "commit it as the harness doc's Commits rule says"
-sec_has "## Story plumbing" "the Gitignore commit goes through a message file" '`git -C <owner> commit -F <owner>/.tmp/commit-msg`'
-sec_has "## Story plumbing" "a user edit in .gitignore is a failed: line, not absorbed" 'failed: <owner>/.gitignore has uncommitted edits'
-sec_has "## Story plumbing" "the merge guard runs the forge query sandbox-disabled" 'with the sandbox disabled, as `/dev:close-story`'"'"'s "The forge shows MERGED" section does'
-sec_has "## Story plumbing" "the merge guard's GitHub query" 'gh pr view <url> --json state'
-sec_has "## Story plumbing" "the merge guard's Forgejo query names the repo" 'tea api --repo <owner> repos/{owner}/{repo}/pulls/<n>'
-sec_has "## Story plumbing" "the merge guard refuses a MERGED PR" 'MERGED: refuse'
-sec_has "## Story plumbing" "the merge guard refuses a PR closed unmerged" 'CLOSED unmerged: refuse'
-sec_has "## Story plumbing" "the merge guard: OPEN continues on the branch: note's branch and delivers again" "OPEN: continue on the \`branch:\` note's branch and deliver again"
-sec_has "## Story plumbing" "the merge guard decides the branch form locally first" 'is decided locally first, then asked: `git -C <owner> fetch origin`'
-sec_has "## Story plumbing" "the merge guard skips the fetch with no origin" '(skipped with no `origin`)'
-sec_has "## Story plumbing" "the merge guard compares by ancestry" '`git -C <owner> merge-base --is-ancestor <tip SHA> origin/<default branch>`'
-sec_has "## Story plumbing" "the merge guard maps each ancestry exit and a failed fetch" '(exit 0: as MERGED; exit 1: as OPEN; a failed fetch of an existing origin or any other exit: it cannot decide (ask))'
-sec_has "## Story plumbing" "the merge guard compares against the local default branch with no origin" 'with the local `<default branch>` in place of `origin/<default branch>` when there is no `origin`'
-sec_has "## Story plumbing" "a failing forge command is an error, never no forge" 'never as "no forge"'
-sec_has "## Story plumbing" "the cut-off probe reads the worktree list" 'git -C <owner> worktree list --porcelain'
-sec_has "## Story plumbing" "the cut-off probe covers the hand-rolled and the harness worktree alike" 'a hand-rolled `<owner>/.worktrees/<slug>` or a harness `isolation` worktree alike'
-sec_has "## Story plumbing" "the cut-off probe matches the Bead trailer" "log --format='%(trailers:key=Bead,valueonly)' <branch>..<its branch>"
-sec_has "## Story plumbing" "the cut-off probe takes the newest of several" 'log -1 --format=%ct <its branch>'
-sec_has "## Story plumbing" "the cut-off probe never keys on a branch name" 'never by branch name'
-sec_has "## Story plumbing" "the cut-off probe's hit is a gate entry, its miss a claim entry" 'with none, a claim entry'
-sec_has "## Story plumbing" "the plumbing defines the probe's task-id" 'and, per cut-off task, its Cut-off probe, where `<task-id>` is the task probed'
-sec_has "## Story plumbing" "the cut-off probe compares an entry against the owner's top level" '`<top>` being what `git -C <owner> rev-parse --show-toplevel` prints'
-sec_has "## Story plumbing" "the cut-off probe skips detached entries" 'detached entries are skipped'
-sec_has "## Story plumbing" "the cut-off probe also checks a local branch whose worktree was pruned" 'a local branch with no registered worktree'
-sec_has "## Story plumbing" "the cut-off probe enumerates the local branches" "git -C <owner> for-each-ref --format='%(refname:short)' refs/heads/"
-sec_has "## Story plumbing" "the cut-off probe counts a prunable entry as unregistered" 'counts as unregistered, not as a worktree'
-sec_has "## Story plumbing" "the cut-off probe's pruned branch is a gate entry too" 'that lists `<task-id>` is a gate entry too'
-sec_has "## Story plumbing" "the cut-off probe restores only the newest hit's worktree" 'only the winner'"'"'s worktree is restored'
-sec_has "## Story plumbing" "the cut-off probe restores a harness branch to its harness path, which step 9 sweeps" 'git -C <owner> worktree add <owner>/.claude/worktrees/agent-<id> <its branch>'
-sec_has "## Story plumbing" "the cut-off probe restores a task branch to its hand-rolled path, which step 9 sweeps" 'git -C <owner> worktree add <owner>/.worktrees/<slug> <its branch>'
-sec_has "## Story plumbing" "the cut-off probe stops and reports when the restore path is taken" 'stop and report it rather than choose another path'
-sec_has "## Story plumbing" "the cut-off probe's restore prunes with the sandbox disabled" 'git -C <owner> worktree prune` with the sandbox disabled'
-sec_has "## Story plumbing" "the Bead trailer match is an exact line match" 'an exact line match'
+hase "Plumbing and Cut-off probe section" '^## Plumbing and Cut-off probe$'
+sec_has "## Plumbing and Cut-off probe" "Plumbing and Cut-off probe is parametrised by the unit" 'a **story** (`/dev:implement-story`) and a **standalone task** (`/dev:implement-task`)'
+sec_has "## Plumbing and Cut-off probe" "the check command is resolved once per run" 'Resolve the check command once per run'
+sec_has "## Plumbing and Cut-off probe" "the check command is make check" '`make check`, since every owner repo has a `check` target (Check command, above)'
+sec_has "## Plumbing and Cut-off probe" "a repo with no check target fails the run before any task orchestrator starts" 'with none, end the run now with `failed: no check target in <owner>; run /dev:setup-repo there, then re-run`, before any task orchestrator starts'
+sec_has "## Plumbing and Cut-off probe" "every task orchestrator brief carries the check command" 'every task orchestrator brief carries it'
+sec_has "## Plumbing and Cut-off probe" "the check target is asked of make, never grepped from a Makefile" 'Ask make whether it has one, never grep a Makefile'
+sec_has "## Plumbing and Cut-off probe" "the check target is read from make's database" '`make -C <owner> -pRrq : 2>/dev/null | awk '"'"'/^# Not a target:/{n=1;next} /^check::?([^=:]|$)/&&!n{c=1; if (/^check::? *[^ :]/) f=1} c&&/^#  (commands|recipe) to execute/{f=1} /^$/{c=0} {n=0} END{exit !f}'"'"'`'
+sec_has "## Plumbing and Cut-off probe" "a missing Makefile reads as no check target" 'a missing Makefile prints no database and exits 1, so all three read as no check target'
+sec_has "## Plumbing and Cut-off probe" "the forge CLI takes the repo by --repo, tea by its absolute path" 'the repo'"'"'s absolute path (a sibling'"'"'s: `<workspace>/<repo>`)'
+sec_has "## Plumbing and Cut-off probe" "the forge is decided once" 'Decide **once** which forge fronts the repo'
+sec_has "## Plumbing and Cut-off probe" "the forge is pre-checked on the origin URL" 'Pre-check `git -C <owner> remote get-url origin`'
+sec_has "## Plumbing and Cut-off probe" "every forge command names its repo" 'every forge command names its repo'
+sec_has "## Plumbing and Cut-off probe" "the forge is proved outside the sandbox" 'run each forge command with the sandbox disabled'
+sec_has "## Plumbing and Cut-off probe" "the Gitignore commit is keyed on a dirty file" 'git -C <owner> status --porcelain -- .gitignore'
+sec_has "## Plumbing and Cut-off probe" "the Gitignore commit counts the rule's four entries" "is one of the rule's four entries and no line is removed"
+sec_has "## Plumbing and Cut-off probe" "the Gitignore commit follows the Commits rule" "commit it as the harness doc's Commits rule says"
+sec_has "## Plumbing and Cut-off probe" "the Gitignore commit goes through a message file" '`git -C <owner> commit -F <owner>/.tmp/commit-msg`'
+sec_has "## Plumbing and Cut-off probe" "a user edit in .gitignore is a failed: line, not absorbed" 'failed: <owner>/.gitignore has uncommitted edits'
+sec_has "## Plumbing and Cut-off probe" "the merge guard runs the forge query sandbox-disabled" 'with the sandbox disabled, as `/dev:close-story`'"'"'s "The forge shows MERGED" section does'
+sec_has "## Plumbing and Cut-off probe" "the merge guard's GitHub query" 'gh pr view <url> --json state'
+sec_has "## Plumbing and Cut-off probe" "the merge guard's Forgejo query names the repo" 'tea api --repo <owner> repos/{owner}/{repo}/pulls/<n>'
+sec_has "## Plumbing and Cut-off probe" "the merge guard refuses a MERGED PR" 'MERGED: refuse'
+sec_has "## Plumbing and Cut-off probe" "the merge guard refuses a PR closed unmerged" 'CLOSED unmerged: refuse'
+sec_has "## Plumbing and Cut-off probe" "the merge guard: OPEN continues on the branch: note's branch and delivers again" "OPEN: continue on the \`branch:\` note's branch and deliver again"
+sec_has "## Plumbing and Cut-off probe" "the merge guard decides the branch form locally first" 'is decided locally first, then asked: `git -C <owner> fetch origin`'
+sec_has "## Plumbing and Cut-off probe" "the merge guard skips the fetch with no origin" '(skipped with no `origin`)'
+sec_has "## Plumbing and Cut-off probe" "the merge guard compares by ancestry" '`git -C <owner> merge-base --is-ancestor <tip SHA> origin/<default branch>`'
+sec_has "## Plumbing and Cut-off probe" "the merge guard maps each ancestry exit and a failed fetch" '(exit 0: as MERGED; exit 1: as OPEN; a failed fetch of an existing origin or any other exit: it cannot decide (ask))'
+sec_has "## Plumbing and Cut-off probe" "the merge guard compares against the local default branch with no origin" 'with the local `<default branch>` in place of `origin/<default branch>` when there is no `origin`'
+sec_has "## Plumbing and Cut-off probe" "a failing forge command is an error, never no forge" 'never as "no forge"'
+sec_has "## Plumbing and Cut-off probe" "the cut-off probe reads the worktree list" 'git -C <owner> worktree list --porcelain'
+sec_has "## Plumbing and Cut-off probe" "the cut-off probe covers the hand-rolled and the harness worktree alike" 'a hand-rolled `<owner>/.worktrees/<slug>` or a harness `isolation` worktree alike'
+sec_has "## Plumbing and Cut-off probe" "the cut-off probe matches the Bead trailer" "log --format='%(trailers:key=Bead,valueonly)' <branch>..<its branch>"
+sec_has "## Plumbing and Cut-off probe" "the cut-off probe takes the newest of several" 'log -1 --format=%ct <its branch>'
+sec_has "## Plumbing and Cut-off probe" "the cut-off probe never keys on a branch name" 'never by branch name'
+sec_has "## Plumbing and Cut-off probe" "the cut-off probe's hit is a gate entry, its miss a claim entry" 'with none, a claim entry'
+sec_has "## Plumbing and Cut-off probe" "the plumbing defines the probe's task-id" 'and the Cut-off probe it runs once per cut-off task in the frontier loop (item 5, where `<task-id>` is the task probed)'
+sec_has "## Plumbing and Cut-off probe" "the intro names the once-per-run plumbing" 'The repo plumbing a story orchestrator runs once, before its first task orchestrator (items 1 to 4)'
+sec_has "## Plumbing and Cut-off probe" "the cut-off probe compares an entry against the owner's top level" '`<top>` being what `git -C <owner> rev-parse --show-toplevel` prints'
+sec_has "## Plumbing and Cut-off probe" "the cut-off probe skips detached entries" 'detached entries are skipped'
+sec_has "## Plumbing and Cut-off probe" "the cut-off probe also checks a local branch whose worktree was pruned" 'a local branch with no registered worktree'
+sec_has "## Plumbing and Cut-off probe" "the cut-off probe enumerates the local branches" "git -C <owner> for-each-ref --format='%(refname:short)' refs/heads/"
+sec_has "## Plumbing and Cut-off probe" "the cut-off probe counts a prunable entry as unregistered" 'counts as unregistered, not as a worktree'
+sec_has "## Plumbing and Cut-off probe" "the cut-off probe's pruned branch is a gate entry too" 'that lists `<task-id>` is a gate entry too'
+sec_has "## Plumbing and Cut-off probe" "the cut-off probe restores only the newest hit's worktree" 'only the winner'"'"'s worktree is restored'
+sec_has "## Plumbing and Cut-off probe" "the cut-off probe restores a harness branch to its harness path, which step 9 sweeps" 'git -C <owner> worktree add <owner>/.claude/worktrees/agent-<id> <its branch>'
+sec_has "## Plumbing and Cut-off probe" "the cut-off probe restores a task branch to its hand-rolled path, which step 9 sweeps" 'git -C <owner> worktree add <owner>/.worktrees/<slug> <its branch>'
+sec_has "## Plumbing and Cut-off probe" "the cut-off probe stops and reports when the restore path is taken" 'stop and report it rather than choose another path'
+sec_has "## Plumbing and Cut-off probe" "the cut-off probe's restore prunes with the sandbox disabled" 'git -C <owner> worktree prune` with the sandbox disabled'
+sec_has "## Plumbing and Cut-off probe" "the Bead trailer match is an exact line match" 'an exact line match'
 # the one gate semantics at every row (INFRA-33): the exit, the fix-up and its budget, the
 # minors fix-up and the conflict resolution that rerun the checks and spend nothing, the
 # reviewed tip as a sentence; the two-level loop with lint before the seams and the review
@@ -1371,9 +1372,9 @@ hasc "the story orchestrator's landing runs the stray-commit check" 'the **stray
 hasc "finished story backfills a missing delivered: note" 'a finished story with no `delivered:` line'
 lacks "profile-gated push" 'when the active profile permits|ask the user to run that exact command|give the user that exact command'
 lacks "a gitignore hand-off from the story cut" 'the story cut appended|story cut could not commit'
-# the Gitignore commit recipe is the rules doc's Story plumbing (section 6 pins it, dev-yykg); the
+# the Gitignore commit recipe is the rules doc's Plumbing and Cut-off probe (section 6 pins it, dev-yykg); the
 # step cites it and repeats none of it, its trailers included (dev-ieiv)
-hasc "step 3 cites the rules doc's Story plumbing" "the rules doc's Story plumbing"
+hasc "step 3 cites the rules doc's Plumbing and Cut-off probe" "the rules doc's Plumbing and Cut-off probe"
 lacksf "a second copy of the Gitignore commit recipe" 'git -C <owner> status --porcelain -- .gitignore'
 lacksf "a second copy of the Gitignore commit's message file" 'git -C <owner> commit -F <owner>/.tmp/commit-msg'
 lacksf "a second copy of the Gitignore commit's user-edit failure" 'has uncommitted edits'
@@ -1442,9 +1443,9 @@ lacks "a closed report from the task orchestrator" '`<id> closed`'
 # opus, and the brief carries only what the run alone knows, a gate entry adding the branch,
 # worktree, tip and the red record's log
 line_has '^4\. \*\*Work the frontier\.\*\*' "the frontier spawn is at opus" 'at `model: opus`'
-# a cut-off task the Story plumbing's Cut-off probe hits, on either worktree route, is respawned
+# a cut-off task the Plumbing and Cut-off probe's Cut-off probe hits, on either worktree route, is respawned
 # at the gate on the branch, worktree and tip the probe found (dev-b8d.1.4 review 1, dev-ndfi)
-line_has '^4\. \*\*Work the frontier\.\*\*' "step 4 probes a cut-off task through the Story plumbing's Cut-off probe" "the rules doc's Story plumbing Cut-off probe"
+line_has '^4\. \*\*Work the frontier\.\*\*' "step 4 probes a cut-off task through the Plumbing and Cut-off probe's Cut-off probe" "the rules doc's Plumbing and Cut-off probe Cut-off probe"
 lacksf "a second copy of the cut-off probe's old hand-rolled branch test" 'log --oneline <branch>..task/<task-slug>'
 lacksf "a second copy of the cut-off probe's trailer query" "log --format='%(trailers:key=Bead,valueonly)'"
 sec_has "## Task orchestrator brief" "the gate entry covers a probe hit on either route" "a cut-off task orchestrator's replacement for which step 4's Cut-off probe hits"
@@ -1474,9 +1475,9 @@ hasc "merge guard's MERGED refusal says add mode" 'in add mode (or /dev:spec-to-
 hasc "merge guard's MERGED refusal closes the stray task" '; then close <task-id> (moved to the new story)'
 hasc "step 3 defers to the forge decision of the merge guard" '(already decided in step 1 when the merge guard ran)'
 # the guard's mechanism (the forge decision, the queries, the three outcomes, the local decision of a
-# branch form) is the rules doc's Story plumbing, pinned in section 6 (dev-yykg); the step cites it
+# branch form) is the rules doc's Plumbing and Cut-off probe, pinned in section 6 (dev-yykg); the step cites it
 # and keeps its trigger, its refusal lines and what it does when the state is unknown
-hasc "merge guard cites the rules doc's Story plumbing for its mechanism" "the rules doc's Story plumbing Merge guard"
+hasc "merge guard cites the rules doc's Plumbing and Cut-off probe for its mechanism" "the rules doc's Plumbing and Cut-off probe Merge guard"
 hasc "merge guard: OPEN continues on the re-delivery path" 'the re-delivery path of steps 3 and 8'
 hasc "merge guard's MERGED refusal line" 'MERGED: refuse with `<story-id> refused: PR <url> already merged;'
 hasc "merge guard's closed-unmerged refusal line" 'CLOSED unmerged: refuse with `<story-id> refused: PR <url> is closed unmerged`'
@@ -1567,12 +1568,12 @@ lacks "the zero-findings bar" 'not clean after three rounds|no findings at all|c
 # plumbing, pinned in section 6 (dev-yykg; dev-de4, dev-b3p and ADR 0015 behind them, and
 # scripts/test-check-target.sh runs the pinned query on scratch repos); step 3 cites it, and the
 # run's check command still goes in every brief and gates step 7
-C='^   Apply the rules doc'"'"'s Story plumbing'
-hase "step 3 applies the rules doc's Story plumbing" "$C"
-line_has "$C" "step 3 resolves the check command through the Story plumbing" 'its Check target, whose `<check command>`'
+C='^   Apply the rules doc'"'"'s Plumbing and Cut-off probe'
+hase "step 3 applies the rules doc's Plumbing and Cut-off probe" "$C"
+line_has "$C" "step 3 resolves the check command through the Plumbing and Cut-off probe" 'its Check target, whose `<check command>`'
 line_has "$C" "the run's check command goes in every brief" 'every task orchestrator brief carries and step 7 gates on'
-line_has "$C" "the Gitignore commit is the rule's, in the Story plumbing" 'its Gitignore commit'
-line_has "$C" "the forge decision is the Story plumbing's" 'its Forge decision'
+line_has "$C" "the Gitignore commit is the rule's, in the Plumbing and Cut-off probe" 'its Gitignore commit'
+line_has "$C" "the forge decision is the Plumbing and Cut-off probe's" 'its Forge decision'
 lacksf "a second copy of the check target probe" 'make -C <owner> -pRrq'
 lacksf "a second copy of the check target refusal" 'failed: no check target in <owner>'
 lacksf "a second copy of the forge decision" 'Decide **once** which forge fronts the repo'
@@ -1837,12 +1838,12 @@ hasc "the story row with a frontier of one" 'the story row with a frontier of on
 hasc "no story gate" 'no story bead and no story gate'
 # the plumbing: the same make probe and refusal, the forge decision, the gitignore rule, the branch
 # the make probe, its refusal, the forge decision, the Gitignore commit and the merge guard's
-# mechanism are the rules doc's Story plumbing (section 6 pins them, dev-yykg); the skill cites
+# mechanism are the rules doc's Plumbing and Cut-off probe (section 6 pins them, dev-yykg); the skill cites
 # it and repeats none of it
-hasc "the Story plumbing cited for the check target" "the rules doc's Story plumbing"
-hasc "the Story plumbing's Check target" 'its Check target'
-hasc "the Story plumbing's Gitignore commit" 'its Gitignore commit'
-hasc "the Story plumbing's Forge decision" 'its Forge decision'
+hasc "the Plumbing and Cut-off probe cited for the check target" "the rules doc's Plumbing and Cut-off probe"
+hasc "the Plumbing and Cut-off probe's Check target" 'its Check target'
+hasc "the Plumbing and Cut-off probe's Gitignore commit" 'its Gitignore commit'
+hasc "the Plumbing and Cut-off probe's Forge decision" 'its Forge decision'
 lacksf "a second copy of the check target probe" 'make -C <owner> -pRrq'
 lacksf "a second copy of the check target refusal" 'failed: no check target in <owner>'
 lacksf "a second copy of the forge decision" 'Decide **once** which forge fronts the repo'
@@ -1872,13 +1873,13 @@ hasc "no forge: the skipped-checks line" 'checks: skipped: no forge'
 hasc "the merge guard" '**Merge guard.**'
 hasc "the merge guard's merged refusal" '`<task-id> refused: PR <url> already merged'
 hasc "the merge guard's closed-unmerged refusal" '`<task-id> refused: PR <url> is closed unmerged`'
-hasc "the merge guard cites the rules doc's Story plumbing for its mechanism" "the rules doc's Story plumbing Merge guard"
+hasc "the merge guard cites the rules doc's Plumbing and Cut-off probe for its mechanism" "the rules doc's Plumbing and Cut-off probe Merge guard"
 hasc "the merge guard's open PR delivers again" 'and deliver again (steps 2 to 5 once more, on it)'
 hasc "the branch form's refusals name the pr: value" 'the `pr:` value stands in for `<url>` in the refusals'
 # a finished task touches nothing: no worktree removed, no check record deleted (review 2)
 hasc "a finished task runs only the stray scan" "run only step 6's stray scan"
 hasc "a failed run re-enters at the gate" 'its next spawn is a gate entry'
-hasc "the probe for a failed run's commits is the Story plumbing's Cut-off probe" "the rules doc's Story plumbing Cut-off probe"
+hasc "the probe for a failed run's commits is the Plumbing and Cut-off probe's Cut-off probe" "the rules doc's Plumbing and Cut-off probe Cut-off probe"
 lacksf "a second copy of the cut-off probe's trailer query" "log --format='%(trailers:key=Bead,valueonly)'"
 hasc "the gate entry starts a fresh budget" 'with a fresh budget'
 # the report: the story block minus the story lines, ending on resume:
