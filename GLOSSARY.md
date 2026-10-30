@@ -19,9 +19,9 @@ either.
 _Avoid_: root bead
 
 **Malformed epic**:
-An epic bead with a direct child that is not a story. The story-tier skills refuse it with
-`<epic-id> refused: <child-id> is not a story` and suggest nothing; `/dev:workflow`
-reports it without positioning it.
+An epic bead with a direct child that is not a story. The story-tier skills refuse it, by the
+malformed-epic refusal of the tracker doc's "gather the epic bead", and suggest nothing;
+`/dev:workflow` reports it without positioning it.
 _Avoid_: flat epic
 
 **Story**:

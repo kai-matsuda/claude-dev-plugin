@@ -1,6 +1,6 @@
 {
   "name": "dev",
-  "version": "0.3.14",
+  "version": "0.3.15",
   "description": "A Jira + beads feature workflow for Claude Code: spec, story cut, task cut, AFK implementation through story and task orchestrators, review, PR, retro and triage.",
   "author": {
     "name": "Kai Matsuda",

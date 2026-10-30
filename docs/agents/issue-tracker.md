@@ -416,7 +416,7 @@ first of these that applies:
 
 The spec only explains the work; at the task cut the story body bounds it.
 
-## When a skill says "gather the epic bead" (`/dev:spec-to-stories`, `/dev:spec-to-tasks`)
+## When a skill says "gather the epic bead" (`/dev:spec-to-stories`, `/dev:spec-to-tasks`; the malformed-epic refusal alone also `/dev:implement-spec`, `/dev:implement-story`, `/dev:close-epic`, `/dev:workflow`)
 
 `<home>` is as the one test above defines it, and `<skill>` the skill running this. Both
 skills require the argument and stop on their usage line without one; neither recovers the
@@ -450,8 +450,12 @@ and create nothing and spawn nothing, when:
   is the follow-up `chezmoi-bz8`);
 - the bead is not an epic → `<id> refused: <id> is <type>, not an epic`;
 - its `status` is `closed` → `<epic-id> refused: epic bead is closed`;
-- it has a direct child (`bd list --parent <epic-id> --all --json`) whose `issue_type` is
-  not `story` → `<epic-id> refused: <child-id> is not a story`, a malformed epic, and the line points nowhere.
+- it has a direct child whose `issue_type` is not `story` → `<epic-id> refused: <child-id> is not a story`,
+  a malformed epic, and the line points nowhere. This is the **malformed-epic refusal**,
+  stated here once; the skills that need it cite it. The direct children are
+  `bd list --parent <epic-id> --all --json` in `<home>` (none in a workspace session), or
+  `bd -C <owner> children <epic-id> --json` in the epic's own repo; the `--all` is
+  load-bearing, since `bd list` hides closed beads. `<child-id>` is the first such child.
 
 The skill adds its own refusals after these.
 

@@ -454,7 +454,8 @@ lacks "nothing touches a task" 'nothing below touches a task'
 lacks "review set keyed on a failed: report this run" 'did not report `failed:` this run'
 lacks "the paginated tea pr list" 'tea pr list'
 has "frontmatter" 'disable-model-invocation: true'
-has "malformed epic refusal" '<epic-id> refused: <child-id> is not a story'
+has "malformed epic refusal" 'malformed-epic refusal of the tracker doc'
+lacks "implement-spec restating the malformed-epic refusal" '<epic-id> refused: <child-id> is not a story'
 has "add-dir refusal" '/add-dir <'
 hasc "Human stop" '**Human stop**'
 hasc "Stall" '**Stall**'
@@ -487,9 +488,11 @@ hasc "workflow prints the story cut's argument" 'next: `/dev:spec-to-stories <ar
 hasc "workflow prints the task cut's argument" 'next: `/dev:spec-to-tasks <arg>`'
 hasc "workflow prints a standalone task's next line" 'next: /dev:implement-task <task-id>'
 hasc "workflow prints the malformed-epic line" '<child-id> is not a story'
+hasc "workflow cites the malformed-epic refusal" 'malformed-epic refusal of the tracker doc'
 fi
 if doc 2 "/close-epic" "$skills/close-epic/SKILL.md"; then
-hasc "close-epic refuses a non-story child as a malformed epic" '<epic-id> refused: <child-id> is not a story'
+hasc "close-epic refuses a non-story child as a malformed epic" 'malformed-epic refusal of the tracker doc'
+lacks "close-epic restating the malformed-epic refusal" '<epic-id> refused: <child-id> is not a story'
 fi
 if doc 2 "runbook" "$runbook"; then
 # the cut skills take the feature as their one argument; the runbook has a paragraph on it and
@@ -1219,6 +1222,7 @@ hasc "epic gather section" 'When a skill says "gather the epic bead"'
 has "other-repo refusal" 'refused: epic bead lives in <repo>'
 has "closed refusal" 'refused: epic bead is closed'
 has "malformed epic refusal" 'refused: <child-id> is not a story'
+has "malformed-epic refusal named" '**malformed-epic refusal**'
 has "re-cut creates a missing publish task" 'has no publish task'
 lacks "Jira comment gated on every task" "When all of a run's tasks are published"
 hasc "spec fetch section" 'When a skill says "fetch the spec"'
@@ -1343,7 +1347,8 @@ fi
 # ---- 8. /implement-story: the deliver step pushes and opens the PR on the typed command's authority ----
 if doc 8 "/implement-story" "$skills/implement-story/SKILL.md"; then
 # an epic bead with a non-story child is malformed, and the refusal points nowhere (INFRA-37)
-hasc "malformed epic refusal" '`<epic-id> refused: <child-id> is not a story`'
+hasc "malformed epic refusal" 'malformed-epic refusal of the tracker doc'
+lacks "implement-story restating the malformed-epic refusal" '<epic-id> refused: <child-id> is not a story'
 hasc "delivery rule pointer" 'the rules doc'"'"'s Delivery authority'
 hasc "step 8 delivers as the Delivery section says with the story as its unit" "8. **Deliver**, as the rules doc's Delivery section says, with the story as its unit"
 # a commit from outside the run (21f770c: a test whose throwaway init failed committed into the

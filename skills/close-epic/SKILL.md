@@ -34,12 +34,9 @@ and failure rules included. Keep each story's `<owner>`, its owner repo's absolu
 a repo session the only story is the home story and its owner is `<home>`. Skip
 `retro`-labelled beads (${CLAUDE_PLUGIN_ROOT}/docs/agents/issue-tracker.md).
 
-Check for a **malformed epic** separately: `bd list --parent <epic-id> --all --json` is the
-epic's direct children (none in a workspace session); the `--all` is load-bearing, since
-`bd list` hides closed beads. A non-story among them →
-`<epic-id> refused: <child-id> is not a story`
-and stop. The gather above finding no story → refuse, naming the epic; empty direct
-children alone is not a refusal.
+Check for a **malformed epic** separately, by the malformed-epic refusal of the tracker doc's
+"gather the epic bead", and refuse on it. The gather above finding no story → refuse,
+naming the epic; empty direct children alone is not a refusal.
 
 ## 3. Close each story
 

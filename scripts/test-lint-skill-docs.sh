@@ -2338,20 +2338,32 @@ expect "a spec keeping the review-only gate passes" 0
 # one route per unit (INFRA-37): the refusal for an epic bead with a non-story child, and the
 # retired route words swept from every file a reader meets (the bare word chore still passes)
 fresh
-drop_phrase skills/implement-spec/SKILL.md '<epic-id> refused: <child-id> is not a story'
-expect "implement-spec without the malformed-epic refusal fails" 1 "malformed epic refusal"
+drop_phrase skills/implement-spec/SKILL.md 'malformed-epic refusal of the tracker doc'
+expect "implement-spec without the malformed-epic citation fails" 1 "malformed epic refusal"
 fresh
-drop_phrase skills/implement-story/SKILL.md '`<epic-id> refused: <child-id> is not a story`'
-sec=8 expect "implement-story without the malformed-epic refusal fails" 1 "malformed epic refusal"
+drop_phrase skills/implement-story/SKILL.md 'malformed-epic refusal of the tracker doc'
+sec=8 expect "implement-story without the malformed-epic citation fails" 1 "malformed epic refusal"
 fresh
 drop_phrase docs/agents/issue-tracker.md 'refused: <child-id> is not a story'
 sec=6 expect "tracker doc without the malformed-epic refusal fails" 1 "malformed epic refusal"
 fresh
+drop_phrase docs/agents/issue-tracker.md '**malformed-epic refusal**'
+sec=6 expect "tracker doc without the named malformed-epic refusal fails" 1 "malformed-epic refusal named"
+fresh
 drop_phrase skills/workflow/SKILL.md '<child-id> is not a story'
 sec=2 expect "workflow without the malformed-epic line fails" 1 "workflow prints the malformed-epic line"
 fresh
-drop_phrase skills/close-epic/SKILL.md '<epic-id> refused: <child-id> is not a story'
-sec=2 expect "close-epic without the malformed-epic refusal fails" 1 "close-epic refuses a non-story child"
+drop_phrase skills/workflow/SKILL.md 'malformed-epic refusal of the tracker doc'
+sec=2 expect "workflow without the malformed-epic citation fails" 1 "workflow cites the malformed-epic refusal"
+fresh
+drop_phrase skills/close-epic/SKILL.md 'malformed-epic refusal of the tracker doc'
+sec=2 expect "close-epic without the malformed-epic citation fails" 1 "close-epic refuses a non-story child"
+# stated once: a skill spelling the refusal out again fails
+for sk in implement-spec implement-story close-epic; do
+  fresh
+  echo '`<epic-id> refused: <child-id> is not a story`' >> "$scratch/skills/$sk/SKILL.md"
+  expect "$sk restating the malformed-epic refusal fails" 1 "restating the malformed-epic refusal"
+done
 fresh
 drop_phrase skills/triage/SKILL.md '`/dev:implement-task <id>` in the owner repo'
 sec=6 expect "triage without the implement-task hand-off fails" 1 "/triage hands a standalone task to implement-task"
