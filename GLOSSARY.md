@@ -286,8 +286,9 @@ _Avoid_: fresh entry, cold start
 
 **Gate entry**:
 The task orchestrator's entry when the task's branch already carries commits: a cut-off
-task orchestrator's replacement on its surviving branch, or the one retry after a red on
-a conflict-resolved tree. It claims the task and goes straight to the check gate on the
+task orchestrator's replacement on its surviving branch, the one retry after a red on
+a conflict-resolved tree, or a first failure's retry whose Cut-off probe finds commits.
+It claims the task and goes straight to the check gate on the
 branch, worktree path and tip its brief names, with a fresh budget and no implementer
 build; after a red on a resolved tree, the brief also carries that red record's log.
 _Avoid_: re-entry, resume entry

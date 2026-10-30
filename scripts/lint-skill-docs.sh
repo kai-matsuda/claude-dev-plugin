@@ -1431,6 +1431,8 @@ lacksf "the reviewed-tip guard repeated after a conflict resolution" "repeat 1's
 hase "the conflict implementer's brief starts with the TMPDIR line and the plain-command line" '^3\. A conflict goes to an implementer.*TMPDIR line.*plain-command line, one plain .git. or .bd. command per Bash call, every path spelled out'
 line_has '^3\. A conflict goes to an implementer' "the conflict implementer's check and test timeout" 'timeout: 600000'
 line_has '^   - `<id> failed: <reason>`' "a first failure after a red on a resolved tree retries at the gate" 'that one enters at the gate on the resolved branch'
+# any other first failure probes for the commits its attempt left, as implement-task's retry does (dev-a3c0)
+line_has '^   - `<id> failed: <reason>`' "a first failure's retry runs the Cut-off probe" "step 4's Cut-off probe deciding its entry"
 lacks "a closed report from the task orchestrator" '`<id> closed`'
 # the short brief (dev-b8d.1.4): the task orchestrator runs /dev:task-orchestrator, spawned at
 # opus, and the brief carries only what the run alone knows, a gate entry adding the branch,
