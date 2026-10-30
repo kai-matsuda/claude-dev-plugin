@@ -1107,7 +1107,10 @@ for case in 'with the sandbox disabled, as `/dev:close-story` step 4 does|the me
   'tea api --repo <owner> repos/{owner}/{repo}/pulls/<n>|the merge guard'"'"'s Forgejo query names the repo' \
   'MERGED: refuse|the merge guard refuses a MERGED PR' \
   'CLOSED unmerged: refuse|the merge guard refuses a PR closed unmerged' \
-  "OPEN: continue on the \`branch:\` note's branch|the merge guard: OPEN continues on the branch: note's branch" \
+  "OPEN: continue on the \`branch:\` note's branch and deliver again|the merge guard: OPEN continues on the branch: note's branch and delivers again" \
+  'a **story** (`/dev:implement-story`) and a **standalone task** (`/dev:implement-task`)|Story plumbing is parametrised by the unit' \
+  'every forge command names its repo|every forge command names its repo' \
+  'the repo'"'"'s absolute path (a sibling'"'"'s: `<workspace>/<repo>`)|the forge CLI takes the repo by --repo, tea by its absolute path' \
   'is decided locally first, then asked: `git -C <owner> fetch origin`|the merge guard decides the branch form locally first' \
   '(skipped with no `origin`)|the merge guard skips the fetch with no origin' \
   '`git -C <owner> merge-base --is-ancestor <tip SHA> origin/<default branch>`|the merge guard compares by ancestry' \
@@ -1164,6 +1167,10 @@ done
 fresh
 drop_phrase skills/implement-story/SKILL.md 'MERGED: refuse with `<story-id> refused: PR <url> already merged;'
 expect "implement-story whose guard has no MERGED refusal line fails" 1 "missing (case-sensitive): merge guard's MERGED refusal line"
+
+fresh
+drop_phrase skills/implement-story/SKILL.md 'the re-delivery path of steps 3 and 8'
+expect "implement-story whose OPEN guard does not name the re-delivery path fails" 1 "missing (case-sensitive): merge guard: OPEN continues on the re-delivery path"
 
 fresh
 drop_phrase skills/implement-story/SKILL.md 'CLOSED unmerged: refuse with `<story-id> refused: PR <url> is closed unmerged`'
@@ -2916,6 +2923,7 @@ for case in 'Implement one standalone task bead|missing in the opening: the fron
   '**Merge guard.**|missing (case-sensitive): the merge guard' \
   '`<task-id> refused: PR <url> already merged|missing (case-sensitive): the merge guard'"'"'s merged refusal' \
   '`<task-id> refused: PR <url> is closed unmerged`|missing (case-sensitive): the merge guard'"'"'s closed-unmerged refusal' \
+  'and deliver again (steps 2 to 5 once more, on it)|missing (case-sensitive): the merge guard'"'"'s open PR delivers again' \
   'the `pr:` value stands in for `<url>` in the refusals|missing (case-sensitive): the branch form'"'"'s refusals name the pr: value' \
   "run only step 6's stray scan|missing (case-sensitive): a finished task runs only the stray scan" \
   'its next spawn is a gate entry|missing (case-sensitive): a failed run re-enters at the gate' \

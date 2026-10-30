@@ -132,8 +132,9 @@
 #      or check a checks: skipped line (dev-xc2), and its story fix-up and conflict-resolution
 #      briefs start with the TMPDIR line, whose rule section 6 checks in orchestration.md
 #      (chezmoi-3eg), and its story review step 7 points at the rules doc's Review verdict,
-#      whose rule section 6 checks (chezmoi-49k), and its step 3 resolves the run's check
-#      command once and fails a run with no check target, a red record checked again and a
+#      whose rule section 6 checks (chezmoi-49k), and its step 3 applies the rules doc's
+#      Story plumbing (check target resolved once, forge decision, Gitignore commit and merge
+#      guard, which section 6 pins, dev-yykg), a red record checked again and a
 #      fix-up that commits nothing checked again at step 7, the story gate exiting on a
 #      reviewed tip (dev-vnf), with the lint-command resolution retired (dev-9k5.1.7),
 #      and its story gate (step 7) is the rules doc's Check gate loop at the story row: it exits
@@ -998,6 +999,7 @@ sec_has "## Story plumbing" "every task orchestrator brief carries the check com
 sec_has "## Story plumbing" "the check target is asked of make, never grepped from a Makefile" 'Ask make whether it has one, never grep a Makefile'
 sec_has "## Story plumbing" "the check target is read from make's database" '`make -C <owner> -pRrq : 2>/dev/null | awk '"'"'/^# Not a target:/{n=1;next} /^check::?([^=:]|$)/&&!n{c=1; if (/^check::? *[^ :]/) f=1} c&&/^#  (commands|recipe) to execute/{f=1} /^$/{c=0} {n=0} END{exit !f}'"'"'`'
 sec_has "## Story plumbing" "a missing Makefile reads as no check target" 'a missing Makefile prints no database and exits 1, so all three read as no check target'
+sec_has "## Story plumbing" "the forge CLI takes the repo by --repo, tea by its absolute path" 'the repo'"'"'s absolute path (a sibling'"'"'s: `<workspace>/<repo>`)'
 sec_has "## Story plumbing" "the forge is decided once" 'Decide **once** which forge fronts the repo'
 sec_has "## Story plumbing" "the forge is pre-checked on the origin URL" 'Pre-check `git -C <owner> remote get-url origin`'
 sec_has "## Story plumbing" "every forge command names its repo" 'every forge command names its repo'
@@ -1012,7 +1014,7 @@ sec_has "## Story plumbing" "the merge guard's GitHub query" 'gh pr view <url> -
 sec_has "## Story plumbing" "the merge guard's Forgejo query names the repo" 'tea api --repo <owner> repos/{owner}/{repo}/pulls/<n>'
 sec_has "## Story plumbing" "the merge guard refuses a MERGED PR" 'MERGED: refuse'
 sec_has "## Story plumbing" "the merge guard refuses a PR closed unmerged" 'CLOSED unmerged: refuse'
-sec_has "## Story plumbing" "the merge guard: OPEN continues on the branch: note's branch" "OPEN: continue on the \`branch:\` note's branch"
+sec_has "## Story plumbing" "the merge guard: OPEN continues on the branch: note's branch and delivers again" "OPEN: continue on the \`branch:\` note's branch and deliver again"
 sec_has "## Story plumbing" "the merge guard decides the branch form locally first" 'is decided locally first, then asked: `git -C <owner> fetch origin`'
 sec_has "## Story plumbing" "the merge guard skips the fetch with no origin" '(skipped with no `origin`)'
 sec_has "## Story plumbing" "the merge guard compares by ancestry" '`git -C <owner> merge-base --is-ancestor <tip SHA> origin/<default branch>`'
@@ -1421,6 +1423,7 @@ hasc "step 3 defers to the forge decision of the merge guard" '(already decided 
 # branch form) is the rules doc's Story plumbing, pinned in section 6 (dev-yykg); the step cites it
 # and keeps its trigger, its refusal lines and what it does when the state is unknown
 hasc "merge guard cites the rules doc's Story plumbing for its mechanism" "the rules doc's Story plumbing Merge guard"
+hasc "merge guard: OPEN continues on the re-delivery path" 'the re-delivery path of steps 3 and 8'
 hasc "merge guard's MERGED refusal line" 'MERGED: refuse with `<story-id> refused: PR <url> already merged;'
 hasc "merge guard's closed-unmerged refusal line" 'CLOSED unmerged: refuse with `<story-id> refused: PR <url> is closed unmerged`'
 lacksf "a second copy of the merge guard's forge query" 'gh pr view <url> --json state'
@@ -1816,6 +1819,7 @@ hasc "the merge guard" '**Merge guard.**'
 hasc "the merge guard's merged refusal" '`<task-id> refused: PR <url> already merged'
 hasc "the merge guard's closed-unmerged refusal" '`<task-id> refused: PR <url> is closed unmerged`'
 hasc "the merge guard cites the rules doc's Story plumbing for its mechanism" "the rules doc's Story plumbing Merge guard"
+hasc "the merge guard's open PR delivers again" 'and deliver again (steps 2 to 5 once more, on it)'
 hasc "the branch form's refusals name the pr: value" 'the `pr:` value stands in for `<url>` in the refusals'
 # a finished task touches nothing: no worktree removed, no check record deleted (review 2)
 hasc "a finished task runs only the stray scan" "run only step 6's stray scan"
