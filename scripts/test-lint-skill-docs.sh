@@ -2899,6 +2899,7 @@ sec=8 expect "implement-story repeating the reviewed-tip guard after a resolutio
 # to the owner checkout
 for case in 'land it now, in the turn this report resumes you|missing: a reviewed: report is landed in the turn it resumes' \
   'that one enters at the gate on the resolved branch|missing: a first failure after a red on a resolved tree retries at the gate' \
+  "step 4's Cut-off probe deciding its entry|missing: a first failure's retry runs the Cut-off probe" \
   "the rules doc's Story plumbing Cut-off probe|missing: step 4 probes a cut-off task through the Story plumbing's Cut-off probe" \
   'and you alone write there: a task orchestrator never touches it|missing: only the story orchestrator writes to the owner checkout'; do
   fresh
