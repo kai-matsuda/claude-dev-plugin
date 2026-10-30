@@ -172,6 +172,16 @@ an explicit template under the directory, `mktemp -d <worktree>/.tmp/<name>.XXXX
 bare form failed under the export, the template form passed;
 `scripts/fixture-test-lib.sh`'s `fx_scratch_dir` is the same form).
 
+**Throwaway git repos.** A worktree agent that needs a throwaway git repo does not run a
+plain `git init`. It sources `scripts/fixture-test-lib.sh` with `repo_root` set to the
+worktree, calls `fx_scratch_dir <name>` for a directory under `<worktree>/.fixtures/` (left
+in `$scratch`, removed on exit), then `fx_git_repo <dir>` for an empty repo on main with its
+git dir beside it and the test identity set. A plain `git init` fails under the sandbox: its
+hook-template copy and config write are denied, so it can exit 0 with no HEAD, and git then
+discovers upward, so a later add and commit land in the enclosing checkout. `fx_git_repo`
+refuses a repo whose top is not `<dir>` for that reason, and keeps the git dir out of any
+directory named `.git`, which the sandbox also refuses to write into.
+
 **Diff two files.** To compare a file with a git object, write the other side under
 `<worktree>/.tmp` (`git show <rev>:<path> ><worktree>/.tmp/<name>`) and diff the two
 paths. Under the sandbox `diff <(...)` fails with `diff: /dev/fd/N: Operation not
