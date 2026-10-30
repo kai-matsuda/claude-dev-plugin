@@ -768,7 +768,7 @@ moved_rule='(rules doc|orchestration\.md)`?(, |'\''s (([a-z-]+ ){1,3}says \(|scr
 # the task row as a skill (INFRA-37): one route per unit. No doc names a flat epic, the small-bug
 # path, the two upstream skills it replaces or the rejected chore names (never the bare word
 # chore, which the gitignore commit subject and the Conventional Commits type use)
-retired_route='flat[ -](epics?|shape)|small[ -]bug path|mattpocock-skills:(implement|to-tickets)([^-a-z]|$)|implement-chore|chore orchestrator|chore/'
+retired_route='flat[ -](epics?|shape)|small[ -]bug path|mattpocock-skills:implement([^-a-z]|$)|(^|[^-a-z])to-tickets([^-a-z]|$)|implement-chore|chore orchestrator|chore/'
 # no skill cites another skill's step number: steps renumber, so a citation like "/dev:close-story
 # step 4" goes stale without a failing test; it names the rule by its section or the rules doc
 # instead (dev-0ohl). A skill's own steps are its own to cite, and the docs under docs/agents are
