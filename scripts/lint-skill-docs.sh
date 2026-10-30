@@ -773,10 +773,9 @@ retired_route='flat[ -](epics?|shape)|small[ -]bug path|mattpocock-skills:implem
 # step 4" goes stale without a failing test; it names the rule by its section or the rules doc
 # instead (dev-0ohl). A skill's own steps are its own to cite, so a file under the skills dir is
 # swept for every skill but its own; a doc under docs/agents is no skill's, so it is swept for
-# every skill (dev-90up). The
-# name ends at a boundary (setup is not setup-repo), and the sweep reads "dev:<skill> step N"
-# in that order only: a "step N of /dev:<skill>" citation is not caught. The match ignores case
-# ("Step 4" fails). A "step" ending one line with "N. " opening a list item on the next is not
+# every skill (dev-90up). The name ends at a boundary (setup is not setup-repo), and the sweep
+# reads "dev:<skill> step N" in that order only: a "step N of /dev:<skill>" citation is not
+# caught. The match ignores case ("Step 4" fails). A "step" ending one line with "N. " opening a list item on the next is not
 # caught either: the join puts two spaces at a block start, which the pattern's one space misses.
 skill_names='|'
 for given in "$skills"/*/; do
@@ -790,7 +789,8 @@ while IFS= read -r f; do
       [ -z "$others" ] || lacksw "another skill's step number cited in $f (name the rule by its section or the rules doc)" "dev:($others)([^a-z -][^ ]*)? steps? [0-9]" ;;
     "$agents"/*)
       # a rules doc is no skill, so it cites every skill by rule name, never by step (dev-90up)
-      [ -z "$skill_names" ] || lacksw "another skill's step number cited in $f (name the rule by its section or bold name)" "dev:(${skill_names#|}"'x)([^a-z -][^ ]*)? steps? [0-9]' ;;
+      all=${skill_names#|}; all=${all%|}
+      [ -z "$all" ] || lacksw "another skill's step number cited in $f (name the rule by its section or bold name)" "dev:($all)([^a-z -][^ ]*)? steps? [0-9]" ;;
   esac
   lacksw "retired phrase in $f" "$retired"
   # no foreground spawn instruction: an Agent call returns at once whatever run_in_background
