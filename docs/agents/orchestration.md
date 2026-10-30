@@ -1,12 +1,13 @@
 # Orchestration rules
 
 How the agents that run a feature behave: one loop, run at three rows. Read by every
-orchestrating skill: `/dev:implement-spec` (the **epic orchestrator**), `/dev:implement-story`
-and `/dev:implement-task` (the **story orchestrator**) and `/dev:task-orchestrator` (the **task orchestrator** it spawns). A skill owns its
-own steps; the rules here are the ones they share. Terms are those of `GLOSSARY.md` in the
-plugin repo. The cut skills, `/dev:spec-to-stories` and `/dev:spec-to-tasks`, read only the
-Orchestrator role's epic-level sentence and its "Working-directory preflight", and the task
-cut also reads the Waiting rule in `harness.md` for its cutter waves.
+orchestrating skill: `/dev:implement-spec` (the **epic orchestrator**),
+`/dev:implement-story` and `/dev:implement-task` (the **story orchestrator**) and
+`/dev:task-orchestrator` (the **task orchestrator** it spawns). A skill owns its own
+steps; the rules here are the ones they share. Terms are those of `GLOSSARY.md` in the
+plugin repo. The cut skills, `/dev:spec-to-stories` and `/dev:spec-to-tasks`, read only
+the Orchestrator role's epic-level sentence and its "Working-directory preflight", and
+the task cut also reads the Waiting rule in `harness.md` for its cutter waves.
 
 The harness mechanics (waiting, the Idle rule, commits, cut-off agents, scratch space, shell
 commands) are in `harness.md`, which also carries the Waiting rule the task cut reads; the
