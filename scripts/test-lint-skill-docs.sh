@@ -1173,7 +1173,11 @@ for case in 'with the sandbox disabled, as `/dev:close-story` step 4 does|the me
   '`<top>` being what `git -C <owner> rev-parse --show-toplevel` prints|the cut-off probe compares an entry against the owner'"'"'s top level' \
   'detached entries are skipped|the cut-off probe skips detached entries' \
   'a local branch with no registered worktree|the cut-off probe also checks a local branch whose worktree was pruned' \
-  'git -C <owner> worktree add <owner>/.worktrees/<slug> <its branch>|the cut-off probe restores the pruned branch'"'"'s worktree for the gate entry' \
+  'that lists `<task-id>` is a gate entry too|the cut-off probe'"'"'s pruned branch is a gate entry too' \
+  'only the winner'"'"'s worktree is restored|the cut-off probe restores only the newest hit'"'"'s worktree' \
+  'git -C <owner> worktree add <owner>/.claude/worktrees/agent-<id> <its branch>|the cut-off probe restores a harness branch to its harness path, which step 9 sweeps' \
+  'git -C <owner> worktree add <owner>/.worktrees/<slug> <its branch>|the cut-off probe restores a task branch to its hand-rolled path, which step 9 sweeps' \
+  'stop and report it rather than choose another path|the cut-off probe stops and reports when the restore path is taken' \
   'git -C <owner> worktree prune` with the sandbox disabled|the cut-off probe'"'"'s restore prunes with the sandbox disabled' \
   'an exact line match|the Bead trailer match is an exact line match'; do
   fresh
