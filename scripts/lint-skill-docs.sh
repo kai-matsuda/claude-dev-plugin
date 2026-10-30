@@ -771,8 +771,9 @@ moved_rule='(rules doc|orchestration\.md)`?(, |'\''s (([a-z-]+ ){1,3}says \(|scr
 retired_route='flat[ -](epics?|shape)|small[ -]bug path|mattpocock-skills:implement([^-a-z]|$)|(^|[^-a-z])to-tickets([^-a-z]|$)|implement-chore|chore orchestrator|chore/'
 # no skill cites another skill's step number: steps renumber, so a citation like "/dev:close-story
 # step 4" goes stale without a failing test; it names the rule by its section or the rules doc
-# instead (dev-0ohl). A skill's own steps are its own to cite, and the docs under docs/agents are
-# not skills, so only a file under the skills dir is swept, for every skill but its own. The
+# instead (dev-0ohl). A skill's own steps are its own to cite, so a file under the skills dir is
+# swept for every skill but its own; a doc under docs/agents is no skill's, so it is swept for
+# every skill (dev-90up). The
 # name ends at a boundary (setup is not setup-repo), and the sweep reads "dev:<skill> step N"
 # in that order only: a "step N of /dev:<skill>" citation is not caught. The match ignores case
 # ("Step 4" fails). A "step" ending one line with "N. " opening a list item on the next is not
@@ -787,6 +788,9 @@ while IFS= read -r f; do
       own=${f#"$skills"/}; own=${own%%/*}
       others=${skill_names//|$own|/|}; others=${others#|}; others=${others%|}
       [ -z "$others" ] || lacksw "another skill's step number cited in $f (name the rule by its section or the rules doc)" "dev:($others)([^a-z -][^ ]*)? steps? [0-9]" ;;
+    "$agents"/*)
+      # a rules doc is no skill, so it cites every skill by rule name, never by step (dev-90up)
+      [ -z "$skill_names" ] || lacksw "another skill's step number cited in $f (name the rule by its section or bold name)" "dev:(${skill_names#|}"'x)([^a-z -][^ ]*)? steps? [0-9]' ;;
   esac
   lacksw "retired phrase in $f" "$retired"
   # no foreground spawn instruction: an Agent call returns at once whatever run_in_background
@@ -1033,7 +1037,7 @@ sec_has "## Story plumbing" "the Gitignore commit counts the rule's four entries
 sec_has "## Story plumbing" "the Gitignore commit follows the Commits rule" "commit it as the harness doc's Commits rule says"
 sec_has "## Story plumbing" "the Gitignore commit goes through a message file" '`git -C <owner> commit -F <owner>/.tmp/commit-msg`'
 sec_has "## Story plumbing" "a user edit in .gitignore is a failed: line, not absorbed" 'failed: <owner>/.gitignore has uncommitted edits'
-sec_has "## Story plumbing" "the merge guard runs the forge query sandbox-disabled" 'with the sandbox disabled, as `/dev:close-story` step 4 does'
+sec_has "## Story plumbing" "the merge guard runs the forge query sandbox-disabled" 'with the sandbox disabled, as `/dev:close-story`'"'"'s "The forge shows MERGED" section does'
 sec_has "## Story plumbing" "the merge guard's GitHub query" 'gh pr view <url> --json state'
 sec_has "## Story plumbing" "the merge guard's Forgejo query names the repo" 'tea api --repo <owner> repos/{owner}/{repo}/pulls/<n>'
 sec_has "## Story plumbing" "the merge guard refuses a MERGED PR" 'MERGED: refuse'
@@ -1174,7 +1178,7 @@ para_has '**Idle rule.**' "the Idle rule names the check command" 'every run of 
 # the task orchestrator's lock wait gone with the lock (dev-b8d.1.4; section 5 sweeps it)
 para_has '**Idle rule.**' "the Idle rule names the forge-check wait as its one shell wait" "The one shell wait is the story orchestrator's"
 para_has '**Idle rule.**' "the Idle rule cites the Delivery section for the forge-check wait" "forge-check wait (the rules doc's Delivery section)"
-lacksf "a step number of /dev:implement-story for the forge-check wait" '`/dev:implement-story` step 8'
+# (no step number cited for the wait: section 5's sweep covers docs/agents, dev-90up)
 lacks "the Idle rule's second shell wait" 'two shell waits|The other is the story orchestrator'
 lacks "the Idle rule's retired story's-checks clause" "these are the story's checks"
 # the cut-off rule with its stop sweep, and the commits rule with its clean-tree check

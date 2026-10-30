@@ -600,13 +600,15 @@ sec=1 expect "a lowercase variant of the carve-out fails section 1" 1 "present: 
 fresh
 printf '%s\n' "the rules doc's Story plumbing merge-guard" >> "$scratch/skills/implement-spec/SKILL.md"
 sec=1 expect "a hyphenated variant of the carve-out fails section 1" 1 "present: merge steps"
-# a skill's own steps, another skill named without a step number, and a rules doc citing a step
-# are outside the rule
+# a skill's own steps and another skill named without a step number are outside the rule
 fresh
 printf '%s\n' 'Read `/dev:close-story` for the merge guard, then go on to step 4.' \
   'This skill has steps 1 to 4, and /dev:sample step 2 is its own.' >> "$scratch/skills/sample/SKILL.md"
+sec=5 expect "own steps and a step-free skill name pass section 5" 0
+# a rules doc is swept too: a skill's step number cited there fails (dev-90up)
+fresh
 printf '%s\n' 'the forge query, as `/dev:close-story` step 4 does' >> "$scratch/docs/agents/sample.md"
-sec=5 expect "own steps, a step-free skill name and a rules doc's citation pass section 5" 0
+sec=5 expect "a rules doc citing a skill's step number fails section 5 with its message" 1 "another skill's step number cited in $scratch/docs/agents/sample.md"
 # the version-bump rule (14) has its own cases at the end, each on a throwaway repo
 fresh
 drop_phrase skills/retro/SKILL.md 'one JSON object per line'
@@ -1141,7 +1143,7 @@ expect "implement-story without the delivered-story merge guard fails" 1
 # the guard's mechanism is the rules doc's Story plumbing, stated once (dev-yykg): each pinned
 # phrase dropped from there fails section 6 alone; the skills keep their trigger, refusal lines and
 # the cite
-for case in 'with the sandbox disabled, as `/dev:close-story` step 4 does|the merge guard runs the forge query sandbox-disabled' \
+for case in 'with the sandbox disabled, as `/dev:close-story`'"'"'s "The forge shows MERGED" section does|the merge guard runs the forge query sandbox-disabled' \
   'gh pr view <url> --json state|the merge guard'"'"'s GitHub query' \
   'tea api --repo <owner> repos/{owner}/{repo}/pulls/<n>|the merge guard'"'"'s Forgejo query names the repo' \
   'MERGED: refuse|the merge guard refuses a MERGED PR' \
@@ -1589,7 +1591,7 @@ sec=5 expect "implement-spec pointing at /dev:implement-story step 7 fails" 1 "a
 
 fresh
 echo 'The wait is `/dev:implement-story` step 8.' >> "$scratch/docs/agents/harness.md"
-expect "harness doc pointing at /dev:implement-story step 8 fails" 1 "present: a step number of /dev:implement-story for the forge-check wait"
+sec=5 expect "harness doc pointing at /dev:implement-story step 8 fails" 1 "another skill's step number cited in"
 
 fresh
 drop_phrase docs/agents/harness.md "forge-check wait (the rules doc's Delivery section)"

@@ -437,7 +437,7 @@ the argument:
 **The `Spec:` line.** An epic bead names its spec file with one `Spec: <path>` line in
 its description, `<path>` relative to the epic bead's repo, so the file is
 `<home>/<path>` (a reader reaches the epic bead only in `<home>`'s database: the
-other-repo refusal below, and `/dev:story-to-tasks` step 1). The path is the whole rest of
+other-repo refusal below, and `/dev:story-to-tasks`'s "Gather context"). The path is the whole rest of
 the line: an ADR or glossary pointer goes on a line of its own. Never an absolute path:
 beads sync between machines, a checkout does not. Written when the spec is published
 ("publish the spec", step 2); read by "fetch the spec" fallback 3.
