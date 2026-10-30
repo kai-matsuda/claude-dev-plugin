@@ -3297,7 +3297,7 @@ mkdir -p "$scratch/docs/adr"
 echo "run /retired-skill" > "$scratch/docs/adr/0099-x.md"
 expect "a bare /<skill> in docs/adr fails the namespace rule" 1 "$ns_msg in $scratch/docs/adr/0099-x.md"
 
-# the glossary names the two skills the task row adds before they exist; any other missing one fails
+# every skill GLOSSARY.md names must exist; a glossary naming a missing skill (/dev:not-built-yet) fails
 fresh
 echo 'The `/dev:task-orchestrator` and `/dev:implement-task` run it.' >> "$scratch/GLOSSARY.md"
 expect "the glossary naming the task row's skills passes" 0
