@@ -316,6 +316,14 @@ echo "see story-cut.md" >> "$scratch/docs/agents/sample.md"
 expect "story-cut.md in an agent doc fails" 1 "retired phrase in $scratch/docs/agents/sample.md"
 
 fresh
+echo "the rules doc's Story plumbing" >> "$scratch/docs/agents/sample.md"
+expect "the old Story plumbing section name in an agent doc fails" 1 "retired phrase in $scratch/docs/agents/sample.md"
+
+fresh
+echo "the rules doc's story plumbing" >> "$scratch/docs/agents/sample.md"
+expect "the old section name in lowercase in an agent doc fails" 1 "retired phrase in $scratch/docs/agents/sample.md"
+
+fresh
 echo "run_in_background: false" >> "$scratch/skills/sample/SKILL.md"
 expect "foreground spawn instruction in a skill fails" 1 "foreground spawn instruction in $scratch/skills/sample/SKILL.md"
 
@@ -592,13 +600,13 @@ printf '%s\n' 'run it as `/dev:close-story` step' '4. Do it' >> "$scratch/skills
 sec=5 expect "a step wrapped onto a list-item line passes section 5 (documented limit)" 0
 # section 1: the Merge guard carve-out is exactly the phrase, case and spelling included
 fresh
-printf '%s\n' "the rules doc's Story plumbing Merge guard, then merge it" >> "$scratch/skills/implement-spec/SKILL.md"
+printf '%s\n' "the rules doc's Repo plumbing and Cut-off probe, its Merge guard, then merge it" >> "$scratch/skills/implement-spec/SKILL.md"
 sec=1 expect "the carve-out phrase beside a real merge step fails section 1" 1 "present: merge steps"
 fresh
-printf '%s\n' "the rules doc's story plumbing merge guard" >> "$scratch/skills/implement-spec/SKILL.md"
+printf '%s\n' "the rules doc's plumbing and cut-off probe merge guard" >> "$scratch/skills/implement-spec/SKILL.md"
 sec=1 expect "a lowercase variant of the carve-out fails section 1" 1 "present: merge steps"
 fresh
-printf '%s\n' "the rules doc's Story plumbing merge-guard" >> "$scratch/skills/implement-spec/SKILL.md"
+printf '%s\n' "the rules doc's Repo plumbing and Cut-off probe merge-guard" >> "$scratch/skills/implement-spec/SKILL.md"
 sec=1 expect "a hyphenated variant of the carve-out fails section 1" 1 "present: merge steps"
 # a skill's own steps and another skill named without a step number are outside the rule
 fresh
@@ -714,7 +722,7 @@ fresh
 drop_phrase skills/implement-story/SKILL.md 'a finished story with no `delivered:` line'
 expect "implement-story without the finished story's delivered: backfill fails" 1
 
-# the Gitignore commit recipe is stated once, in the rules doc's Story plumbing (dev-yykg): each
+# the Gitignore commit recipe is stated once, in the rules doc's Repo plumbing and Cut-off probe (dev-yykg): each
 # pinned line dropped from there fails, and a copy seeded back into either skill fails
 for case in 'git -C <owner> status --porcelain -- .gitignore|the Gitignore commit is keyed on a dirty file' \
   "is one of the rule's four entries and no line is removed|the Gitignore commit counts the rule's four entries" \
@@ -723,7 +731,7 @@ for case in 'git -C <owner> status --porcelain -- .gitignore|the Gitignore commi
   'failed: <owner>/.gitignore has uncommitted edits|a user edit in .gitignore is a failed: line, not absorbed'; do
   fresh
   drop_phrase docs/agents/orchestration.md "${case%%|*}"
-  sec=6 expect "the rules doc's Story plumbing without '${case%%|*}' fails" 1 "missing in the ## Story plumbing section: ${case#*|}"
+  sec=6 expect "the rules doc's Repo plumbing and Cut-off probe without '${case%%|*}' fails" 1 "missing in the ## Repo plumbing and Cut-off probe section: ${case#*|}"
 done
 for skill in implement-story implement-task; do
   for phrase in 'git -C <owner> status --porcelain -- .gitignore' '`git -C <owner> commit -F <owner>/.tmp/commit-msg`'; do
@@ -1140,7 +1148,7 @@ fresh
 drop_phrase skills/implement-story/SKILL.md 'a delivered story with an open `ready-for-agent` task'
 expect "implement-story without the delivered-story merge guard fails" 1
 
-# the guard's mechanism is the rules doc's Story plumbing, stated once (dev-yykg): each pinned
+# the guard's mechanism is the rules doc's Repo plumbing and Cut-off probe, stated once (dev-yykg): each pinned
 # phrase dropped from there fails section 6 alone; the skills keep their trigger, refusal lines and
 # the cite
 for case in 'with the sandbox disabled, as `/dev:close-story`'"'"'s "The forge shows MERGED" section does|the merge guard runs the forge query sandbox-disabled' \
@@ -1149,7 +1157,7 @@ for case in 'with the sandbox disabled, as `/dev:close-story`'"'"'s "The forge s
   'MERGED: refuse|the merge guard refuses a MERGED PR' \
   'CLOSED unmerged: refuse|the merge guard refuses a PR closed unmerged' \
   "OPEN: continue on the \`branch:\` note's branch and deliver again|the merge guard: OPEN continues on the branch: note's branch and delivers again" \
-  'a **story** (`/dev:implement-story`) and a **standalone task** (`/dev:implement-task`)|Story plumbing is parametrised by the unit' \
+  'a **story** (`/dev:implement-story`) and a **standalone task** (`/dev:implement-task`)|Repo plumbing and Cut-off probe is parametrised by the unit' \
   'every forge command names its repo|every forge command names its repo' \
   'the repo'"'"'s absolute path (a sibling'"'"'s: `<workspace>/<repo>`)|the forge CLI takes the repo by --repo, tea by its absolute path' \
   'is decided locally first, then asked: `git -C <owner> fetch origin`|the merge guard decides the branch form locally first' \
@@ -1171,7 +1179,8 @@ for case in 'with the sandbox disabled, as `/dev:close-story`'"'"'s "The forge s
   'log -1 --format=%ct <its branch>|the cut-off probe takes the newest of several' \
   'never by branch name|the cut-off probe never keys on a branch name' \
   'with none, a claim entry|the cut-off probe'"'"'s hit is a gate entry, its miss a claim entry' \
-  'and, per cut-off task, its Cut-off probe, where `<task-id>` is the task probed|the plumbing defines the probe'"'"'s task-id' \
+  'and the Cut-off probe it runs once per cut-off task in the frontier loop (where `<task-id>` is the task probed)|the plumbing defines the probe'"'"'s task-id' \
+  'The repo plumbing a story orchestrator runs once, before its first task orchestrator (Check target to Merge guard)|the intro names the once-per-run plumbing' \
   '`<top>` being what `git -C <owner> rev-parse --show-toplevel` prints|the cut-off probe compares an entry against the owner'"'"'s top level' \
   'detached entries are skipped|the cut-off probe skips detached entries' \
   'a local branch with no registered worktree|the cut-off probe also checks a local branch whose worktree was pruned' \
@@ -1186,18 +1195,18 @@ for case in 'with the sandbox disabled, as `/dev:close-story`'"'"'s "The forge s
   'an exact line match|the Bead trailer match is an exact line match'; do
   fresh
   drop_phrase docs/agents/orchestration.md "${case%%|*}"
-  expect "the rules doc's Story plumbing without '${case%%|*}' fails" 1 "missing in the ## Story plumbing section: ${case#*|}"
+  expect "the rules doc's Repo plumbing and Cut-off probe without '${case%%|*}' fails" 1 "missing in the ## Repo plumbing and Cut-off probe section: ${case#*|}"
 done
 # a pinned phrase moved out of the section, to the end of the file, still fails
 for phrase in 'CLOSED unmerged: refuse' 'Decide **once** which forge fronts the repo' 'Resolve the check command once per run'; do
   fresh
   drop_phrase docs/agents/orchestration.md "$phrase"
   printf '%s\n' "$phrase" >> "$scratch/docs/agents/orchestration.md"
-  expect "the rules doc with '$phrase' outside the Story plumbing section fails" 1 "missing in the ## Story plumbing section"
+  expect "the rules doc with '$phrase' outside the repo plumbing and Cut-off probe section fails" 1 "missing in the ## Repo plumbing and Cut-off probe section"
 done
 fresh
-drop_line docs/agents/orchestration.md '## Story plumbing'
-expect "the rules doc without its Story plumbing section fails" 1 "missing: Story plumbing section"
+drop_line docs/agents/orchestration.md '## Repo plumbing and Cut-off probe'
+expect "the rules doc without its Repo plumbing and Cut-off probe section fails" 1 "missing: Repo plumbing and Cut-off probe section"
 
 # neither skill repeats the guard's mechanism, the forge decision or the check target probe
 for skill in implement-story implement-task; do
@@ -1207,18 +1216,18 @@ for skill in implement-story implement-task; do
     "log --format='%(trailers:key=Bead,valueonly)'"; do
     fresh
     printf '%s\n' "$phrase" >> "$scratch/skills/$skill/SKILL.md"
-    expect "$skill repeating the Story plumbing's '$phrase' fails" 1 "present: a second copy of"
+    expect "$skill repeating the repo plumbing and Cut-off probe's '$phrase' fails" 1 "present: a second copy of"
   done
 done
 # each skill cites the section for what moved
-for case in 'implement-story|the rules doc'"'"'s Story plumbing Merge guard|merge guard cites the rules doc'"'"'s Story plumbing for its mechanism' \
-  'implement-story|its Check target, whose `<check command>`|step 3 resolves the check command through the Story plumbing' \
-  'implement-story|its Gitignore commit|the Gitignore commit is the rule'"'"'s, in the Story plumbing' \
-  'implement-story|its Forge decision|the forge decision is the Story plumbing'"'"'s' \
-  'implement-task|the rules doc'"'"'s Story plumbing Merge guard|the merge guard cites the rules doc'"'"'s Story plumbing for its mechanism' \
-  'implement-task|its Check target|the Story plumbing'"'"'s Check target' \
-  'implement-task|its Gitignore commit|the Story plumbing'"'"'s Gitignore commit' \
-  'implement-task|its Forge decision|the Story plumbing'"'"'s Forge decision'; do
+for case in 'implement-story|the rules doc'"'"'s Repo plumbing and Cut-off probe, its Merge guard|merge guard cites the rules doc'"'"'s Repo plumbing and Cut-off probe for its mechanism' \
+  'implement-story|its Check target, whose `<check command>`|step 3 resolves the check command through the repo plumbing and Cut-off probe' \
+  'implement-story|its Gitignore commit|the Gitignore commit is the rule'"'"'s, in the repo plumbing and Cut-off probe' \
+  'implement-story|its Forge decision|the forge decision is the repo plumbing and Cut-off probe'"'"'s' \
+  'implement-task|the rules doc'"'"'s Repo plumbing and Cut-off probe, its Merge guard|the merge guard cites the rules doc'"'"'s Repo plumbing and Cut-off probe for its mechanism' \
+  'implement-task|its Check target|the repo plumbing and Cut-off probe'"'"'s Check target' \
+  'implement-task|its Gitignore commit|the repo plumbing and Cut-off probe'"'"'s Gitignore commit' \
+  'implement-task|its Forge decision|the repo plumbing and Cut-off probe'"'"'s Forge decision'; do
   IFS='|' read -r skill phrase msg <<<"$case"
   fresh
   drop_phrase "skills/$skill/SKILL.md" "$phrase"
@@ -2786,14 +2795,14 @@ for case in 'The harness mechanics are in `<plugin root>/docs/agents/harness.md`
   sec=16 expect "task-orchestrator without '${case%%|*}' fails" 1 "${case#*|}"
 done
 
-# the check target probe is the rules doc's Story plumbing; the skills cite it (dev-yykg)
+# the check target probe is the rules doc's Repo plumbing and Cut-off probe; the skills cite it (dev-yykg)
 for case in '`make check`, since every owner repo has a `check` target (Check command, above)|the check command is make check' \
   'with none, end the run now with `failed: no check target in <owner>; run /dev:setup-repo there, then re-run`, before any task orchestrator starts|a repo with no check target fails the run before any task orchestrator starts' \
   'every task orchestrator brief carries it|every task orchestrator brief carries the check command' \
   '`make -C <owner> -pRrq : 2>/dev/null|the check target is read from make'"'"'s database'; do
   fresh
   drop_phrase docs/agents/orchestration.md "${case%%|*}"
-  expect "the rules doc's Story plumbing without '${case%%|*}' fails" 1 "missing in the ## Story plumbing section: ${case#*|}"
+  expect "the rules doc's Repo plumbing and Cut-off probe without '${case%%|*}' fails" 1 "missing in the ## Repo plumbing and Cut-off probe section: ${case#*|}"
 done
 
 fresh
@@ -2801,8 +2810,8 @@ drop_phrase skills/implement-story/SKILL.md 'every task orchestrator brief carri
 expect "implement-story whose check command stays out of the briefs fails" 1 "missing: the run's check command goes in every brief"
 
 fresh
-swap_phrase skills/implement-story/SKILL.md "^   Apply the rules doc's Story plumbing" '   Apply the plumbing'
-expect "a step 3 that does not apply the Story plumbing fails" 1 "missing: step 3 applies the rules doc's Story plumbing"
+swap_phrase skills/implement-story/SKILL.md "^   Apply the rules doc's Repo plumbing and Cut-off probe" '   Apply the plumbing'
+expect "a step 3 that does not apply the repo plumbing and Cut-off probe fails" 1 "missing: step 3 applies the rules doc's Repo plumbing and Cut-off probe"
 
 fresh
 echo "grep -q '^check:' <owner>/Makefile tells which" >> "$scratch/skills/implement-story/SKILL.md"
@@ -2902,7 +2911,7 @@ sec=8 expect "implement-story repeating the reviewed-tip guard after a resolutio
 for case in 'land it now, in the turn this report resumes you|missing: a reviewed: report is landed in the turn it resumes' \
   'that one enters at the gate on the resolved branch|missing: a first failure after a red on a resolved tree retries at the gate' \
   "step 4's Cut-off probe deciding its entry|missing: a first failure's retry runs the Cut-off probe" \
-  "the rules doc's Story plumbing Cut-off probe|missing: step 4 probes a cut-off task through the Story plumbing's Cut-off probe" \
+  "the rules doc's Cut-off probe|missing: step 4 probes a cut-off task through the rules doc's Cut-off probe" \
   'and you alone write there: a task orchestrator never touches it|missing: only the story orchestrator writes to the owner checkout'; do
   fresh
   drop_phrase skills/implement-story/SKILL.md "${case%%|*}"
@@ -2985,10 +2994,10 @@ for case in 'Implement one standalone task bead|missing in the opening: the fron
   '`<id> refused: not ready-for-agent|missing (case-sensitive): the not-ready refusal' \
   'the story row with a frontier of one|missing (case-sensitive): the story row with a frontier of one' \
   'no story bead and no story gate|missing (case-sensitive): no story gate' \
-  "the rules doc's Story plumbing|missing (case-sensitive): the Story plumbing cited for the check target" \
-  'its Check target|missing (case-sensitive): the Story plumbing'"'"'s Check target' \
-  'its Gitignore commit|missing (case-sensitive): the Story plumbing'"'"'s Gitignore commit' \
-  'its Forge decision|missing (case-sensitive): the Story plumbing'"'"'s Forge decision' \
+  "the rules doc's Repo plumbing and Cut-off probe|missing (case-sensitive): the repo plumbing and Cut-off probe cited for the check target" \
+  'its Check target|missing (case-sensitive): the repo plumbing and Cut-off probe'"'"'s Check target' \
+  'its Gitignore commit|missing (case-sensitive): the repo plumbing and Cut-off probe'"'"'s Gitignore commit' \
+  'its Forge decision|missing (case-sensitive): the repo plumbing and Cut-off probe'"'"'s Forge decision' \
   'git -C <owner> switch -c feat/<task-id> <default branch>|missing (case-sensitive): the branch feat/<id> off the default branch' \
   'bd -C <owner> note <task-id> "branch: feat/<task-id>"|missing (case-sensitive): the branch: note' \
   'Call the Skill tool with `dev:task-orchestrator`|missing (case-sensitive): one task orchestrator through the skill' \
@@ -3009,7 +3018,7 @@ for case in 'Implement one standalone task bead|missing in the opening: the fron
   'the `pr:` value stands in for `<url>` in the refusals|missing (case-sensitive): the branch form'"'"'s refusals name the pr: value' \
   "run only step 6's stray scan|missing (case-sensitive): a finished task runs only the stray scan" \
   'its next spawn is a gate entry|missing (case-sensitive): a failed run re-enters at the gate' \
-  "the rules doc's Story plumbing Cut-off probe|missing (case-sensitive): the probe for a failed run's commits is the Story plumbing's Cut-off probe" \
+  "the rules doc's Cut-off probe|missing (case-sensitive): the probe for a failed run's commits is the rules doc's Cut-off probe" \
   'with a fresh budget|missing (case-sensitive): the gate entry starts a fresh budget' \
   'task:    <task-id> <title>|missing (case-sensitive): the report'"'"'s task line' \
   'resume:  /dev:implement-task <task-id>|missing (case-sensitive): the report'"'"'s resume line'; do
