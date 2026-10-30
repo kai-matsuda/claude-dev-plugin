@@ -1028,7 +1028,7 @@ sec_has "## Story plumbing" "the cut-off probe takes the newest of several" 'log
 sec_has "## Story plumbing" "the cut-off probe never keys on a branch name" 'never by branch name'
 sec_has "## Story plumbing" "the cut-off probe's hit is a gate entry, its miss a claim entry" 'with none, a claim entry'
 sec_has "## Story plumbing" "the plumbing defines the probe's task-id" 'and, per cut-off task, its Cut-off probe, where `<task-id>` is the task probed'
-sec_has "## Story plumbing" "the cut-off probe compares an entry against the owner's top level" 'compared to `git -C <owner> rev-parse --show-toplevel`'
+sec_has "## Story plumbing" "the cut-off probe compares an entry against the owner's top level" '`<top>` being what `git -C <owner> rev-parse --show-toplevel` prints'
 sec_has "## Story plumbing" "the cut-off probe skips detached entries" 'detached entries are skipped'
 sec_has "## Story plumbing" "the Bead trailer match is an exact line match" 'an exact line match'
 # the one gate semantics at every row (INFRA-33): the exit, the fix-up and its budget, the
@@ -1407,7 +1407,7 @@ line_has '^4\. \*\*Work the frontier\.\*\*' "the frontier spawn is at opus" 'at 
 line_has '^4\. \*\*Work the frontier\.\*\*' "step 4 probes a cut-off task through the Story plumbing's Cut-off probe" "the rules doc's Story plumbing Cut-off probe"
 lacksf "a second copy of the cut-off probe's old hand-rolled branch test" 'log --oneline <branch>..task/<task-slug>'
 lacksf "a second copy of the cut-off probe's trailer query" "log --format='%(trailers:key=Bead,valueonly)'"
-sec_has "## Task orchestrator brief" "the gate entry covers a probe hit on either route" "a replacement for which step 4's Cut-off probe hits"
+sec_has "## Task orchestrator brief" "the gate entry covers a probe hit on either route" "a cut-off task orchestrator's replacement for which step 4's Cut-off probe hits"
 lacksf "the gate entry limited to the hand-rolled route" 'whose hand-rolled `task/<task-slug>` carries commits'
 sec_has "## Task orchestrator brief" "the brief calls the task-orchestrator skill" 'Call the Skill tool with `dev:task-orchestrator`'
 sec_has "## Task orchestrator brief" "the brief carries only what the run alone knows" 'It carries only what this run alone knows'

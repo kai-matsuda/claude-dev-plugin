@@ -1131,7 +1131,7 @@ for case in 'with the sandbox disabled, as `/dev:close-story` step 4 does|the me
   'never by branch name|the cut-off probe never keys on a branch name' \
   'with none, a claim entry|the cut-off probe'"'"'s hit is a gate entry, its miss a claim entry' \
   'and, per cut-off task, its Cut-off probe, where `<task-id>` is the task probed|the plumbing defines the probe'"'"'s task-id' \
-  'compared to `git -C <owner> rev-parse --show-toplevel`|the cut-off probe compares an entry against the owner'"'"'s top level' \
+  '`<top>` being what `git -C <owner> rev-parse --show-toplevel` prints|the cut-off probe compares an entry against the owner'"'"'s top level' \
   'detached entries are skipped|the cut-off probe skips detached entries' \
   'an exact line match|the Bead trailer match is an exact line match'; do
   fresh
@@ -2856,7 +2856,7 @@ for case in 'Call the Skill tool with `dev:task-orchestrator`|the brief calls th
   '`retry: <first failure'"'"'s reason>`|the brief carries a retry'"'"'s reason' \
   '`gate entry: <task branch> <worktree path> <tip SHA>`|the brief'"'"'s gate entry' \
   '`red log: <log>`|the gate entry'"'"'s red log' \
-  "a replacement for which step 4's Cut-off probe hits|the gate entry covers a probe hit on either route"; do
+  "a cut-off task orchestrator's replacement for which step 4's Cut-off probe hits|the gate entry covers a probe hit on either route"; do
   fresh
   drop_phrase skills/implement-story/SKILL.md "${case%%|*}"
   sec=8 expect "implement-story's brief without '${case%%|*}' fails" 1 "missing in the ## Task orchestrator brief section: ${case#*|}"
@@ -2864,6 +2864,9 @@ done
 fresh
 printf '%s\n' 'whose hand-rolled `task/<task-slug>` carries commits' >> "$scratch/skills/implement-story/SKILL.md"
 sec=8 expect "implement-story's brief limiting the gate entry to the hand-rolled route fails" 1 "present: the gate entry limited to the hand-rolled route"
+fresh
+printf '%s\n' 'git log --oneline <branch>..task/<task-slug>' >> "$scratch/skills/implement-story/SKILL.md"
+sec=8 expect "implement-story carrying the cut-off probe's old branch test fails" 1 "present: a second copy of the cut-off probe's old hand-rolled branch test"
 fresh
 swap_phrase skills/implement-story/SKILL.md '^(4\. \*\*Work the frontier\.\*\*.*)at `model: opus`' '\1at `model: sonnet`'
 sec=8 expect "implement-story spawning task orchestrators below opus fails" 1 "missing: the frontier spawn is at opus"
