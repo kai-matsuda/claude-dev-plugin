@@ -40,9 +40,8 @@ is open.
 
 ## Malformed epic
 
-Read the epic's direct children with `bd list --parent <id> --all --json` (`--all` keeps
-closed ones, which the default filter hides). Any child that is not of type `story` → the
-epic is malformed, which this skill reports and does not position. Print
+Check the epic by the malformed-epic refusal of the tracker doc's "gather the epic bead". A
+malformed epic is reported by this skill and not positioned. Print
 `<epic-id> (<KEY>-<n>) "<title>" refused: <child-id> is not a story`, suggest
 nothing, and go to the next epic.
 

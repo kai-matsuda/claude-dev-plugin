@@ -34,9 +34,7 @@ The harness mechanics (Waiting, the Idle rule, Cut-off agents, literal paths, Co
 
 2. **Gather the stories** with the "Stories" gather of "fetch the relevant task" in `${CLAUDE_PLUGIN_ROOT}/docs/agents/issue-tracker.md`, its fallback and failure rules included. A sweep that stops there spawns nothing, since that repo's story would go unseen and Done could fire early. Skip `retro`-labelled beads. Each story's `<owner>` and `<owner repo>` follow from where it was found (Names).
 
-   **Malformed epic.** `bd list --parent <epic-id> --all --json` is the epic's direct children (`--all` keeps closed ones). Any child that is not of type `story` → refuse and stop, creating nothing:
-
-   `<epic-id> refused: <child-id> is not a story`
+   **Malformed epic.** Apply the malformed-epic refusal of the tracker doc's "gather the epic bead" to the epic's direct children, and stop, creating nothing.
 
    No stories at all → refuse, naming the epic.
 
