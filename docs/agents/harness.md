@@ -53,9 +53,9 @@ and Monitors woke agents with stale state. The one shell wait is the story orche
 forge-check wait (the rules doc's Delivery section): one
 foreground Bash call that waits for the PR's forge checks on the pushed tip, bounded by its
 `timeout: 600000` and run again while a check is still pending, at most six calls.
-The Bash tool's text says foreground `sleep` is blocked and points at `Monitor`; chezmoi-sn1's
-check (2026-10-22) ran a foreground `until` loop unblocked in a session and in a subagent alike, and the
-observed run wins.
+The Bash tool's text says foreground `sleep` is blocked and points at `Monitor`; a check
+(2026-10-22) ran a foreground `until` loop unblocked in a session and in a subagent alike, and the
+observed run wins (chezmoi-sn1).
 
 **Commits.** A commit a hook rejects (commit-msg or pre-commit) is fixed and retried
 before any other `git` operation, and a branch is merged only onto a clean tree:
