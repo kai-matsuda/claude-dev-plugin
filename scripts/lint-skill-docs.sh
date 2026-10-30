@@ -1056,6 +1056,7 @@ sec_has "## Story plumbing" "the cut-off probe compares an entry against the own
 sec_has "## Story plumbing" "the cut-off probe skips detached entries" 'detached entries are skipped'
 sec_has "## Story plumbing" "the cut-off probe also checks a local branch whose worktree was pruned" 'a local branch with no registered worktree'
 sec_has "## Story plumbing" "the cut-off probe restores the pruned branch's worktree for the gate entry" 'git -C <owner> worktree add <owner>/.worktrees/<slug> <its branch>'
+sec_has "## Story plumbing" "the cut-off probe's restore prunes with the sandbox disabled" 'git -C <owner> worktree prune` with the sandbox disabled'
 sec_has "## Story plumbing" "the Bead trailer match is an exact line match" 'an exact line match'
 # the one gate semantics at every row (INFRA-33): the exit, the fix-up and its budget, the
 # minors fix-up and the conflict resolution that rerun the checks and spend nothing, the

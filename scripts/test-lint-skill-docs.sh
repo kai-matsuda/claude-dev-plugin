@@ -1174,6 +1174,7 @@ for case in 'with the sandbox disabled, as `/dev:close-story` step 4 does|the me
   'detached entries are skipped|the cut-off probe skips detached entries' \
   'a local branch with no registered worktree|the cut-off probe also checks a local branch whose worktree was pruned' \
   'git -C <owner> worktree add <owner>/.worktrees/<slug> <its branch>|the cut-off probe restores the pruned branch'"'"'s worktree for the gate entry' \
+  'git -C <owner> worktree prune` with the sandbox disabled|the cut-off probe'"'"'s restore prunes with the sandbox disabled' \
   'an exact line match|the Bead trailer match is an exact line match'; do
   fresh
   drop_phrase docs/agents/orchestration.md "${case%%|*}"
