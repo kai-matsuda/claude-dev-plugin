@@ -580,6 +580,26 @@ fresh
 printf '%s\n' 'Run `/dev:setup-repo` step 2 again.' >> "$scratch/skills/setup-repo/SKILL.md"
 sec=5 expect "setup-repo citing its own step passes section 5" 0
 section_case 5 skills/setup-repo/SKILL.md 'as `/dev:setup` step 2 does' "setup-repo citing /dev:setup's step"
+step_msg="another skill's step number cited in $scratch/skills/sample/SKILL.md"
+fresh
+printf '%s\n' 'run it as `/dev:close-story` Step 4 does' >> "$scratch/skills/sample/SKILL.md"
+sec=5 expect "a capitalised Step fails section 5 with its message" 1 "$step_msg"
+fresh
+printf '%s\n' 'run it as `/dev:close-story` step' '4 does' >> "$scratch/skills/sample/SKILL.md"
+sec=5 expect "a step number on the next line fails section 5 with its message" 1 "$step_msg"
+fresh
+printf '%s\n' 'run it as `/dev:close-story` step' '4. Do it' >> "$scratch/skills/sample/SKILL.md"
+sec=5 expect "a step wrapped onto a list-item line passes section 5 (documented limit)" 0
+# section 1: the Merge guard carve-out is exactly the phrase, case and spelling included
+fresh
+printf '%s\n' "the rules doc's Story plumbing Merge guard, then merge it" >> "$scratch/skills/implement-spec/SKILL.md"
+sec=1 expect "the carve-out phrase beside a real merge step fails section 1" 1 "present: merge steps"
+fresh
+printf '%s\n' "the rules doc's story plumbing merge guard" >> "$scratch/skills/implement-spec/SKILL.md"
+sec=1 expect "a lowercase variant of the carve-out fails section 1" 1 "present: merge steps"
+fresh
+printf '%s\n' "the rules doc's Story plumbing merge-guard" >> "$scratch/skills/implement-spec/SKILL.md"
+sec=1 expect "a hyphenated variant of the carve-out fails section 1" 1 "present: merge steps"
 # a skill's own steps, another skill named without a step number, and a rules doc citing a step
 # are outside the rule
 fresh

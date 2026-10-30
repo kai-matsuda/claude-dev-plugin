@@ -428,8 +428,10 @@ lacks "worktree steps" 'worktree'
 # its home database gate is the tracker doc's rule, which section 6 checks (dev-e87)
 hasc "/implement-spec cites the tracker doc's \"Has a database\" rule" '"Has a database" rule'
 # no merge steps; the one allowed use is the human stop naming "the PR to merge" for the user
-# (chezmoi-9v4.1.6) and the rules doc's section named "Merge guard" it cites, so both are
-# blanked before the scan
+# (chezmoi-9v4.1.6) and the rules doc's "Story plumbing Merge guard" (item 4 of Story plumbing,
+# which implement-story and implement-task cite the same way), so both are blanked before the
+# scan. The first blanking ignores case (any "The PR to merge"); the second is exact on purpose,
+# so a variant spelling of the citation, or the phrase beside a real merge step, still fails
 if ! unchanged_file; then
   merge_scan=$(sed -e 's/the PR to merge//gI' -e "s/Story plumbing Merge guard//g" "$f")
   if grep -qi 'merge' <<<"$merge_scan"; then
@@ -769,7 +771,9 @@ retired_route='flat[ -](epics?|shape)|small[ -]bug path|mattpocock-skills:(imple
 # instead (dev-0ohl). A skill's own steps are its own to cite, and the docs under docs/agents are
 # not skills, so only a file under the skills dir is swept, for every skill but its own. The
 # name ends at a boundary (setup is not setup-repo), and the sweep reads "dev:<skill> step N"
-# in that order only: a "step N of /dev:<skill>" citation is not caught.
+# in that order only: a "step N of /dev:<skill>" citation is not caught. The match ignores case
+# ("Step 4" fails). A "step" ending one line with "N. " opening a list item on the next is not
+# caught either: the join puts two spaces at a block start, which the pattern's one space misses.
 skill_names='|'
 for given in "$skills"/*/; do
   [ -d "$given" ] && skill_names+="$(basename "$given")|"
