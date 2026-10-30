@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Tests for the check target detection the story orchestrator resolves once per invocation in
-# docs/agents/orchestration.md (Plumbing and Cut-off probe, Check target): the command is lifted from the doc as written and run on
+# docs/agents/orchestration.md (Repo plumbing and Cut-off probe, Check target): the command is lifted from the doc as written and run on
 # scratch repos, so it finds a check target however the Makefile defines it (GNUmakefile,
 # makefile, an included file, one of several targets in a rule, a double-colon rule), takes
 # neither a check:= variable, a prerequisite-only check nor a .PHONY: check with no rule for one,

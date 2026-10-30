@@ -110,8 +110,7 @@ claim outlives the orchestrator, and `bd ready` excludes an `in_progress` task, 
 orchestrator `bd -C <owner> unclaim <task-id>`s it before the next frontier read. A
 fresh task orchestrator at the claim entry has its implementer reset the worktree onto the
 integration branch tip, so what a cut-off implementer left unmerged there is lost and the task
-starts over; one at the gate entry (`/dev:task-orchestrator`), sent when the rules doc's Plumbing and Cut-off probe
-Cut-off probe finds commits, gates them instead. What reached the integration branch stays.
+starts over; one at the gate entry (`/dev:task-orchestrator`), sent when the rules doc's Cut-off probe finds commits, gates them instead. What reached the integration branch stays.
 
 ## Scratch space
 
