@@ -3,7 +3,7 @@ name: story-to-tasks
 description: "Break one story bead into tracer-bullet tasks for its owner repo, with native blocking edges, published as children of the story. Use when given a story bead id to cut or re-cut into tasks, typed alone or called by /dev:spec-to-tasks or a story-cutter brief."
 ---
 
-<!-- Derived from mattpocock-skills 1.3.1 `engineering/to-tickets`, steps 1-5 kept in the
+<!-- Derived from mattpocock-skills 1.3.1's engineering breakdown skill, steps 1-5 kept in the
      plugin's order. Local changes: the input is one story bead (non-story, closed and
      finished stories refused, a finished one unless add mode marked it with a recut: note),
      optionally in another repo (bd -C);

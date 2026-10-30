@@ -2389,12 +2389,13 @@ drop_phrase skills/triage/SKILL.md 'the issue template in `/dev:story-to-tasks`'
 sec=6 expect "triage without the story-to-tasks issue template fails" 1 "/triage writes the body in story-to-tasks' issue template"
 fresh
 echo 'Body in the `to-tickets` issue template.' >> "$scratch/skills/triage/SKILL.md"
-sec=6 expect "triage citing the to-tickets template fails" 1 "/triage citing the retired to-tickets template"
+sec="5 6" expect "triage citing the to-tickets template fails" 1 "/triage citing the retired to-tickets template"
 
 for case in 'a flat epic of tasks|flat epic' 'the legacy flat shape|flat shape' 'The flat-epic refusal.|flat-epic' \
   'the small-bug path does it|small-bug path' 'the small bug path|small bug path' \
   'run /mattpocock-skills:implement <id>|mattpocock-skills:implement' \
   'run /mattpocock-skills:to-tickets now|mattpocock-skills:to-tickets' \
+  'the upstream engineering to-tickets skill|to-tickets' \
   'the implement-chore skill|implement-chore' 'the chore orchestrator|chore orchestrator' \
   'on branch chore/<id>|chore/'; do
   for file in skills/sample/SKILL.md docs/agents/issue-tracker.md docs/WORKFLOW.md skills/implement-story/SKILL.md; do

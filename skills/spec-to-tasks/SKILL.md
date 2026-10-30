@@ -4,7 +4,7 @@ description: "The task cut: after /dev:spec-to-stories, cut every uncut story of
 disable-model-invocation: true
 ---
 
-<!-- Once a fork of mattpocock-skills 1.3.1 `engineering/to-tickets`, rewritten as the thin
+<!-- Once a fork of mattpocock-skills 1.3.1's engineering breakdown skill, rewritten as the thin
      task cut over story cutters (INFRA-27, ADR 0007). The story cut moved to
      /dev:spec-to-stories and the per-story cut is /dev:story-to-tasks; this file keeps only the
      story gather and its refusals, the working-directory preflight (shared, in orchestration.md), the
