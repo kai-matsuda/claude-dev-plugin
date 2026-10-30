@@ -2920,6 +2920,13 @@ drop_phrase docs/agents/orchestration.md 'a standalone task whose body has no `#
 sec=6 expect "orchestration whose Review verdict blocks a standalone task without test seams fails" 1 \
   "missing in the **Review verdict.** paragraph: the no-seam-test case skips a standalone task without test seams"
 fresh
+drop_phrase docs/agents/orchestration.md 'waits, by ending its turn, until every one of them has reported'
+sec=6 expect "orchestration whose Review verdict lets a fanned-out reviewer report early fails" 1 \
+  "missing in the **Review verdict.** paragraph: a fanned-out reviewer reports once, after every sub-agent has"
+fresh
+drop_phrase docs/agents/orchestration.md 'whose verdict covers the whole review; no orchestrator acts on a partial verdict'
+sec=6 expect "orchestration whose Review verdict lets an orchestrator act on a partial verdict fails" 1   "missing in the **Review verdict.** paragraph: a fanned-out reviewer sends one whole-review report, and no orchestrator acts on a partial verdict"
+fresh
 printf '%s\n' '| **Standalone task** | story orchestrator | one task orchestrator |' >> "$scratch/docs/agents/orchestration.md"
 sec=6 expect "orchestration with a fourth table row fails" 1 "present: a fourth row in the table"
 for case in 'a standalone task whose body has no `## Test seams` names no seam, so this case does not apply|missing: the no-seam-test case skips a standalone task without test seams' \

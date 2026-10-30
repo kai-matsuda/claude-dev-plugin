@@ -857,6 +857,8 @@ para_has '**Review verdict.**' "a blocking round's in-scope minors go to its fix
 para_has '**Review verdict.**' "a fix-up's report names each minor it fixed and left unfixed" "report names each minor it fixed and each"
 para_has '**Review verdict.**' "the epic row sends every round's minors to the inbox" "every round's minors go to the inbox at once"
 para_has '**Review verdict.**' "every minor unfixed when the unit lands or fails goes to the inbox" 'every minor still unfixed when the unit lands or fails goes to the inbox'
+para_has '**Review verdict.**' "a fanned-out reviewer reports once, after every sub-agent has" 'waits, by ending its turn, until every one of them has reported'
+para_has '**Review verdict.**' "a fanned-out reviewer sends one whole-review report, and no orchestrator acts on a partial verdict" 'whose verdict covers the whole review; no orchestrator acts on a partial verdict'
 # the model (dev-9k5.1.3): one loop run at three rows, stated once as its sentence and a table
 # whose rows give each level its parameters; each row pinned on its own line, so a cell kept
 # elsewhere in the doc cannot stand in

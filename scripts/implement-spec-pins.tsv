@@ -88,3 +88,6 @@ has	Stall names a story with no delivered: note	no delivered: note
 has	Done keeps a failed: line raised after delivery	a `failed:` line a story orchestrator raised after its `delivered:` note
 # every epic review's minors go to the inbox, blocking verdicts included (dev-a9a)
 has	every epic review's minors go to the inbox	The minors of every epic review, clean or blocking, go to the inbox
+# a reviewer that fans out reports once, after every sub-agent has (dev-f7k8)
+has	epic reviewer brief: wait for every sub-agent, then one whole-review report	end your turn until every one of them has reported
+has	epic reviewer brief: one report whose verdict covers the whole review, never a partial one	then send one report whose verdict covers the whole review; the epic orchestrator never acts on a partial verdict
