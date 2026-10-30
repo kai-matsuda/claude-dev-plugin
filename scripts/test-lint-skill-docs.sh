@@ -2347,6 +2347,9 @@ fresh
 drop_phrase docs/agents/issue-tracker.md 'refused: <child-id> is not a story'
 sec=6 expect "tracker doc without the malformed-epic refusal fails" 1 "malformed epic refusal"
 fresh
+drop_phrase docs/agents/issue-tracker.md '**malformed-epic refusal**'
+sec=6 expect "tracker doc without the named malformed-epic refusal fails" 1 "malformed-epic refusal named"
+fresh
 drop_phrase skills/workflow/SKILL.md '<child-id> is not a story'
 sec=2 expect "workflow without the malformed-epic line fails" 1 "workflow prints the malformed-epic line"
 fresh

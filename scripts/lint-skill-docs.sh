@@ -1222,6 +1222,7 @@ hasc "epic gather section" 'When a skill says "gather the epic bead"'
 has "other-repo refusal" 'refused: epic bead lives in <repo>'
 has "closed refusal" 'refused: epic bead is closed'
 has "malformed epic refusal" 'refused: <child-id> is not a story'
+has "malformed-epic refusal named" '**malformed-epic refusal**'
 has "re-cut creates a missing publish task" 'has no publish task'
 lacks "Jira comment gated on every task" "When all of a run's tasks are published"
 hasc "spec fetch section" 'When a skill says "fetch the spec"'

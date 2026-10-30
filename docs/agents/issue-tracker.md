@@ -416,7 +416,7 @@ first of these that applies:
 
 The spec only explains the work; at the task cut the story body bounds it.
 
-## When a skill says "gather the epic bead" (`/dev:spec-to-stories`, `/dev:spec-to-tasks`)
+## When a skill says "gather the epic bead" (`/dev:spec-to-stories`, `/dev:spec-to-tasks`; the malformed-epic refusal alone also `/dev:implement-spec`, `/dev:implement-story`, `/dev:close-epic`, `/dev:workflow`)
 
 `<home>` is as the one test above defines it, and `<skill>` the skill running this. Both
 skills require the argument and stop on their usage line without one; neither recovers the

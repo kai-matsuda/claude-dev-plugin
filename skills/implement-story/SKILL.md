@@ -49,7 +49,7 @@ The session running this skill is the **story orchestrator** and follows `${CLAU
 ## Steps
 
 1. **Read the story and its tasks.** `bd -C <owner> show <story-id> --json` (an array; `.[0]`). Refuse with one line and create nothing when:
-   - the bead is an epic with a non-story child: the malformed-epic refusal of the tracker doc's "gather the epic bead" (children read with `bd -C <owner> children <id> --json`; nothing is suggested);
+   - the bead is an epic with a non-story child: the malformed-epic refusal of the tracker doc's "gather the epic bead" (nothing is suggested);
    - otherwise the bead is not of `issue_type` `story`: `<id> is of type <type>, not a story; /dev:implement-story takes a story bead id.`
 
    The tasks are `bd -C <owner> children <story-id> --json`. The story's **tier** is the max `complexity:` label among them. The story's notes (`.[0].notes`) are what earlier runs left behind, one line each: `branch:` (step 3), `review:` and `story review <round>` (step 7) and `pr:`, `delivered:` and `checks red:` (step 8); read them once here, the last line of a kind winning. A story is **finished** when every child is `closed` or carries `ready-for-human`, `needs-triage` or `wontfix` (the rules doc's Frontier, Deferrals) and its notes carry a `pr:` line with no `checks red:` line after it (the rules doc's Delivery section's forge-check wait): touch nothing, and go straight to the final report (step 9) with the `pr:` and `branch:` lines read from the notes. The one write it may make: a finished story with no `delivered:` line (delivered before step 8 wrote one) gets it now, the Delivery section's note on the branch's current tip, so `/dev:implement-spec` can review it.

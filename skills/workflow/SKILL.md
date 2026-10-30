@@ -40,8 +40,9 @@ is open.
 
 ## Malformed epic
 
-Check the epic by the malformed-epic refusal of the tracker doc's "gather the epic bead". A
-malformed epic is reported by this skill and not positioned. Print
+Check the epic by the malformed-epic refusal of the tracker doc's "gather the epic bead".
+A malformed epic is reported by this skill and not positioned, so the line printed here is
+this skill's own fuller form of that refusal (it adds the key and title). Print
 `<epic-id> (<KEY>-<n>) "<title>" refused: <child-id> is not a story`, suggest
 nothing, and go to the next epic.
 

@@ -35,8 +35,8 @@ a repo session the only story is the home story and its owner is `<home>`. Skip
 `retro`-labelled beads (${CLAUDE_PLUGIN_ROOT}/docs/agents/issue-tracker.md).
 
 Check for a **malformed epic** separately, by the malformed-epic refusal of the tracker doc's
-"gather the epic bead", and stop on it. The gather above finding no story → refuse, naming the epic; empty direct
-children alone is not a refusal.
+"gather the epic bead", and refuse on it. The gather above finding no story → refuse,
+naming the epic; empty direct children alone is not a refusal.
 
 ## 3. Close each story
 
