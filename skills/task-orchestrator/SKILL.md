@@ -26,7 +26,7 @@ A subagent that returns an API error, or ends with no report, is replaced by a f
 
 ## Two entries
 
-One procedure, two entries, selected by the brief and never by you: the **claim entry**, for a fresh task (a brief with no `gate entry:` line), runs steps 1, 2 and 3; the **gate entry**, when the branch already carries commits (a cut-off's replacement, or a retry after a conflict resolution's red), runs step 1, then step 3 on the branch, worktree path and tip the brief names, with a fresh budget and no step 2. Its first pass checks that tip as any pass does: a red record is no check (the rules doc's Check scope), so the resolved tree is checked again, and a red goes to the fix-up with that record's log.
+One procedure, two entries, selected by the brief and never by you: the **claim entry**, for a fresh task (a brief with no `gate entry:` line), runs steps 1, 2 and 3; the **gate entry**, when the branch already carries commits (a cut-off's replacement, a retry after a conflict resolution's red, or a first failure's retry whose Cut-off probe finds commits), runs step 1, then step 3 on the branch, worktree path and tip the brief names, with a fresh budget and no step 2. Its first pass checks that tip as any pass does: a red record is no check (the rules doc's Check scope), so the resolved tree is checked again, and a red goes to the fix-up with that record's log.
 
 ## Steps
 
