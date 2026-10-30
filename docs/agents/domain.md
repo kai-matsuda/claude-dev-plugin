@@ -45,6 +45,19 @@ workspace's `docs/adr/` (the workspace root, `issue-tracker.md`'s one test), one
 single repo to that repo's own `docs/adr/`. Read the workspace's ADRs like a repo's own when
 working in any of its repos.
 
+## Editing an ADR's prose
+
+An ADR records a decision and its reasons, and both stay as written. A later change may
+edit an ADR's prose only to keep a citation resolvable after the cited thing was renamed
+or moved (a section, a paragraph, a term, a path); the edit changes the citation's words
+and nothing the ADR decides. A change that alters the decision is an amendment or a
+superseding ADR instead, per `coding-standards.md`.
+
+Mark a citation edit in place: append `(so named since ADR NNNN)` to the changed
+citation, NNNN being the ADR whose change caused the rename, as ADR 0014 does for "Landing
+a task". The marker is the only trace the edit needs; the amending or superseding note
+lives in the ADR's header block when the decision changed.
+
 ## Use the glossary's vocabulary
 
 When your output names a domain concept (in an issue title, a refactor proposal, a hypothesis, a test name), use the term as defined in `GLOSSARY.md`. Don't drift to synonyms the glossary explicitly avoids.
