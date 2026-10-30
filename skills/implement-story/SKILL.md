@@ -19,7 +19,7 @@ description: "Implement one story bead in its owner repo: work its tasks through
 
 You have been given a **story** bead id: the part of one feature that lands in one repo, parent of that repo's tasks. The issue tracker rules are in `${CLAUDE_PLUGIN_ROOT}/docs/agents/issue-tracker.md`.
 
-The goal is the story implemented on a single **integration branch** in its owner repo, every `ready-for-agent` task closed after its own review, the story reviewed as a whole at the story gate, and delivered as a PR (or, with no forge, the branch).
+The goal is the story implemented on a single **integration branch** in its owner repo, every `ready-for-agent` task closed when it lands, the story reviewed as a whole at the story gate, and delivered as a PR (or, with no forge, the branch).
 
 The tasks are not a list of steps. They are a **task graph** with blocking relationships between them, so there is always a **frontier** of tasks ready to be grabbed.
 
