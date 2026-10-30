@@ -470,6 +470,12 @@ child is a task and `bd ready` would list it to the next run
 (`docs/agents/orchestration.md`, "Frontier", Deferrals).
 _Avoid_: deferral task, follow-up task, needs-triage child
 
+**Provenance cite**:
+The bead id inside parentheses closing the clause of a rules-doc sentence or lint-script
+comment that records why a rule exists, as in "(dev-6qi)"; a bead named as a sentence's
+subject is not one (`docs/agents/coding-standards.md`, "Bead ids cite provenance in parentheses").
+_Avoid_: footnote id, inline bead reference
+
 **Stage**:
 One numbered row of the runbook's Stages table, named by the command you type to run it.
 A feature's position in the flow is the stage its epic bead is between or in.

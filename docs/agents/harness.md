@@ -54,8 +54,8 @@ forge-check wait (the rules doc's Delivery section): one
 foreground Bash call that waits for the PR's forge checks on the pushed tip, bounded by its
 `timeout: 600000` and run again while a check is still pending, at most six calls.
 The Bash tool's text says foreground `sleep` is blocked and points at `Monitor`; a check
-(2026-10-22) ran a foreground `until` loop unblocked in a session and in a subagent alike, and the
-observed run wins (chezmoi-sn1).
+(2026-10-22, chezmoi-sn1) ran a foreground `until` loop unblocked in a session and in a subagent
+alike, and the observed run wins.
 
 **Commits.** A commit a hook rejects (commit-msg or pre-commit) is fixed and retried
 before any other `git` operation, and a branch is merged only onto a clean tree:
@@ -142,7 +142,7 @@ integration branch tip.
 
 **Literal paths.** Inside a harness worktree, a guard checks each `git` and `bd` call
 against the worktree and refuses one whose path comes from a shell variable or sits in a
-construct it cannot parse (seen in INFRA-26's `chezmoi-0jp.22` fixture run). Spell every
+construct it cannot parse (chezmoi-0jp.22, INFRA-26's fixture run). Spell every
 path out literally, one plain command per Bash call. File edits in a worktree go through
 the Edit tool, in place of `sed -f` or a python heredoc, so the guard refuses none of the calls.
 

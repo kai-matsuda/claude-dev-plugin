@@ -55,7 +55,7 @@ has	epic reviewer's sub-agents' model	its sub-agents run at `<review model>`
 has	fix-up description on stdin	--body-file -
 has	epic notes beside implement-story's lines	which `/dev:implement-story` ignores
 has	pending-checks stall resume command	checks are pending, end with the resume command
-# epic review 3 of dev-9k5.1.8: the minors (its review-set rule is dev-47z's below)
+# epic review 3 of dev-9k5.1.8: the minors (its review-set rule is pinned below, dev-47z)
 has	tea landed test reads the landed field	never its `state` alone
 has	every forge read sandbox-disabled	every forge command of this step run with the sandbox disabled
 has	step 6 writes epic review 1 on an invocation's first review	epic review 1: <tip SHA> <verdict line>
@@ -80,8 +80,8 @@ has	the budget failure line is the Check gate's	report the rules doc's Check gat
 has	pending checks re-polled after a fix-up batch	any whose checks were pending
 has	end state's checks pending outcome	clean with checks pending
 hasc	waiting rule pointer	the harness doc's Waiting
-# dev-47z: a story enters the review set on the tip its last delivered: note names, and Stall
-# names one left out over a tip mismatch
+# a story enters the review set on the tip its last delivered: note names, and Stall
+# names one left out over a tip mismatch (dev-47z)
 has	review set: the last delivered: note names the current tip	its last `delivered:` note names its current tip
 has	the delivered: note's shape	delivered: <tip SHA> <check record>
 has	Stall names a story with no delivered: note	no delivered: note
