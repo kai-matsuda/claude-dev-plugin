@@ -1359,9 +1359,8 @@ hasc "finished story backfills a missing delivered: note" 'a finished story with
 lacks "profile-gated push" 'when the active profile permits|ask the user to run that exact command|give the user that exact command'
 lacks "a gitignore hand-off from the story cut" 'the story cut appended|story cut could not commit'
 # the Gitignore commit recipe is the rules doc's Story plumbing (section 6 pins it, dev-yykg); the
-# step cites it, naming its trailers, and repeats none of it
+# step cites it and repeats none of it, its trailers included (dev-ieiv)
 hasc "step 3 cites the rules doc's Story plumbing" "the rules doc's Story plumbing"
-hasc "step 3 names the Gitignore commit's trailers" '`Bead: <story-id>` and `Refs: <KEY>-<n>`'
 lacksf "a second copy of the Gitignore commit recipe" 'git -C <owner> status --porcelain -- .gitignore'
 lacksf "a second copy of the Gitignore commit's message file" 'git -C <owner> commit -F <owner>/.tmp/commit-msg'
 lacksf "a second copy of the Gitignore commit's user-edit failure" 'has uncommitted edits'
