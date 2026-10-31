@@ -1179,7 +1179,7 @@ for case in 'with the sandbox disabled, as `/dev:close-story`'"'"'s "The forge s
   'log -1 --format=%ct <its branch>|the cut-off probe takes the newest of several' \
   'never by branch name|the cut-off probe never keys on a branch name' \
   'with none, a claim entry|the cut-off probe'"'"'s hit is a gate entry, its miss a claim entry' \
-  'and the Cut-off probe it runs once per cut-off task in the frontier loop (where `<task-id>` is the task probed)|the plumbing defines the probe'"'"'s task-id' \
+  'and the Cut-off probe it runs once per cut-off or failed task in the frontier loop (where `<task-id>` is the task probed)|the plumbing defines the probe'"'"'s task-id' \
   'The repo plumbing a story orchestrator runs once, before its first task orchestrator (Check target to Merge guard)|the intro names the once-per-run plumbing' \
   '`<top>` being what `git -C <owner> rev-parse --show-toplevel` prints|the cut-off probe compares an entry against the owner'"'"'s top level' \
   'detached entries are skipped|the cut-off probe skips detached entries' \

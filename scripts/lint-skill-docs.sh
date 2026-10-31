@@ -1059,7 +1059,7 @@ sec_has "## Repo plumbing and Cut-off probe" "the cut-off probe matches the Bead
 sec_has "## Repo plumbing and Cut-off probe" "the cut-off probe takes the newest of several" 'log -1 --format=%ct <its branch>'
 sec_has "## Repo plumbing and Cut-off probe" "the cut-off probe never keys on a branch name" 'never by branch name'
 sec_has "## Repo plumbing and Cut-off probe" "the cut-off probe's hit is a gate entry, its miss a claim entry" 'with none, a claim entry'
-sec_has "## Repo plumbing and Cut-off probe" "the plumbing defines the probe's task-id" 'and the Cut-off probe it runs once per cut-off task in the frontier loop (where `<task-id>` is the task probed)'
+sec_has "## Repo plumbing and Cut-off probe" "the plumbing defines the probe's task-id" 'and the Cut-off probe it runs once per cut-off or failed task in the frontier loop (where `<task-id>` is the task probed)'
 sec_has "## Repo plumbing and Cut-off probe" "the intro names the once-per-run plumbing" 'The repo plumbing a story orchestrator runs once, before its first task orchestrator (Check target to Merge guard)'
 sec_has "## Repo plumbing and Cut-off probe" "the cut-off probe compares an entry against the owner's top level" '`<top>` being what `git -C <owner> rev-parse --show-toplevel` prints'
 sec_has "## Repo plumbing and Cut-off probe" "the cut-off probe skips detached entries" 'detached entries are skipped'
