@@ -7,10 +7,14 @@
 sec	Repo plumbing and Cut-off probe is parametrised by the unit	a **story** (`/dev:implement-story`) and a **standalone task** (`/dev:implement-task`)
 sec	the check command is resolved once per run	Resolve the check command once per run
 sec	the check command is make check	`make check`, since every owner repo has a `check` target (Check command, above)
-sec	a repo with no check target fails the run before any task orchestrator starts	with none, end the run now with `failed: no check target in <owner>; run /dev:setup-repo there, then re-run`, before any task orchestrator starts
+sec	the run with no check target ends before any task orchestrator starts: the opening	with none, end the run now with `
+sec	the no check target failed: line names the owner	failed: no check target in <owner>
+sec	the no check target failed: line sends the human to /dev:setup-repo	; run /dev:setup-repo there, then re-run`,
+sec	a repo with no check target fails the run before any task orchestrator starts	before any task orchestrator starts
 sec	every task orchestrator brief carries the check command	every task orchestrator brief carries it
 sec	the check target is asked of make, never grepped from a Makefile	Ask make whether it has one, never grep a Makefile
-sec	the check target is read from make's database	`make -C <owner> -pRrq : 2>/dev/null | awk '/^# Not a target:/{n=1;next} /^check::?([^=:]|$)/&&!n{c=1; if (/^check::? *[^ :]/) f=1} c&&/^#  (commands|recipe) to execute/{f=1} /^$/{c=0} {n=0} END{exit !f}'`
+sec	the check target is read from make's database: the make call	`make -C <owner> -pRrq
+sec	the check target is read from make's database: the awk test	: 2>/dev/null | awk '/^# Not a target:/{n=1;next} /^check::?([^=:]|$)/&&!n{c=1; if (/^check::? *[^ :]/) f=1} c&&/^#  (commands|recipe) to execute/{f=1} /^$/{c=0} {n=0} END{exit !f}'`
 sec	a missing Makefile reads as no check target	a missing Makefile prints no database and exits 1, so all three read as no check target
 sec	the forge CLI takes the repo by --repo, tea by its absolute path	the repo's absolute path (a sibling's: `<workspace>/<repo>`)
 sec	the forge is decided once	Decide **once** which forge fronts the repo
@@ -21,7 +25,8 @@ sec	the Gitignore commit is keyed on a dirty file	git -C <owner> status --porcel
 sec	the Gitignore commit counts the rule's four entries	is one of the rule's four entries and no line is removed
 sec	the Gitignore commit follows the Commits rule	commit it as the harness doc's Commits rule says
 sec	the Gitignore commit goes through a message file	`git -C <owner> commit -F <owner>/.tmp/commit-msg`
-sec	a user edit in .gitignore is a failed: line, not absorbed	failed: <owner>/.gitignore has uncommitted edits
+sec	a user edit in .gitignore is a failed: line: the path	failed: <owner>/.gitignore
+sec	a user edit in .gitignore is a failed: line, not absorbed	has uncommitted edits
 sec	the merge guard runs the forge query sandbox-disabled	with the sandbox disabled, as `/dev:close-story`'s "The forge shows MERGED" section does
 sec	the merge guard's GitHub query	gh pr view <url> --json state
 sec	the merge guard's Forgejo query names the repo	tea api --repo <owner> repos/{owner}/{repo}/pulls/<n>
@@ -30,13 +35,15 @@ sec	the merge guard refuses a PR closed unmerged	CLOSED unmerged: refuse
 sec	the merge guard: OPEN continues on the branch: note's branch and delivers again	OPEN: continue on the `branch:` note's branch and deliver again
 sec	the merge guard decides the branch form locally first	is decided locally first, then asked: `git -C <owner> fetch origin`
 sec	the merge guard skips the fetch with no origin	(skipped with no `origin`)
-sec	the merge guard compares by ancestry	`git -C <owner> merge-base --is-ancestor <tip SHA> origin/<default branch>`
+sec	the merge guard compares by ancestry	`git -C <owner> merge-base --is-ancestor <tip SHA>
+sec	the merge guard compares against the default branch on the origin	origin/<default branch>`
 sec	the merge guard maps each ancestry exit and a failed fetch	(exit 0: as MERGED; exit 1: as OPEN; a failed fetch of an existing origin or any other exit: it cannot decide (ask))
 sec	the merge guard compares against the local default branch with no origin	with the local `<default branch>` in place of `origin/<default branch>` when there is no `origin`
 sec	a failing forge command is an error, never no forge	never as "no forge"
 sec	the cut-off probe reads the worktree list	git -C <owner> worktree list --porcelain
 sec	the cut-off probe covers the hand-rolled and the harness worktree alike	a hand-rolled `<owner>/.worktrees/<slug>` or a harness `isolation` worktree alike
-sec	the cut-off probe matches the Bead trailer	log --format='%(trailers:key=Bead,valueonly)' <branch>..<its branch>
+sec	the cut-off probe matches the Bead trailer	log --format='%(trailers:key=Bead,valueonly)'
+sec	the cut-off probe matches the Bead trailer on the commits its branch adds	<branch>..<its branch>
 sec	the cut-off probe takes the newest of several	log -1 --format=%ct <its branch>
 sec	the cut-off probe never keys on a branch name	never by branch name
 sec	the cut-off probe's hit is a gate entry, its miss a claim entry	with none, a claim entry
@@ -54,5 +61,3 @@ sec	the cut-off probe restores a task branch to its hand-rolled path, which step
 sec	the cut-off probe stops and reports when the restore path is taken	stop and report it rather than choose another path
 sec	the cut-off probe's restore prunes with the sandbox disabled	git -C <owner> worktree prune` with the sandbox disabled
 sec	the Bead trailer match is an exact line match	an exact line match
-# The tail of the "no check target" phrase above, pinned again on its own: that row's drop takes the whole phrase, this one only the tail and keeps the rest of the sentence, so a reword of the tail alone still fails.
-sec	a repo with no check target fails the run before any task orchestrator starts, at the tail	before any task orchestrator starts

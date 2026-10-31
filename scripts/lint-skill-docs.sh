@@ -210,7 +210,7 @@
 # GLOSSARY_MD overrides the root glossary (default: GLOSSARY.md under the repo root).
 # LINT_PINS_DIR overrides the directory of the pin tables (default: scripts under the repo root); a
 # missing directory or table fails, as a missing doc does.
-# LINT_PIN_LIST names a file every queued check is appended to first, for the regression test to
+# LINT_PIN_LIST names a file every check is appended to first, for the regression test to
 # derive its drop cases from.
 # PLUGIN_SKILLS overrides the plugin skills directory (default: newest installed mattpocock-skills).
 # The last section is the version-bump rule (INFRA-30): a change to what the plugin ships
@@ -237,7 +237,7 @@ bad() { echo "FAIL: $*"; fail=1; }
 # opening_has (-F) on the lines before the first "## ". Each only queues its check: a section's
 # checks run in one awk pass when the next section opens (section) and at the end (checks_run),
 # so their FAIL lines print under their own section's header, at a cost of one process per
-# section rather than one or two per check (the regression test runs the lint a few hundred
+# section rather than one or two per check (the regression test runs the lint over a thousand
 # times, and its pool is CPU-bound).
 queue=
 unchanged=$'\n'
@@ -300,6 +300,32 @@ pins_from() {
     esac
   done < "$1"
 }
+# table_phrase <table> <description>: the phrase of the pin table's row of that description, as
+# the table writes it, for a check that must follow the row when it is reworded (dev-yqpz)
+table_phrase() { awk -F '\t' -v d="$2" '$1 !~ /^#/ && $2 == d { print $3; exit }' "$pins_dir/$1.tsv"; }
+# row_phrase <table> <row description>: sets rp to that row's phrase, less the backtick a code
+# span opens or closes it with, for a sweep that fails a skill restating the table's phrase, so a
+# reword of the row moves the sweep with it; a missing row fails the lint and leaves rp empty
+row_phrase() {
+  rp=$(table_phrase "$1" "$2")
+  # a missing table is reported once, by pins_from, in the section that reads it
+  [ -n "$rp" ] || [ ! -f "$pins_dir/$1.tsv" ] || { bad "no row '$2' in $1.tsv"; return 1; }
+  [ -n "$rp" ] || return 1
+  rp=${rp#\`} rp=${rp%\`}
+}
+# lacksf_row <description> <table> <row description>: lacksf of that row's phrase
+lacksf_row() { row_phrase "$2" "$3" && lacksf "$1" "$rp"; }
+# what a skill that cites the rules doc's Repo plumbing and Cut-off probe must not restate
+plumbing_copies() {
+  lacksf_row "a second copy of the check target probe" repo-plumbing-pins "the check target is read from make's database: the make call"
+  lacksf_row "a second copy of the check target refusal" repo-plumbing-pins "the no check target failed: line names the owner"
+  lacksf_row "a second copy of the forge decision" repo-plumbing-pins "the forge is decided once"
+  lacksf_row "a second copy of the Gitignore commit recipe" repo-plumbing-pins "the Gitignore commit is keyed on a dirty file"
+  lacksf_row "a second copy of the Gitignore commit's message file" repo-plumbing-pins "the Gitignore commit goes through a message file"
+  lacksf_row "a second copy of the merge guard's forge query" repo-plumbing-pins "the merge guard's GitHub query"
+  lacksf_row "a second copy of the merge guard's Forgejo query" repo-plumbing-pins "the merge guard's Forgejo query names the repo"
+  lacksf_row "a second copy of the merge guard's ancestry check" repo-plumbing-pins "the merge guard compares by ancestry"
+}
 # the roles and review tools the three-row restatement retired (INFRA-33), swept in section 5
 retired_row_names() {
   lacksw "the retired driver role in $f" '(^|[^a-z])[Dd]rivers?([^a-z]|$)'
@@ -312,10 +338,13 @@ retired_row_names() {
 # the epic row's fourth failure reads only the Check gate's two lines, red or blocking (dev-aeo):
 # both are blanked, so any other `failed: <story-id> ...` naming a fix-up left in $f is a FAIL
 epic_fourth_failure_lines() {
-  local scan other='failed: <story-id> [^`]*fix-up'
+  local scan other='failed: <story-id> [^`]*fix-up' red blocking
   unchanged_file && return 0
-  scan=$(sed -e 's/failed: <story-id> checks red after three fix-ups//g' \
-    -e 's/failed: <story-id> epic review not clean after three fix-ups//g' "$f")
+  # the two lines the Check gate allows are the pin table's rows, so a reword of one follows it
+  red=$(table_phrase implement-spec-pins "red-check budget failure line")
+  blocking=$(table_phrase implement-spec-pins "blocking-verdict budget failure line")
+  if [ -z "$red" ] || [ -z "$blocking" ]; then bad "implement-spec-pins.tsv lacks the Check gate's two fourth-failure rows"; return 0; fi
+  scan=$(sed -e "s/$red//g" -e "s/$blocking//g" "$f")
   if grep -q "$other" <<<"$scan"; then
     bad "present: an epic-row fourth-failure line the Check gate does not allow"
     grep -n "$other" <<<"$scan" | head -3
@@ -446,8 +475,20 @@ user_claude_md=${USER_CLAUDE_MD:-$root/CLAUDE.md}
 glossary_md=${GLOSSARY_MD:-$root/GLOSSARY.md}
 runbook=${2:-$root/docs/WORKFLOW.md}
 pins_dir=${LINT_PINS_DIR:-$root/scripts}
-# the plain-command line every worktree brief carries, written once (dev-yqpz)
+# the phrases every worktree brief carries and the order checks over them, each written once
+# (dev-yqpz); the _re forms read a backtick as any character, to sit in a pattern
+tmpdir_line='TMPDIR line'
 plain_command='plain-command line, one plain `git` or `bd` command per Bash call, every path spelled out'
+plain_re=${plain_command//\`/.}
+pwd_step='first Bash call is `pwd` alone'
+pwd_re=${pwd_step//\`/.}
+spelled='spelled literally in every later `export`'
+spelled_re=${spelled//\`/.}
+tmpdir_then_plain="$tmpdir_line.*$plain_re"   # a brief's TMPDIR line, then its plain-command line
+tmpdir_pwd_spelled="$pwd_re.*$spelled_re"   # the bare pwd step, then the path spelled literally
+# the story gate's two phrases whose order the step 7 awk check reads (below) beside their pins
+gate_first='Each pass runs the checks first'
+gate_same='the same SHA exits the gate'
 # the dirs and the docs no section owns must exist, a default as much as an override; the
 # driver ($1) and the runbook ($2) are their sections' documents
 section "0. paths"
@@ -1361,9 +1402,7 @@ lacks "a gitignore hand-off from the story cut" 'the story cut appended|story cu
 # the Gitignore commit recipe is the rules doc's Repo plumbing and Cut-off probe (section 6 pins it, dev-yykg); the
 # step cites it and repeats none of it, its trailers included (dev-ieiv)
 hasc "step 3 cites the rules doc's Repo plumbing and Cut-off probe" "the rules doc's Repo plumbing and Cut-off probe"
-lacksf "a second copy of the Gitignore commit recipe" 'git -C <owner> status --porcelain -- .gitignore'
-lacksf "a second copy of the Gitignore commit's message file" 'git -C <owner> commit -F <owner>/.tmp/commit-msg'
-lacksf "a second copy of the Gitignore commit's user-edit failure" 'has uncommitted edits'
+lacksf_row "a second copy of the Gitignore commit's user-edit failure" repo-plumbing-pins "a user edit in .gitignore is a failed: line, not absorbed"
 # the commit carries trailers, so it goes through a message file, never --trailer (dev-7gu)
 lacks "a --trailer commit" 'commit [^`]*--trailer'
 hasc "exploration subagent reads the design field" '.[0].design'
@@ -1419,9 +1458,11 @@ sec_has "## Landing" "a landing closes the task" 'A landing closes the task: `bd
 sec_has "## Landing" "the fast-forward guards the resolved tip" 'confirm `git -C <owner> rev-parse <task branch>` prints the resolved tip, `git -C <worktree path> rev-parse HEAD`'
 sec_has "## Landing" "a story fix-up's tip is read from its worktree" 'its `<tip SHA>` is `git -C <worktree path> rev-parse HEAD`'
 lacksf "the reviewed-tip guard repeated after a conflict resolution" "repeat 1's guards"
-line_has '^3\. A conflict goes to an implementer' "the conflict implementer's brief starts with the TMPDIR line" 'TMPDIR line'
-line_has '^3\. A conflict goes to an implementer' "the conflict implementer's brief carries the plain-command line" "$plain_command"
-line_has '^3\. A conflict goes to an implementer' "the conflict implementer's check and test timeout" 'timeout: 600000'
+K='^3\. A conflict goes to an implementer'
+line_has "$K" "the conflict implementer's brief starts with the TMPDIR line" "$tmpdir_line"
+line_has "$K" "the conflict implementer's brief carries the plain-command line" "$plain_command"
+line_hase "$K" "the conflict implementer's brief puts the TMPDIR line ahead of the plain-command line" "$tmpdir_then_plain"
+line_has "$K" "the conflict implementer's check and test timeout" 'timeout: 600000'
 line_has '^   - `<id> failed: <reason>`' "a first failure after a red on a resolved tree retries at the gate" 'that one enters at the gate on the resolved branch'
 # any other first failure probes for the commits its attempt left, as implement-task's retry does (dev-a3c0)
 line_has '^   - `<id> failed: <reason>`' "a first failure's retry runs the Cut-off probe" "step 4's Cut-off probe deciding its entry"
@@ -1434,7 +1475,7 @@ line_has '^4\. \*\*Work the frontier\.\*\*' "the frontier spawn is at opus" 'at 
 # at the gate on the branch, worktree and tip the probe found (dev-b8d.1.4 review 1, dev-ndfi)
 line_has '^4\. \*\*Work the frontier\.\*\*' "step 4 probes a cut-off task through the rules doc's Cut-off probe" "the rules doc's Cut-off probe"
 lacksf "a second copy of the cut-off probe's old hand-rolled branch test" 'log --oneline <branch>..task/<task-slug>'
-lacksf "a second copy of the cut-off probe's trailer query" "log --format='%(trailers:key=Bead,valueonly)'"
+lacksf_row "a second copy of the cut-off probe's trailer query" repo-plumbing-pins "the cut-off probe matches the Bead trailer"
 sec_has "## Task orchestrator brief" "the gate entry covers a probe hit on either route" "a cut-off task orchestrator's replacement for which step 4's Cut-off probe hits"
 lacksf "the gate entry limited to the hand-rolled route" 'whose hand-rolled `task/<task-slug>` carries commits'
 sec_has "## Task orchestrator brief" "the brief calls the task-orchestrator skill" 'Call the Skill tool with `dev:task-orchestrator`'
@@ -1468,9 +1509,6 @@ hasc "merge guard cites the rules doc's Repo plumbing and Cut-off probe for its 
 hasc "merge guard: OPEN continues on the re-delivery path" 'the re-delivery path of steps 3 and 8'
 hasc "merge guard's MERGED refusal line" 'MERGED: refuse with `<story-id> refused: PR <url> already merged;'
 hasc "merge guard's closed-unmerged refusal line" 'CLOSED unmerged: refuse with `<story-id> refused: PR <url> is closed unmerged`'
-lacksf "a second copy of the merge guard's forge query" 'gh pr view <url> --json state'
-lacksf "a second copy of the merge guard's Forgejo query" 'tea api --repo <owner> repos/{owner}/{repo}/pulls/<n>'
-lacksf "a second copy of the merge guard's ancestry check" 'merge-base --is-ancestor <tip SHA>'
 hasc "merge guard's add-mode hint covers an epic with no external ref" '(or /dev:spec-to-stories <epic-id> when the epic has no external ref)'
 hasc "merge guard asks when the forge cannot tell" 'the forge cannot tell (no forge, or a branch-form `pr:` note)'
 hasc "merge guard asks whether the PR or branch has merged" 'whether the PR, or for the branch form the branch, has merged into the default branch'
@@ -1536,18 +1574,22 @@ lacks "the resume: line printed only with content" '`resume:` lines appear only'
 hasc "TMPDIR line stated in the skill" 'mkdir -p <worktree>/.tmp && export TMPDIR=<worktree>/.tmp'
 hasc "export repeated per Bash call" 'repeated at the head of every Bash call'
 hasc "mktemp -d takes a template under .tmp" 'mktemp -d <worktree>/.tmp/<name>.XXXXXX'
-line_has '^7\. ' "the story review's fix-up brief starts with the TMPDIR line" 'TMPDIR line'
+line_has '^7\. ' "the story review's fix-up brief starts with the TMPDIR line" "$tmpdir_line"
 # next to its TMPDIR line, every worktree brief carries the plain-command line inline: briefs that
 # only cited the harness doc's Literal paths drew 14 guard refusals in INFRA-33's run (dev-ask);
 # step 3 names it for both of its fix-up briefs
 hasc "plain-command line stated in the skill" "$plain_command"
-line_has 'starts with the \*\*TMPDIR line\*\*' "the Owner repo bullet states the plain-command line" "$plain_command"
+O="starts with the \\*\\*$tmpdir_line\\*\\*"
+line_has "$O" "the Owner repo bullet states the plain-command line" "$plain_command"
+line_hase "$O" "the Owner repo bullet puts the TMPDIR line ahead of the plain-command line" "$tmpdir_then_plain"
 line_has '^7\. ' "the story review's fix-up brief carries the plain-command line" "$plain_command"
+line_hase '^7\. ' "the story review's fix-up brief puts the TMPDIR line ahead of the plain-command line" "$tmpdir_then_plain"
 # on the harness route the TMPDIR line is two steps: a bare pwd as the first Bash call, then the
 # path it printed spelled literally in every later export, since agents left to fill in the path
 # wrote $PWD and the guard refused it in INFRA-35's run (dev-r1p)
-line_has 'starts with the \*\*TMPDIR line\*\*' "the Owner repo bullet states the bare pwd step" 'first Bash call is `pwd` alone'
-line_has 'starts with the \*\*TMPDIR line\*\*' "the Owner repo bullet spells the path literally in later exports" 'spelled literally in every later `export`'
+line_has "$O" "the Owner repo bullet states the bare pwd step" "$pwd_step"
+line_has "$O" "the Owner repo bullet spells the path literally in later exports" "$spelled"
+line_hase "$O" "the Owner repo bullet puts the bare pwd step ahead of the path spelled literally" "$tmpdir_pwd_spelled"
 lacks "the retired fill-in-the-pwd-path wording" 'fills in the path `pwd` prints'
 lacks "Gitignore step counts three entries" "the rule's three entries"
 line_has '^7\. ' "the story review (step 7) points at the rules doc's Review verdict" "the rules doc's Review verdict"
@@ -1556,15 +1598,14 @@ lacks "the zero-findings bar" 'not clean after three rounds|no findings at all|c
 # plumbing, pinned in section 6 (dev-yykg, dev-de4, dev-b3p, ADR 0015); scripts/test-check-target.sh
 # runs the pinned query on scratch repos; step 3 cites it, and the
 # run's check command still goes in every brief and gates step 7
-C='^   Apply the rules doc'"'"'s Repo plumbing and Cut-off probe'
-line_has '^   Apply ' "step 3 applies the rules doc's Repo plumbing and Cut-off probe" "Apply the rules doc's Repo plumbing and Cut-off probe"
+apply_probe="Apply the rules doc's Repo plumbing and Cut-off probe"
+C="^   $apply_probe"
+line_has '^   Apply ' "step 3 applies the rules doc's Repo plumbing and Cut-off probe" "$apply_probe"
 line_has "$C" "step 3 resolves the check command through the repo plumbing and Cut-off probe" 'its Check target, whose `<check command>`'
 line_has "$C" "the run's check command goes in every brief" 'every task orchestrator brief carries and step 7 gates on'
 line_has "$C" "the Gitignore commit is the rule's, in the repo plumbing and Cut-off probe" 'its Gitignore commit'
 line_has "$C" "the forge decision is the repo plumbing and Cut-off probe's" 'its Forge decision'
-lacksf "a second copy of the check target probe" 'make -C <owner> -pRrq'
-lacksf "a second copy of the check target refusal" 'failed: no check target in <owner>'
-lacksf "a second copy of the forge decision" 'Decide **once** which forge fronts the repo'
+plumbing_copies
 lacks "the retired grep for the check target" "grep -q .\\^check:"
 lacks "the retired lint-command resolution" 'resolve the owner repo.s \*\*lint command\*\*|`make lint` when `<owner>`.s makefile has a `lint` target'
 lacksf "the retired lint placeholder" '`<lint>`'
@@ -1582,7 +1623,7 @@ G7='^7\. '
 hase "step 7 is the story gate" '^7\. \*\*Story gate\.\*\*'
 line_has "$G7" "the story gate names its row of the rules doc's table" "the story row of the rules doc's table"
 line_has "$G7" "the story gate exits on green checks at the tip the review called clean" 'it exits when the checks are green on the tip the review called clean'
-line_has "$G7" "the story gate runs the checks first in each pass" 'Each pass runs the checks first'
+line_has "$G7" "the story gate runs the checks first in each pass" "$gate_first"
 line_has "$G7" "the story gate reads the tree only of a clean owner checkout" 'confirm the owner checkout is clean, `git -C <owner> status --porcelain` prints nothing'
 # the guard (dev-9k5.1.9 review 1): the owner checkout on <branch>, untracked files counted and
 # why, the failed line naming the files, its exit classified as step 6 says
@@ -1606,7 +1647,7 @@ line_has "$G7" "the story keeps the reviewed tip in its notes" "The story keeps 
 hasc "step 1 reads the story review notes" '`review:` and `story review <round>` (step 7)'
 line_has "$G7" "the story review round continues across runs" "\`<round>\` one more than the last \`story review\` note's round step 1 read (1 when there is none)"
 line_has "$G7" "the story review note names the reviewed tip" '`bd -C <owner> note <story-id> "story review <round> <tip SHA>: <findings>; <verdict line>"`'
-line_has "$G7" "a green tip the review called clean exits the gate" 'the same SHA exits the gate'
+line_has "$G7" "a green tip the review called clean exits the gate" "$gate_same"
 line_has "$G7" "the story review's spec axis is the story's body" "the spec axis is the story's body"
 line_has "$G7" "the story review's standards axis is what entered since the task reviews" 'the standards axis is what entered since the task reviews: the conflict resolutions and the coherence across tasks'
 # the standards axis gets its inputs: the base SHA, each merge's resolution and the fix-up
@@ -1627,7 +1668,7 @@ line_has "$G7" "the story gate lands its fix-up itself by the Landing procedure"
 line_lacks "$G7" "the story gate's minors fix-up spending budget" "a minors-only review's included"
 lacksf "the retired Running the checks paragraph" '**Running the checks.**'
 # on the first step 7 line, the checks come before the reviewed-tip compare and the review
-unchanged_file || awk -v g='Each pass runs the checks first' -v m='the same SHA exits the gate' -v r='mattpocock-skills:code-review' \
+unchanged_file || awk -v g="$gate_first" -v m="$gate_same" -v r='mattpocock-skills:code-review' \
   '/^7\. / { i = index($0, g); k = index($0, m); j = index($0, r); ok = (i && k && j && i < k && k < j); seen = 1; exit } END { exit !(seen && ok) }' "$f" \
   || bad "missing: the story gate (step 7) runs the checks before the reviewed-tip compare and the two-axis review"
 line_has '^8\. ' "the deliver step leaves the PR a draft" 'The PR stays a draft'
@@ -1714,14 +1755,18 @@ done
 # (chezmoi-3eg, dev-ask); on the harness route the TMPDIR line is two steps (dev-r1p)
 hasc "task orchestrator brief points at the harness doc's TMPDIR rule" "the harness doc's TMPDIR rule"
 for step in 2 3; do
-  line_has "^$step\\. " "task orchestrator step $step's brief starts with the TMPDIR line" 'TMPDIR line'
+  line_has "^$step\\. " "task orchestrator step $step's brief starts with the TMPDIR line" "$tmpdir_line"
 done
 line_has '^2\. ' "task orchestrator step 2's brief carries the plain-command line" "$plain_command"
 line_has '^3\. ' "task orchestrator step 3's brief carries the plain-command line" "$plain_command"
-line_has '^3\. .*plain-command line.*plain-command line' "task orchestrator step 3's second brief carries the plain-command line" "$plain_command"
 line_has '^You are the \*\*task orchestrator\*\*' "the task orchestrator header carries the plain-command line" "$plain_command"
-line_has '^2\. ' "task orchestrator step 2's brief names the bare pwd step" 'first Bash call is `pwd` alone'
-line_has '^2\. ' "task orchestrator step 2's brief spells the path literally in later exports" 'spelled literally in every later `export`'
+line_has '^2\. ' "task orchestrator step 2's brief names the bare pwd step" "$pwd_step"
+line_has '^2\. ' "task orchestrator step 2's brief spells the path literally in later exports" "$spelled"
+# the order of each brief, the TMPDIR line then the plain-command line; step 3 holds two briefs
+line_hase '^2\. ' "task orchestrator step 2's brief puts the TMPDIR line ahead of the plain-command line" "$tmpdir_then_plain"
+line_hase '^3\. ' "task orchestrator step 3's two briefs each put the TMPDIR line ahead of the plain-command line" "$tmpdir_then_plain.*$tmpdir_then_plain"
+line_hase '^You are the \*\*task orchestrator\*\*' "the task orchestrator header puts the TMPDIR line ahead of the plain-command line" "$tmpdir_then_plain"
+line_hase '^2\. ' "task orchestrator step 2's brief puts the TMPDIR line, the bare pwd step and the spelled path in order" "$tmpdir_line.*$tmpdir_pwd_spelled"
 # the reviewer brief carries the two tags and the verdict line, and step 3 points at the rules
 # doc's Review verdict (chezmoi-49k)
 for phrase in 'verdict: clean' 'verdict: blocking (<n>)' '**blocking** or **minor**' 'within the budget above'; do
@@ -1750,7 +1795,7 @@ line_has "$H" "every brief it sends cites the harness doc" 'every brief you send
 # skill never resolves it itself (dev-yyu)
 line_has "$H" "the row's check command is the brief's" 'check command `<check command>`'
 line_has "$H" "the skill never resolves the check command itself" 'never resolve it yourself'
-line_lacks "$H" "the per-task check target lookup" 'make -C <owner> -pRrq'
+row_phrase repo-plumbing-pins "the check target is read from make's database: the make call" && line_lacks "$H" "the per-task check target lookup" "$rp"
 line_lacks "$H" "the per-task check command by Makefile convention" "Makefile has a \`check\` target"
 # the check and review loop (step 3): checks ahead of the reviewers, each check one record call,
 # a red noted, a red and a blocking verdict both to a fresh fix-up on one budget of three, a low
@@ -1834,14 +1879,7 @@ hasc "the repo plumbing and Cut-off probe cited for the check target" "the rules
 hasc "the repo plumbing and Cut-off probe's Check target" 'its Check target'
 hasc "the repo plumbing and Cut-off probe's Gitignore commit" 'its Gitignore commit'
 hasc "the repo plumbing and Cut-off probe's Forge decision" 'its Forge decision'
-lacksf "a second copy of the check target probe" 'make -C <owner> -pRrq'
-lacksf "a second copy of the check target refusal" 'failed: no check target in <owner>'
-lacksf "a second copy of the forge decision" 'Decide **once** which forge fronts the repo'
-lacksf "a second copy of the Gitignore commit recipe" 'git -C <owner> status --porcelain -- .gitignore'
-lacksf "a second copy of the Gitignore commit's message file" 'git -C <owner> commit -F <owner>/.tmp/commit-msg'
-lacksf "a second copy of the merge guard's forge query" 'gh pr view <url> --json state'
-lacksf "a second copy of the merge guard's Forgejo query" 'tea api --repo <owner> repos/{owner}/{repo}/pulls/<n>'
-lacksf "a second copy of the merge guard's ancestry check" 'merge-base --is-ancestor <tip SHA>'
+plumbing_copies
 hasc "the branch feat/<id> off the default branch" 'git -C <owner> switch -c feat/<task-id> <default branch>'
 hasc "the branch: note" 'bd -C <owner> note <task-id> "branch: feat/<task-id>"'
 # one task orchestrator, the short brief
@@ -1870,7 +1908,7 @@ hasc "the branch form's refusals name the pr: value" 'the `pr:` value stands in 
 hasc "a finished task runs only the stray scan" "run only step 6's stray scan"
 hasc "a failed run re-enters at the gate" 'its next spawn is a gate entry'
 hasc "the probe for a failed run's commits is the rules doc's Cut-off probe" "the rules doc's Cut-off probe"
-lacksf "a second copy of the cut-off probe's trailer query" "log --format='%(trailers:key=Bead,valueonly)'"
+lacksf_row "a second copy of the cut-off probe's trailer query" repo-plumbing-pins "the cut-off probe matches the Bead trailer"
 hasc "the gate entry starts a fresh budget" 'with a fresh budget'
 # the report: the story block minus the story lines, ending on resume:
 hasc "the report's task line" 'task:    <task-id> <title>'
@@ -1986,7 +2024,7 @@ cmd_tokens() { # <file>...
     if (!index($0, "/")) next
     line = $0; inc = 0; i = 0
     # visit the slashes and backticks in order rather than every character: the regression
-    # test runs this over every doc a few hundred times
+    # test runs this over every doc over a thousand times
     while (1) {
       s = index(substr(line, i + 1), "/"); b = index(substr(line, i + 1), "`")
       if (!s && !b) break
