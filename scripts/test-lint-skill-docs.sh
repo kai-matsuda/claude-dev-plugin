@@ -1151,52 +1151,13 @@ expect "implement-story without the delivered-story merge guard fails" 1
 # the guard's mechanism is the rules doc's Repo plumbing and Cut-off probe, stated once (dev-yykg): each pinned
 # phrase dropped from there fails section 6 alone; the skills keep their trigger, refusal lines and
 # the cite
-for case in 'with the sandbox disabled, as `/dev:close-story`'"'"'s "The forge shows MERGED" section does|the merge guard runs the forge query sandbox-disabled' \
-  'gh pr view <url> --json state|the merge guard'"'"'s GitHub query' \
-  'tea api --repo <owner> repos/{owner}/{repo}/pulls/<n>|the merge guard'"'"'s Forgejo query names the repo' \
-  'MERGED: refuse|the merge guard refuses a MERGED PR' \
-  'CLOSED unmerged: refuse|the merge guard refuses a PR closed unmerged' \
-  "OPEN: continue on the \`branch:\` note's branch and deliver again|the merge guard: OPEN continues on the branch: note's branch and delivers again" \
-  'a **story** (`/dev:implement-story`) and a **standalone task** (`/dev:implement-task`)|Repo plumbing and Cut-off probe is parametrised by the unit' \
-  'every forge command names its repo|every forge command names its repo' \
-  'the repo'"'"'s absolute path (a sibling'"'"'s: `<workspace>/<repo>`)|the forge CLI takes the repo by --repo, tea by its absolute path' \
-  'is decided locally first, then asked: `git -C <owner> fetch origin`|the merge guard decides the branch form locally first' \
-  '(skipped with no `origin`)|the merge guard skips the fetch with no origin' \
-  '`git -C <owner> merge-base --is-ancestor <tip SHA> origin/<default branch>`|the merge guard compares by ancestry' \
-  '(exit 0: as MERGED; exit 1: as OPEN; a failed fetch of an existing origin or any other exit: it cannot decide (ask))|the merge guard maps each ancestry exit and a failed fetch' \
-  'with the local `<default branch>` in place of `origin/<default branch>` when there is no `origin`|the merge guard compares against the local default branch with no origin' \
-  'never as "no forge"|a failing forge command is an error, never no forge' \
-  'Decide **once** which forge fronts the repo|the forge is decided once' \
-  'Pre-check `git -C <owner> remote get-url origin`|the forge is pre-checked on the origin URL' \
-  'run each forge command with the sandbox disabled|the forge is proved outside the sandbox' \
-  'Ask make whether it has one, never grep a Makefile|the check target is asked of make, never grepped from a Makefile' \
-  'a missing Makefile prints no database and exits 1, so all three read as no check target|a missing Makefile reads as no check target' \
-  'before any task orchestrator starts|a repo with no check target fails the run before any task orchestrator starts' \
-  'Resolve the check command once per run|the check command is resolved once per run' \
-  'git -C <owner> worktree list --porcelain|the cut-off probe reads the worktree list' \
-  'a hand-rolled `<owner>/.worktrees/<slug>` or a harness `isolation` worktree alike|the cut-off probe covers the hand-rolled and the harness worktree alike' \
-  "log --format='%(trailers:key=Bead,valueonly)' <branch>..<its branch>|the cut-off probe matches the Bead trailer" \
-  'log -1 --format=%ct <its branch>|the cut-off probe takes the newest of several' \
-  'never by branch name|the cut-off probe never keys on a branch name' \
-  'with none, a claim entry|the cut-off probe'"'"'s hit is a gate entry, its miss a claim entry' \
-  'and the Cut-off probe it runs once per cut-off or failed task in the frontier loop (where `<task-id>` is the task probed)|the plumbing defines the probe'"'"'s task-id' \
-  'The repo plumbing a story orchestrator runs once, before its first task orchestrator (Check target to Merge guard)|the intro names the once-per-run plumbing' \
-  '`<top>` being what `git -C <owner> rev-parse --show-toplevel` prints|the cut-off probe compares an entry against the owner'"'"'s top level' \
-  'detached entries are skipped|the cut-off probe skips detached entries' \
-  'a local branch with no registered worktree|the cut-off probe also checks a local branch whose worktree was pruned' \
-  "git -C <owner> for-each-ref --format='%(refname:short)' refs/heads/|the cut-off probe enumerates the local branches" \
-  'counts as unregistered, not as a worktree|the cut-off probe counts a prunable entry as unregistered' \
-  'that lists `<task-id>` is a gate entry too|the cut-off probe'"'"'s pruned branch is a gate entry too' \
-  'only the winner'"'"'s worktree is restored|the cut-off probe restores only the newest hit'"'"'s worktree' \
-  'git -C <owner> worktree add <owner>/.claude/worktrees/agent-<id> <its branch>|the cut-off probe restores a harness branch to its harness path, which step 9 sweeps' \
-  'git -C <owner> worktree add <owner>/.worktrees/<slug> <its branch>|the cut-off probe restores a task branch to its hand-rolled path, which step 9 sweeps' \
-  'stop and report it rather than choose another path|the cut-off probe stops and reports when the restore path is taken' \
-  'git -C <owner> worktree prune` with the sandbox disabled|the cut-off probe'"'"'s restore prunes with the sandbox disabled' \
-  'an exact line match|the Bead trailer match is an exact line match'; do
+# one case per phrase of the list the lint's section 6 reads for this section (dev-yqpz)
+while IFS=$'\t' read -r d phrase; do
+  case $d in '#'*|'') continue ;; esac
   fresh
-  drop_phrase docs/agents/orchestration.md "${case%%|*}"
-  expect "the rules doc's Repo plumbing and Cut-off probe without '${case%%|*}' fails" 1 "missing in the ## Repo plumbing and Cut-off probe section: ${case#*|}"
-done
+  drop_phrase docs/agents/orchestration.md "$phrase"
+  expect "the rules doc's Repo plumbing and Cut-off probe without '$phrase' fails" 1 "missing in the ## Repo plumbing and Cut-off probe section: $d"
+done < "$repo_root/scripts/repo-plumbing-pins.tsv"
 # a pinned phrase moved out of the section, to the end of the file, still fails
 for phrase in 'CLOSED unmerged: refuse' 'Decide **once** which forge fronts the repo' 'Resolve the check command once per run'; do
   fresh

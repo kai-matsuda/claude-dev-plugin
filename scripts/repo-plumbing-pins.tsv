@@ -1,0 +1,55 @@
+# The phrases the rules doc's "## Repo plumbing and Cut-off probe" section must hold, one per
+# line as <description>	<phrase>, tab-separated. Shared by lint-skill-docs.sh, whose section 6
+# checks each one inside that section, and test-lint-skill-docs.sh, whose cases drop each one
+# from a copy of the rules doc and expect section 6 to fail (dev-yqpz). Reword a phrase here
+# and in the doc, nowhere else. A line opening with # and an empty line are skipped.
+Repo plumbing and Cut-off probe is parametrised by the unit	a **story** (`/dev:implement-story`) and a **standalone task** (`/dev:implement-task`)
+the check command is resolved once per run	Resolve the check command once per run
+the check command is make check	`make check`, since every owner repo has a `check` target (Check command, above)
+a repo with no check target fails the run before any task orchestrator starts	with none, end the run now with `failed: no check target in <owner>; run /dev:setup-repo there, then re-run`, before any task orchestrator starts
+every task orchestrator brief carries the check command	every task orchestrator brief carries it
+the check target is asked of make, never grepped from a Makefile	Ask make whether it has one, never grep a Makefile
+the check target is read from make's database	`make -C <owner> -pRrq : 2>/dev/null | awk '/^# Not a target:/{n=1;next} /^check::?([^=:]|$)/&&!n{c=1; if (/^check::? *[^ :]/) f=1} c&&/^#  (commands|recipe) to execute/{f=1} /^$/{c=0} {n=0} END{exit !f}'`
+a missing Makefile reads as no check target	a missing Makefile prints no database and exits 1, so all three read as no check target
+the forge CLI takes the repo by --repo, tea by its absolute path	the repo's absolute path (a sibling's: `<workspace>/<repo>`)
+the forge is decided once	Decide **once** which forge fronts the repo
+the forge is pre-checked on the origin URL	Pre-check `git -C <owner> remote get-url origin`
+every forge command names its repo	every forge command names its repo
+the forge is proved outside the sandbox	run each forge command with the sandbox disabled
+the Gitignore commit is keyed on a dirty file	git -C <owner> status --porcelain -- .gitignore
+the Gitignore commit counts the rule's four entries	is one of the rule's four entries and no line is removed
+the Gitignore commit follows the Commits rule	commit it as the harness doc's Commits rule says
+the Gitignore commit goes through a message file	`git -C <owner> commit -F <owner>/.tmp/commit-msg`
+a user edit in .gitignore is a failed: line, not absorbed	failed: <owner>/.gitignore has uncommitted edits
+the merge guard runs the forge query sandbox-disabled	with the sandbox disabled, as `/dev:close-story`'s "The forge shows MERGED" section does
+the merge guard's GitHub query	gh pr view <url> --json state
+the merge guard's Forgejo query names the repo	tea api --repo <owner> repos/{owner}/{repo}/pulls/<n>
+the merge guard refuses a MERGED PR	MERGED: refuse
+the merge guard refuses a PR closed unmerged	CLOSED unmerged: refuse
+the merge guard: OPEN continues on the branch: note's branch and delivers again	OPEN: continue on the `branch:` note's branch and deliver again
+the merge guard decides the branch form locally first	is decided locally first, then asked: `git -C <owner> fetch origin`
+the merge guard skips the fetch with no origin	(skipped with no `origin`)
+the merge guard compares by ancestry	`git -C <owner> merge-base --is-ancestor <tip SHA> origin/<default branch>`
+the merge guard maps each ancestry exit and a failed fetch	(exit 0: as MERGED; exit 1: as OPEN; a failed fetch of an existing origin or any other exit: it cannot decide (ask))
+the merge guard compares against the local default branch with no origin	with the local `<default branch>` in place of `origin/<default branch>` when there is no `origin`
+a failing forge command is an error, never no forge	never as "no forge"
+the cut-off probe reads the worktree list	git -C <owner> worktree list --porcelain
+the cut-off probe covers the hand-rolled and the harness worktree alike	a hand-rolled `<owner>/.worktrees/<slug>` or a harness `isolation` worktree alike
+the cut-off probe matches the Bead trailer	log --format='%(trailers:key=Bead,valueonly)' <branch>..<its branch>
+the cut-off probe takes the newest of several	log -1 --format=%ct <its branch>
+the cut-off probe never keys on a branch name	never by branch name
+the cut-off probe's hit is a gate entry, its miss a claim entry	with none, a claim entry
+the plumbing defines the probe's task-id	and the Cut-off probe it runs once per cut-off or failed task in the frontier loop (where `<task-id>` is the task probed)
+the intro names the once-per-run plumbing	The repo plumbing a story orchestrator runs once, before its first task orchestrator (Check target to Merge guard)
+the cut-off probe compares an entry against the owner's top level	`<top>` being what `git -C <owner> rev-parse --show-toplevel` prints
+the cut-off probe skips detached entries	detached entries are skipped
+the cut-off probe also checks a local branch whose worktree was pruned	a local branch with no registered worktree
+the cut-off probe enumerates the local branches	git -C <owner> for-each-ref --format='%(refname:short)' refs/heads/
+the cut-off probe counts a prunable entry as unregistered	counts as unregistered, not as a worktree
+the cut-off probe's pruned branch is a gate entry too	that lists `<task-id>` is a gate entry too
+the cut-off probe restores only the newest hit's worktree	only the winner's worktree is restored
+the cut-off probe restores a harness branch to its harness path, which step 9 sweeps	git -C <owner> worktree add <owner>/.claude/worktrees/agent-<id> <its branch>
+the cut-off probe restores a task branch to its hand-rolled path, which step 9 sweeps	git -C <owner> worktree add <owner>/.worktrees/<slug> <its branch>
+the cut-off probe stops and reports when the restore path is taken	stop and report it rather than choose another path
+the cut-off probe's restore prunes with the sandbox disabled	git -C <owner> worktree prune` with the sandbox disabled
+the Bead trailer match is an exact line match	an exact line match
