@@ -627,7 +627,7 @@ sec=12 expect "section 12 fails alone: /retro without the transcript shape" 1
 for case in '1 skills/implement-spec/SKILL.md' '2 skills/workflow/SKILL.md' '2 docs/WORKFLOW.md' \
   '3 skills/spec-to-stories/SKILL.md' '4 skills/spec-to-tasks/SKILL.md' '6 10 docs/agents/orchestration.md' \
   '6 docs/agents/harness.md' '6 10 docs/agents/issue-tracker.md' '6 skills/setup-repo/SKILL.md' '7 skills/story-to-tasks/SKILL.md' '8 skills/implement-story/SKILL.md' \
-  '9 skills/close-story/SKILL.md' '6 skills/triage/SKILL.md' '12 skills/retro/SKILL.md' '16 skills/task-orchestrator/SKILL.md' '17 skills/implement-task/SKILL.md' '0 CLAUDE.md' '0 GLOSSARY.md'; do
+  '9 skills/close-story/SKILL.md' '6 skills/triage/SKILL.md' '12 skills/retro/SKILL.md' '16 skills/task-orchestrator/SKILL.md' '17 skills/implement-task/SKILL.md' '18 docs/agents/coding-standards.md' '0 CLAUDE.md' '0 GLOSSARY.md'; do
   doc=${case##* }
   fresh
   rm "$scratch/$doc"
@@ -2521,6 +2521,32 @@ expect "a mermaid block with a semicolon fails" 1 "a semicolon in a mermaid bloc
 fresh
 echo 'Prose may keep a semicolon; one, two.' >> "$scratch/docs/SEQUENCES.md"
 expect "a semicolon outside a mermaid block passes" 0
+
+# a rules doc cites another skill's rule in one form (dev-q47w): a heading cited bare after a
+# possessive fails in any rules doc but the coding standards, which show it as the wrong form
+fresh
+printf '%s\n' "As \`/dev:task-orchestrator\`'s Two entries says." >> "$scratch/docs/agents/orchestration.md"
+sec=18 expect "a bare heading cite of a skill in a rules doc fails section 18" 1 "present: an unquoted heading cite of a skill in $scratch/docs/agents/orchestration.md"
+
+fresh
+printf '%s\n' "As \`/dev:task-orchestrator\`'s" "Two entries says." >> "$scratch/docs/agents/orchestration.md"
+sec=18 expect "a bare heading cite split across a line break fails section 18" 1 "present: an unquoted heading cite of a skill in $scratch/docs/agents/orchestration.md"
+
+fresh
+printf '%s\n' "As \`/dev:task-orchestrator\`'s" "own brief says." >> "$scratch/docs/agents/orchestration.md"
+expect "a possessive followed by a lowercase word on the next line passes section 18" 0
+
+fresh
+printf '%s\n' "As \`/dev:task-orchestrator\`'s \"Two entries\" says, and \`/dev:implement-story\`'s **Story gate**." >> "$scratch/docs/agents/orchestration.md"
+expect "a quoted heading cite and a bold step cite pass section 18" 0
+
+fresh
+printf '%s\n' "The wrong form: \`/dev:task-orchestrator\`'s Two entries." >> "$scratch/docs/agents/coding-standards.md"
+expect "a bare heading cite in the coding standards passes section 18" 0
+
+fresh
+drop_line docs/agents/coding-standards.md '## A rules doc cites another skill'
+sec=18 expect "coding standards without the cross-skill cite rule heading fails section 18" 1 "missing: the cross-skill cite rule heading"
 
 # a reviewer tags every finding blocking or minor and ends on a verdict line; a round with no
 # blocking findings is clean; every fix-up, red or blocking, spends the check gate loop's budget
