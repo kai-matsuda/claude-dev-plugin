@@ -565,9 +565,7 @@ pin_spec_notes_path=${pin_notes_dir_name//./\\.}
 pin_story_row_frontier_of_one='the story row with a frontier of one'
 pin_tea_api_without_repo='tea api repos/'
 pin_timeout_600000='timeout: 600000'
-# phrases built from another pin, so each is still written once
 pin_task_orchestrator_bold='**task orchestrator**'
-anchor_task_orchestrator_header="^You are the ${pin_task_orchestrator_bold//\*/\\*}"
 pin_trailer_bead='Bead: <task-id>'
 pin_trailer_refs='Refs: <KEY>-<n>'
 pin_trailer_co_authored_by='Co-Authored-By: <model> <noreply@anthropic.com>'
@@ -579,6 +577,8 @@ pin_spawned_by='by /dev:implement-story or /dev:implement-task'
 pin_run_close_story='run `/dev:close-story <story-id>`'
 cmd_implement_story='/dev:implement-story <story-id>'
 pin_child_not_a_story='<child-id> is not a story'
+# phrases built from another pin, so each is still written once
+anchor_task_orchestrator_header="^You are the ${pin_task_orchestrator_bold//\*/\\*}"
 pin_refused_not_a_story="refused: $pin_child_not_a_story"
 pin_carries_needs_triage="carries $pin_needs_triage_wontfix"
 pin_malformed_epic_refusal_line="<epic-id> $pin_refused_not_a_story"

@@ -6,10 +6,10 @@
 # it alone (the "== <n>. " header the lint prints over its FAIL lines tells which section
 # failed), and a copy missing a section's document fails naming that document rather than
 # skipping the section (dev-dov). Every check of the lint has its cases derived from the lint's own
-# list of its checks (LINT_PIN_LIST) (dev-yqpz): a positive check gets a drop case, a lacksf check its
+# list of its checks, LINT_PIN_LIST (dev-yqpz): a positive check gets a drop case, a lacksf check its
 # phrase seeded, and every other absent-phrase check each plain text its pattern bans seeded. A
-# hand-written case that needs a pin's phrase, anchor or banned text reads it from that list
-# (pin_phrase, pin_anchor, ban, ban_alt); the other hand-written cases seed an instance of a regex
+# hand-written case that needs a pin's phrase, anchor or plain banned text, seeded or only passed
+# as a counterpart, reads it from that list (pin_phrase, pin_anchor, ban, ban_alt, ban_nth); the other hand-written cases seed an instance of a regex
 # construct (a pattern the list gives back whole, not as text), pass a counterpart that must not
 # fail, check one of the paths that keep their own cases (the namespace rule, section 11, the brief
 # rule, section 13, the pin tables' row and sweep checks), or type fixture text of their own that is
@@ -345,6 +345,17 @@ ban_alt() {
   done < <(absent_alternatives w "$pinned_phrase")
   echo "FAIL ban_alt: '$2' bans no plain text holding '${3:-}'"; fails=$((fails+1)); printf -v "$1" '%s' NO-SUCH-TEXT
 }
+# ban_nth <variable> <description> <n>: the same for the n-th plain alternative of the pattern, so that
+# rewording the ban leaves the case reading it
+ban_nth() {
+  local alt i=0
+  pin_phrase "$2"
+  while IFS= read -r alt; do
+    i=$((i+1))
+    [ "$i" -eq "$3" ] && { printf -v "$1" '%s' "$alt"; return; }
+  done < <(absent_alternatives w "$pinned_phrase")
+  echo "FAIL ban_nth: '$2' bans no ${3}th plain text"; fails=$((fails+1)); printf -v "$1" '%s' NO-SUCH-TEXT
+}
 
 fresh
 expect "an explicit implement-spec path that does not exist fails" 1 "missing document: $scratch/nope.md" "$scratch/nope.md" "$scratch/docs/WORKFLOW.md"
@@ -368,7 +379,9 @@ echo "retired wording: cut one" > "$scratch/skills/sample/notes.txt"
 expect "retired phrase in a non-md file under a skill dir fails" 1 "retired phrase in $scratch/skills/sample/notes.txt"
 
 fresh
-echo "retired wording: <spec-slug>" > "$scratch/docs/agents/notes.yaml"
+ban_nth ban_spec_slug "retired phrase in $scratch/skills/sample/SKILL.md" 1
+ban_nth ban_story_cut_md "retired phrase in $scratch/skills/sample/SKILL.md" 2
+echo "retired wording: $ban_spec_slug" > "$scratch/docs/agents/notes.yaml"
 expect "retired placeholder in a non-md file under the agent docs fails" 1 "retired phrase in $scratch/docs/agents/notes.yaml"
 
 fresh
@@ -376,7 +389,7 @@ echo "cut one" >> "$scratch/skills/sample/SKILL.md"
 expect "retired phrase in a md file still fails" 1 "retired phrase in $scratch/skills/sample/SKILL.md"
 
 fresh
-echo "see story-cut.md" >> "$scratch/docs/agents/sample.md"
+echo "see $ban_story_cut_md" >> "$scratch/docs/agents/sample.md"
 expect "story-cut.md in an agent doc fails" 1 "retired phrase in $scratch/docs/agents/sample.md"
 
 fresh
@@ -687,13 +700,16 @@ ban ban_three_entries "Gitignore step counts three entries"
 ban ban_tea_no_repo "Forgejo/Gitea query without --repo"
 ban ban_only_lines "story cut's lines contradict step 2"
 ban ban_bare_grep "the bare grep instruction"
-section_case 1 skills/implement-spec/SKILL.md 'then open a draft PR' "/implement-spec with a PR step"
+ban_nth ban_pr_step "PR-opening steps" 1
+ban ban_resync "re-sync instruction"
+ban_nth ban_notes_file "owner-repo notes file" 1
+section_case 1 skills/implement-spec/SKILL.md "then open a $ban_pr_step" "/implement-spec with a PR step"
 section_case 2 docs/WORKFLOW.md "each $ban_cross_repo gets its own PR" "a runbook with stale wording"
-section_case 3 skills/spec-to-stories/SKILL.md 'then re-sync the stories' "/spec-to-stories with a re-sync"
+section_case 3 skills/spec-to-stories/SKILL.md "then $ban_resync the stories" "/spec-to-stories with a re-sync"
 section_case 4 skills/spec-to-tasks/SKILL.md "then $ban_rerun_hint" "/spec-to-tasks with the retired rerun hint"
 section_case 5 skills/sample/SKILL.md 'cut one' "a retired phrase in a skill"
 section_case 6 docs/agents/orchestration.md "push $ban_profile_push" "an orchestration doc gating the push on the profile"
-section_case 7 skills/story-to-tasks/SKILL.md 'read the notes under .spec-notes' "/story-to-tasks reading an owner-repo notes file"
+section_case 7 skills/story-to-tasks/SKILL.md "read the notes under $ban_notes_file" "/story-to-tasks reading an owner-repo notes file"
 section_case 8 skills/implement-story/SKILL.md "$ban_three_entries" "/implement-story counting three Gitignore entries"
 section_case 9 skills/close-story/SKILL.md "query \`$ban_tea_no_repo{owner}/{repo}/pulls/1\`" "/close-story with a Forgejo query naming no repo"
 section_case 10 docs/agents/issue-tracker.md "$ban_only_lines" "a tracker doc whose story cut writes two forms only"
@@ -912,7 +928,8 @@ expect "spec-to-stories with an invented skipped-closure line fails" 1
 
 # a PR closed unmerged is refused as /dev:implement-story's merge guard refuses it (story review 1)
 fresh
-echo "- A PR closed unmerged is not sealed: it takes \`OPEN\`'s path." >> "$scratch/skills/spec-to-stories/SKILL.md"
+ban_nth ban_unsealed "a PR closed unmerged takes OPEN's path" 1
+echo "- A PR $ban_unsealed: it takes \`OPEN\`'s path." >> "$scratch/skills/spec-to-stories/SKILL.md"
 expect "spec-to-stories re-cutting a story whose PR closed unmerged fails" 1
 
 # every kind of check the lint queues is named here: a positive one gets a drop case, a lacksf one
@@ -989,10 +1006,12 @@ while IFS=$'\t' read -r -u 4 ptype pfile pdesc pphrase panchor; do
   fi
 done 4< "$jobs/pins.list"
 expect_flush all
+# the pin tables under scripts/, one list for every loop over them
+pin_tables="implement-spec-pins repo-plumbing-pins"
 # the derivation must have found the pins it derives from: the list holds a pin for every row of
 # each pin table, so a table whose pins_from call is lost gets no drop case and fails here
 guard=1
-for table in implement-spec-pins repo-plumbing-pins; do
+for table in $pin_tables; do
   read -r found want < <(awk -F '\t' 'NR == FNR { if ($0 !~ /^#/ && NF >= 3) want[$2]; next }
     $3 in want { got[$3] } END { for (k in want) w++; for (k in got) g++; print g + 0, w + 0 }' "$repo_root/scripts/$table.tsv" "$jobs/pins.list")
   if [ "$want" -eq 0 ] || [ "$found" -ne "$want" ]; then
@@ -1014,12 +1033,14 @@ fx_check "the one review tool paragraph pin is anchored on its line" test "${pin
 # pins directory (pins_dir, which the caller unsets once its case has run)
 pins_copy() {
   fresh
-  mkdir "$scratch/pins" && cp "$repo_root/scripts/implement-spec-pins.tsv" "$repo_root/scripts/repo-plumbing-pins.tsv" "$scratch/pins/"
+  mkdir "$scratch/pins" || return 1
+  local t
+  for t in $pin_tables; do cp "$repo_root/scripts/$t.tsv" "$scratch/pins/"; done
   pins_dir=$scratch/pins
 }
 # a pin table row short of a field, or with an unknown check, fails the lint rather than being
 # skipped or read as an empty phrase (which every doc holds)
-for table in implement-spec-pins repo-plumbing-pins; do
+for table in $pin_tables; do
   for case in 'a row of words and no tab|a row needs a check, a description and a phrase' \
     $'has\tno phrase\t|a row needs a check, a description and a phrase' \
     $'hasx\tunknown check\ta phrase|unknown check hasx' \
@@ -1035,7 +1056,7 @@ for table in implement-spec-pins repo-plumbing-pins; do
 done
 
 # a pin table gone from the pins directory turns its pins off unless the lint fails naming it
-for table in implement-spec-pins repo-plumbing-pins; do
+for table in $pin_tables; do
   pins_copy
   rm "$scratch/pins/$table.tsv"
   expect "a pins directory without $table.tsv fails" 1 "missing pin table: $scratch/pins/$table.tsv"
@@ -1050,7 +1071,7 @@ unset pins_dir
 
 # a row another check reads by its description (row_phrase, row_sweep) and then finds renamed fails the
 # lint naming it, rather than turning that check off; the descriptions come from the lint's own calls
-for table in implement-spec-pins repo-plumbing-pins; do
+for table in $pin_tables; do
   nrows=0
   while IFS= read -r -u 5 row; do
     nrows=$((nrows+1))
@@ -1065,7 +1086,7 @@ done
 
 # a row whose sweep field (the part of the phrase a skill must not restate) is no longer inside its
 # phrase fails the lint, rather than leaving the sweep guarding the old wording (dev-yqpz)
-for table in implement-spec-pins repo-plumbing-pins; do
+for table in $pin_tables; do
   nsweeps=0
   while IFS= read -r -u 5 row; do
     nsweeps=$((nsweeps+1))
@@ -1187,16 +1208,19 @@ expect "runbook copy mentioning a dependency chain of closures passes" 0
 # the check and review loop's retired two-gate wording is swept from every file kind (the banned texts are
 # seeded from the lint's list); docs/specs keeps the words
 fresh
-echo 'The retired Evidence run stays in the spec.' >> "$scratch/docs/specs/check-and-review-loop.md"
-expect "a spec keeping 'Evidence run' passes" 0
+ban_nth ban_evidence_spec "retired two-gate wording in $scratch/docs/WORKFLOW.md" 1
+echo "The retired $ban_evidence_spec stays in the spec." >> "$scratch/docs/specs/check-and-review-loop.md"
+expect "a spec keeping '$ban_evidence_spec' passes" 0
 
 # the gate with no check command (ADR 0015) is swept from every file kind, the glossary included; docs/specs keeps the words
 fresh
-echo 'A repo with no check command gets a review-only gate.' >> "$scratch/docs/specs/one-loop-three-rows.md"
+ban_nth ban_no_check "retired review-only gate wording in $scratch/GLOSSARY.md" 2
+ban_nth ban_review_only "retired review-only gate wording in $scratch/GLOSSARY.md" 1
+echo "A repo with $ban_no_check gets a $ban_review_only gate." >> "$scratch/docs/specs/one-loop-three-rows.md"
 expect "a spec keeping the review-only gate passes" 0
 
-# the retired gate wording has a regex alternative (with(out)? a check command) the derived cases skip,
-# so each spelling is seeded in the glossary and in a file under docs/, as the base test did
+# the retired gate wording has a regex alternative the derived cases skip, so each spelling
+# is seeded in the glossary and in a file under docs/
 for spelling in 'without a check command' 'with a check command'; do
   for file in GLOSSARY.md docs/SEQUENCES.md; do
     fresh
@@ -1205,7 +1229,7 @@ for spelling in 'without a check command' 'with a check command'; do
   done
 done
 
-# the spec-to-stories ban on a step 8 commit has a regex alternative (git -C <owner> (add|commit)) the
+# the spec-to-stories ban on a step 8 commit has a regex alternative the
 # derived cases skip: each git write, on a line holding no other banned text
 for verb in add commit; do
   fresh
@@ -1231,13 +1255,16 @@ ban ban_to_tickets "/triage citing the retired to-tickets template"
 echo "Body in the \`$ban_to_tickets." >> "$scratch/skills/triage/SKILL.md"
 sec="5 6" expect "triage citing the to-tickets template fails" 1 "/triage citing the retired to-tickets template"
 
+route_desc="a retired route (flat epic or shape, small-bug path, upstream skill or chore name) in $scratch/skills/sample/SKILL.md"
+ban_nth ban_implement_chore "$route_desc" 1
+ban_nth ban_chore_orchestrator "$route_desc" 2
+ban_nth ban_chore_branch "$route_desc" 3
 for case in 'a flat epic of tasks|flat epic' 'the legacy flat shape|flat shape' 'The flat-epic refusal.|flat-epic' \
   'the small-bug path does it|small-bug path' 'the small bug path|small bug path' \
   'run /mattpocock-skills:implement <id>|mattpocock-skills:implement' \
   'run /mattpocock-skills:to-tickets now|mattpocock-skills:to-tickets' \
   'the upstream engineering to-tickets skill|to-tickets' \
-  'the implement-chore skill|implement-chore' 'the chore orchestrator|chore orchestrator' \
-  'on branch chore/<id>|chore/'; do
+  "the $ban_implement_chore skill" "the $ban_chore_orchestrator" "on branch ${ban_chore_branch}<id>"; do
   for file in skills/sample/SKILL.md docs/agents/issue-tracker.md docs/WORKFLOW.md skills/implement-story/SKILL.md; do
     fresh
     echo "${case%%|*}" >> "$scratch/$file"
@@ -1249,7 +1276,7 @@ printf 'The commit subject is chore: ignore agent scratch space.\nA chore type a
 expect "the bare word chore and the other upstream skills pass" 0
 fresh
 echo 'ADR 0006 keeps the flat epic and /mattpocock-skills:to-tickets history.' >> "$scratch/docs/adr/0001.md"
-echo 'The spec names a flat epic, chore/<id> and the small-bug path.' >> "$scratch/docs/specs/one-loop-three-rows.md"
+echo "The spec names a flat epic, ${ban_chore_branch}<id> and the small-bug path." >> "$scratch/docs/specs/one-loop-three-rows.md"
 expect "an ADR and a spec keeping the retired route words pass" 0
 
 # the retired vocabulary (dev-9k5.1.10, dev-9k5.1.11): every retired word or phrase seeded
@@ -1285,11 +1312,17 @@ expect "glossary naming the retired words passes the lint" 0
 
 # section 5 reads each file as one line: a retired phrase wrapped across a line break, indented
 # or inside a quote block, fails there alone; the same words a blank line apart pass (dev-86j)
+ban_nth ban_evidence_run "retired two-gate wording in $scratch/docs/WORKFLOW.md" 1
+ban_nth ban_story_per_repo "retired story-DAG wording in $scratch/docs/WORKFLOW.md" 1
+# the words of a banned text either side of its last space, to wrap it across a line break
+evidence_a=${ban_evidence_run% *} evidence_b=${ban_evidence_run##* }
+lint_cmd_a=${ban_lint_command% *} lint_cmd_b=${ban_lint_command##* }
+story_repo_a=${ban_story_per_repo% *} story_repo_b=${ban_story_per_repo##* }
 for case in 'Each ticket\nrunner implements.|the retired ticket runner role' \
-  '> Run the lint\n>    command, then the tip.|the retired lint command' \
-  'Then the Evidence\n  run checks the tip.|retired two-gate wording' \
-  'A feature is one story\nper repo.|retired story-DAG wording' \
-  'The Evidence  \nrun goes.|retired two-gate wording'; do
+  "> Run $lint_cmd_a\n>    $lint_cmd_b, then the tip.|the retired lint command" \
+  "Then the $evidence_a\n  $evidence_b checks the tip.|retired two-gate wording" \
+  "A feature is $story_repo_a\n${story_repo_b}.|retired story-DAG wording" \
+  "The $evidence_a  \n$evidence_b goes.|retired two-gate wording"; do
   fresh
   printf "${case%%|*}\n" >> "$scratch/docs/WORKFLOW.md"
   sec=5 expect "runbook with '${case%%|*}' wrapped fails section 5" 1 "${case##*|} in $scratch/docs/WORKFLOW.md"
@@ -1312,7 +1345,7 @@ done
 
 # the implement-spec skill passed as $1 outside the skills dir is swept like the default
 fresh_spec
-echo 'Then the Evidence run checks the tip.' >> "$spec"
+echo "Then the $ban_evidence_run checks the tip." >> "$spec"
 sec=5 expect "implement-spec passed as \$1 with a retired phrase fails section 5" 1 "retired two-gate wording in $spec" "$spec" "$scratch/docs/WORKFLOW.md"
 
 # a rule that moved to harness.md, cited at the rules doc in either form, fails section 5 alone,
