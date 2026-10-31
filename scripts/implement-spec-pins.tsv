@@ -4,7 +4,9 @@
 # the one of every pin table, read by pins_from in lint-skill-docs.sh (section 1 checks each
 # row), whose test-lint-skill-docs.sh derives a drop case for each from the lint's own pin
 # list (dev-47z, dev-yqpz). A line opening with # and an empty line are skipped; any other row
-# needs its first three fields and a known check. Reword a phrase here and in the docs, nowhere else:
+# needs its first three fields and a known check. A whole phrase is written once: here, not typed
+# again as a literal on another row or lint line. Reword it here and in the docs; a different, longer
+# phrase that embeds or shares a run of its text is its own pin and may need its own edit:
 # the lint builds its pins of the same phrase in other docs from the row (row_phrase), found by
 # its description, so a row it names is not renamed without the lint's calls.
 has	story-closure blocker is open until closed	open until that story is closed

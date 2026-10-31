@@ -2,8 +2,10 @@
 # line as <check>	<description>	<phrase>[	<sweep>], tab-separated, the check being sec: the phrase is
 # searched inside that section, case-sensitively. Read by pins_from in lint-skill-docs.sh,
 # whose test-lint-skill-docs.sh derives a drop case for each from the lint's own pin list
-# (dev-yqpz). Reword a phrase here and in the doc, nowhere else; a skill's pin of the same phrase
-# is built from its row too. A row is one contiguous phrase of the doc, never a piece of one
+# (dev-yqpz). A whole phrase is written once: here, not typed again as a literal on another row or
+# lint line, and a skill's pin of the same phrase is built from its row. Reword it here and in the
+# doc; a different, longer phrase that embeds or shares a run of its text is its own pin and may
+# need its own edit. A row is one contiguous phrase of the doc, never a piece of one
 # split across rows (each piece would pass on other prose). The optional fourth field is the
 # part of the phrase a skill citing the section must not restate (the lint's second-copy sweeps
 # read it, else the phrase less its backticks). A line opening with # and an empty line are

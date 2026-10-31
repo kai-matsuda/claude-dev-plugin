@@ -6,13 +6,14 @@
 # it alone (the "== <n>. " header the lint prints over its FAIL lines tells which section
 # failed), and a copy missing a section's document fails naming that document rather than
 # skipping the section (dev-dov). Every check of the lint has its cases derived from the lint's own
-# list of its checks (LINT_PIN_LIST), so no case copies a phrase a check holds (dev-yqpz): a positive
-# check gets a drop case, a lacksf check its phrase seeded, and every other absent-phrase check each
-# plain text its pattern bans seeded. A hand-written case that needs a pin's phrase or anchor reads
-# it from that list (pin_phrase, pin_anchor, ban); the other hand-written cases seed an instance of
-# a regex construct (a pattern the list gives back whole, not as text), pass a counterpart that must
-# not fail, or check one of the paths that keep their own cases (the namespace rule, section 11, the
-# brief rule, section 13, the pin tables' row and sweep checks).
+# list of its checks (LINT_PIN_LIST) (dev-yqpz): a positive check gets a drop case, a lacksf check its
+# phrase seeded, and every other absent-phrase check each plain text its pattern bans seeded. A
+# hand-written case that needs a pin's phrase, anchor or banned text reads it from that list
+# (pin_phrase, pin_anchor, ban, ban_alt); the other hand-written cases seed an instance of a regex
+# construct (a pattern the list gives back whole, not as text), pass a counterpart that must not
+# fail, check one of the paths that keep their own cases (the namespace rule, section 11, the brief
+# rule, section 13, the pin tables' row and sweep checks), or type fixture text of their own that is
+# no pin's phrase.
 # The last section drives the version-bump rule on a throwaway git repo (VERSION_BUMP_REPO,
 # VERSION_BUMP_BASE; the other cases point the repo at a non-repo path and pin the base to HEAD):
 # its shipping pathspec, uncommitted edits and bumps, and the base on a detached HEAD.
@@ -291,7 +292,7 @@ full=1 expect "baseline copy passes" 0
 # check per line as <type> <file> <description> <phrase> [<anchor>] (the lint's queue line). Every
 # positive check (has, hasc, hase, line_has, line_hase, para_has, sec_has, opening_has) and every
 # lacksf gets its cases from it below, and a case that needs a pinned phrase or anchor reads it
-# with pin_phrase or pin_anchor, so a phrase is written in the lint or its table alone (dev-yqpz).
+# with pin_phrase or pin_anchor, so a whole pin phrase is written once, in the lint or a table row (dev-yqpz).
 fresh
 export LINT_PIN_LIST=$jobs/pins.list
 : > "$LINT_PIN_LIST"
@@ -790,22 +791,6 @@ ban ban_medium_high_only "the runbook's task review limited to medium and high"
 echo "at the task $ban_medium_high_only on both axes" >> "$scratch/docs/WORKFLOW.md"
 expect "runbook copy limiting the task review to medium and high fails" 1 "the runbook's task review limited to medium and high"
 
-fresh
-echo 'Then the task gate (switch `/model` to the tier'"'"'s review model) runs.' >> "$scratch/docs/WORKFLOW.md"
-expect "runbook copy with the seeded phrase task gate fails" 1 "retired task gate name in the runbook"
-
-fresh
-echo 'read `<owner>/.spec-notes/<epic-id>/story-cut.md` first' >> "$scratch/skills/spec-to-tasks/SKILL.md"
-sec="4 5" expect "story-cut.md in a skill fails" 1
-
-fresh
-echo 'the notes are in `story-cut.md`' >> "$scratch/docs/agents/orchestration.md"
-expect "story-cut.md in an agent doc fails" 1
-
-fresh
-echo 'and `story-cut.md` notes' >> "$scratch/docs/WORKFLOW.md"
-expect "story-cut.md in the runbook copy fails" 1
-
 # one has-a-database rule: .beads/ exists and bd where names it, stated once in the tracker doc
 # and cited by every gate; a gate testing only that .beads/ exists fails the sweep (dev-e87)
 fresh
@@ -875,7 +860,7 @@ expect "implement-story step 3 pointing at step 8's stray-commit check fails" 1 
 fresh
 pin_phrase "the heredoc failure"
 swap_phrase docs/agents/harness.md "$pinned_phrase" 'here-document'
-printf '\nA heredoc elsewhere in the doc.\n' >> "$scratch/docs/agents/harness.md"
+printf '\nA %s elsewhere in the doc.\n' "$pinned_phrase" >> "$scratch/docs/agents/harness.md"
 expect "harness doc whose TMPDIR rule names no heredoc fails" 1
 
 section_case 6 docs/agents/orchestration.md 'At the epic row it is `failed: <story-id> checks failed after three fix-ups`' "a Check gate allowing a third epic-row fourth-failure line"
@@ -1111,16 +1096,8 @@ fresh_spec
 expect "implement-spec with the human-stop merge line passes" 0 "" "$spec" "$scratch/docs/WORKFLOW.md"
 
 fresh_spec
-echo "tea pr list --repo <owner> --state open lists it" >> "$spec"
-expect "implement-spec listing open PRs with tea pr list fails" 1 "the paginated tea pr list" "$spec" "$scratch/docs/WORKFLOW.md"
-
-fresh_spec
 echo "Then open a PR for the story." >> "$spec"
 expect "implement-spec opening a PR in prose fails" 1 "PR-opening steps" "$spec" "$scratch/docs/WORKFLOW.md"
-
-fresh_spec
-echo "Run tea pulls create for the story." >> "$spec"
-expect "implement-spec opening a PR with tea pulls create fails" 1 "PR-opening steps" "$spec" "$scratch/docs/WORKFLOW.md"
 
 fresh_spec
 ban ban_blocking_only "a budget of blocking verdicts only"
@@ -1167,10 +1144,6 @@ expect "implement-spec claiming it touches no task fails" 1 "nothing touches a t
 fresh_spec
 echo "You are the driver, the feature-level session." >> "$spec"
 sec=5 expect "implement-spec naming the old epic role fails" 1 "the retired driver role in $spec" "$spec" "$scratch/docs/WORKFLOW.md"
-
-fresh_spec
-echo "Run gh pr create --draft for the story." >> "$spec"
-expect "implement-spec opening a PR fails" 1 "PR-opening steps" "$spec" "$scratch/docs/WORKFLOW.md"
 
 # the glossary's avoided term "human task" (a ready-for-human task is fine): the gate
 # task is a human gate task (story review 1)
@@ -1221,6 +1194,24 @@ expect "a spec keeping 'Evidence run' passes" 0
 fresh
 echo 'A repo with no check command gets a review-only gate.' >> "$scratch/docs/specs/one-loop-three-rows.md"
 expect "a spec keeping the review-only gate passes" 0
+
+# the retired gate wording has a regex alternative (with(out)? a check command) the derived cases skip,
+# so each spelling is seeded in the glossary and in a file under docs/, as the base test did
+for spelling in 'without a check command' 'with a check command'; do
+  for file in GLOSSARY.md docs/SEQUENCES.md; do
+    fresh
+    echo "A repo $spelling is gated by review alone." >> "$scratch/$file"
+    expect "$file saying a repo $spelling fails" 1 "retired review-only gate wording in $scratch/$file"
+  done
+done
+
+# the spec-to-stories ban on a step 8 commit has a regex alternative (git -C <owner> (add|commit)) the
+# derived cases skip: each git write, on a line holding no other banned text
+for verb in add commit; do
+  fresh
+  echo "Run git -C <owner> $verb the notes." >> "$scratch/skills/spec-to-stories/SKILL.md"
+  expect "spec-to-stories running git -C <owner> $verb fails" 1 "present: step 8 gitignore line or commit"
+done
 
 # stated once: a skill spelling the refusal out again fails
 pin_phrase "implement-spec restating the malformed-epic refusal"; restated=$pinned_phrase

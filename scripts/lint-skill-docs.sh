@@ -286,8 +286,8 @@ opening_has() { enqueue "o	$f	$1	$2"; }
 # <check>	<description>	<phrase>[	<sweep>], tab-separated: has (-iF), hasc (-F) or sec (-F inside the
 # <heading> section of $f, sec_has); the sweep field, a part of the phrase, is read by row_sweep, and a row
 # whose sweep is not inside its phrase fails. The one schema of
-# every pin table, so a phrase is written in its table alone and the regression test derives its
-# drop case from LINT_PIN_LIST. A line opening with # and an empty line are skipped; a row short of
+# every pin table, so a whole phrase is written once, in its table row, and the regression test derives
+# its drop case from LINT_PIN_LIST. A line opening with # and an empty line are skipped; a row short of
 # a field, or with another check, fails
 pins_from() {
   local check d phrase sweep
@@ -497,10 +497,11 @@ glossary_md=${GLOSSARY_MD:-$root/GLOSSARY.md}
 runbook=${2:-$root/docs/WORKFLOW.md}
 pins_dir=${LINT_PINS_DIR:-$root/scripts}
 # ---- the phrases more than one check pins, each written once and built into every check that pins it (dev-yqpz) ----
-# A phrase of 12 characters or more that two or more checks pin is written once, in this block or in a
-# pin table row (read with row_phrase), and built into each check, so rewording it is one edit and the
-# regression test's cases follow. Left as they stand: a skill, command, path or glossary term (a name
-# that sits inside longer phrases), and the phrases a table holds twice (a row inside another row).
+# A whole pin phrase is written once: in this block, in a pin table row (read with row_phrase) or in its
+# one check, never typed again as its own literal on another lint line or table row; every check that
+# pins it is built from that one place, so rewording it is one edit and the regression test's cases
+# follow. A different, longer pin that embeds or shares a run of the phrase is no repeat, and needs
+# no shared variable or split row: rewording the shared run may need an edit in each pin holding it.
 # the harness doc's rule names: its headings pin them, and section 5 sweeps a citation of them at the rules doc
 rule_waiting='Waiting'
 rule_idle='Idle rule'
@@ -583,6 +584,13 @@ pin_carries_needs_triage="carries $pin_needs_triage_wontfix"
 pin_malformed_epic_refusal_line="<epic-id> $pin_refused_not_a_story"
 pin_not_ready_for_human_alone='other than `ready-for-human` ones|non-`ready-for-human`'
 pin_refused_pr_closed_unmerged='refused: PR <url> is closed unmerged'
+pin_refused_pr_already_merged='refused: PR <url> already merged'
+pin_failed_red_after_conflict='failed: red after conflict resolution'
+pin_add_dir_remedy='/add-dir <'
+pin_add_mode='add mode'
+pin_resync='re-sync'
+pin_story_dag='story DAG'
+pin_design_field_read='.[0].design'
 pin_profile_gated_push='when the active profile permits'
 pin_plugin_root_variable='CLAUDE_PLUGIN_ROOT'
 pin_verdict_clean='verdict: clean'
@@ -691,7 +699,7 @@ lacks "the paginated tea pr list" 'tea pr list'
 has "frontmatter" "$pin_frontmatter_disable_model_invocation"
 has "malformed epic refusal" "$pin_cite_malformed_epic_refusal"
 lacks "implement-spec restating the malformed-epic refusal" "$pin_malformed_epic_refusal_line"
-has "add-dir refusal" '/add-dir <'
+has "add-dir refusal" "$pin_add_dir_remedy"
 hasc "Human stop" '**Human stop**'
 hasc "Stall" '**Stall**'
 hasc "Done" '**Done**'
@@ -780,7 +788,7 @@ for need in "$cmd_implement_story" '/dev:close-story' 'story bead' 'GLOSSARY.md'
 done
 # the story DAG's runbook text (ADR 0011): add mode, and the human stop's merge-then-close line
 # as the skills print it; the task cut's chain refusal is retired
-hasc "add mode in the runbook" 'add mode'
+hasc "add mode in the runbook" "$pin_add_mode"
 hasc "human-stop merge line in the runbook" "$merge_then_close"
 hasc_row "printed human-stop line in the runbook" implement-spec-pins "story-closure human stop line"
 lacks "chain refusal in the runbook" 'refus[a-z]*[^|]{0,60}dependency chain|dependency chain \(A depends'
@@ -821,12 +829,12 @@ has "repo-session line" 'repo session in <home>: one story, in the home repo'
 has "repo-session refusal" 'refused: the spec changes <what> outside <home>; start this at the workspace root'
 has "one test pointer" "$pin_cite_one_test"
 has "workspace-session key warnings" 'in a workspace session'
-lacks "re-sync instruction" 're-sync'
+lacks "re-sync instruction" "$pin_resync"
 lacks "Jira comment step" 'addCommentToJiraIssue'
 has "epic bead writes pointer" "$pin_cite_epic_bead_writes"
 # the stories form a DAG detected per edge, not a pair; the cut proposes a split of a repo's
 # story only for a deprecate-then-remove, the user may split for any reason (ADR 0011)
-has "story DAG" 'story DAG'
+has "story DAG" "$pin_story_dag"
 lacks "pair-wise dependency detection" 'for each pair of stories'
 hasc "split proposed only for a deprecate-then-remove" 'only when the spec describes a deprecate-then-remove'
 hasc "user split for any reason" 'split a repo'"'"'s story for any reason'
@@ -870,7 +878,7 @@ hasc "ssh URL out of scope" 'pinned by git tag or ssh URL'
 hasc "several crates in one story out of scope" 'several crates in one story'
 # a feature whose stories exist enters add mode; the refusal stays only when every story is
 # closed (ADR 0011)
-has "add mode" 'add mode'
+has "add mode" "$pin_add_mode"
 lacks "unconditional stories-exist refusal" 'refused: stories exist'
 hasc "refusal only when every story is closed" 'refused: every story is closed'
 hasc "add mode shows each story's state" 'finished, open with failed tasks, waiting'
@@ -926,7 +934,7 @@ has "dependency cut without a publish task waits" 'has no `publish <crate> <vers
 has "closed-uncut remedy reopens the dependency" 'bd -C <repo> reopen <id>'
 has "Jira comment covers every story" 'every story of the feature that has tasks'
 lacks "Jira comment limited to this run" 'tasks this run published'
-lacks "re-sync instruction" 're-sync'
+lacks "re-sync instruction" "$pin_resync"
 has "one test pointer" "$pin_cite_one_test"
 has "epic bead writes pointer" "$pin_cite_epic_bead_writes"
 lacks "story-cut procedure" 'Resolve the spec to its repos|Draft the stories|Quiz the user on the stories|Write the story-cut notes'
@@ -1076,7 +1084,7 @@ done < <({ find "$docs" -type f -name '*.md' 2>/dev/null; find "$agents" "$skill
 if doc 6 "orchestration rules" "$agents/orchestration.md"; then
 lacks "a foreground spawn" "$pin_retired_foreground_spawn"
 hasc "preflight section" '## Working-directory preflight'
-has "preflight remedy" '/add-dir <'
+has "preflight remedy" "$pin_add_dir_remedy"
 # the typed implement command is the authority to push and open the PR, so the push is a step
 # of the run, with a failed: line when it is refused (ADR 0009, chezmoi-g61)
 hasc "delivery authority rule" "$head_delivery_authority"
@@ -1197,7 +1205,7 @@ para_has "$head_landing_a_task" "the story row lands" "$pin_story_row_lands"
 para_has "$head_landing_a_task" "the task orchestrator never touches the owner checkout" 'never touches the owner checkout'
 para_has "$head_landing_a_task" "landings are serial with no lock" 'Landings are serial, one per report, so no lock is'
 para_has "$head_landing_a_task" "the resolved tree is checked with the Check record call" 'checks the resolved tree'
-para_has "$head_landing_a_task" "a red on a resolved tree fails the landing" '`failed: red after conflict resolution`'
+para_has "$head_landing_a_task" "a red on a resolved tree fails the landing" "\`$pin_failed_red_after_conflict\`"
 para_has "$head_landing_a_task" "the retry enters at the gate on the resolved branch" "$pin_retry_at_gate_on_resolved_branch"
 para_has "$head_landing_a_task" "a landing closes the task" "$pin_landing_closes_task"
 para_has "$head_landing_a_task" "the story gate's fix-ups land by the same procedure" "fix-up branches land by the same procedure"
@@ -1516,7 +1524,7 @@ if doc 7 "/story-to-tasks" "$skills/story-to-tasks/SKILL.md"; then
 has "spec fetch pointer" 'Fetch the spec as the tracker doc'"'"'s "fetch the spec" says'
 has "story cutter trigger" '**Called, draft role ("story cutter"'
 has "publish trigger" 'opens `Publish this block`'
-hasc "design field read" '.[0].design'
+hasc "design field read" "$pin_design_field_read"
 lacks "owner-repo notes file" "$pin_spec_notes_path"
 has "one test pointer" "$pin_cite_one_test"
 has "home name in the Parent line template" 'home <home name>'
@@ -1565,7 +1573,7 @@ hasc "step 3 cites the rules doc's Repo plumbing and Cut-off probe" "$plumbing_c
 lacksf_row "a second copy of the Gitignore commit's user-edit failure" repo-plumbing-pins "a user edit in .gitignore is a failed: line, not absorbed"
 # the commit carries trailers, so it goes through a message file, never --trailer (dev-7gu)
 lacks "a --trailer commit" 'commit [^`]*--trailer'
-hasc "exploration subagent reads the design field" '.[0].design'
+hasc "exploration subagent reads the design field" "$pin_design_field_read"
 hasc "exploration subagent owns the notes directory" "\`<owner>/$pin_notes_dir_name/<epic-id>/\`"
 # a failed task orchestrator's task is unclaimed at once, a second failure leaves the resume pointer on
 # it, and the resume section says when a human runs the unclaim instead (chezmoi-jvc)
@@ -1606,7 +1614,7 @@ sec_has "## Landing" "the conflict implementer merges the integration tip into t
 sec_has "## Landing" "the resolved tree is checked with the rules doc's call" "run the rules doc's Check record call with the task's worktree as its \`<worktree path>\`"
 sec_has "## Landing" "no reviewer runs on the resolution" 'No reviewer runs: the story row'"'"'s standards axis sees the resolution'
 sec_has "## Landing" "the landing then fast-forwards" "\`$pin_ff_only_merge\`"
-sec_has "## Landing" "a red on a resolved tree fails the landing" '`<task-id> failed: red after conflict resolution`'
+sec_has "## Landing" "a red on a resolved tree fails the landing" "\`<task-id> $pin_failed_red_after_conflict\`"
 sec_has "## Landing" "the retry enters at the gate on the resolved branch" "its one retry is a fresh task orchestrator $pin_retry_at_gate_on_resolved_branch"
 sec_has "## Landing" "the story orchestrator never gates a task" 'so you never gate a task yourself'
 sec_has "## Landing" "a landing takes at most three conflict resolutions" "A landing takes at most **three $pin_conflict_resolutions**"
@@ -1667,7 +1675,7 @@ hasc "step 3 defers to the forge decision of the merge guard" '(already decided 
 # and keeps its trigger, its refusal lines and what it does when the state is unknown
 hasc "merge guard cites the rules doc's Repo plumbing and Cut-off probe for its mechanism" "$merge_guard_cite"
 hasc "merge guard: OPEN continues on the re-delivery path" 'the re-delivery path of steps 3 and 8'
-row_phrase repo-plumbing-pins "the merge guard refuses a MERGED PR" && hasc "merge guard's MERGED refusal line" "$row_text with \`<story-id> refused: PR <url> already merged;"
+row_phrase repo-plumbing-pins "the merge guard refuses a MERGED PR" && hasc "merge guard's MERGED refusal line" "$row_text with \`<story-id> $pin_refused_pr_already_merged;"
 row_phrase repo-plumbing-pins "the merge guard refuses a PR closed unmerged" && hasc "merge guard's closed-unmerged refusal line" "$row_text with \`<story-id> $pin_refused_pr_closed_unmerged\`"
 hasc "merge guard's add-mode hint covers an epic with no external ref" "(or $cmd_spec_to_stories_epic when the epic has no external ref)"
 hasc "merge guard asks when the forge cannot tell" 'the forge cannot tell (no forge, or a branch-form `pr:` note)'
@@ -2058,7 +2066,7 @@ hasc "no forge: the pushed branch is the deliverable" 'the pushed branch is the 
 hasc "no forge: the skipped-checks line" "$pin_checks_skipped_no_forge"
 # a rerun: the merge guard on the pr: note, and a gate re-entry on a failed run's commits
 hasc "the merge guard" '**Merge guard.**'
-hasc "the merge guard's merged refusal" '`<task-id> refused: PR <url> already merged'
+hasc "the merge guard's merged refusal" "\`<task-id> $pin_refused_pr_already_merged"
 hasc "the merge guard's closed-unmerged refusal" "\`<task-id> $pin_refused_pr_closed_unmerged\`"
 hasc "the merge guard cites the rules doc's Repo plumbing and Cut-off probe for its mechanism" "$merge_guard_cite"
 hasc "the merge guard's open PR delivers again" 'and deliver again (steps 2 to 5 once more, on it)'
@@ -2098,7 +2106,7 @@ fi
 # and "chains are out of scope"; the wider chains wording is scoped to these two docs.
 for d in "$agents/issue-tracker.md" "$agents/orchestration.md"; do
   doc 10 "story DAG" "$d" || continue
-  has "story DAG" 'story DAG'
+  has "story DAG" "$pin_story_dag"
   has "human gate task" 'human gate task'
   # read as one line, so a phrase wrapped across a line break is still caught; the match stops
   # at a period, so it spans a paragraph break only where a paragraph ends without one. Section
