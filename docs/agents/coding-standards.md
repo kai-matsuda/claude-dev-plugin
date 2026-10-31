@@ -70,9 +70,10 @@ A sentence in a rules doc (`docs/agents/*.md`, a skill's `SKILL.md`) or a commen
 script that records why a rule exists names the bead behind it as a **provenance cite**: the
 bare id inside parentheses that close the clause it justifies, as in "a flaky red never
 sticks to its tree (dev-6qi)". The same form serves prose and lint comments. The parentheses
-may hold a short qualifier beside the id, set off by a comma or a space ("(chezmoi-cdf, ADR 0010)",
-"(dev-b8d.1 story review 1)"), never a semicolon; a
-cite is never a bare id woven into the sentence, a possessive ("dev-6qi's run") or a footnote.
+may hold a short qualifier beside the id, set off by a comma or a space ("(chezmoi-cdf,
+ADR 0010)", "(dev-b8d.1 story review 1)"), never a semicolon or a clause; a longer
+explanation goes outside the parentheses. A cite is never a bare id woven into the
+sentence, a possessive ("dev-6qi's run") or a footnote.
 
 A bead named as the subject of a sentence rather than as the reason for it (a worked
 example, an id the text matches or builds) is not a cite: it stays in backticks

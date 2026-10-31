@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Test the story cutter (a /story-to-tasks draft run, as /spec-to-tasks step 3 briefs it;
-# chezmoi-oye, INFRA-27) against the stage-boundary seed. The seam is a subagent run, which a
+# Test the story cutter (a /story-to-tasks draft run, as /spec-to-tasks step 3 briefs it)
+# (chezmoi-oye, INFRA-27) against the stage-boundary seed. The seam is a subagent run, which a
 # script cannot spawn, so the test has phases, one fixture per case under
 # .fixtures/test-story-cutter-<case>:
 #   scripts/test-fixture-story-cutter.sh seed <case>     build the stage-boundary seed, record its
