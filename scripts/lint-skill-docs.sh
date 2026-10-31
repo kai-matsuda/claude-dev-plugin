@@ -2161,12 +2161,12 @@ if [ "${#mermaid_files[@]}" -gt 0 ]; then
   [ -z "$hits" ] || { printf '%s\n' "$hits"; fail=1; }
 fi
 
-# ---- 16. cross-skill cites (dev-q47w) ----
+# ---- 18. cross-skill cites (dev-q47w) ----
 # the coding standards state how a rules doc cites another skill's rule: a bold step name in
 # bold, a heading in quotes with its skill named. A skill named in backticks and followed by a
 # possessive and a bare capitalised heading ("`/dev:x`'s Two entries") is a heading cite in
 # neither form, so it fails in every rules doc
-section "16. cross-skill cites"
+section "18. cross-skill cites"
 f=$agents/coding-standards.md
 has "the cross-skill cite rule heading" "## A rules doc cites another skill's rule in one form"
 for f in "$agents"/*.md; do

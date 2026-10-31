@@ -2522,6 +2522,24 @@ fresh
 echo 'Prose may keep a semicolon; one, two.' >> "$scratch/docs/SEQUENCES.md"
 expect "a semicolon outside a mermaid block passes" 0
 
+# a rules doc cites another skill's rule in one form (dev-q47w): a heading cited bare after a
+# possessive fails in any rules doc but the coding standards, which show it as the wrong form
+fresh
+printf '%s\n' "As \`/dev:task-orchestrator\`'s Two entries says." >> "$scratch/docs/agents/orchestration.md"
+sec=18 expect "a bare heading cite of a skill in a rules doc fails section 18" 1 "present: an unquoted heading cite of a skill in $scratch/docs/agents/orchestration.md"
+
+fresh
+printf '%s\n' "As \`/dev:task-orchestrator\`'s \"Two entries\" says, and \`/dev:implement-story\`'s **Story gate**." >> "$scratch/docs/agents/orchestration.md"
+expect "a quoted heading cite and a bold step cite pass section 18" 0
+
+fresh
+printf '%s\n' "The wrong form: \`/dev:task-orchestrator\`'s Two entries." >> "$scratch/docs/agents/coding-standards.md"
+expect "a bare heading cite in the coding standards passes section 18" 0
+
+fresh
+drop_line docs/agents/coding-standards.md '## A rules doc cites another skill'
+sec=18 expect "coding standards without the cross-skill cite rule heading fails section 18" 1 "missing: the cross-skill cite rule heading"
+
 # a reviewer tags every finding blocking or minor and ends on a verdict line; a round with no
 # blocking findings is clean; every fix-up, red or blocking, spends the check gate loop's budget
 # (chezmoi-49k): the rule lives in the orchestration doc, the task orchestrator brief and the story

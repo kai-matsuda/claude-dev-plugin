@@ -91,4 +91,4 @@ heading is cited by the heading's words in quotes, the skill named beside them
 (`/dev:close-story`'s "The forge shows MERGED" section, `/dev:story-to-tasks`'s "Gather
 context"). A heading cited bare (`/dev:task-orchestrator`'s Two entries) or a step name
 cited in quotes is a cite in the wrong form. A cite of the rules doc's own sections is not
-a cross-skill cite and keeps the quotes it has.
+a cross-skill cite and is outside this rule.
