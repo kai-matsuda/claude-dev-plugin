@@ -80,3 +80,15 @@ example, an id the text matches or builds) is not a cite: it stays in backticks
 ("`dev-b8d.1` does not match `dev-b8d.1.4`").
 
 Flag a cite outside parentheses, or a cited id woven into the sentence or possessive.
+
+## A rules doc cites another skill's rule in one form
+
+A sentence in a rules doc (`docs/agents/*.md`) that cites a rule another skill owns names
+the skill and cites the rule in the form of the rule's own marking. A rule the skill's
+`SKILL.md` marks with a bold step name is cited in bold (`/dev:implement-story`'s
+**Story gate**, the **Clean up** sweep of `/dev:implement-story`); a rule it marks with a
+heading is cited by the heading's words in quotes, the skill named beside them
+(`/dev:close-story`'s "The forge shows MERGED" section, `/dev:story-to-tasks`'s "Gather
+context"). A heading cited bare (`/dev:task-orchestrator`'s Two entries) or a step name
+cited in quotes is a cite in the wrong form. A cite of the rules doc's own sections is not
+a cross-skill cite and keeps the quotes it has.
