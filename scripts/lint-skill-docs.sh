@@ -197,7 +197,11 @@
 #      rows) and the no-seam-test case skipping a standalone task without ## Test seams.
 #  18. the cross-skill cite rule (dev-q47w): the coding standards state it under its heading, and
 #      no other rules doc cites a skill's heading bare after a possessive, even split across a
-#      line break.
+#      line break. Nor does a step name of a skill in quotes, a heading in bold, or either one
+#      bare before "of"/"in" /dev:x or bare after "'s step"/"'s section" (dev-mnz6), the names
+#      read from that skill's SKILL.md (numbered or ## to #### headings; bold steps, hyphens,
+#      punctuation and indents included, regex characters escaped), within the limits the
+#      section's comment states; a changed SKILL.md has every rules doc re-read.
 # Usage: scripts/lint-skill-docs.sh [implement-spec SKILL.md [WORKFLOW.md]]
 # A section whose doc is missing fails naming it ("missing document: <path>") rather than being
 # skipped, so a renamed skill or rules doc cannot turn its checks off (dev-dov); each section
@@ -222,8 +226,9 @@
 # "<dir>/" a dir laid out as there (the same paths under it, each of the same kind). A check on
 # such a file is skipped wherever its verdict depends on nothing the list leaves out: that file
 # and its fixed pattern for most, plus the skills and plugin dirs' layout for the namespace
-# rule. The list vouches for a file only in the role it had there, so a caller leaves out every
-# path it passes as an argument or override. Unset, every check runs.
+# rule, and every skill's SKILL.md for section 18. The list vouches for a file only in the role
+# it had there, so a caller leaves out every path it passes as an argument or override. Unset,
+# every check runs.
 set -u
 root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 fail=0
@@ -2361,16 +2366,85 @@ fi
 # dev-q47w: the coding standards state how a rules doc cites another skill's rule: a bold step
 # name in bold, a heading in quotes with its skill named. A skill named in backticks and
 # followed by a possessive and a bare capitalised heading ("`/dev:x`'s Two entries") is a
-# heading cite in neither form, so it fails in every rules doc but the coding standards
+# heading cite in neither form, so it fails in every rules doc but the coding standards, which
+# show the wrong forms as examples. The other wrong forms fail the same way (dev-mnz6): a step
+# name in quotes, a heading in bold, either one bare before "of"/"in" `/dev:x`, and a bare name
+# after the possessive and "step"/"section" (the quoted and bold checks take either word too).
+# Limits: a name is matched only as the skill's own words (any characters but a bold marker;
+# every regex character in it is escaped), with at most two lowercase words and then of/in
+# between it and the skill (or one "step"/"section" after the possessive), so a longer gap
+# passes, and so does a cite that names the skill without backticks, a name in backticks,
+# "of the `/dev:x` skill", a name in italics, a skill cite with an argument ("`/dev:x <id>`'s
+# Name"), a skill in parentheses, a gap word that is hyphenated or capitalised, a link word other
+# than of/in, single or curly quotes, a case-changed name, a bold name inside quotes, a curly
+# apostrophe, a skill-first cite, and a bold lead-in with no period that opens no numbered item
+# (read as a label, not a step). A comma after the closing quote passes only in the "of" word
+# order, and a second cite in a list only in the possessive order. A name that is both a step and a heading in one skill takes only the bare checks: either
+# marking passes. The heading extractor reads ## to #### lines inside code fences and tags too,
+# so story-to-tasks's template (in an <issue-template> tag) gives Parent, What to build and
+# Acceptance criteria. The bare check also fails plain prose that opens on a short name (Deliver
+# in `/dev:implement-task` the way a story does): no real doc does today, and the fix is a
+# reword.
 standards=$agents/coding-standards.md
 # each file is read as one line (lackswc, as section 5 does, dev-86j), so a cite split across a
 # line break fails too
 if doc 18 "cross-skill cites" "$standards"; then
   has "the cross-skill cite rule heading" "## A rules doc cites another skill's rule in one form"
+  # the rules docs' checks depend on the skills' names, so one changed SKILL.md has every rules
+  # doc read again, whatever LINT_UNCHANGED vouches for
+  saved_f=$f saved_unchanged=$unchanged
+  for f in "$skills"/*/SKILL.md; do unchanged_file || { unchanged=$'\n'; break; }; done
+  f=$saved_f unchanged_f=/
+  # the cite targets of every skill, read in one pass: "<skill> <kind> <name>" with the kind step
+  # or heading (both when the skill marks the name both ways), the name's regex characters
+  # escaped. A step is a bold name opening a numbered item (**Name** or **Name.**) or opening a
+  # line, indented or not, with its period inside (**Name.**); a bold label with no period that
+  # opens no numbered item (a list item "- **Owner**", a table-like "**Alone**") is a label, no
+  # step, and is not read. A heading is a ## to #### line, its number dropped. A name opens on a
+  # letter or a backtick.
+  cite_names=$(awk '
+    function esc(s) { gsub(/[][\\.^$*+?(){}|]/, "\\\\&", s); return s }
+    function add(kind, name) {
+      if (name !~ /^[A-Za-z`]/ || index(name, "\t")) return
+      name = esc(name)
+      if (!((skill SUBSEP name) in k)) k[skill, name] = kind
+      else if (k[skill, name] != kind) k[skill, name] = "both"
+    }
+    FNR == 1 { skill = FILENAME; sub(/\/SKILL\.md$/, "", skill); sub(/.*\//, "", skill) }
+    /^(##|###|####) / { h = $0; sub(/^#+ /, "", h); sub(/^[0-9]+\. /, "", h); sub(/[ \t]+$/, "", h); add("heading", h); next }
+    {
+      s = $0; sub(/^[ \t]+/, "", s)
+      numbered = (s ~ /^[0-9]+\. \*\*/)
+      if (numbered) sub(/^[0-9]+\. /, "", s)
+      if (substr(s, 1, 2) != "**") next
+      s = substr(s, 3); e = index(s, "**")
+      if (e == 0) next
+      name = substr(s, 1, e - 1)
+      if (name ~ /\.$/) { sub(/\.$/, "", name); add("step", name) }
+      else if (numbered) add("step", name)
+    }
+    END { for (x in k) { split(x, p, SUBSEP); print p[1] "\t" k[x] "\t" p[2] } }' "$skills"/*/SKILL.md)
+  # cite_marked <want> <what> <mark>: queues a check that a name of kind <want> (never one of
+  # kind both) is not cited in the mark ('"' or '\*\*') in either word order, after the
+  # possessive and an optional step or section or ahead of the gap; reads skill, kind, name, ref and gap
+  cite_marked() {
+    [ "$kind" = "$1" ] || return 0   # a name of kind both has no wrong marking (dev-mnz6)
+    lackswc "$2 of /dev:$skill in $f" "$ref's( (step|section))? $3$name[.,;:]?$3|$3$name[.,;:]?$3$gap"
+  }
   for f in "$agents"/*.md; do
-    [ "$f" = "$standards" ] && continue   # it shows the wrong form as its example
+    [ "$f" = "$standards" ] && continue   # it shows the wrong forms as examples
     lackswc "an unquoted heading cite of a skill in $f" "\`/dev:[a-z-]+\`'s [A-Z]"
+    while IFS=$'\t' read -r skill kind name; do
+      [ -n "$name" ] || continue
+      ref="\`/dev:$skill\`"
+      gap="( [a-z]+){0,2} (of|in) $ref"
+      lackswc "a bare cite of /dev:$skill in $f" "(^|[^*\"A-Za-z])$name$gap"
+      lackswc "a bare cite after a possessive and step or section of /dev:$skill in $f" "$ref's (step|section) $name([^A-Za-z]|$)"
+      cite_marked step "a step name cited in quotes" '"'
+      cite_marked heading "a heading cited in bold" '\*\*'
+    done <<< "$cite_names"
   done
+  unchanged=$saved_unchanged unchanged_f=/
 fi
 
 checks_run
