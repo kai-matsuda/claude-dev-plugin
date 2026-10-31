@@ -1432,9 +1432,76 @@ fresh
 printf '%s\n' "As the **Clean up** sweep of \`/dev:implement-story\` and the \"Two entries\" section of \`/dev:task-orchestrator\` say." >> "$orch_doc"
 expect "the right form in the word order passes section 18" 0
 
+# the forms past the first cut (dev-mnz6 review 1): numbered and ### headings, step names that are
+# hyphenated, indented or opening no numbered item, punctuation inside the marking and more word orders
+fresh
+printf '%s\n' "As \`/dev:close-story\`'s **The forge shows MERGED** says." >> "$orch_doc"
+sec=18 expect "a numbered ## heading cited in bold fails section 18" 1 "present: a heading cited in bold of /dev:close-story in $orch_doc"
+
+fresh
+printf '%s\n' "As the The forge shows MERGED step of \`/dev:close-story\` says." >> "$orch_doc"
+sec=18 expect "a numbered ## heading cited bare in the word order fails section 18" 1 "present: a bare cite of /dev:close-story in $orch_doc"
+
+fresh
+printf '%s\n' "As \`/dev:story-to-tasks\`'s **Gather context** says." >> "$orch_doc"
+sec=18 expect "a numbered ### heading cited in bold fails section 18" 1 "present: a heading cited in bold of /dev:story-to-tasks in $orch_doc"
+
+fresh
+printf '%s\n' "As \`/dev:implement-story\`'s \"Re-evaluate the frontier\" says." >> "$orch_doc"
+sec=18 expect "a hyphenated numbered step cited in quotes fails section 18" 1 "present: a step name cited in quotes of /dev:implement-story in $orch_doc"
+
+fresh
+printf '%s\n' "As \`/dev:implement-spec\`'s \"Fix-up\" says." >> "$orch_doc"
+sec=18 expect "a hyphenated indented step cited in quotes fails section 18" 1 "present: a step name cited in quotes of /dev:implement-spec in $orch_doc"
+
+fresh
+printf '%s\n' "As the \"Merge guard\" of \`/dev:implement-story\` says." >> "$orch_doc"
+sec=18 expect "an indented step cited in quotes in the word order fails section 18" 1 "present: a step name cited in quotes of /dev:implement-story in $orch_doc"
+
+fresh
+printf '%s\n' "As \`/dev:implement-task\`'s \"Close at delivery\" says." >> "$orch_doc"
+sec=18 expect "an indented step of implement-task cited in quotes fails section 18" 1 "present: a step name cited in quotes of /dev:implement-task in $orch_doc"
+
+fresh
+printf '%s\n' "As the Cut off sweep of \`/dev:implement-spec\` says." >> "$orch_doc"
+sec=18 expect "an indented step cited bare in the word order fails section 18" 1 "present: a bare cite of /dev:implement-spec in $orch_doc"
+
+fresh
+printf '%s\n' "As \`/dev:implement-story\`'s \"Story gate,\" says." >> "$orch_doc"
+sec=18 expect "punctuation inside the quotes still fails section 18" 1 "present: a step name cited in quotes of /dev:implement-story in $orch_doc"
+
+fresh
+printf '%s\n' "As \`/dev:task-orchestrator\`'s **Two entries.** says." >> "$orch_doc"
+sec=18 expect "punctuation inside the bold still fails section 18" 1 "present: a heading cited in bold of /dev:task-orchestrator in $orch_doc"
+
+fresh
+printf '%s\n' "As the \"Clean up\" step in \`/dev:implement-story\` says." >> "$orch_doc"
+sec=18 expect "a step name in quotes before 'in' fails section 18" 1 "present: a step name cited in quotes of /dev:implement-story in $orch_doc"
+
+fresh
+printf '%s\n' "As \`/dev:implement-story\`'s step \"Clean up\" says." >> "$orch_doc"
+sec=18 expect "a step name in quotes after 'step' fails section 18" 1 "present: a step name cited in quotes of /dev:implement-story in $orch_doc"
+
+fresh
+printf '%s\n' "As the \"Clean up\" final sweep of \`/dev:implement-story\` says." >> "$orch_doc"
+sec=18 expect "two words before 'of' still fail section 18" 1 "present: a step name cited in quotes of /dev:implement-story in $orch_doc"
+
+fresh
+printf '%s\n' "As \`/dev:close-story\`'s \"The forge shows MERGED\", the **Merge guard** step in \`/dev:implement-story\` and \`/dev:story-to-tasks\`'s \"Gather context\" say." >> "$orch_doc"
+expect "the right forms of numbered headings and indented steps pass section 18" 0
+
+# a bold label opening a list item (\`- **Owner**\` in /dev:triage) names no step, so it is no cite target
+fresh
+printf '%s\n' "The Owner of \`/dev:triage\` and the Alone of \`/dev:story-to-tasks\` are words." >> "$orch_doc"
+expect "a list label or a bare bold label is no step name in section 18" 0
+
 fresh
 printf '%s\n' "The wrong form: \`/dev:task-orchestrator\`'s Two entries." >> "$scratch/docs/agents/coding-standards.md"
 expect "a bare heading cite in the coding standards passes section 18" 0
+
+fresh
+printf '%s\n' "The wrong forms: \`/dev:close-story\`'s **The forge shows MERGED**, \`/dev:implement-story\`'s \"Merge guard\" and the Landing section of \`/dev:implement-story\`." >> "$scratch/docs/agents/coding-standards.md"
+expect "the other wrong forms in the coding standards pass section 18" 0
 
 orch=docs/agents/orchestration.md
 # the task row's budget regaining the conflict resolutions the landing took to the story row
