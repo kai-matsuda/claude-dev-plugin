@@ -283,14 +283,15 @@ para_has() { enqueue "p	$f	$2	$3	$1"; }   # <heading> <description> <phrase>
 sec_has() { enqueue "S	$f	$2	$3	$1"; }   # <heading line> <description> <phrase>: searched between that heading and the next ##
 opening_has() { enqueue "o	$f	$1	$2"; }
 # pins_from <table> [<heading>]: queues the checks of a pin table, one row per line as
-# <check>	<description>	<phrase>, tab-separated: has (-iF), hasc (-F) or sec (-F inside the
-# <heading> section of $f, sec_has). The one schema of every pin table, so a phrase is written in
-# its table alone and the regression test derives its drop case from LINT_PIN_LIST. A line
-# opening with # and an empty line are skipped; a row short of a field, or with another check, fails
+# <check>	<description>	<phrase>[	<sweep>], tab-separated: has (-iF), hasc (-F) or sec (-F inside the
+# <heading> section of $f, sec_has); the sweep field is read by row_sweep alone. The one schema of
+# every pin table, so a phrase is written in its table alone and the regression test derives its
+# drop case from LINT_PIN_LIST. A line opening with # and an empty line are skipped; a row short of
+# a field, or with another check, fails
 pins_from() {
-  local check d phrase
+  local check d phrase sweep
   [ -f "$1" ] || { bad "missing pin table: $1"; return 0; }
-  while IFS=$'\t' read -r check d phrase; do
+  while IFS=$'\t' read -r check d phrase sweep; do
     case $check in '#'*|'') continue ;; esac
     if [ -z "$d" ] || [ -z "$phrase" ]; then bad "${1##*/}: a row needs a check, a description and a phrase: $check"; continue; fi
     case $check in
@@ -300,25 +301,33 @@ pins_from() {
     esac
   done < "$1"
 }
-# table_phrase <table> <description>: the phrase of the pin table's row of that description, as
-# the table writes it, for a check that must follow the row when it is reworded (dev-yqpz)
-table_phrase() { awk -F '\t' -v d="$2" '$1 !~ /^#/ && $2 == d { print $3; exit }' "$pins_dir/$1.tsv"; }
-# row_phrase <table> <row description>: sets rp to that row's phrase, less the backtick a code
-# span opens or closes it with, for a sweep that fails a skill restating the table's phrase, so a
-# reword of the row moves the sweep with it; a missing row fails the lint and leaves rp empty
+# table_field <table> <row description> <field>: that field (3 the phrase, 4 the sweep) of the pin
+# table's row of that description, as the table writes it
+table_field() { awk -F '\t' -v d="$2" -v n="$3" '$1 !~ /^#/ && $2 == d { print $n; exit }' "$pins_dir/$1.tsv"; }
+# row_phrase <table> <row description>: sets rp to that row's phrase, as the table writes it, for
+# a check in another doc that must follow the row when it is reworded (dev-yqpz); a missing row
+# fails the lint and leaves rp empty
 row_phrase() {
-  rp=$(table_phrase "$1" "$2")
+  rp=$(table_field "$1" "$2" 3)
   # a missing table is reported once, by pins_from, in the section that reads it
   [ -n "$rp" ] || [ ! -f "$pins_dir/$1.tsv" ] || { bad "no row '$2' in $1.tsv"; return 1; }
-  [ -n "$rp" ] || return 1
-  rp=${rp#\`} rp=${rp%\`}
+  [ -n "$rp" ]
 }
-# lacksf_row <description> <table> <row description>: lacksf of that row's phrase
-lacksf_row() { row_phrase "$2" "$3" && lacksf "$1" "$rp"; }
+# row_sweep <table> <row description>: sets rp to what a skill must not restate of that row: its
+# sweep field, else its phrase less the backtick a code span opens or closes it with
+row_sweep() {
+  row_phrase "$1" "$2" || return 1
+  local sweep
+  sweep=$(table_field "$1" "$2" 4)
+  if [ -n "$sweep" ]; then rp=$sweep; else rp=${rp#\`} rp=${rp%\`}; fi
+}
+# hasc_row, lacksf_row <description> <table> <row description>: hasc or lacksf of that row
+hasc_row() { row_phrase "$2" "$3" && hasc "$1" "$rp"; }
+lacksf_row() { row_sweep "$2" "$3" && lacksf "$1" "$rp"; }
 # what a skill that cites the rules doc's Repo plumbing and Cut-off probe must not restate
 plumbing_copies() {
-  lacksf_row "a second copy of the check target probe" repo-plumbing-pins "the check target is read from make's database: the make call"
-  lacksf_row "a second copy of the check target refusal" repo-plumbing-pins "the no check target failed: line names the owner"
+  lacksf_row "a second copy of the check target probe" repo-plumbing-pins "the check target is read from make's database"
+  lacksf_row "a second copy of the check target refusal" repo-plumbing-pins "a repo with no check target fails the run with the setup line, before any task orchestrator starts"
   lacksf_row "a second copy of the forge decision" repo-plumbing-pins "the forge is decided once"
   lacksf_row "a second copy of the Gitignore commit recipe" repo-plumbing-pins "the Gitignore commit is keyed on a dirty file"
   lacksf_row "a second copy of the Gitignore commit's message file" repo-plumbing-pins "the Gitignore commit goes through a message file"
@@ -340,11 +349,19 @@ retired_row_names() {
 epic_fourth_failure_lines() {
   local scan other='failed: <story-id> [^`]*fix-up' red blocking
   unchanged_file && return 0
-  # the two lines the Check gate allows are the pin table's rows, so a reword of one follows it
-  red=$(table_phrase implement-spec-pins "red-check budget failure line")
-  blocking=$(table_phrase implement-spec-pins "blocking-verdict budget failure line")
-  if [ -z "$red" ] || [ -z "$blocking" ]; then bad "implement-spec-pins.tsv lacks the Check gate's two fourth-failure rows"; return 0; fi
-  scan=$(sed -e "s/$red//g" -e "s/$blocking//g" "$f")
+  # the two lines the Check gate allows are the pin table's rows, so a reword of one follows it;
+  # they are blanked as literal text by index, not as a pattern (a phrase may hold a / or a pattern
+  # character), and not by bash's ${//}, which is quadratic in bash 3.2
+  row_phrase implement-spec-pins "red-check budget failure line" || return 0
+  red=$rp
+  row_phrase implement-spec-pins "blocking-verdict budget failure line" || return 0
+  blocking=$rp
+  scan=$(red=$red blocking=$blocking awk '{
+    for (k = 1; k <= 2; k++) {
+      p = ENVIRON[k == 1 ? "red" : "blocking"]
+      while ((i = index($0, p))) $0 = substr($0, 1, i - 1) substr($0, i + length(p))
+    }
+    print }' "$f")
   if grep -q "$other" <<<"$scan"; then
     bad "present: an epic-row fourth-failure line the Check gate does not allow"
     grep -n "$other" <<<"$scan" | head -3
@@ -489,6 +506,26 @@ tmpdir_pwd_spelled="$pwd_re.*$spelled_re"   # the bare pwd step, then the path s
 # the story gate's two phrases whose order the step 7 awk check reads (below) beside their pins
 gate_first='Each pass runs the checks first'
 gate_same='the same SHA exits the gate'
+# long phrases that several checks pin, each written once (dev-yqpz)
+h_standalone='**The standalone task.**'
+h_brief='## Task orchestrator brief'
+h_remote_ref='**Branches from a remote ref.**'
+a_draft_pr='^   With a forge, open a \*\*draft PR\*\*'
+a_task_orch='^You are the \*\*task orchestrator\*\*'
+gate_entry='`gate entry: <task branch> <worktree path> <tip SHA>`'
+rec_green='a tree with a green record (`exit=0`) is checked: run nothing'
+rec_red='a red record is no check, so the tree is checked again'
+rec_any='a tree with a record is checked: read its exit and run nothing'
+rec_fixup='After a red, a fix-up that commits nothing leaves the tree red-recorded, so the next pass checks it again'
+rec_call='check > <owner>/.tmp/checks/<tree>/log'
+tmpdir_export='mkdir -p <worktree>/.tmp && export TMPDIR=<worktree>/.tmp'
+merge_then_close='merge its PR, then run `/dev:close-story <story-id>`'
+dep_line='one `Dependency:` line per publish blocker'
+merge_guard_cite="the rules doc's Repo plumbing and Cut-off probe, its Merge guard"
+plumbing_cite="the rules doc's Repo plumbing and Cut-off probe"
+probe_cite="the rules doc's Cut-off probe"
+verdict_cite="the rules doc's Review verdict"
+gate_entry_desc="the brief's gate entry"
 # the dirs and the docs no section owns must exist, a default as much as an override; the
 # driver ($1) and the runbook ($2) are their sections' documents
 section "0. paths"
@@ -510,7 +547,7 @@ hasc "/implement-spec cites the tracker doc's \"Has a database\" rule" '"Has a d
 # scan. The first blanking ignores case (any "The PR to merge"); the second is exact on purpose,
 # so a variant spelling of the citation, or the phrase beside a real merge step, still fails
 if ! unchanged_file; then
-  merge_scan=$(sed -e 's/the PR to merge//gI' -e "s/Repo plumbing and Cut-off probe, its Merge guard//g" "$f")
+  merge_scan=$(sed -e 's/the PR to merge//gI' -e "s/${merge_guard_cite#"the rules doc's "}//g" "$f")
   if grep -qi 'merge' <<<"$merge_scan"; then
     bad "present: merge steps (merge)"; grep -ni 'merge' <<<"$merge_scan" | head -3
   fi
@@ -549,7 +586,7 @@ has "stopped state" 'stopped at <bead-id>'
 has "orchestration pointer" 'orchestration.md'
 # the epic review reads delivery from the rules doc's Delivery section, never from a step number
 # of /dev:implement-story (dev-b8d.1.3 review 1)
-hasc "the epic review cites the Delivery section for the delivered: note" "the rules doc's Delivery section writes \`delivered: <tip SHA> <check record>\`"
+row_phrase implement-spec-pins "the delivered: note's shape" && hasc "the epic review cites the Delivery section for the delivered: note" "the rules doc's Delivery section writes \`$rp\`"
 hasc "draft until clean cites the Delivery section's forge-check wait" "the rules doc's Delivery section's forge-check wait"
 # (no skill cites another skill's step number: section 5 sweeps every skill, dev-0ohl)
 has "preflight pointer" '"Working-directory preflight"'
@@ -621,8 +658,8 @@ done
 # the story DAG's runbook text (ADR 0011): add mode, and the human stop's merge-then-close line
 # as the skills print it; the task cut's chain refusal is retired
 hasc "add mode in the runbook" 'add mode'
-hasc "human-stop merge line in the runbook" 'merge its PR, then run `/dev:close-story <story-id>`'
-hasc "printed human-stop line in the runbook" 'the PR to merge and the /dev:close-story <story-id> to run'
+hasc "human-stop merge line in the runbook" "$merge_then_close"
+hasc_row "printed human-stop line in the runbook" implement-spec-pins "story-closure human stop line"
 lacks "chain refusal in the runbook" 'refus[a-z]*[^|]{0,60}dependency chain|dependency chain \(A depends'
 hase "/mattpocock-skills:pr named (Variants)" '/mattpocock-skills:pr([^a-z-]|$)'
 
@@ -717,10 +754,10 @@ hasc "add mode shows each story's state" 'finished, open with failed tasks, wait
 hasc "add mode reads the failed twice: notes" 'names the `failed twice:` reason it answers'
 hasc "add mode quizzes the additions only" 'quizzes the additions only'
 # one forge query per finished story an addition touches, sandbox-disabled as /close-story's
-hasc "forge query, GitHub" 'gh pr view <url> --json state'
-hasc "forge query, Forgejo/Gitea" 'tea api --repo <owner> repos/{owner}/{repo}/pulls/<n>'
+hasc_row "forge query, GitHub" repo-plumbing-pins "the merge guard's GitHub query"
+hasc_row "forge query, Forgejo/Gitea" repo-plumbing-pins "the merge guard's Forgejo query names the repo"
 lacks "Forgejo/Gitea forge query without --repo" 'tea api repos/'
-hasc "forge query runs sandbox-disabled" 'with the sandbox disabled, as `/dev:close-story`'"'"'s "The forge shows MERGED" section does'
+hasc_row "forge query runs sandbox-disabled" repo-plumbing-pins "the merge guard runs the forge query sandbox-disabled"
 hasc "MERGED forces a new story on the old one's closure" 'a new story blocked on its closure and on the new publish'
 hasc "MERGED reminds the close" 'run `/dev:close-story <story-id>`'
 hasc "OPEN defaults to a re-cut" '`OPEN` defaults to a re-cut'
@@ -777,7 +814,7 @@ lacks "story-cut procedure" 'Resolve the spec to its repos|Draft the stories|Qui
 has "cycle refusal names the stories" 'refused: dependency cycle ('
 has "topological waves" 'topological waves'
 has "one wave per DAG level" 'one wave per level of the story DAG'
-has "dependent brief carries every upstream breakdown" 'one `Dependency:` line per publish blocker'
+has "dependent brief carries every upstream breakdown" "$dep_line"
 has "story-closure edge orders no wave" 'a story-closure edge orders no wave'
 has "the task cut re-cuts an already cut dependent" 're-cuts that dependent itself'
 has "the re-cut adds a second bump" 'second bump'
@@ -1088,7 +1125,7 @@ sec_has "## Delivery" "Delivery says no forge skips the checks" '`checks: skippe
 sec_has "## Delivery" "Delivery's red forge check is a failed: line" 'one `failed: forge check <name> <run URL>` line per red check'
 sec_has "## Delivery" "Delivery's red forge check leaves the unit unfinished" 'note <unit-id> "checks red: <tip SHA>"'
 sec_has "## Delivery" "Delivery's red forge check records no delivery" 'no `delivered:` or `pr:` note is written;'
-sec_has "## Delivery" "Delivery records the delivered: note" 'note <unit-id> "delivered: <tip SHA> <check record>"'
+row_phrase implement-spec-pins "the delivered: note's shape" && sec_has "## Delivery" "Delivery records the delivered: note" "note <unit-id> \"$rp\""
 sec_has "## Delivery" "Delivery records delivered: ahead of pr:" 'The `delivered:` note goes ahead of the `pr:` note'
 # the repo plumbing and Cut-off probe section, parametrised by the unit like Delivery: the check target probe, the
 # forge decision, the Gitignore commit recipe and the merge guard, stated once; both skills cite it
@@ -1105,10 +1142,10 @@ para_has '**Check gate.**' "one gate at every row" 'At every row the gate exits 
 para_has '**Check gate.**' "a red or blocking verdict goes to a fresh implementer" 'A red or a blocking verdict goes to a fresh implementer by pointer brief and the loop starts over'
 para_has '**Check gate.**' "three fix-ups per unit" 'three such fix-ups per unit'
 para_has '**Check gate.**' "the epic row budgets per story" 'at the epic row, three per story'
-para_has '**Check gate.**' "a fourth failure is failed" 'the fourth is `failed`'
+row_phrase implement-spec-pins "fix-up budget's fourth" && para_has '**Check gate.**' "a fourth failure is failed" "$rp"
 # the epic row's fourth-failure lines, the same two step 6 of /dev:implement-spec reports (dev-aeo)
-para_has '**Check gate.**' "the epic row's red fourth-failure line" '`failed: <story-id> checks red after three fix-ups` after a red check'
-para_has '**Check gate.**' "the epic row's blocking fourth-failure line" '`failed: <story-id> epic review not clean after three fix-ups` after a blocking verdict'
+row_phrase implement-spec-pins "red-check budget failure line" && para_has '**Check gate.**' "the epic row's red fourth-failure line" "\`$rp\` after a red check"
+row_phrase implement-spec-pins "blocking-verdict budget failure line" && para_has '**Check gate.**' "the epic row's blocking fourth-failure line" "\`$rp\` after a blocking verdict"
 epic_fourth_failure_lines
 para_has '**Check gate.**' "a minors fix-up and a conflict resolution rerun the checks" 'A minors fix-up and a conflict resolution move the tip, so the checks rerun'
 para_has '**Check gate.**' "and spend nothing" 'no budget is spent'
@@ -1149,14 +1186,14 @@ para_has '**Review verdict.**' "no test at a story seam is blocking" 'no test at
 para_has '**Review verdict.**' "the no-seam-test case skips a standalone task without test seams" 'a standalone task whose body has no `## Test seams` names no seam, and the case does not apply to it'
 hasc "the one review tool" '`mattpocock-skills:code-review` at every row'
 # /dev:implement-task in one paragraph under the table, the table keeping three rows (dev-b8d.1.6)
-para_has '**The standalone task.**' "the paragraph names /dev:implement-task" '`/dev:implement-task <id>`'
-para_has '**The standalone task.**' "the paragraph: the story row with a frontier of one" 'the story row with a frontier of one'
-para_has '**The standalone task.**' "the paragraph: no story gate" 'no story bead and no story gate'
-para_has '**The standalone task.**' "the paragraph: the PR opened ready" 'a PR opened ready'
-para_has '**The standalone task.**' "the paragraph: the close at delivery" 'closes the task at delivery'
-para_has '**The standalone task.**' "the paragraph: the table keeps three rows" 'the table keeps its three rows'
+para_has "$h_standalone" "the paragraph names /dev:implement-task" '`/dev:implement-task <id>`'
+para_has "$h_standalone" "the paragraph: the story row with a frontier of one" 'the story row with a frontier of one'
+para_has "$h_standalone" "the paragraph: no story gate" 'no story bead and no story gate'
+para_has "$h_standalone" "the paragraph: the PR opened ready" 'a PR opened ready'
+para_has "$h_standalone" "the paragraph: the close at delivery" 'closes the task at delivery'
+para_has "$h_standalone" "the paragraph: the table keeps three rows" 'the table keeps its three rows'
 # a rerun's merge guard applies to an open task only, as implement-task's step 1 says (INFRA-37)
-para_has '**The standalone task.**' "the paragraph: the merge guard on a rerun is for an open task only, a closed task is reported from its notes" 'a rerun applies the merge guard on the `pr:` note only to an open task; a closed task with one is finished and reported from its notes'
+para_has "$h_standalone" "the paragraph: the merge guard on a rerun is for an open task only, a closed task is reported from its notes" 'a rerun applies the merge guard on the `pr:` note only to an open task; a closed task with one is finished and reported from its notes'
 lackse "a fourth row in the table" '^[|] [*][*](Standalone|Standalone task|Implement-task)[*][*] [|]'
 fi
 if doc 6 "harness rules" "$agents/harness.md"; then
@@ -1189,7 +1226,7 @@ lacks "a foreground spawn" 'spawns in the foreground|foreground spawn returns|ha
 hasc "TMPDIR rule" '**TMPDIR.**'
 # the rule's own paragraph (from its heading to the next blank line) carries the line, the two
 # failures and the gitignore fact, so a word used elsewhere in the doc cannot stand in
-para_has '**TMPDIR.**' "TMPDIR line" 'mkdir -p <worktree>/.tmp && export TMPDIR=<worktree>/.tmp'
+para_has '**TMPDIR.**' "TMPDIR line" "$tmpdir_export"
 para_has '**TMPDIR.**' "the heredoc failure" 'heredoc'
 para_has '**TMPDIR.**' "the directory is gitignored" '`.tmp/` is gitignored'
 para_has '**TMPDIR.**' "export repeated per Bash call" 'export TMPDIR=<worktree>/.tmp; <command>'
@@ -1233,9 +1270,9 @@ hasc "the -C discipline" 'This section binds every session and subagent'
 hasc "the preflight stays in the rules doc" 'The working-directory preflight stays in `orchestration.md`'
 # a branch from a remote ref is created with --no-track, since the sandbox denies the
 # .git/config write upstream tracking needs (dev-rlr)
-hasc "branches from a remote ref rule" '**Branches from a remote ref.**'
-para_has '**Branches from a remote ref.**' "the --no-track switch" '`git switch --no-track -c <branch> origin/<x>`'
-para_has '**Branches from a remote ref.**' "the sandbox denies the tracking write" 'denies the write to `.git/config`'
+hasc "branches from a remote ref rule" "$h_remote_ref"
+para_has "$h_remote_ref" "the --no-track switch" '`git switch --no-track -c <branch> origin/<x>`'
+para_has "$h_remote_ref" "the sandbox denies the tracking write" 'denies the write to `.git/config`'
 fi
 if doc 6 "tracker rules" "$agents/issue-tracker.md"; then
 # the "Has a database" rule: .beads/ exists and bd where names it (dev-e87)
@@ -1365,7 +1402,7 @@ has "epic bead writes pointer" '"epic bead writes" convention'
 # blocker, one bump per publish blocker, a dependency when it holds a publish task
 has "pair read per edge" 'Dependency pair, per edge'
 has "one bump per publish blocker" 'one bump per publish blocker'
-has "brief carries a Dependency line per publish blocker" 'one `Dependency:` line per publish blocker'
+has "brief carries a Dependency line per publish blocker" "$dep_line"
 has "brief carries a Dependent line per dependent" 'one `Dependent:` line per dependent'
 # the two refusals: two publish tasks in one story, and a finished story pointing at add mode
 has "two publish tasks refusal" 'refused: block carries two publish tasks; one PR publishes one version'
@@ -1401,7 +1438,7 @@ lacks "profile-gated push" 'when the active profile permits|ask the user to run 
 lacks "a gitignore hand-off from the story cut" 'the story cut appended|story cut could not commit'
 # the Gitignore commit recipe is the rules doc's Repo plumbing and Cut-off probe (section 6 pins it, dev-yykg); the
 # step cites it and repeats none of it, its trailers included (dev-ieiv)
-hasc "step 3 cites the rules doc's Repo plumbing and Cut-off probe" "the rules doc's Repo plumbing and Cut-off probe"
+hasc "step 3 cites the rules doc's Repo plumbing and Cut-off probe" "$plumbing_cite"
 lacksf_row "a second copy of the Gitignore commit's user-edit failure" repo-plumbing-pins "a user edit in .gitignore is a failed: line, not absorbed"
 # the commit carries trailers, so it goes through a message file, never --trailer (dev-7gu)
 lacks "a --trailer commit" 'commit [^`]*--trailer'
@@ -1473,17 +1510,17 @@ lacks "a closed report from the task orchestrator" '`<id> closed`'
 line_has '^4\. \*\*Work the frontier\.\*\*' "the frontier spawn is at opus" 'at `model: opus`'
 # a cut-off task the rules doc's Cut-off probe hits, on either worktree route, is respawned
 # at the gate on the branch, worktree and tip the probe found (dev-b8d.1.4 review 1, dev-ndfi)
-line_has '^4\. \*\*Work the frontier\.\*\*' "step 4 probes a cut-off task through the rules doc's Cut-off probe" "the rules doc's Cut-off probe"
+line_has '^4\. \*\*Work the frontier\.\*\*' "step 4 probes a cut-off task through the rules doc's Cut-off probe" "$probe_cite"
 lacksf "a second copy of the cut-off probe's old hand-rolled branch test" 'log --oneline <branch>..task/<task-slug>'
-lacksf_row "a second copy of the cut-off probe's trailer query" repo-plumbing-pins "the cut-off probe matches the Bead trailer"
-sec_has "## Task orchestrator brief" "the gate entry covers a probe hit on either route" "a cut-off task orchestrator's replacement for which step 4's Cut-off probe hits"
+lacksf_row "a second copy of the cut-off probe's trailer query" repo-plumbing-pins "the cut-off probe matches the Bead trailer on the commits its branch adds"
+sec_has "$h_brief" "the gate entry covers a probe hit on either route" "a cut-off task orchestrator's replacement for which step 4's Cut-off probe hits"
 lacksf "the gate entry limited to the hand-rolled route" 'whose hand-rolled `task/<task-slug>` carries commits'
-sec_has "## Task orchestrator brief" "the brief calls the task-orchestrator skill" 'Call the Skill tool with `dev:task-orchestrator`'
-sec_has "## Task orchestrator brief" "the brief carries only what the run alone knows" 'It carries only what this run alone knows'
-sec_has "## Task orchestrator brief" "the brief carries the plugin root literally" 'plugin root `<plugin root>`, spelled out as the absolute path'
-sec_has "## Task orchestrator brief" "the brief carries a retry's reason" '`retry: <first failure'"'"'s reason>`'
-sec_has "## Task orchestrator brief" "the brief's gate entry" '`gate entry: <task branch> <worktree path> <tip SHA>`'
-sec_has "## Task orchestrator brief" "the gate entry's red log" '`red log: <log>`'
+sec_has "$h_brief" "the brief calls the task-orchestrator skill" 'Call the Skill tool with `dev:task-orchestrator`'
+sec_has "$h_brief" "the brief carries only what the run alone knows" 'It carries only what this run alone knows'
+sec_has "$h_brief" "the brief carries the plugin root literally" 'plugin root `<plugin root>`, spelled out as the absolute path'
+sec_has "$h_brief" "the brief carries a retry's reason" '`retry: <first failure'"'"'s reason>`'
+sec_has "$h_brief" "$gate_entry_desc" "$gate_entry"
+sec_has "$h_brief" "the gate entry's red log" '`red log: <log>`'
 lacks "the pasted task orchestrator brief" 'A task orchestrator is a subagent, not a skill'
 line_has '^7\. ' "story fix-up brief names the check and test limit" 'the ten-minute limit on check and test runs'
 # every story-level fix-up after the first reuses the first's worktree and branch, the harness
@@ -1505,7 +1542,7 @@ hasc "step 3 defers to the forge decision of the merge guard" '(already decided 
 # the guard's mechanism (the forge decision, the queries, the three outcomes, the local decision of a
 # branch form) is the rules doc's Repo plumbing and Cut-off probe, pinned in section 6 (dev-yykg); the step cites it
 # and keeps its trigger, its refusal lines and what it does when the state is unknown
-hasc "merge guard cites the rules doc's Repo plumbing and Cut-off probe for its mechanism" "the rules doc's Repo plumbing and Cut-off probe, its Merge guard"
+hasc "merge guard cites the rules doc's Repo plumbing and Cut-off probe for its mechanism" "$merge_guard_cite"
 hasc "merge guard: OPEN continues on the re-delivery path" 'the re-delivery path of steps 3 and 8'
 hasc "merge guard's MERGED refusal line" 'MERGED: refuse with `<story-id> refused: PR <url> already merged;'
 hasc "merge guard's closed-unmerged refusal line" 'CLOSED unmerged: refuse with `<story-id> refused: PR <url> is closed unmerged`'
@@ -1571,7 +1608,7 @@ lacks "the resume: line printed only with content" '`resume:` lines appear only'
 # orchestrator brief's steps 2, 3 and 4 (the landing) and the story review's fix-up (step 7); the
 # Gitignore step counts the rule's four
 # entries, /.tmp/ included (chezmoi-3eg)
-hasc "TMPDIR line stated in the skill" 'mkdir -p <worktree>/.tmp && export TMPDIR=<worktree>/.tmp'
+hasc "TMPDIR line stated in the skill" "$tmpdir_export"
 hasc "export repeated per Bash call" 'repeated at the head of every Bash call'
 hasc "mktemp -d takes a template under .tmp" 'mktemp -d <worktree>/.tmp/<name>.XXXXXX'
 line_has '^7\. ' "the story review's fix-up brief starts with the TMPDIR line" "$tmpdir_line"
@@ -1592,7 +1629,7 @@ line_has "$O" "the Owner repo bullet spells the path literally in later exports"
 line_hase "$O" "the Owner repo bullet puts the bare pwd step ahead of the path spelled literally" "$tmpdir_pwd_spelled"
 lacks "the retired fill-in-the-pwd-path wording" 'fills in the path `pwd` prints'
 lacks "Gitignore step counts three entries" "the rule's three entries"
-line_has '^7\. ' "the story review (step 7) points at the rules doc's Review verdict" "the rules doc's Review verdict"
+line_has '^7\. ' "the story review (step 7) points at the rules doc's Review verdict" "$verdict_cite"
 lacks "the zero-findings bar" 'not clean after three rounds|no findings at all|clean means zero findings'
 # the check target probe, its refusal and the once-per-run resolution are the rules doc's Story
 # plumbing, pinned in section 6 (dev-yykg, dev-de4, dev-b3p, ADR 0015); scripts/test-check-target.sh
@@ -1632,15 +1669,15 @@ line_has "$G7" "the story gate's off-branch failed line" '`failed: <story-id> no
 line_has "$G7" "the story gate's clean-checkout guard says why untracked files count" 'untracked files count, since the check runs on the working tree while the record keys on the committed tree'
 line_has "$G7" "the dirty-checkout failed line names the files" '`failed: <story-id> owner checkout dirty: <files>`, `<files>` the paths that status call printed, classified as step 6 says'
 line_has "$G7" "the story gate keys the check on the tip's tree" '`git -C <owner> rev-parse <branch>^{tree}`'
-line_has "$G7" "the story gate reads a green tree's check record and runs nothing" 'a tree with a green record (`exit=0`) is checked: run nothing'
-line_has "$G7" "the story gate checks a red-recorded tree again" 'a red record is no check, so the tree is checked again'
-line_lacks "$G7" "the story gate skipping the run on a red record" 'a tree with a record is checked: read its exit and run nothing'
-line_has "$G7" "the story gate checks a red's fix-up that commits nothing again" 'After a red, a fix-up that commits nothing leaves the tree red-recorded, so the next pass checks it again'
+line_has "$G7" "the story gate reads a green tree's check record and runs nothing" "$rec_green"
+line_has "$G7" "the story gate checks a red-recorded tree again" "$rec_red"
+line_lacks "$G7" "the story gate skipping the run on a red record" "$rec_any"
+line_has "$G7" "the story gate checks a red's fix-up that commits nothing again" "$rec_fixup"
 line_has "$G7" "the story gate exits on a green tip its review: note still names" 'a green on a tip the `review:` note still names exits'
 # the check-record call is defined once, in the rules doc's Check record, and step 7
 # names it with <owner> for the worktree path (dev-9k5.1.9 review 1)
 line_has "$G7" "the story gate writes the check record with the rules doc's call" "the rules doc's Check record call with \`<owner>\` as its \`<worktree path>\`"
-line_lacks "$G7" "a second copy of the check-record call" 'check > <owner>/.tmp/checks/<tree>/log'
+line_lacks "$G7" "a second copy of the check-record call" "$rec_call"
 line_has "$G7" "the story keeps the reviewed tip in its notes" "The story keeps the reviewed tip in its notes: its \`review:\` note names the tip the gate exits on after a clean review, so a rerun reviews only a tip that has moved past it"
 # the story review round is numbered on from the notes, not from 1 per run, and its note names
 # the tip it read (dev-9k5.1.9 review 1)
@@ -1673,9 +1710,9 @@ unchanged_file || awk -v g="$gate_first" -v m="$gate_same" -v r='mattpocock-skil
   || bad "missing: the story gate (step 7) runs the checks before the reviewed-tip compare and the two-axis review"
 line_has '^8\. ' "the deliver step leaves the PR a draft" 'The PR stays a draft'
 # step 3 runs the Delivery section's stray-commit check and cites the Delivery authority, never step 8
-line_has '^   With a forge, open a \*\*draft PR\*\*' "step 3 runs the Delivery section's stray-commit check" "first run the rules doc's Delivery section's **stray-commit check**"
-line_has '^   With a forge, open a \*\*draft PR\*\*' "step 3 pushes on the Delivery authority" "(the rules doc's Delivery authority)"
-line_lacks '^   With a forge, open a \*\*draft PR\*\*' "step 3 pointing at step 8's stray-commit check" "step 8's **stray-commit check**"
+line_has "$a_draft_pr" "step 3 runs the Delivery section's stray-commit check" "first run the rules doc's Delivery section's **stray-commit check**"
+line_has "$a_draft_pr" "step 3 pushes on the Delivery authority" "(the rules doc's Delivery authority)"
+line_lacks "$a_draft_pr" "step 3 pointing at step 8's stray-commit check" "step 8's **stray-commit check**"
 line_has '^8\. ' "step 8 opens the draft itself" 'open the draft after the push if step 3 could not'
 line_has '^8\. ' "step 8 appends the sibling line" 'append the sibling line (rebuilt as in step 3)'
 line_has '^8\. ' "step 8 runs the sibling refresh" "only then run step 3's sibling refresh"
@@ -1714,7 +1751,7 @@ hasc "typed bare it refuses with exactly one line" 'Typed bare, or called withou
 opening_has "the frontmatter says spawned only" 'Spawned only, by /dev:implement-story or /dev:implement-task'
 hasc "the brief carries only what the story run alone knows" 'The brief carries only what the story run alone knows'
 hasc "the rest is derived from the task bead" 'Everything else you derive from the task bead'
-hasc "the gate entry's brief line" '`gate entry: <task branch> <worktree path> <tip SHA>`'
+hasc "the gate entry's brief line" "$gate_entry"
 hasc "the gate entry's red log line" '`red log: <log>`'
 # two entries, no modes: claim for a fresh task, the gate when the branch carries commits
 hasc "the claim entry" 'the **claim entry**, for a fresh task'
@@ -1759,24 +1796,24 @@ for step in 2 3; do
 done
 line_has '^2\. ' "task orchestrator step 2's brief carries the plain-command line" "$plain_command"
 line_has '^3\. ' "task orchestrator step 3's brief carries the plain-command line" "$plain_command"
-line_has '^You are the \*\*task orchestrator\*\*' "the task orchestrator header carries the plain-command line" "$plain_command"
+line_has "$a_task_orch" "the task orchestrator header carries the plain-command line" "$plain_command"
 line_has '^2\. ' "task orchestrator step 2's brief names the bare pwd step" "$pwd_step"
 line_has '^2\. ' "task orchestrator step 2's brief spells the path literally in later exports" "$spelled"
 # the order of each brief, the TMPDIR line then the plain-command line; step 3 holds two briefs
 line_hase '^2\. ' "task orchestrator step 2's brief puts the TMPDIR line ahead of the plain-command line" "$tmpdir_then_plain"
 line_hase '^3\. ' "task orchestrator step 3's two briefs each put the TMPDIR line ahead of the plain-command line" "$tmpdir_then_plain.*$tmpdir_then_plain"
-line_hase '^You are the \*\*task orchestrator\*\*' "the task orchestrator header puts the TMPDIR line ahead of the plain-command line" "$tmpdir_then_plain"
+line_hase "$a_task_orch" "the task orchestrator header puts the TMPDIR line ahead of the plain-command line" "$tmpdir_then_plain"
 line_hase '^2\. ' "task orchestrator step 2's brief puts the TMPDIR line, the bare pwd step and the spelled path in order" "$tmpdir_line.*$tmpdir_pwd_spelled"
 # the reviewer brief carries the two tags and the verdict line, and step 3 points at the rules
 # doc's Review verdict (chezmoi-49k)
 for phrase in 'verdict: clean' 'verdict: blocking (<n>)' '**blocking** or **minor**' 'within the budget above'; do
   line_has '^3\. ' "task orchestrator step 3's reviewer brief" "$phrase"
 done
-line_has '^3\. ' "task orchestrator step 3 points at the rules doc's Review verdict" "the rules doc's Review verdict"
+line_has '^3\. ' "task orchestrator step 3 points at the rules doc's Review verdict" "$verdict_cite"
 lacks "the zero-findings bar" 'not clean after three rounds|no findings at all|clean means zero findings'
 # the skill states its row of the rules doc's table, the run's check command from its brief, and
 # cites the harness doc in one line (dev-9k5.1.7); its row reports a reviewed branch (dev-b8d.1.4)
-H='^You are the \*\*task orchestrator\*\*'
+H="$a_task_orch"
 hase "the row opens on the task orchestrator" "$H"
 for pin in "your row is the task row of the rules doc's table|the skill names its row of the rules doc's table" \
   'you build with one implementer in a worktree|the row builds with one implementer in a worktree' \
@@ -1795,7 +1832,7 @@ line_has "$H" "every brief it sends cites the harness doc" 'every brief you send
 # skill never resolves it itself (dev-yyu)
 line_has "$H" "the row's check command is the brief's" 'check command `<check command>`'
 line_has "$H" "the skill never resolves the check command itself" 'never resolve it yourself'
-row_phrase repo-plumbing-pins "the check target is read from make's database: the make call" && line_lacks "$H" "the per-task check target lookup" "$rp"
+row_sweep repo-plumbing-pins "the check target is read from make's database" && line_lacks "$H" "the per-task check target lookup" "$rp"
 line_lacks "$H" "the per-task check command by Makefile convention" "Makefile has a \`check\` target"
 # the check and review loop (step 3): checks ahead of the reviewers, each check one record call,
 # a red noted, a red and a blocking verdict both to a fresh fix-up on one budget of three, a low
@@ -1819,12 +1856,12 @@ line_has '^2\. Spawn the \*\*implementer\*\*' "task orchestrator step 2's implem
 line_has "$G3" "the gate keys the check on the tree SHA" '`git -C <worktree path> rev-parse HEAD^{tree}`'
 line_has "$G3" "the gate reads the tree only of a clean worktree" 'First confirm the worktree is clean, `git -C <worktree path> status --porcelain` prints nothing; a dirty worktree goes to a fresh implementer as a red does'
 line_lacks "$G3" "the clean-worktree guard that hides untracked files" '`git -C <worktree path> status --porcelain --untracked-files=no`'
-line_has "$G3" "a tree with a green check record is not checked again" 'a tree with a green record (`exit=0`) is checked: run nothing'
-line_has "$G3" "a tree with a red check record is checked again" 'a red record is no check, so the tree is checked again'
-line_lacks "$G3" "the gate skipping the run on a red record" 'a tree with a record is checked: read its exit and run nothing'
-line_has "$G3" "the task gate checks a red's fix-up that commits nothing again" 'After a red, a fix-up that commits nothing leaves the tree red-recorded, so the next pass checks it again'
+line_has "$G3" "a tree with a green check record is not checked again" "$rec_green"
+line_has "$G3" "a tree with a red check record is checked again" "$rec_red"
+line_lacks "$G3" "the gate skipping the run on a red record" "$rec_any"
+line_has "$G3" "the task gate checks a red's fix-up that commits nothing again" "$rec_fixup"
 line_has "$G3" "the gate cites the rules doc's check-record call" "the call the rules doc's Check record states"
-line_lacks "$G3" "a second copy of the check-record call in the skill" 'check > <owner>/.tmp/checks/<tree>/log'
+line_lacks "$G3" "a second copy of the check-record call in the skill" "$rec_call"
 line_has "$G3" "the gate names the rules doc's Check record as the writer's rule" "Only you write a record, never an implementer (the rules doc's Check record)"
 line_has "$G3" "the gate reviews with mattpocock-skills:code-review" '`mattpocock-skills:code-review`'
 line_has "$G3" "the reviewer brief names the harness-route diff" '`git -C <worktree path> diff <branch>...HEAD`'
@@ -1875,7 +1912,7 @@ hasc "no story gate" 'no story bead and no story gate'
 # the make probe, its refusal, the forge decision, the Gitignore commit and the merge guard's
 # mechanism are the rules doc's Repo plumbing and Cut-off probe (section 6 pins them, dev-yykg); the skill cites
 # it and repeats none of it
-hasc "the repo plumbing and Cut-off probe cited for the check target" "the rules doc's Repo plumbing and Cut-off probe"
+hasc "the repo plumbing and Cut-off probe cited for the check target" "$plumbing_cite"
 hasc "the repo plumbing and Cut-off probe's Check target" 'its Check target'
 hasc "the repo plumbing and Cut-off probe's Gitignore commit" 'its Gitignore commit'
 hasc "the repo plumbing and Cut-off probe's Forge decision" 'its Forge decision'
@@ -1885,7 +1922,7 @@ hasc "the branch: note" 'bd -C <owner> note <task-id> "branch: feat/<task-id>"'
 # one task orchestrator, the short brief
 hasc "one task orchestrator through the skill" 'Call the Skill tool with `dev:task-orchestrator`'
 hasc "the task orchestrator at opus" 'at `model: opus`'
-hasc "the brief's gate entry" '`gate entry: <task branch> <worktree path> <tip SHA>`'
+hasc "$gate_entry_desc" "$gate_entry"
 # the landing is a fast-forward after the stray-commit check, and a review: note marks it
 hasc "the landing is a fast-forward" 'git -C <owner> merge --ff-only <task branch>'
 hasc "the landed tip is noted" 'bd -C <owner> note <task-id> "review: <tip SHA>"'
@@ -1901,14 +1938,14 @@ hasc "no forge: the skipped-checks line" 'checks: skipped: no forge'
 hasc "the merge guard" '**Merge guard.**'
 hasc "the merge guard's merged refusal" '`<task-id> refused: PR <url> already merged'
 hasc "the merge guard's closed-unmerged refusal" '`<task-id> refused: PR <url> is closed unmerged`'
-hasc "the merge guard cites the rules doc's Repo plumbing and Cut-off probe for its mechanism" "the rules doc's Repo plumbing and Cut-off probe, its Merge guard"
+hasc "the merge guard cites the rules doc's Repo plumbing and Cut-off probe for its mechanism" "$merge_guard_cite"
 hasc "the merge guard's open PR delivers again" 'and deliver again (steps 2 to 5 once more, on it)'
 hasc "the branch form's refusals name the pr: value" 'the `pr:` value stands in for `<url>` in the refusals'
 # a finished task touches nothing: no worktree removed, no check record deleted (review 2)
 hasc "a finished task runs only the stray scan" "run only step 6's stray scan"
 hasc "a failed run re-enters at the gate" 'its next spawn is a gate entry'
-hasc "the probe for a failed run's commits is the rules doc's Cut-off probe" "the rules doc's Cut-off probe"
-lacksf_row "a second copy of the cut-off probe's trailer query" repo-plumbing-pins "the cut-off probe matches the Bead trailer"
+hasc "the probe for a failed run's commits is the rules doc's Cut-off probe" "$probe_cite"
+lacksf_row "a second copy of the cut-off probe's trailer query" repo-plumbing-pins "the cut-off probe matches the Bead trailer on the commits its branch adds"
 hasc "the gate entry starts a fresh budget" 'with a fresh budget'
 # the report: the story block minus the story lines, ending on resume:
 hasc "the report's task line" 'task:    <task-id> <title>'
@@ -1952,7 +1989,7 @@ done
 f=$agents/orchestration.md
 if [ -f "$f" ]; then
 section "10. story DAG: $f"
-hasc "story-closure human stop" 'merge its PR, then run `/dev:close-story <story-id>`'
+hasc "story-closure human stop" "$merge_then_close"
 has "publish task ready on its story's tasks" "as soon as its story's implementation tasks close"
 lacks "publish task ready on its repo's tasks" "its repo's implementation tasks close"
 fi
