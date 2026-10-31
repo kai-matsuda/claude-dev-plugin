@@ -2,7 +2,7 @@
 # Tests for hooks/guard-rm.sh, the PreToolUse hook on Bash that refuses a recursive rm whose
 # target carries a shell variable, special parameter or ~ not guarded with :?, or whose last
 # path segment is a * (chezmoi-cyc, INFRA-29: a fix-up ran rm -rf "$s"/* with $s
-# empty; INFRA-30: the parser gaps of dev-n3w). Each case
+# empty), and its parser gaps (dev-n3w, INFRA-30). Each case
 # feeds the hook the tool-input JSON Claude Code sends and asserts the exit code: 2 refuses the
 # command before it runs, 0 lets it through.
 # Usage: scripts/test-guard-rm.sh
@@ -58,7 +58,7 @@ expect 2 '\rm -rf "$x"'
 expect 2 $'rm -rf \\\n  "$s"'
 expect 2 'rm -rf "$x" > "$log"'
 
-# refused: the parser gaps of dev-n3w (INFRA-30)
+# refused: the parser gaps (dev-n3w, INFRA-30)
 # a target whose last segment is * or */, not only one ending in exactly /*
 expect 2 'rm -rf /*/'
 expect 2 'rm -rf ./*/'
@@ -117,7 +117,7 @@ expect 0 'GIT_DIR=.git git rm -r --cached "$x"'
 expect 0 'rm -rf ./build 2>&1 & wait'
 
 # passes: quoted text, heredoc bodies and comments are not commands (the triage run that
-# filed dev-n3w was refused for quoting these forms in a bead body)
+# filed it was refused for quoting these forms in a bead body, dev-n3w)
 expect 0 'bd create --title="guard-rm gaps" --description="rm -rf \"$s\"/* ran with \$s empty; rm -r $dir"'
 expect 0 "git commit -m 'fix(hooks): refuse rm -rf \$x after a background &'"
 expect 0 'echo "rm -rf $x; rm -rf *"'

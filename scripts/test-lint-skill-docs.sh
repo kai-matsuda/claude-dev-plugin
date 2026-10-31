@@ -346,7 +346,7 @@ for target in skills/sample/SKILL.md docs/agents/sample.md docs/WORKFLOW.md CLAU
   printf 'run dev:story-to-tasks, then mattpocock-skills:code-review\nor /mattpocock-skills:tdd and /dev:workflow\n' >> "$scratch/$target"
   expect "namespaced references in $target pass" 0
 done
-# the loop above seeds /story-to-tasks; dev-9np's acceptance criterion names /implement-spec
+# the loop above seeds /story-to-tasks; the acceptance criterion (dev-9np) names /implement-spec
 # in the glossary, so that token is pinned on its own
 fresh
 echo "the spec runs through /implement-spec" >> "$scratch/GLOSSARY.md"

@@ -63,3 +63,20 @@ a missing glossary is never flagged. See `domain.md` for where glossaries live.
 When a diff contradicts an `accepted` ADR, the same change either amends that ADR or
 adds a new one that supersedes it (marking the old one `superseded`). Applies only
 when the repo has a `docs/adr/` directory; see `domain.md` for where ADRs live.
+
+## Bead ids cite provenance in parentheses
+
+A sentence in a rules doc (`docs/agents/*.md`, a skill's `SKILL.md`) or a comment in a lint
+script that records why a rule exists names the bead behind it as a **provenance cite**: the
+bare id inside parentheses that close the clause it justifies, as in "a flaky red never
+sticks to its tree (dev-6qi)". The same form serves prose and lint comments. The parentheses
+may hold a short qualifier beside the id, set off by a comma or a space ("(chezmoi-cdf,
+ADR 0010)", "(dev-b8d.1 story review 1)"), never a semicolon or a clause; a longer
+explanation goes outside the parentheses. A cite is never a bare id woven into the
+sentence, a possessive ("dev-6qi's run") or a footnote.
+
+A bead named as the subject of a sentence rather than as the reason for it (a worked
+example, an id the text matches or builds) is not a cite: it stays in backticks
+("`dev-b8d.1` does not match `dev-b8d.1.4`").
+
+Flag a cite outside parentheses, or a cited id woven into the sentence or possessive.

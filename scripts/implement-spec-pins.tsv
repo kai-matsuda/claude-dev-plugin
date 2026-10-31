@@ -33,7 +33,7 @@ has	the story orchestrator brief names the Commits rule	commit under the Commits
 has	fix-up budget's fourth	the fourth is `failed`
 hasc	report template's epic review line	review:  <verdict line>
 has	Done needs a clean epic review	epic review clean
-# epic review 1 of dev-9k5.1.8
+# epic review 1 (dev-9k5.1.8)
 has	preflight covers the review set	every story step 6 reviews
 has	mark-ready recorded as a ready: note	ready: <tip SHA>
 has	a clean draft's checks are re-polled	re-poll its checks
@@ -44,7 +44,7 @@ has	PR number placeholder defined	the PR number from the story's `pr:` note
 has	cut-off reviewer rule	reviewer that returns an error instead of a report
 has	tea fallback evidence	the delivered tip's check record
 has	batch clause's reason	reports no delivery this invocation
-# epic review 2 of dev-9k5.1.8
+# epic review 2 (dev-9k5.1.8)
 has	fix-up tasks at the epic's max tier	complexity:<the epic's max tier>
 has	no-CI fallback tied to the tip by the review: marker	the story's `review:` note names this same tip
 has	Done accepts closed or landed stories	is `closed` or has its PR landed
@@ -55,7 +55,7 @@ has	epic reviewer's sub-agents' model	its sub-agents run at `<review model>`
 has	fix-up description on stdin	--body-file -
 has	epic notes beside implement-story's lines	which `/dev:implement-story` ignores
 has	pending-checks stall resume command	checks are pending, end with the resume command
-# epic review 3 of dev-9k5.1.8: the minors (its review-set rule is dev-47z's below)
+# epic review 3 (dev-9k5.1.8): the minors (its review-set rule is pinned below, dev-47z)
 has	tea landed test reads the landed field	never its `state` alone
 has	every forge read sandbox-disabled	every forge command of this step run with the sandbox disabled
 has	step 6 writes epic review 1 on an invocation's first review	epic review 1: <tip SHA> <verdict line>
@@ -66,7 +66,7 @@ has	Stall prints the two exits only after the epic-review failed: lines	After th
 has	Human stop reports epic-review failures	step 6's `failed:` lines too
 has	files fix-up tasks, implements none	files fix-up tasks and implements none
 has	red check task body	the check, its command and its log pointer
-# epic review 4 of dev-9k5.1.8: the minors
+# epic review 4 (dev-9k5.1.8): the minors
 has	Stall names a tip mismatch	current tip is not its delivered tip
 has	reviewer reads the story bead	bd -C <owner> show <story-id>` to tell them apart
 has	reviewer reports findings only	create no bead
@@ -80,8 +80,8 @@ has	the budget failure line is the Check gate's	report the rules doc's Check gat
 has	pending checks re-polled after a fix-up batch	any whose checks were pending
 has	end state's checks pending outcome	clean with checks pending
 hasc	waiting rule pointer	the harness doc's Waiting
-# dev-47z: a story enters the review set on the tip its last delivered: note names, and Stall
-# names one left out over a tip mismatch
+# a story enters the review set on the tip its last delivered: note names, and Stall
+# names one left out over a tip mismatch (dev-47z)
 has	review set: the last delivered: note names the current tip	its last `delivered:` note names its current tip
 has	the delivered: note's shape	delivered: <tip SHA> <check record>
 has	Stall names a story with no delivered: note	no delivered: note

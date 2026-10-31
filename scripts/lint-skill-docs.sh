@@ -58,7 +58,7 @@
 #      wording ("one story per repo", feat/<key>-<n>, "chains are out of scope", "only text
 #      blocker", "two waves suffice"; ADR 0011); none of the check and review loop's retired
 #      two-gate wording ("Evidence run", "a later run reviews the fix", "a third round of
-#      either kind", "a second red"; dev-1xf.1.4), which the root GLOSSARY.md lacks too; and
+#      either kind", "a second red", dev-1xf.1.4), which the root GLOSSARY.md lacks too; and
 #      none of the retired vocabulary (dev-9k5.1.11): the epic, task and landing roles, the
 #      built-in review by name, the two-review-tools paragraph, the review marker, the lint
 #      command and the test seams as checks (the glossary lists them under _Avoid_, docs/adr/
@@ -106,8 +106,8 @@
 #      failed: line (chezmoi-hkn), its exploration subagent reads the story's design field
 #      and owns .spec-notes/<epic-id>/ (chezmoi-cdf), and a task whose task orchestrator failed is
 #      unclaimed before the next frontier read, with the resume pointer noted on a second
-#      failure and step 9's resume: line naming when a human runs the unclaim (chezmoi-jvc;
-#      the Frontier's unclaim rule is checked in 6), its frontier read keeps ready-for-agent
+#      failure and step 9's resume: line naming when a human runs the unclaim (chezmoi-jvc),
+#      the Frontier's unclaim rule being checked in 6, its frontier read keeps ready-for-agent
 #      tasks only, its review step captures deferred findings in the inbox through the
 #      retro capture, its finished story tolerates an untriaged child (chezmoi-wgi), and its
 #      frontier spawn ends the turn after spawning and carries the idle rule (chezmoi-p4q), and
@@ -164,7 +164,7 @@
 #      /<command> is dev:<skill> or mattpocock-skills:<skill> naming a skill that exists, or a
 #      built-in or a path; a bare /<skill> or another namespace fails. The /command extraction
 #      (cmd_tokens) and the existence check (cmds) moved here from section 2, which no longer
-#      calls them. The root docs joined the scan in dev-9np: a bare name there passed before.
+#      calls them. A bare name in the root docs passed before they joined the scan (dev-9np).
 #  12. /retro: step 2 names the transcript shape (one JSON object per line with its own type
 #      and timestamp, tool_use and tool_result objects in message.content) and two recipes, a
 #      jq per-agent call timeline and a grep tally across agents, each run with
@@ -450,7 +450,7 @@ lacks "PR-opening steps" 'draft PR|pr create|pulls create|open(s|ing)? (a|the) P
 lacks "a budget of blocking verdicts only" 'three blocking verdicts'
 lacks "a spent budget skipping the review" 'is failed and not reviewed again'
 lacks "nothing touches a task" 'nothing below touches a task'
-# dev-47z: the review set reads the delivered: note, not a failed: report this run
+# the review set reads the delivered: note, not a failed: report this run (dev-47z)
 lacks "review set keyed on a failed: report this run" 'did not report `failed:` this run'
 lacks "the paginated tea pr list" 'tea pr list'
 has "frontmatter" 'disable-model-invocation: true'
@@ -1176,7 +1176,7 @@ para_has '**TMPDIR.**' "a git call takes no export in front" 'each git call its 
 para_has '**Literal paths.**' "file edits go through the Edit tool" 'the Edit tool, in place of `sed -f` or a python heredoc'
 para_has '**Idle rule.**' "the Idle rule names the check command" 'every run of the check command'
 # the story orchestrator's forge-check wait is the one shell wait the rule allows (dev-xc2),
-# the task orchestrator's lock wait gone with the lock (dev-b8d.1.4; section 5 sweeps it)
+# the task orchestrator's lock wait gone with the lock (dev-b8d.1.4), which section 5 sweeps
 para_has '**Idle rule.**' "the Idle rule names the forge-check wait as its one shell wait" "The one shell wait is the story orchestrator's"
 para_has '**Idle rule.**' "the Idle rule cites the Delivery section for the forge-check wait" "forge-check wait (the rules doc's Delivery section)"
 # (no step number cited for the wait: section 5's sweep covers docs/agents, dev-90up)
@@ -1221,7 +1221,7 @@ hasc "every task passes the check gate" 'every task passes the check gate'
 hasc "the tracker doc reviews medium and high tasks" 'only `medium` and `high` tasks add the review'
 # the task gate's review is two reviewers, one per axis, as /dev:task-orchestrator spawns them
 sec_has '## When a skill says "start work on a task" (`/dev:implement-story`, `/dev:implement-task`)' "the task gate's review is two-axis" 'two reviewers, one per axis'
-# the task's close is the story row's at landing, never the task row's (ADR 0016; dev-b8d.1
+# the task's close is the story row's at landing, never the task row's (ADR 0016, dev-b8d.1
 # story review 2)
 sec_has '## When a skill says "start work on a task" (`/dev:implement-story`, `/dev:implement-task`)' "the story orchestrator closes the task at landing" 'the story orchestrator closes the task at landing'
 # a routed triage item is a standalone task, the one type /dev:implement-task takes; the
@@ -1389,7 +1389,7 @@ hasc "second failure notes the resume pointer" 'failed twice: <reason>; resume:'
 hasc "hand unclaim condition in the resume section" 'by hand only when'
 # the frontier keeps only ready-for-agent tasks, a deferred review finding is captured in the
 # inbox through the retro capture and never as a story child, and a story counts as finished
-# with an untriaged child under it (chezmoi-wgi; the Frontier rule itself is checked in 6)
+# with an untriaged child under it (chezmoi-wgi); the Frontier rule itself is checked in 6
 hasc "frontier keeps ready-for-agent tasks only" 'keeping only the tasks labelled `ready-for-agent`'
 lacks "frontier minus ready-for-human alone" 'minus `ready-for-human` tasks|other than `ready-for-human` ones|non-`ready-for-human`'
 hasc "deferred findings go through the retro capture" '"capture a retro item"'
@@ -1400,7 +1400,7 @@ hasc "step 9 finds the worktrees directory through git" '`git -C <owner> rev-par
 lacks "a literal <owner>/.git/ path" '<owner>/\.git/'
 lacks "a lock wait sleeping and re-checking the lock by hand" 'waits [0-9]+ seconds|checks again|re-?checks the lock|checks every [0-9]+ seconds'
 # the story orchestrator ends its turn after spawning and is resumed by the completion
-# notification (chezmoi-p4q; the rule itself is checked in 6)
+# notification (chezmoi-p4q); the rule itself is checked in 6
 hasc "frontier spawn ends the turn" 'then end your turn: each task orchestrator'
 hasc "the skill names the harness doc's Idle rule" "the harness doc's Idle rule"
 # the story row lands each reviewed task branch itself (dev-b8d.1.4): in the turn the reviewed:
@@ -1565,8 +1565,8 @@ lacks "Gitignore step counts three entries" "the rule's three entries"
 hase "the story review (step 7) points at the rules doc's Review verdict" "^7\. .*the rules doc's Review verdict"
 lacks "the zero-findings bar" 'not clean after three rounds|no findings at all|clean means zero findings'
 # the check target probe, its refusal and the once-per-run resolution are the rules doc's Story
-# plumbing, pinned in section 6 (dev-yykg; dev-de4, dev-b3p and ADR 0015 behind them, and
-# scripts/test-check-target.sh runs the pinned query on scratch repos); step 3 cites it, and the
+# plumbing, pinned in section 6 (dev-yykg, dev-de4, dev-b3p, ADR 0015); scripts/test-check-target.sh
+# runs the pinned query on scratch repos; step 3 cites it, and the
 # run's check command still goes in every brief and gates step 7
 C='^   Apply the rules doc'"'"'s Repo plumbing and Cut-off probe'
 hase "step 3 applies the rules doc's Repo plumbing and Cut-off probe" "$C"
