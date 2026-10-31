@@ -208,6 +208,7 @@
 # DOCS_DIR overrides the docs directory the namespace rule scans (default: docs under the repo root).
 # USER_CLAUDE_MD overrides the project CLAUDE.md (default: CLAUDE.md under the repo root).
 # GLOSSARY_MD overrides the root glossary (default: GLOSSARY.md under the repo root).
+# LINT_PINS_DIR overrides the directory of the pin tables (default: scripts under the repo root).
 # PLUGIN_SKILLS overrides the plugin skills directory (default: newest installed mattpocock-skills).
 # The last section is the version-bump rule (INFRA-30): a change to what the plugin ships
 # needs a changed version in .claude-plugin/plugin.json. VERSION_BUMP_REPO overrides the repo it
@@ -256,7 +257,13 @@ drop_unchanged() {
   if [ -s "${LINT_UNCHANGED:-}" ]; then awk 'NR == FNR { u[$0]; next } !($0 in u)' "$LINT_UNCHANGED" -; else cat; fi
 }
 # enqueue <check line>: queues it unless $f is a file LINT_UNCHANGED lists
-enqueue() { unchanged_file || queue+="$1"$'\n'; }
+# LINT_PIN_LIST names a file every check is appended to first, one per line as
+# <type> <file> <description> <phrase> [<anchor>] (the queue's own line), for the regression test
+# to derive its drop cases from; no check is skipped then
+enqueue() {
+  [ -z "${LINT_PIN_LIST:-}" ] || printf '%s\n' "$1" >> "$LINT_PIN_LIST"
+  unchanged_file || queue+="$1"$'\n'
+}
 has() { enqueue "i	$f	$1	$2"; }
 hasc() { enqueue "c	$f	$1	$2"; }
 hase() { enqueue "e	$f	$1	$2"; }
@@ -271,6 +278,23 @@ line_lacks() { [ -f "$f" ] || return 0; enqueue "X	$f	$2	$3	$1"; }   # <anchor> 
 para_has() { enqueue "p	$f	$2	$3	$1"; }   # <heading> <description> <phrase>
 sec_has() { enqueue "S	$f	$2	$3	$1"; }   # <heading line> <description> <phrase>: searched between that heading and the next ##
 opening_has() { enqueue "o	$f	$1	$2"; }
+# pins_from <table> [<heading>]: queues the checks of a pin table, one row per line as
+# <check>	<description>	<phrase>, tab-separated: has (-iF), hasc (-F) or sec (-F inside the
+# <heading> section of $f, sec_has). The one schema of every pin table, so a phrase is written in
+# its table alone and the regression test derives its drop case from LINT_PIN_LIST. A line
+# opening with # and an empty line are skipped; a row short of a field, or with another check, fails
+pins_from() {
+  local check d phrase
+  while IFS=$'\t' read -r check d phrase; do
+    case $check in '#'*|'') continue ;; esac
+    if [ -z "$d" ] || [ -z "$phrase" ]; then bad "${1##*/}: a row needs a check, a description and a phrase: $check"; continue; fi
+    case $check in
+      has|hasc) "$check" "$d" "$phrase" ;;
+      sec) if [ -n "${2:-}" ]; then sec_has "$2" "$d" "$phrase"; else bad "${1##*/}: sec needs a heading: $d"; fi ;;
+      *) bad "${1##*/}: unknown check $check" ;;
+    esac
+  done < "$1"
+}
 # the roles and review tools the three-row restatement retired (INFRA-33), swept in section 5
 retired_row_names() {
   lacksw "the retired driver role in $f" '(^|[^a-z])[Dd]rivers?([^a-z]|$)'
@@ -416,6 +440,7 @@ docs=${docs%/}
 user_claude_md=${USER_CLAUDE_MD:-$root/CLAUDE.md}
 glossary_md=${GLOSSARY_MD:-$root/GLOSSARY.md}
 runbook=${2:-$root/docs/WORKFLOW.md}
+pins_dir=${LINT_PINS_DIR:-$root/scripts}
 # the dirs and the docs no section owns must exist, a default as much as an override; the
 # driver ($1) and the runbook ($2) are their sections' documents
 section "0. paths"
@@ -442,10 +467,8 @@ if ! unchanged_file; then
     bad "present: merge steps (merge)"; grep -ni 'merge' <<<"$merge_scan" | head -3
   fi
 fi
-# the phrases pinned one by one, shared with the regression test's pin cases (dev-47z)
-while IFS=$'\t' read -r check d phrase; do
-  case $check in has|hasc) "$check" "$d" "$phrase" ;; '#'*|'') ;; *) bad "implement-spec-pins.tsv: unknown check $check" ;; esac
-done < "$root/scripts/implement-spec-pins.tsv"
+# the phrases pinned one by one, in a table the regression test derives its pin cases from too
+pins_from "$pins_dir/implement-spec-pins.tsv"
 epic_fourth_failure_lines
 # the glossary avoids "human task" for the human gate task ("ready-for-human task" is fine)
 lacks "glossary's avoided term human task" '(^|[^-])human task'
@@ -1023,10 +1046,8 @@ sec_has "## Delivery" "Delivery records delivered: ahead of pr:" 'The `delivered
 # forge decision, the Gitignore commit recipe and the merge guard, stated once; both skills cite it
 # and the skill lints below pin only their own lines (dev-yykg)
 hase "Repo plumbing and Cut-off probe section" '^## Repo plumbing and Cut-off probe$'
-# the phrases pinned one by one, shared with the regression test's drop cases (dev-yqpz)
-while IFS=$'\t' read -r d phrase; do
-  case $d in '#'*|'') ;; *) sec_has "## Repo plumbing and Cut-off probe" "$d" "$phrase" ;; esac
-done < "$root/scripts/repo-plumbing-pins.tsv"
+# the phrases pinned one by one, in a table the regression test derives its drop cases from too
+pins_from "$pins_dir/repo-plumbing-pins.tsv" "## Repo plumbing and Cut-off probe"
 # the one gate semantics at every row (INFRA-33): the exit, the fix-up and its budget, the
 # minors fix-up and the conflict resolution that rerun the checks and spend nothing, the
 # reviewed tip as a sentence; the two-level loop with lint before the seams and the review

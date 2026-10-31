@@ -1,9 +1,9 @@
 # The phrases /dev:implement-spec must hold, one per line as <check>	<description>	<phrase>,
-# tab-separated: <check> is has (case-insensitive) or hasc (case-sensitive). Shared by
-# lint-skill-docs.sh, whose section 1 checks each one, and test-lint-skill-docs.sh, whose
-# pin cases drop each one from a copy and expect that section to fail (dev-47z). A line
-# opening with # and an empty line are skipped; the lint fails on any other check, the test
-# skips it.
+# tab-separated: <check> is has (case-insensitive) or hasc (case-sensitive). The schema is
+# the one of every pin table, read by pins_from in lint-skill-docs.sh (section 1 checks each
+# row), whose test-lint-skill-docs.sh derives a drop case for each from the lint's own pin
+# list (dev-47z, dev-yqpz). A line opening with # and an empty line are skipped; any other row
+# needs all three fields and a known check.
 has	story-closure blocker is open until closed	open until that story is closed
 has	story-closure human stop line	the PR to merge and the /dev:close-story <story-id> to run
 has	human stop line carries the PR url	<owner repo> <story-id> <pr url>
