@@ -1,9 +1,14 @@
-# The phrases /dev:implement-spec must hold, one per line as <check>	<description>	<phrase>,
-# tab-separated: <check> is has (case-insensitive) or hasc (case-sensitive). Shared by
-# lint-skill-docs.sh, whose section 1 checks each one, and test-lint-skill-docs.sh, whose
-# pin cases drop each one from a copy and expect that section to fail (dev-47z). A line
-# opening with # and an empty line are skipped; the lint fails on any other check, the test
-# skips it.
+# The phrases /dev:implement-spec must hold, one per line as <check>	<description>	<phrase>[	<sweep>],
+# tab-separated: <check> is has (case-insensitive) or hasc (case-sensitive); the optional sweep is the
+# part of the phrase a skill must not restate, and lies inside it. The schema is
+# the one of every pin table, read by pins_from in lint-skill-docs.sh (section 1 checks each
+# row), whose test-lint-skill-docs.sh derives a drop case for each from the lint's own pin
+# list (dev-47z, dev-yqpz). A line opening with # and an empty line are skipped; any other row
+# needs its first three fields and a known check. A whole phrase is written once: here, not typed
+# again as a literal on another row or lint line. Reword it here and in the docs; a different, longer
+# phrase that embeds or shares a run of its text is its own pin and may need its own edit:
+# the lint builds its pins of the same phrase in other docs from the row (row_phrase), found by
+# its description, so a row it names is not renamed without the lint's calls.
 has	story-closure blocker is open until closed	open until that story is closed
 has	story-closure human stop line	the PR to merge and the /dev:close-story <story-id> to run
 has	human stop line carries the PR url	<owner repo> <story-id> <pr url>
@@ -22,7 +27,7 @@ has	epic review spec axis	the Jira Epic's spec
 has	epic review skips the standards axis	no standards axis
 has	epic review model	the review model of the epic's max tier
 has	draft until clean	stays a draft until its verdict is clean
-has	mark ready with gh	gh pr ready <n> --repo <forge-slug>
+has	mark ready with gh	gh pr ready <n> --repo <forge-slug>	gh pr ready
 has	mark ready with tea	tea pr edit <n> --repo <owner> --ready
 has	fix-up: one ready-for-agent task per blocking finding	one per blocking finding
 has	fix-up: the story re-run in add mode	in add mode
