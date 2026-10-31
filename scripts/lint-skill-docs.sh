@@ -195,6 +195,9 @@
 #      line, the merge guard and the gate re-entry on a rerun, and the report minus the story lines
 #      ending on resume:. Section 6 pins the rules doc's one paragraph on it (the table keeps three
 #      rows) and the no-seam-test case skipping a standalone task without ## Test seams.
+#  18. the cross-skill cite rule (dev-q47w): the coding standards state it under its heading, and
+#      no other rules doc cites a skill's heading bare after a possessive, even split across a
+#      line break.
 # Usage: scripts/lint-skill-docs.sh [implement-spec SKILL.md [WORKFLOW.md]]
 # A section whose doc is missing fails naming it ("missing document: <path>") rather than being
 # skipped, so a renamed skill or rules doc cannot turn its checks off (dev-dov); each section
@@ -222,7 +225,7 @@ root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 fail=0
 bad() { echo "FAIL: $*"; fail=1; }
 # has (grep -iF), hasc (-F), hase (-E), lacks (-iE), lacksf (-iF) and lackse (-E) check <pattern>
-# against $f line by line, as those greps would; lacksw (-iE) against $f read as one line, each
+# against $f line by line, as those greps would; lacksw (-iE, lackswc -E) against $f read as one line, each
 # line's leading blanks and quote markers dropped and a space joining it to the next, so a
 # phrase wrapped across a line break matches too; line_has (-F), line_hase (-E) and line_lacks (-F) check it
 # on the lines matching <anchor> (-E), as a grep -E <anchor> | grep -q pipeline would; para_has
@@ -261,6 +264,7 @@ lacks() { [ -f "$f" ] || return 0; enqueue "x	$f	$1	$2"; }
 lacksf() { [ -f "$f" ] || return 0; enqueue "f	$f	$1	$2"; }
 lackse() { [ -f "$f" ] || return 0; enqueue "y	$f	$1	$2"; }
 lacksw() { [ -f "$f" ] || return 0; enqueue "w	$f	$1	$2"; }
+lackswc() { [ -f "$f" ] || return 0; enqueue "W	$f	$1	$2"; }   # lacksw, case-sensitive (-E)
 line_has() { enqueue "a	$f	$2	$3	$1"; }   # <anchor> <description> <phrase>
 line_hase() { enqueue "A	$f	$2	$3	$1"; }   # <anchor> <description> <pattern>
 line_lacks() { [ -f "$f" ] || return 0; enqueue "X	$f	$2	$3	$1"; }   # <anchor> <description> <phrase>
@@ -330,20 +334,20 @@ checks_run() {
         # two where a block starts (a blank line, a heading, list item, table row or fence, and
         # the line after a heading, table row or fence), which no phrase spans; a hit names the
         # line it starts on, and the next search starts on the line after it
-        if (t == "w") {
-          if (!(fn in J)) {
+        if (t == "w" || t == "W") {
+          if (!((fn, t) in J)) {
             s = ""; pblk = 0
             for (ln = 1; ln <= n; ln++) {
-              x = LO[fn, ln]; sub(/^[ \t>]+/, "", x); sub(/[ \t]+$/, "", x)
+              x = (t == "W" ? L[fn, ln] : LO[fn, ln]); sub(/^[ \t>]+/, "", x); sub(/[ \t]+$/, "", x)
               blk = (x == "" || x ~ /^(#|\||```|[-*+] |[0-9]+\. )/)
               JO[fn, ln] = length(s) + 1
               s = s (ln == 1 ? "" : (blk || pblk ? "  " : " ")) x
               pblk = (x ~ /^(#|\||```)/)
             }
-            J[fn] = s
+            J[fn, t] = s
           }
           ln = 1; pos = 1
-          while (match(substr(J[fn], pos), lp[i])) {
+          while (match(substr(J[fn, t], pos), (t == "W" ? p[i] : lp[i]))) {
             at0 = pos + RSTART - 1
             while (ln < n && JO[fn, ln + 1] <= at0) ln++
             shown[i] = shown[i] ln ":" L[fn, ln] "\n"
@@ -386,7 +390,7 @@ checks_run() {
       }
       for (i = 1; i <= NR; i++) {
         t = k[i]
-        if (t == "x" || t == "f" || t == "y" || t == "w") { if (hit[i]) printf "FAIL: present: %s (%s)\n%s", d[i], p[i], shown[i] }
+        if (t == "x" || t == "f" || t == "y" || t == "w" || t == "W") { if (hit[i]) printf "FAIL: present: %s (%s)\n%s", d[i], p[i], shown[i] }
         else if (t == "X") { if (hit[i]) printf "FAIL: present: %s (%s on a line matching %s)\n", d[i], p[i], a[i] }
         else if (hit[i]) continue
         else if (t == "a" || t == "A") printf "FAIL: missing: %s (%s on a line matching %s)\n", d[i], p[i], a[i]
@@ -2167,13 +2171,15 @@ fi
 # followed by a possessive and a bare capitalised heading ("`/dev:x`'s Two entries") is a
 # heading cite in neither form, so it fails in every rules doc but the coding standards
 standards=$agents/coding-standards.md
-doc 18 "cross-skill cites" "$standards"
-f=$standards
-has "the cross-skill cite rule heading" "## A rules doc cites another skill's rule in one form"
-for f in "$agents"/*.md; do
-  [ "$f" = "$standards" ] && continue   # it shows the wrong form as its example
-  lackse "an unquoted heading cite of a skill in $f" "\`/dev:[a-z-]+\`'s [A-Z]"
-done
+# each file is read as one line (lackswc, as section 5 does, dev-86j), so a cite split across a
+# line break fails too
+if doc 18 "cross-skill cites" "$standards"; then
+  has "the cross-skill cite rule heading" "## A rules doc cites another skill's rule in one form"
+  for f in "$agents"/*.md; do
+    [ "$f" = "$standards" ] && continue   # it shows the wrong form as its example
+    lackswc "an unquoted heading cite of a skill in $f" "\`/dev:[a-z-]+\`'s [A-Z]"
+  done
+fi
 
 checks_run
 [ "$fail" = 0 ] && echo "PASS"

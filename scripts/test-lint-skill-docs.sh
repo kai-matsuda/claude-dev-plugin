@@ -2529,6 +2529,14 @@ printf '%s\n' "As \`/dev:task-orchestrator\`'s Two entries says." >> "$scratch/d
 sec=18 expect "a bare heading cite of a skill in a rules doc fails section 18" 1 "present: an unquoted heading cite of a skill in $scratch/docs/agents/orchestration.md"
 
 fresh
+printf '%s\n' "As \`/dev:task-orchestrator\`'s" "Two entries says." >> "$scratch/docs/agents/orchestration.md"
+sec=18 expect "a bare heading cite split across a line break fails section 18" 1 "present: an unquoted heading cite of a skill in $scratch/docs/agents/orchestration.md"
+
+fresh
+printf '%s\n' "As \`/dev:task-orchestrator\`'s" "own brief says." >> "$scratch/docs/agents/orchestration.md"
+expect "a possessive followed by a lowercase word on the next line passes section 18" 0
+
+fresh
 printf '%s\n' "As \`/dev:task-orchestrator\`'s \"Two entries\" says, and \`/dev:implement-story\`'s **Story gate**." >> "$scratch/docs/agents/orchestration.md"
 expect "a quoted heading cite and a bold step cite pass section 18" 0
 
