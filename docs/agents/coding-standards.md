@@ -88,7 +88,7 @@ the skill and cites the rule in the form of the rule's own marking. A rule the s
 `SKILL.md` marks with a bold step name is cited in bold (`/dev:implement-story`'s
 **Story gate**, the **Clean up** sweep of `/dev:implement-story`); a rule it marks with a
 heading is cited by the heading's words in quotes, the skill named beside them
-(`/dev:close-story`'s "The forge shows MERGED" section, `/dev:story-to-tasks`'s "Gather
+(`/dev:close-story`'s "The forge shows MERGED", `/dev:story-to-tasks`'s "Gather
 context"). A heading cited bare (`/dev:task-orchestrator`'s Two entries) or a step name
 cited in quotes is a cite in the wrong form. A cite of the rules doc's own sections is not
 a cross-skill cite and is outside this rule.
