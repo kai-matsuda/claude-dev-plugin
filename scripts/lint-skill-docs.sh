@@ -197,7 +197,8 @@
 #      rows) and the no-seam-test case skipping a standalone task without ## Test seams.
 #  18. the cross-skill cite rule (dev-q47w): the coding standards state it under its heading, and
 #      no other rules doc cites a skill's heading bare after a possessive, even split across a
-#      line break.
+#      line break, a step name in quotes, a heading in bold, or either one bare before "of
+#      /dev:x" (dev-mnz6).
 # Usage: scripts/lint-skill-docs.sh [implement-spec SKILL.md [WORKFLOW.md]]
 # A section whose doc is missing fails naming it ("missing document: <path>") rather than being
 # skipped, so a renamed skill or rules doc cannot turn its checks off (dev-dov); each section
@@ -2370,6 +2371,23 @@ if doc 18 "cross-skill cites" "$standards"; then
   for f in "$agents"/*.md; do
     [ "$f" = "$standards" ] && continue   # it shows the wrong form as its example
     lackswc "an unquoted heading cite of a skill in $f" "\`/dev:[a-z-]+\`'s [A-Z]"
+    # the other wrong forms (dev-mnz6), per skill: its bold step names (a numbered item opening
+    # **Name.**) and its ## headings are read from its SKILL.md, then a step name in quotes, a
+    # heading in bold and either one bare before "of `/dev:x`" fail
+    for sk in "$skills"/*/SKILL.md; do
+      [ -f "$sk" ] || continue
+      s=${sk%/SKILL.md}; s=${s##*/}
+      while IFS= read -r n; do
+        [ -n "$n" ] || continue
+        lackswc "a step name cited in quotes of /dev:$s in $f" "\`/dev:$s\`'s \"$n\"|\"$n\"( [a-z]+)? of \`/dev:$s\`"
+        lackswc "a bare cite of /dev:$s in $f" "(^|[^*\"A-Za-z])$n( [a-z]+)? of \`/dev:$s\`"
+      done < <(sed -nE 's/^[0-9]+\. \*\*([A-Za-z][A-Za-z ]*)\.?\*\*.*/\1/p' "$sk")
+      while IFS= read -r n; do
+        [ -n "$n" ] || continue
+        lackswc "a heading cited in bold of /dev:$s in $f" "\`/dev:$s\`'s \*\*$n\*\*|\*\*$n\*\*( [a-z]+)? of \`/dev:$s\`"
+        lackswc "a bare cite of /dev:$s in $f" "(^|[^*\"A-Za-z])$n( [a-z]+)? of \`/dev:$s\`"
+      done < <(sed -nE 's/^## ([A-Za-z][A-Za-z ]*)$/\1/p' "$sk")
+    done
   done
 fi
 

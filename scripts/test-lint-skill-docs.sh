@@ -1401,6 +1401,37 @@ fresh
 printf '%s\n' "As \`/dev:task-orchestrator\`'s \"Two entries\" says, and \`/dev:implement-story\`'s **Story gate**." >> "$scratch/docs/agents/orchestration.md"
 expect "a quoted heading cite and a bold step cite pass section 18" 0
 
+# the other wrong forms the rule names (dev-mnz6): a step name in quotes, a heading in bold and a
+# bare cite in the "of /dev:x" word order, each failing in a rules doc but the coding standards
+orch_doc="$scratch/docs/agents/orchestration.md"
+fresh
+printf '%s\n' "As \`/dev:implement-story\`'s \"Story gate\" says." >> "$orch_doc"
+sec=18 expect "a step name cited in quotes fails section 18" 1 "present: a step name cited in quotes of /dev:implement-story in $orch_doc"
+
+fresh
+printf '%s\n' "As the \"Clean up\" sweep of \`/dev:implement-story\` says." >> "$orch_doc"
+sec=18 expect "a step name in quotes in the word order fails section 18" 1 "present: a step name cited in quotes of /dev:implement-story in $orch_doc"
+
+fresh
+printf '%s\n' "As \`/dev:task-orchestrator\`'s **Two entries** says." >> "$orch_doc"
+sec=18 expect "a heading cited in bold fails section 18" 1 "present: a heading cited in bold of /dev:task-orchestrator in $orch_doc"
+
+fresh
+printf '%s\n' "As the **Landing** section of \`/dev:implement-story\` says." >> "$orch_doc"
+sec=18 expect "a heading in bold in the word order fails section 18" 1 "present: a heading cited in bold of /dev:implement-story in $orch_doc"
+
+fresh
+printf '%s\n' "As the Landing section of \`/dev:implement-story\` says." >> "$orch_doc"
+sec=18 expect "a bare heading in the word order fails section 18" 1 "present: a bare cite of /dev:implement-story in $orch_doc"
+
+fresh
+printf '%s\n' "As the Clean up sweep of \`/dev:implement-story\` says." >> "$orch_doc"
+sec=18 expect "a bare step name in the word order fails section 18" 1 "present: a bare cite of /dev:implement-story in $orch_doc"
+
+fresh
+printf '%s\n' "As the **Clean up** sweep of \`/dev:implement-story\` and the \"Two entries\" section of \`/dev:task-orchestrator\` say." >> "$orch_doc"
+expect "the right form in the word order passes section 18" 0
+
 fresh
 printf '%s\n' "The wrong form: \`/dev:task-orchestrator\`'s Two entries." >> "$scratch/docs/agents/coding-standards.md"
 expect "a bare heading cite in the coding standards passes section 18" 0
