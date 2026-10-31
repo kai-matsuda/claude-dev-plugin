@@ -8,8 +8,8 @@
 # need its own edit. A row is one contiguous phrase of the doc, never a piece of one
 # split across rows (each piece would pass on other prose). The optional fourth field is the
 # part of the phrase a skill citing the section must not restate (the lint's second-copy sweeps
-# read it, else the phrase less a backtick opening or closing it). A line opening with # and an empty line are
-# skipped; any other row needs the first three fields.
+# read it, else the phrase less a backtick opening or closing it). A line opening with # and an
+# empty line are skipped; any other row needs the first three fields.
 sec	Repo plumbing and Cut-off probe is parametrised by the unit	a **story** (`/dev:implement-story`) and a **standalone task** (`/dev:implement-task`)
 sec	the check command is resolved once per run	Resolve the check command once per run
 sec	the check command is make check	`make check`, since every owner repo has a `check` target (Check command, above)

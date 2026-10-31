@@ -210,8 +210,8 @@
 # GLOSSARY_MD overrides the root glossary (default: GLOSSARY.md under the repo root).
 # LINT_PINS_DIR overrides the directory of the pin tables (default: scripts under the repo root); a
 # missing directory or table fails, as a missing doc does.
-# LINT_PIN_LIST names a file every check is appended to first, for the regression test to
-# derive its drop cases from.
+# LINT_PIN_LIST names a file every queued check is appended to first, for the regression test
+# to derive its drop cases from.
 # PLUGIN_SKILLS overrides the plugin skills directory (default: newest installed mattpocock-skills).
 # The last section is the version-bump rule (INFRA-30): a change to what the plugin ships
 # needs a changed version in .claude-plugin/plugin.json. VERSION_BUMP_REPO overrides the repo it
@@ -260,10 +260,10 @@ drop_unchanged() {
   if [ -s "${LINT_UNCHANGED:-}" ]; then awk 'NR == FNR { u[$0]; next } !($0 in u)' "$LINT_UNCHANGED" -; else cat; fi
 }
 # enqueue <check line>: queues it unless $f is a file LINT_UNCHANGED lists
-# LINT_PIN_LIST names a file every check is appended to first, one per line as
+# LINT_PIN_LIST names a file every queued check is appended to first, one per line as
 # <type> <file> <description> <phrase> [<anchor>] (the queue's own line), for the regression test
-# to derive its drop cases from; the list holds every check, though enqueue still skips queueing
-# the checks of an unchanged file
+# to derive its drop cases from; the list holds every queued check, though enqueue still skips
+# queueing the checks of an unchanged file
 enqueue() {
   [ -z "${LINT_PIN_LIST:-}" ] || printf '%s\n' "$1" >> "$LINT_PIN_LIST"
   unchanged_file || queue+="$1"$'\n'
@@ -577,11 +577,15 @@ pin_spawned_by='by /dev:implement-story or /dev:implement-task'
 pin_run_close_story='run `/dev:close-story <story-id>`'
 cmd_implement_story='/dev:implement-story <story-id>'
 pin_child_not_a_story='<child-id> is not a story'
+pin_code_review_name='mattpocock-skills:code-review'
 # phrases built from another pin, so each is still written once
+pin_code_review_tool="\`$pin_code_review_name\`"
+pin_conflict_resolutions_per_landing="three $pin_conflict_resolutions per landing"
 anchor_task_orchestrator_header="^You are the ${pin_task_orchestrator_bold//\*/\\*}"
 pin_refused_not_a_story="refused: $pin_child_not_a_story"
 pin_carries_needs_triage="carries $pin_needs_triage_wontfix"
 pin_malformed_epic_refusal_line="<epic-id> $pin_refused_not_a_story"
+# the plain phrases, each typed here once
 pin_not_ready_for_human_alone='other than `ready-for-human` ones|non-`ready-for-human`'
 pin_refused_pr_closed_unmerged='refused: PR <url> is closed unmerged'
 pin_refused_pr_already_merged='refused: PR <url> already merged'
@@ -603,8 +607,6 @@ pin_landing_closes_task='A landing closes the task'
 pin_checks_skipped_no_forge='checks: skipped: no forge'
 head_repo_plumbing='## Repo plumbing and Cut-off probe'
 pin_inbox_as_deferrals='the inbox as deferrals'
-pin_code_review_name='mattpocock-skills:code-review'
-pin_code_review_tool="\`$pin_code_review_name\`"
 pin_spawn_two_reviewers='spawn two **reviewers**'
 pin_chains_out_of_scope='chains are out of scope'
 pin_implement_task_id='`/dev:implement-task <id>`'
@@ -618,7 +620,6 @@ pin_its_check_target='its Check target'
 pin_with_fresh_budget='with a fresh budget'
 pin_one_topological_pass='one topological pass'
 pin_pr_command_re='/mattpocock-skills:pr([^a-z-]|$)'
-pin_conflict_resolutions_per_landing="three $pin_conflict_resolutions per landing"
 cite_delivery_authority="the rules doc's Delivery authority"
 # the phrases every worktree brief carries and the order checks over them, each written once
 # (dev-yqpz); the _re forms read a backtick as any character, to sit in a pattern
