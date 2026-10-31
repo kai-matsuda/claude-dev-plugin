@@ -196,7 +196,7 @@
 #      ending on resume:. Section 6 pins the rules doc's one paragraph on it (the table keeps three
 #      rows) and the no-seam-test case skipping a standalone task without ## Test seams.
 #  18. the cross-skill cite rule (dev-q47w): the coding standards state it under its heading, and
-#      no other rules doc cites a skill's heading bare after a possessive, even split across a
+#      no other rules doc or SKILL.md cites a skill's heading bare after a possessive, even split across a
 #      line break. Nor does a step name of a skill in quotes, a heading in bold, or either one
 #      bare before "of"/"in" /dev:x or bare after "'s step"/"'s section" (dev-mnz6), the names
 #      read from that skill's SKILL.md (numbered or ## to #### headings; bold steps, hyphens,
@@ -2363,10 +2363,10 @@ if [ "${#mermaid_files[@]}" -gt 0 ]; then
 fi
 
 # ---- 18. cross-skill cites ----
-# dev-q47w: the coding standards state how a rules doc cites another skill's rule: a bold step
+# dev-q47w: the coding standards state how a rules doc or SKILL.md cites another skill's rule: a bold step
 # name in bold, a heading in quotes with its skill named. A skill named in backticks and
 # followed by a possessive and a bare capitalised heading ("`/dev:x`'s Two entries") is a
-# heading cite in neither form, so it fails in every rules doc but the coding standards, which
+# heading cite in neither form, so it fails in every rules doc and SKILL.md but the coding standards, which
 # show the wrong forms as examples. The other wrong forms fail the same way (dev-mnz6): a step
 # name in quotes, a heading in bold, either one bare before "of"/"in" `/dev:x`, and a bare name
 # after the possessive and "step"/"section" (the quoted and bold checks take either word too).
@@ -2389,7 +2389,7 @@ standards=$agents/coding-standards.md
 # each file is read as one line (lackswc, as section 5 does, dev-86j), so a cite split across a
 # line break fails too
 if doc 18 "cross-skill cites" "$standards"; then
-  has "the cross-skill cite rule heading" "## A rules doc cites another skill's rule in one form"
+  has "the cross-skill cite rule heading" "## Another skill's rule is cited in one form"
   # the rules docs' checks depend on the skills' names, so one changed SKILL.md has every rules
   # doc read again, whatever LINT_UNCHANGED vouches for
   saved_f=$f saved_unchanged=$unchanged
@@ -2437,6 +2437,7 @@ if doc 18 "cross-skill cites" "$standards"; then
     lackswc "an unquoted heading cite of a skill in $f" "\`/dev:[a-z-]+\`'s [A-Z]"
     while IFS=$'\t' read -r skill kind name; do
       [ -n "$name" ] || continue
+      [ "$f" = "$skills/$skill/SKILL.md" ] && continue   # a skill's own steps and headings are no cross-skill cite
       ref="\`/dev:$skill\`"
       gap="( [a-z]+){0,2} (of|in) $ref"
       lackswc "a bare cite of /dev:$skill in $f" "(^|[^*\"A-Za-z])$name$gap"
