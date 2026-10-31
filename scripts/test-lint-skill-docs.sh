@@ -1551,7 +1551,7 @@ printf '%s\n' "As \`/dev:implement-story\`'s step Clean up says." >> "$scratch/$
 sec=18 expect "a bare step name after 'step' fails section 18" 1 "present: a bare cite after a possessive and step or section of /dev:implement-story in $scratch/$orch"
 
 # a name that is both a step and a heading in one skill has no wrong marking: quotes and bold pass,
-# only the bare forms fail (G1)
+# only the bare forms fail (dev-mnz6 review 3)
 fresh
 printf '%s\n' "## Zed gate" "" "**Zed gate.** A step." >> "$scratch/skills/implement-story/SKILL.md"
 printf '%s\n' "As \`/dev:implement-story\`'s \"Zed gate\" and its **Zed gate** say." >> "$scratch/$orch"
