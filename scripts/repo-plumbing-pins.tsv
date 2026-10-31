@@ -1,0 +1,62 @@
+# The phrases the rules doc's "## Repo plumbing and Cut-off probe" section must hold, one per
+# line as <check>	<description>	<phrase>[	<sweep>], tab-separated, the check being sec: the phrase is
+# searched inside that section, case-sensitively. Read by pins_from in lint-skill-docs.sh,
+# whose test-lint-skill-docs.sh derives a drop case for each from the lint's own pin list
+# (dev-yqpz). A whole phrase is written once: here, not typed again as a literal on another row or
+# lint line, and a skill's pin of the same phrase is built from its row. Reword it here and in the
+# doc; a different, longer phrase that embeds or shares a run of its text is its own pin and may
+# need its own edit. A row is one contiguous phrase of the doc, never a piece of one
+# split across rows (each piece would pass on other prose). The optional fourth field is the
+# part of the phrase a skill citing the section must not restate (the lint's second-copy sweeps
+# read it, else the phrase less a backtick opening or closing it). A line opening with # and an
+# empty line are skipped; any other row needs the first three fields.
+sec	Repo plumbing and Cut-off probe is parametrised by the unit	a **story** (`/dev:implement-story`) and a **standalone task** (`/dev:implement-task`)
+sec	the check command is resolved once per run	Resolve the check command once per run
+sec	the check command is make check	`make check`, since every owner repo has a `check` target (Check command, above)
+sec	a repo with no check target fails the run with the setup line, before any task orchestrator starts	with none, end the run now with `failed: no check target in <owner>; run /dev:setup-repo there, then re-run`, before any task orchestrator starts	failed: no check target in <owner>
+sec	every task orchestrator brief carries the check command	every task orchestrator brief carries it
+sec	the check target is asked of make, never grepped from a Makefile	Ask make whether it has one, never grep a Makefile
+sec	the check target is read from make's database	`make -C <owner> -pRrq : 2>/dev/null | awk '/^# Not a target:/{n=1;next} /^check::?([^=:]|$)/&&!n{c=1; if (/^check::? *[^ :]/) f=1} c&&/^#  (commands|recipe) to execute/{f=1} /^$/{c=0} {n=0} END{exit !f}'`	make -C <owner> -pRrq
+sec	a missing Makefile reads as no check target	a missing Makefile prints no database and exits 1, so all three read as no check target
+sec	the forge CLI takes the repo by --repo, tea by its absolute path	the repo's absolute path (a sibling's: `<workspace>/<repo>`)
+sec	the forge is decided once	Decide **once** which forge fronts the repo
+sec	the forge is pre-checked on the origin URL	Pre-check `git -C <owner> remote get-url origin`
+sec	every forge command names its repo	every forge command names its repo
+sec	the forge is proved outside the sandbox	run each forge command with the sandbox disabled
+sec	the Gitignore commit is keyed on a dirty file	git -C <owner> status --porcelain -- .gitignore
+sec	the Gitignore commit counts the rule's four entries	is one of the rule's four entries and no line is removed
+sec	the Gitignore commit follows the Commits rule	commit it as the harness doc's Commits rule says
+sec	the Gitignore commit goes through a message file	`git -C <owner> commit -F <owner>/.tmp/commit-msg`
+sec	a user edit in .gitignore is a failed: line, not absorbed	failed: <owner>/.gitignore has uncommitted edits	has uncommitted edits
+sec	the merge guard runs the forge query sandbox-disabled	with the sandbox disabled, as `/dev:close-story`'s "The forge shows MERGED" section does
+sec	the merge guard's GitHub query	gh pr view <url> --json state
+sec	the merge guard's Forgejo query names the repo	tea api --repo <owner> repos/{owner}/{repo}/pulls/<n>
+sec	the merge guard refuses a MERGED PR	MERGED: refuse
+sec	the merge guard refuses a PR closed unmerged	CLOSED unmerged: refuse
+sec	the merge guard: OPEN continues on the branch: note's branch and delivers again	OPEN: continue on the `branch:` note's branch and deliver again
+sec	the merge guard decides the branch form locally first	is decided locally first, then asked: `git -C <owner> fetch origin`
+sec	the merge guard skips the fetch with no origin	(skipped with no `origin`)
+sec	the merge guard compares by ancestry	`git -C <owner> merge-base --is-ancestor <tip SHA> origin/<default branch>`	merge-base --is-ancestor <tip SHA>
+sec	the merge guard maps each ancestry exit and a failed fetch	(exit 0: as MERGED; exit 1: as OPEN; a failed fetch of an existing origin or any other exit: it cannot decide (ask))
+sec	the merge guard compares against the local default branch with no origin	with the local `<default branch>` in place of `origin/<default branch>` when there is no `origin`
+sec	a failing forge command is an error, never no forge	never as "no forge"
+sec	the cut-off probe reads the worktree list	git -C <owner> worktree list --porcelain
+sec	the cut-off probe covers the hand-rolled and the harness worktree alike	a hand-rolled `<owner>/.worktrees/<slug>` or a harness `isolation` worktree alike
+sec	the cut-off probe matches the Bead trailer on the commits its branch adds	log --format='%(trailers:key=Bead,valueonly)' <branch>..<its branch>	log --format='%(trailers:key=Bead,valueonly)'
+sec	the cut-off probe takes the newest of several	log -1 --format=%ct <its branch>
+sec	the cut-off probe never keys on a branch name	never by branch name
+sec	the cut-off probe's hit is a gate entry, its miss a claim entry	with none, a claim entry
+sec	the plumbing defines the probe's task-id	and the Cut-off probe it runs once per cut-off or failed task in the frontier loop (where `<task-id>` is the task probed)
+sec	the intro names the once-per-run plumbing	The repo plumbing a story orchestrator runs once, before its first task orchestrator (Check target to Merge guard)
+sec	the cut-off probe compares an entry against the owner's top level	`<top>` being what `git -C <owner> rev-parse --show-toplevel` prints
+sec	the cut-off probe skips detached entries	detached entries are skipped
+sec	the cut-off probe also checks a local branch whose worktree was pruned	a local branch with no registered worktree
+sec	the cut-off probe enumerates the local branches	git -C <owner> for-each-ref --format='%(refname:short)' refs/heads/
+sec	the cut-off probe counts a prunable entry as unregistered	counts as unregistered, not as a worktree
+sec	the cut-off probe's pruned branch is a gate entry too	that lists `<task-id>` is a gate entry too
+sec	the cut-off probe restores only the newest hit's worktree	only the winner's worktree is restored
+sec	the cut-off probe restores a harness branch to its harness path, which step 9 sweeps	git -C <owner> worktree add <owner>/.claude/worktrees/agent-<id> <its branch>
+sec	the cut-off probe restores a task branch to its hand-rolled path, which step 9 sweeps	git -C <owner> worktree add <owner>/.worktrees/<slug> <its branch>
+sec	the cut-off probe stops and reports when the restore path is taken	stop and report it rather than choose another path
+sec	the cut-off probe's restore prunes with the sandbox disabled	git -C <owner> worktree prune` with the sandbox disabled
+sec	the Bead trailer match is an exact line match	an exact line match
