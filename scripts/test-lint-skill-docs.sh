@@ -1550,16 +1550,46 @@ fresh
 printf '%s\n' "As \`/dev:implement-story\`'s step Clean up says." >> "$scratch/$orch"
 sec=18 expect "a bare step name after 'step' fails section 18" 1 "present: a bare cite after a possessive and step or section of /dev:implement-story in $scratch/$orch"
 
-# a name that is both a step and a heading in one skill fails in quotes and in bold
+# a name that is both a step and a heading in one skill has no wrong marking: quotes and bold pass,
+# only the bare forms fail (G1)
 fresh
 printf '%s\n' "## Zed gate" "" "**Zed gate.** A step." >> "$scratch/skills/implement-story/SKILL.md"
 printf '%s\n' "As \`/dev:implement-story\`'s \"Zed gate\" and its **Zed gate** say." >> "$scratch/$orch"
-sec=18 expect "a name both a step and a heading cited in quotes fails section 18" 1 "present: a step name cited in quotes of /dev:implement-story in $scratch/$orch"
+expect "a name both a step and a heading cited in quotes passes section 18" 0
 
 fresh
 printf '%s\n' "## Zed gate" "" "**Zed gate.** A step." >> "$scratch/skills/implement-story/SKILL.md"
 printf '%s\n' "As \`/dev:implement-story\`'s **Zed gate** says." >> "$scratch/$orch"
-sec=18 expect "a name both a step and a heading cited in bold fails section 18" 1 "present: a heading cited in bold of /dev:implement-story in $scratch/$orch"
+expect "a name both a step and a heading cited in bold passes section 18" 0
+
+fresh
+printf '%s\n' "## Zed gate" "" "**Zed gate.** A step." >> "$scratch/skills/implement-story/SKILL.md"
+printf '%s\n' "As the Zed gate step of \`/dev:implement-story\` says." >> "$scratch/$orch"
+sec=18 expect "a name both a step and a heading cited bare fails section 18" 1 "present: a bare cite of /dev:implement-story in $scratch/$orch"
+
+# a #### heading is a cite target
+fresh
+printf '%s\n' "#### Deep gate" >> "$scratch/skills/implement-story/SKILL.md"
+printf '%s\n' "As \`/dev:implement-story\`'s **Deep gate** says." >> "$scratch/$orch"
+sec=18 expect "a #### heading cited in bold fails section 18" 1 "present: a heading cited in bold of /dev:implement-story in $scratch/$orch"
+
+# crossed step/section words are read in both checks
+fresh
+printf '%s\n' "As \`/dev:implement-story\`'s section \"Story gate\" says." >> "$scratch/$orch"
+sec=18 expect "a step name in quotes after 'section' fails section 18" 1 "present: a step name cited in quotes of /dev:implement-story in $scratch/$orch"
+
+# the stated limits pass: a gap of three words, 'of the skill', a skill cited without backticks
+fresh
+printf '%s\n' "As the Story gate one more thing step of \`/dev:implement-story\` says." >> "$scratch/$orch"
+expect "a gap longer than two words passes section 18" 0
+
+fresh
+printf '%s\n' "As the Story gate of the \`/dev:implement-story\` skill says." >> "$scratch/$orch"
+expect "a bare cite of 'the /dev:x skill' passes section 18" 0
+
+fresh
+printf '%s\n' "As /dev:implement-story's \"Story gate\" and the Story gate step of /dev:implement-story say." >> "$scratch/$orch"
+expect "a skill cited without backticks passes section 18" 0
 
 # a skill gaining a name makes an unchanged rules doc's text a wrong cite (the doc's line 'sweep of
 # /dev:implement-story' reads bare once the skill has a heading 'sweep')

@@ -197,7 +197,7 @@
 #      rows) and the no-seam-test case skipping a standalone task without ## Test seams.
 #  18. the cross-skill cite rule (dev-q47w): the coding standards state it under its heading, and
 #      no other rules doc cites a skill's heading bare after a possessive, even split across a
-#      line break (dev-q47w). Apart from that, nor a step name of a skill in quotes, a heading in
+#      line break. Nor does a step name of a skill in quotes, a heading in
 #      bold, or either one bare before "of"/"in" /dev:x or bare after "'s step"/"'s section"
 #      (dev-mnz6), the names read from that skill's SKILL.md (numbered or ## to #### headings;
 #      bold steps, hyphens, punctuation and indents included, regex characters escaped), within
@@ -226,8 +226,8 @@
 # "<dir>/" a dir laid out as there (the same paths under it, each of the same kind). A check on
 # such a file is skipped wherever its verdict depends on nothing the list leaves out: that file
 # and its fixed pattern for most, plus the skills and plugin dirs' layout for the namespace
-# rule. The list vouches for a file only in the role it had there, so a caller leaves out every
-# path it passes as an argument or override. Unset, every check runs.
+# rule, and every skills' SKILL.md for section 18. The list vouches for a file only in the role
+# it had there, so a caller leaves out every path it passes as an argument or override. Unset, every check runs.
 set -u
 root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 fail=0
@@ -2368,14 +2368,17 @@ fi
 # heading cite in neither form, so it fails in every rules doc but the coding standards, which
 # show the wrong forms as examples. The other wrong forms (dev-mnz6) fail the same way: a step
 # name in quotes, a heading in bold, either one bare before "of"/"in" `/dev:x`, and a bare name
-# after the possessive and "step"/"section" (the quoted and bold checks take that word too).
+# after the possessive and "step"/"section" (the quoted and bold checks take either word too).
 # Limits: a name is matched only as the skill's own words (any characters but a bold marker;
 # every regex character in it is escaped), with at most two lowercase words and then of/in
 # between it and the skill (or one "step"/"section" after the possessive), so a longer gap
 # passes, and so does a cite that names the skill without backticks, a name in backticks,
-# "of the `/dev:x` skill", and a bold lead-in with no period that opens no numbered item (read
-# as a label, not a step); a name that is both a step and a heading in one skill is checked in
-# both forms. The bare check also fails plain prose that opens on a short name (Deliver in
+# "of the `/dev:x` skill", single or curly quotes, a comma after the closing quote, a second
+# cite in a list, a case-changed name, a bold name inside quotes, a curly apostrophe, a skill-first
+# cite, and a bold lead-in with no period that opens no numbered item (read as a label, not a
+# step). A name that is both a step and a heading in one skill takes only the bare checks: either
+# marking passes. The heading extractor reads ## to #### lines inside code fences too, so
+# story-to-tasks's template gives Parent, What to build and Acceptance criteria. The bare check also fails plain prose that opens on a short name (Deliver in
 # `/dev:implement-task` the way a story does): no real doc does today, and the fix is a
 # reword.
 standards=$agents/coding-standards.md
@@ -2417,12 +2420,12 @@ if doc 18 "cross-skill cites" "$standards"; then
       else if (numbered) add("step", name)
     }
     END { for (x in k) { split(x, p, SUBSEP); print p[1] "\t" k[x] "\t" p[2] } }' "$skills"/*/SKILL.md)
-  # cite_marked <kind> <what> <mark> <word>: queues a check that a name of the kind (or of both)
-  # is not cited in the mark ('"' or '\*\*') in either word order, after the possessive and
-  # <word> or ahead of the gap; reads s, kind, n, ref and gap
+  # cite_marked <want> <what> <mark>: queues a check that a name of kind <want> (never one of
+  # kind both) is not cited in the mark ('"' or '\*\*') in either word order, after the
+  # possessive and an optional step or section or ahead of the gap; reads s, kind, n, ref and gap
   cite_marked() {
-    [ "$kind" = "$1" ] || [ "$kind" = both ] || return 0
-    lackswc "$2 of /dev:$s in $f" "$ref's( $4)? $3$n[.,;:]?$3|$3$n[.,;:]?$3$gap"
+    [ "$kind" = "$1" ] || return 0   # a name of kind both has no wrong marking (dev-mnz6)
+    lackswc "$2 of /dev:$s in $f" "$ref's( (step|section))? $3$n[.,;:]?$3|$3$n[.,;:]?$3$gap"
   }
   for f in "$agents"/*.md; do
     [ "$f" = "$standards" ] && continue   # it shows the wrong form as its example
@@ -2433,8 +2436,8 @@ if doc 18 "cross-skill cites" "$standards"; then
       gap="( [a-z]+){0,2} (of|in) $ref"
       lackswc "a bare cite of /dev:$s in $f" "(^|[^*\"A-Za-z])$n$gap"
       lackswc "a bare cite after a possessive and step or section of /dev:$s in $f" "$ref's (step|section) $n([^A-Za-z]|$)"
-      cite_marked step "a step name cited in quotes" '"' step
-      cite_marked heading "a heading cited in bold" '\*\*' section
+      cite_marked step "a step name cited in quotes" '"'
+      cite_marked heading "a heading cited in bold" '\*\*'
     done <<< "$cite_names"
   done
   unchanged=$saved_unchanged unchanged_f=/
