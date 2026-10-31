@@ -2431,7 +2431,8 @@ if doc 18 "cross-skill cites" "$standards"; then
     [ "$kind" = "$1" ] || return 0   # a name of kind both has no wrong marking (dev-mnz6)
     lackswc "$2 of /dev:$skill in $f" "$ref's( (step|section))? $3$name[.,;:]?$3|$3$name[.,;:]?$3$gap"
   }
-  for f in "$agents"/*.md; do
+  # every skill's SKILL.md is read too (dev-xyrl), the skills' own docs binding like a rules doc
+  for f in "$agents"/*.md "$skills"/*/SKILL.md; do
     [ "$f" = "$standards" ] && continue   # it shows the wrong forms as examples
     lackswc "an unquoted heading cite of a skill in $f" "\`/dev:[a-z-]+\`'s [A-Z]"
     while IFS=$'\t' read -r skill kind name; do

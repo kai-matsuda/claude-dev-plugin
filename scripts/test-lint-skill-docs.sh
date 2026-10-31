@@ -1567,6 +1567,20 @@ printf '%s\n' "## Zed gate" "" "**Zed gate.** A step." >> "$scratch/skills/imple
 printf '%s\n' "As the Zed gate step of \`/dev:implement-story\` says." >> "$scratch/$orch"
 sec=18 expect "a name both a step and a heading cited bare fails section 18" 1 "present: a bare cite of /dev:implement-story in $scratch/$orch"
 
+# the cite rule binds a skill doc too (dev-xyrl): a wrong cite of another skill's rule in a SKILL.md
+# fails section 18 in each form, and the right forms pass
+fresh
+printf '%s\n' "As \`/dev:task-orchestrator\`'s Two entries says." >> "$scratch/skills/implement-task/SKILL.md"
+sec=18 expect "a bare heading cite in a SKILL.md fails section 18" 1 "present: an unquoted heading cite of a skill in $scratch/skills/implement-task/SKILL.md"
+
+fresh
+printf '%s\n' "As \`/dev:implement-story\`'s \"Story gate\" says." >> "$scratch/skills/implement-task/SKILL.md"
+sec=18 expect "a step name cited in quotes in a SKILL.md fails section 18" 1 "present: a step name cited in quotes of /dev:implement-story in $scratch/skills/implement-task/SKILL.md"
+
+fresh
+printf '%s\n' "As \`/dev:task-orchestrator\`'s \"Two entries\" says, and \`/dev:implement-story\`'s **Story gate**." >> "$scratch/skills/implement-task/SKILL.md"
+expect "right-form cites in a SKILL.md pass section 18" 0
+
 # a #### heading is a cite target
 fresh
 printf '%s\n' "#### Deep gate" >> "$scratch/skills/implement-story/SKILL.md"
