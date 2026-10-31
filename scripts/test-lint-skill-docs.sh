@@ -1384,7 +1384,7 @@ echo 'Prose may keep a semicolon; one, two.' >> "$scratch/docs/SEQUENCES.md"
 expect "a semicolon outside a mermaid block passes" 0
 
 # another skill's rule is cited in one form (dev-q47w): a heading cited bare after a
-# possessive fails in any rules doc but the coding standards, which show it as the wrong form
+# possessive fails in any rules doc or SKILL.md but the coding standards, which show the wrong form
 fresh
 printf '%s\n' "As \`/dev:task-orchestrator\`'s Two entries says." >> "$scratch/docs/agents/orchestration.md"
 sec=18 expect "a bare heading cite of a skill in a rules doc fails section 18" 1 "present: an unquoted heading cite of a skill in $scratch/docs/agents/orchestration.md"
@@ -1567,8 +1567,8 @@ printf '%s\n' "## Zed gate" "" "**Zed gate.** A step." >> "$scratch/skills/imple
 printf '%s\n' "As the Zed gate step of \`/dev:implement-story\` says." >> "$scratch/$orch"
 sec=18 expect "a name both a step and a heading cited bare fails section 18" 1 "present: a bare cite of /dev:implement-story in $scratch/$orch"
 
-# the cite rule binds a skill doc too (dev-xyrl): a wrong cite of another skill's rule in a SKILL.md
-# fails section 18 in each form, and the right forms pass
+# the cite rule binds a skill doc too (dev-xyrl): a wrong cite of another skill's rule in a
+# SKILL.md fails section 18 in the bare and quoted forms, and the right forms pass
 fresh
 printf '%s\n' "As \`/dev:task-orchestrator\`'s Two entries says." >> "$scratch/skills/implement-task/SKILL.md"
 sec=18 expect "a bare heading cite in a SKILL.md fails section 18" 1 "present: an unquoted heading cite of a skill in $scratch/skills/implement-task/SKILL.md"
@@ -1581,11 +1581,15 @@ fresh
 printf '%s\n' "As \`/dev:task-orchestrator\`'s \"Two entries\" says, and \`/dev:implement-story\`'s **Story gate**." >> "$scratch/skills/implement-task/SKILL.md"
 expect "right-form cites in a SKILL.md pass section 18" 0
 
-# a skill's own steps and headings are no cross-skill cite (dev-xyrl review 1): a SKILL.md citing its
-# own rule in the wrong form passes section 18
+# a skill's own steps and headings are no cross-skill cite (dev-xyrl review 1): a SKILL.md citing
+# its own rule in the wrong form, bare included, passes section 18
 fresh
 printf '%s\n' "As \`/dev:implement-story\`'s \"Story gate\" says, and \`/dev:implement-story\`'s **Landing** section." >> "$scratch/skills/implement-story/SKILL.md"
 expect "a skill's own step cited in quotes in its SKILL.md passes section 18" 0
+
+fresh
+printf '%s\n' "As \`/dev:implement-story\`'s Landing says." >> "$scratch/skills/implement-story/SKILL.md"
+expect "a skill's own heading cited bare in its SKILL.md passes section 18" 0
 
 # a #### heading is a cite target
 fresh
