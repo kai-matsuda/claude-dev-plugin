@@ -208,7 +208,10 @@
 # DOCS_DIR overrides the docs directory the namespace rule scans (default: docs under the repo root).
 # USER_CLAUDE_MD overrides the project CLAUDE.md (default: CLAUDE.md under the repo root).
 # GLOSSARY_MD overrides the root glossary (default: GLOSSARY.md under the repo root).
-# LINT_PINS_DIR overrides the directory of the pin tables (default: scripts under the repo root).
+# LINT_PINS_DIR overrides the directory of the pin tables (default: scripts under the repo root); a
+# missing directory or table fails, as a missing doc does.
+# LINT_PIN_LIST names a file every queued check is appended to first, for the regression test to
+# derive its drop cases from.
 # PLUGIN_SKILLS overrides the plugin skills directory (default: newest installed mattpocock-skills).
 # The last section is the version-bump rule (INFRA-30): a change to what the plugin ships
 # needs a changed version in .claude-plugin/plugin.json. VERSION_BUMP_REPO overrides the repo it
@@ -259,7 +262,8 @@ drop_unchanged() {
 # enqueue <check line>: queues it unless $f is a file LINT_UNCHANGED lists
 # LINT_PIN_LIST names a file every check is appended to first, one per line as
 # <type> <file> <description> <phrase> [<anchor>] (the queue's own line), for the regression test
-# to derive its drop cases from; no check is skipped then
+# to derive its drop cases from; the list holds every check, though enqueue still skips queueing
+# the checks of an unchanged file
 enqueue() {
   [ -z "${LINT_PIN_LIST:-}" ] || printf '%s\n' "$1" >> "$LINT_PIN_LIST"
   unchanged_file || queue+="$1"$'\n'
@@ -285,6 +289,7 @@ opening_has() { enqueue "o	$f	$1	$2"; }
 # opening with # and an empty line are skipped; a row short of a field, or with another check, fails
 pins_from() {
   local check d phrase
+  [ -f "$1" ] || { bad "missing pin table: $1"; return 0; }
   while IFS=$'\t' read -r check d phrase; do
     case $check in '#'*|'') continue ;; esac
     if [ -z "$d" ] || [ -z "$phrase" ]; then bad "${1##*/}: a row needs a check, a description and a phrase: $check"; continue; fi
@@ -441,10 +446,12 @@ user_claude_md=${USER_CLAUDE_MD:-$root/CLAUDE.md}
 glossary_md=${GLOSSARY_MD:-$root/GLOSSARY.md}
 runbook=${2:-$root/docs/WORKFLOW.md}
 pins_dir=${LINT_PINS_DIR:-$root/scripts}
+# the plain-command line every worktree brief carries, written once (dev-yqpz)
+plain_command='plain-command line, one plain `git` or `bd` command per Bash call, every path spelled out'
 # the dirs and the docs no section owns must exist, a default as much as an override; the
 # driver ($1) and the runbook ($2) are their sections' documents
 section "0. paths"
-for given in "$skills" "$agents" "$docs"; do
+for given in "$skills" "$agents" "$docs" "$pins_dir"; do
   [ -d "$given" ] || bad "no such directory: $given"
 done
 for given in "$user_claude_md" "$glossary_md"; do
@@ -1412,7 +1419,8 @@ sec_has "## Landing" "a landing closes the task" 'A landing closes the task: `bd
 sec_has "## Landing" "the fast-forward guards the resolved tip" 'confirm `git -C <owner> rev-parse <task branch>` prints the resolved tip, `git -C <worktree path> rev-parse HEAD`'
 sec_has "## Landing" "a story fix-up's tip is read from its worktree" 'its `<tip SHA>` is `git -C <worktree path> rev-parse HEAD`'
 lacksf "the reviewed-tip guard repeated after a conflict resolution" "repeat 1's guards"
-hase "the conflict implementer's brief starts with the TMPDIR line and the plain-command line" '^3\. A conflict goes to an implementer.*TMPDIR line.*plain-command line, one plain .git. or .bd. command per Bash call, every path spelled out'
+line_has '^3\. A conflict goes to an implementer' "the conflict implementer's brief starts with the TMPDIR line" 'TMPDIR line'
+line_has '^3\. A conflict goes to an implementer' "the conflict implementer's brief carries the plain-command line" "$plain_command"
 line_has '^3\. A conflict goes to an implementer' "the conflict implementer's check and test timeout" 'timeout: 600000'
 line_has '^   - `<id> failed: <reason>`' "a first failure after a red on a resolved tree retries at the gate" 'that one enters at the gate on the resolved branch'
 # any other first failure probes for the commits its attempt left, as implement-task's retry does (dev-a3c0)
@@ -1528,27 +1536,28 @@ lacks "the resume: line printed only with content" '`resume:` lines appear only'
 hasc "TMPDIR line stated in the skill" 'mkdir -p <worktree>/.tmp && export TMPDIR=<worktree>/.tmp'
 hasc "export repeated per Bash call" 'repeated at the head of every Bash call'
 hasc "mktemp -d takes a template under .tmp" 'mktemp -d <worktree>/.tmp/<name>.XXXXXX'
-hase "the story review's fix-up brief starts with the TMPDIR line" '^7\. .*TMPDIR line'
+line_has '^7\. ' "the story review's fix-up brief starts with the TMPDIR line" 'TMPDIR line'
 # next to its TMPDIR line, every worktree brief carries the plain-command line inline: briefs that
 # only cited the harness doc's Literal paths drew 14 guard refusals in INFRA-33's run (dev-ask);
 # step 3 names it for both of its fix-up briefs
-hasc "plain-command line stated in the skill" 'plain-command line, one plain `git` or `bd` command per Bash call, every path spelled out'
-line_hase 'starts with the \*\*TMPDIR line\*\*' "the Owner repo bullet states the plain-command line" 'TMPDIR line.*plain-command line, one plain .git. or .bd. command per Bash call, every path spelled out'
-hase "the story review's fix-up brief carries the plain-command line" '^7\. .*TMPDIR line.*plain-command line, one plain .git. or .bd. command per Bash call, every path spelled out'
+hasc "plain-command line stated in the skill" "$plain_command"
+line_has 'starts with the \*\*TMPDIR line\*\*' "the Owner repo bullet states the plain-command line" "$plain_command"
+line_has '^7\. ' "the story review's fix-up brief carries the plain-command line" "$plain_command"
 # on the harness route the TMPDIR line is two steps: a bare pwd as the first Bash call, then the
 # path it printed spelled literally in every later export, since agents left to fill in the path
 # wrote $PWD and the guard refused it in INFRA-35's run (dev-r1p)
-line_hase 'starts with the \*\*TMPDIR line\*\*' "the Owner repo bullet states the bare pwd step" 'first Bash call is .pwd. alone.*spelled literally in every later .export.'
+line_has 'starts with the \*\*TMPDIR line\*\*' "the Owner repo bullet states the bare pwd step" 'first Bash call is `pwd` alone'
+line_has 'starts with the \*\*TMPDIR line\*\*' "the Owner repo bullet spells the path literally in later exports" 'spelled literally in every later `export`'
 lacks "the retired fill-in-the-pwd-path wording" 'fills in the path `pwd` prints'
 lacks "Gitignore step counts three entries" "the rule's three entries"
-hase "the story review (step 7) points at the rules doc's Review verdict" "^7\. .*the rules doc's Review verdict"
+line_has '^7\. ' "the story review (step 7) points at the rules doc's Review verdict" "the rules doc's Review verdict"
 lacks "the zero-findings bar" 'not clean after three rounds|no findings at all|clean means zero findings'
 # the check target probe, its refusal and the once-per-run resolution are the rules doc's Story
 # plumbing, pinned in section 6 (dev-yykg, dev-de4, dev-b3p, ADR 0015); scripts/test-check-target.sh
 # runs the pinned query on scratch repos; step 3 cites it, and the
 # run's check command still goes in every brief and gates step 7
 C='^   Apply the rules doc'"'"'s Repo plumbing and Cut-off probe'
-hase "step 3 applies the rules doc's Repo plumbing and Cut-off probe" "$C"
+line_has '^   Apply ' "step 3 applies the rules doc's Repo plumbing and Cut-off probe" "Apply the rules doc's Repo plumbing and Cut-off probe"
 line_has "$C" "step 3 resolves the check command through the repo plumbing and Cut-off probe" 'its Check target, whose `<check command>`'
 line_has "$C" "the run's check command goes in every brief" 'every task orchestrator brief carries and step 7 gates on'
 line_has "$C" "the Gitignore commit is the rule's, in the repo plumbing and Cut-off probe" 'its Gitignore commit'
@@ -1705,18 +1714,20 @@ done
 # (chezmoi-3eg, dev-ask); on the harness route the TMPDIR line is two steps (dev-r1p)
 hasc "task orchestrator brief points at the harness doc's TMPDIR rule" "the harness doc's TMPDIR rule"
 for step in 2 3; do
-  hase "task orchestrator step $step's brief starts with the TMPDIR line" "^$step\. .*TMPDIR line"
+  line_has "^$step\\. " "task orchestrator step $step's brief starts with the TMPDIR line" 'TMPDIR line'
 done
-hase "task orchestrator step 2's brief carries the plain-command line" '^2\. .*TMPDIR line.*plain-command line, one plain .git. or .bd. command per Bash call, every path spelled out'
-hase "task orchestrator step 3's brief carries the plain-command line" '^3\. .*TMPDIR line.*plain-command line, one plain .git. or .bd. command per Bash call, every path spelled out.*TMPDIR line.*plain-command line, one plain .git. or .bd. command per Bash call, every path spelled out'
-hase "the task orchestrator header carries the plain-command line" '^You are the \*\*task orchestrator\*\*.*TMPDIR line.*plain-command line, one plain .git. or .bd. command per Bash call, every path spelled out'
-hase "task orchestrator step 2's brief names the bare pwd step" '^2\. .*TMPDIR line.*first Bash call is .pwd. alone.*spelled literally in every later .export.'
+line_has '^2\. ' "task orchestrator step 2's brief carries the plain-command line" "$plain_command"
+line_has '^3\. ' "task orchestrator step 3's brief carries the plain-command line" "$plain_command"
+line_has '^3\. .*plain-command line.*plain-command line' "task orchestrator step 3's second brief carries the plain-command line" "$plain_command"
+line_has '^You are the \*\*task orchestrator\*\*' "the task orchestrator header carries the plain-command line" "$plain_command"
+line_has '^2\. ' "task orchestrator step 2's brief names the bare pwd step" 'first Bash call is `pwd` alone'
+line_has '^2\. ' "task orchestrator step 2's brief spells the path literally in later exports" 'spelled literally in every later `export`'
 # the reviewer brief carries the two tags and the verdict line, and step 3 points at the rules
 # doc's Review verdict (chezmoi-49k)
 for phrase in 'verdict: clean' 'verdict: blocking (<n>)' '**blocking** or **minor**' 'within the budget above'; do
   line_has '^3\. ' "task orchestrator step 3's reviewer brief" "$phrase"
 done
-hase "task orchestrator step 3 points at the rules doc's Review verdict" "^3\. .*the rules doc's Review verdict"
+line_has '^3\. ' "task orchestrator step 3 points at the rules doc's Review verdict" "the rules doc's Review verdict"
 lacks "the zero-findings bar" 'not clean after three rounds|no findings at all|clean means zero findings'
 # the skill states its row of the rules doc's table, the run's check command from its brief, and
 # cites the harness doc in one line (dev-9k5.1.7); its row reports a reviewed branch (dev-b8d.1.4)
@@ -1750,7 +1761,7 @@ line_has "$G3" "the loop step cites the rules doc's loop" "as the rules doc's Ch
 line_has "$G3" "a red starts the loop over from the checks" 'A red spawns a fresh implementer on the fix-up and the loop starts over from the checks'
 line_has "$G3" "a blocking verdict starts the loop over from the checks, never straight to the reviewers" 'a blocking verdict spawns a fresh implementer on the fix-up and the loop starts over from the checks, never straight to the reviewers'
 line_has "$G3" "a clean verdict exits the loop" '**Clean** exits the loop'
-line_hase "$G3" "the check gate runs before step 3's reviewer" '\*\*Check gate\*\*.*Green:.*for `medium` and `high`, spawn two \*\*reviewers\*\*'
+line_has "$G3" "the check gate runs before step 3's reviewer" 'go to step 4; for `medium` and `high`, spawn two **reviewers**'
 unchanged_file || ! grep -E "$G3" "$f" | sed 's/Green: .*//' | grep -qF -- 'spawn two **reviewers**' || bad "present: task orchestrator step 3 spawns a reviewer ahead of the checks' green"
 # one reviewer per axis, combined into one verdict line (dev-bzd)
 line_has "$G3" "the task review spawns one reviewer per axis" 'spawn two **reviewers**, one per axis'

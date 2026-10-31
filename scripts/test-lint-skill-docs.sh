@@ -5,9 +5,10 @@
 # the tree references. The clean copy passes; every section has seeded copies that fail it and
 # it alone (the "== <n>. " header the lint prints over its FAIL lines tells which section
 # failed), and a copy missing a section's document fails naming that document rather than
-# skipping the section (dev-dov). The per-phrase cases are the dotfiles source's, ported to the
-# plugin layout and the dev: namespace; the namespace rule (section 11), the brief rule
-# (section 13) and the path checks keep their own cases.
+# skipping the section (dev-dov). Every pinned phrase of the lint has its drop cases derived from
+# the lint's own list of its checks (LINT_PIN_LIST), so no case copies a phrase (dev-yqpz); the
+# cases below that are written by hand seed a retired or absent phrase, and the namespace rule
+# (section 11), the brief rule (section 13) and the path checks keep their own cases.
 # The last section drives the version-bump rule on a throwaway git repo (VERSION_BUMP_REPO,
 # VERSION_BUMP_BASE; the other cases point the repo at a non-repo path and pin the base to HEAD):
 # its shipping pathspec, uncommitted edits and bumps, and the base on a detached HEAD.
@@ -292,7 +293,7 @@ expect "an explicit runbook path that does not exist fails" 1 "missing document:
 fresh
 sec=1 expect "an unchanged skill passed as the implement-spec skill fails section 1" 1 "" "$scratch/skills/workflow/SKILL.md"
 
-for var in skills_dir agent_docs claude_md glossary_md; do
+for var in skills_dir agent_docs claude_md glossary_md pins_dir; do
   fresh
   eval "$var=$scratch/nope"
   expect "a set override ($var) naming a missing path fails" 1 "no such"
@@ -642,14 +643,12 @@ fresh
 mv "$scratch/docs/agents/orchestration.md" "$scratch/docs/agents/orchestrator.md"
 expect "a renamed rules doc fails naming its missing document" 1 "missing document: $scratch/docs/agents/orchestration.md"
 
-# --- the dotfiles source's per-phrase cases, each failing one section ---
+# --- hand-written cases of absent phrases and rules; the drop case of each pinned phrase is derived below ---
 sec=one
 
 fresh
 echo "next: /dev:spec-to-tikets <KEY>-<n>" >> "$scratch/skills/workflow/SKILL.md"
 expect "misspelt command in /dev:workflow fails" 1
-
-  "missing in the **Delivery authority.** paragraph: /dev:implement-task is typed to deliver a PR"
 
 fresh
 echo "push when the active profile permits" >> "$scratch/docs/agents/orchestration.md"
@@ -758,11 +757,6 @@ done
 fresh
 echo 'switch -c feat/<key>-<n> main' >> "$scratch/skills/implement-story/SKILL.md"
 sec=5 expect "implement-story with the keyed branch form fails" 1
-
-# the guard's mechanism is the rules doc's Repo plumbing and Cut-off probe, stated once (dev-yykg): each pinned
-# phrase dropped from there fails section 6 alone; the skills keep their trigger, refusal lines and
-# the cite
-# (each pinned phrase of the section is dropped, and moved out of it, by the derived pin cases further down)
 
 fresh
 echo 'each sibling appears as `<repo> <url>`' >> "$scratch/skills/implement-story/SKILL.md"
@@ -878,92 +872,10 @@ fresh
 swap_phrase docs/agents/orchestration.md '`/.worktrees/`, `/.spec-notes/` and `/.tmp/`' '`/.tmp/`, `/.worktrees/` and `/.spec-notes/`'
 expect "orchestration doc listing /.tmp/ first among the Gitignore entries passes" 0
 
-# each brief is checked on its own: the line dropped from one step alone still fails (every
-# occurrence on that step's line: step 3 names it for the gate's fix-up and the blocking
-# fix-up; swap_phrase takes one per pass, so four bounded passes)
-for step in 2 3; do
-  fresh
-  for _ in 1 2 3 4; do
-    swap_phrase skills/task-orchestrator/SKILL.md "^($step\. .*)TMPDIR line" '\1TMPDIR'
-  done
-  sec=16 expect "task-orchestrator whose step $step brief loses the TMPDIR line fails" 1
-done
-
-fresh
-swap_phrase skills/implement-story/SKILL.md '^(3\. A conflict goes to an implementer.*)TMPDIR line' '\1TMPDIR'
-sec=8 expect "implement-story whose conflict implementer's brief loses the TMPDIR line fails" 1 \
-  "missing: the conflict implementer's brief starts with the TMPDIR line and the plain-command line"
-
-fresh
-swap_phrase skills/implement-story/SKILL.md '^(7\. .*)TMPDIR line' '\1TMPDIR'
-expect "implement-story whose story review fix-up brief loses the TMPDIR line fails" 1
-
-# next to its TMPDIR line, every worktree brief carries the plain-command line inline, since a
-# brief that only cites the harness doc's Literal paths drew 14 guard refusals (dev-ask); each
-# brief is checked on its own, step 3's two by its last occurrence alone
-pc='plain-command line, one plain `git` or `bd` command per Bash call, every path spelled out'
-for step in 2 3; do
-  fresh
-  swap_phrase skills/task-orchestrator/SKILL.md "^($step\. .*)plain-command line, one plain" '\1one plain'
-  sec=16 expect "task-orchestrator whose step $step brief loses the plain-command line fails" 1 \
-    "missing: task orchestrator step $step's brief carries the plain-command line"
-done
-
-fresh
-swap_phrase skills/implement-story/SKILL.md '^(3\. A conflict goes to an implementer.*)plain-command line, one plain' '\1one plain'
-sec=8 expect "implement-story whose conflict implementer's brief loses the plain-command line fails" 1 \
-  "missing: the conflict implementer's brief starts with the TMPDIR line and the plain-command line"
-
-fresh
-swap_phrase skills/implement-story/SKILL.md '^(7\. .*)plain-command line, one plain' '\1one plain'
-expect "implement-story whose story review fix-up brief loses the plain-command line fails" 1 \
-  "missing: the story review's fix-up brief carries the plain-command line"
-
-fresh
-swap_phrase skills/task-orchestrator/SKILL.md '^(You are the .*)plain-command line, one plain' '\1one plain'
-sec=16 expect "task-orchestrator whose row paragraph loses the plain-command line fails" 1 \
-  "missing: the task orchestrator header carries the plain-command line"
-
-fresh
-swap_phrase skills/implement-story/SKILL.md '(starts with the \*\*TMPDIR line\*\*.*)plain-command line, one plain' '\1one plain'
-expect "implement-story whose Owner repo bullet loses the plain-command line fails" 1 \
-  "missing: the Owner repo bullet states the plain-command line"
-
-fresh
-drop_phrase skills/implement-story/SKILL.md "$pc"
-expect "implement-story without the plain-command line anywhere fails" 1 \
-  "missing (case-sensitive): plain-command line stated in the skill"
-
-# on the harness route the TMPDIR line is two steps, a bare pwd as the first Bash call, then the
-# path it printed spelled literally in every later export, since agents left to fill in the path
-# wrote $PWD and the guard refused it (dev-r1p); each pin loses each half, the pwd step and the
-# literal path, in a case of its own
-fresh
-swap_phrase skills/implement-story/SKILL.md '(starts with the \*\*TMPDIR line\*\*.*)first Bash call is `pwd` alone' '\1first Bash call runs `pwd`'
-expect "implement-story whose Owner repo bullet loses the bare pwd step fails" 1 \
-  "missing: the Owner repo bullet states the bare pwd step"
-
-fresh
-swap_phrase skills/implement-story/SKILL.md '(starts with the \*\*TMPDIR line\*\*.*)spelled literally in every later `export`' '\1in every later `export`'
-expect "implement-story whose Owner repo bullet drops the literal path from later exports fails" 1 \
-  "missing: the Owner repo bullet states the bare pwd step"
-
-fresh
-swap_phrase skills/task-orchestrator/SKILL.md '^(2\. .*)first Bash call is `pwd` alone' '\1first Bash call runs `pwd`'
-sec=16 expect "task-orchestrator whose step 2 brief loses the bare pwd step fails" 1 \
-  "missing: task orchestrator step 2's brief names the bare pwd step"
-
-fresh
-swap_phrase skills/task-orchestrator/SKILL.md '^(2\. .*)spelled literally in every later `export`' '\1in every later `export`'
-sec=16 expect "task-orchestrator whose step 2 brief drops the literal path from later exports fails" 1 \
-  "missing: task orchestrator step 2's brief names the bare pwd step"
-
 fresh
 printf 'on the harness route the implementer fills in the path `pwd` prints\n' >> "$scratch/skills/implement-story/SKILL.md"
 expect "implement-story with the retired fill-in-the-pwd-path wording fails" 1 \
   "present: the retired fill-in-the-pwd-path wording"
-
-  "missing (case-sensitive): task orchestrator brief points at the harness doc's TMPDIR rule"
 
 fresh
 echo "its commit holds one of the rule's three entries" >> "$scratch/skills/implement-story/SKILL.md"
@@ -1073,8 +985,7 @@ fresh
 echo 'For each pair of stories, decide which is the dependent' >> "$scratch/skills/spec-to-stories/SKILL.md"
 expect "spec-to-stories detecting dependencies per pair fails" 1
 
-# the stories go out in the story DAG's topological order with one blocker line per edge, in
-# both forms; the quiz, the orientation and the end report show every edge and publish
+# the stories are listed with the dependent after the dependency, not dependency first
 fresh
 echo 'Present the stories as a numbered list, dependency first.' >> "$scratch/skills/spec-to-stories/SKILL.md"
 expect "spec-to-stories ordering the stories dependency first fails" 1
@@ -1083,8 +994,8 @@ fresh
 echo 'The dependency first publishes its crate, then the dependent bumps.' >> "$scratch/skills/spec-to-stories/SKILL.md"
 expect "spec-to-stories saying dependency first outside the list order passes" 0
 
-# a story skipped for waiting on a skipped story gets no epic bead note; the skip cascades
-# over closure and publish edges alike; the cycle refusal precedes step 7's epic bead too
+# the epic bead notes no skipped story, a skipped closure is no invented line, and the frontmatter
+# keeps its story form
 fresh
 echo 'Record each skipped story on the epic bead, as that doc'"'"'s step 2 says.' >> "$scratch/skills/spec-to-stories/SKILL.md"
 expect "spec-to-stories noting every skipped story on the epic bead fails" 1
@@ -1146,15 +1057,6 @@ for phrase in "walking up" "walk up" "one level up" "the home repo included" "th
   expect "$phrase in the runbook copy fails" 1
 done
 
-# section 1 lints the implement-spec file it is handed, so these cases edit a scratch copy of it and
-# hand that copy to expect (chezmoi-9v4.1.6): the pinned story-closure lines, and "no merge
-# steps" narrowed to let the human-stop line through while a merge procedure still fails
-spec=$scratch/spec.md
-fresh_spec() { fresh; cp "$scratch/skills/implement-spec/SKILL.md" "$spec"; }
-
-fresh_spec
-expect "implement-spec with the human-stop merge line passes" 0 "" "$spec" "$scratch/docs/WORKFLOW.md"
-
 # Every positive check of the lint (has, hasc, hase, line_has, line_hase, para_has, sec_has,
 # opening_has) and every lacksf, pinned inline in lint-skill-docs.sh or read from a pin table, has one drop case
 # here, derived from the lint's own list of its checks (LINT_PIN_LIST), so a phrase is written in
@@ -1164,6 +1066,21 @@ expect "implement-spec with the human-stop merge line passes" 0 "" "$spec" "$scr
 # regex (and the anchor, when given), for a case whose pin is a pattern, not a phrase
 drop_matching() {
   re="$2" an="${3:-}" awk '{ if ($0 ~ ENVIRON["re"] && (ENVIRON["an"] == "" || $0 ~ ENVIRON["an"])) next; print }' \
+    "$scratch/$1" > "$scratch/$1.new" && mv "$scratch/$1.new" "$scratch/$1"
+}
+# prefix_matching <file under scratch> <regex>: put a word ahead of every line matching the regex
+prefix_matching() {
+  re="$2" awk '{ if ($0 ~ ENVIRON["re"]) $0 = "x " $0; print }' "$scratch/$1" > "$scratch/$1.new" && mv "$scratch/$1.new" "$scratch/$1"
+}
+# pin_phrase <description>: sets pp to the phrase of the lint's pin of that description, from its list
+pin_phrase() {
+  pp=$(awk -F '\t' -v d="$1" '$3 == d { print $4; exit }' "$jobs/pins.list")
+  [ -n "$pp" ] || { echo "FAIL pin_phrase: the lint has no pin described '$1'"; fails=$((fails+1)); pp=NO-SUCH-PIN; }
+}
+# move_to_line_end <file under scratch> <anchor regex> <phrase>: on the lines matching the anchor,
+# take the phrase out of where it stands and append it to the line's end
+move_to_line_end() {
+  an="$2" p="$3" awk '{ if ($0 ~ ENVIRON["an"] && (i = index($0, ENVIRON["p"]))) $0 = substr($0, 1, i - 1) substr($0, i + length(ENVIRON["p"])) " " ENVIRON["p"] "." } { print }' \
     "$scratch/$1" > "$scratch/$1.new" && mv "$scratch/$1.new" "$scratch/$1"
 }
 # drop_pin <type> <file under scratch> <phrase> <anchor>: seeds the doc without the pinned phrase
@@ -1180,16 +1097,26 @@ export LINT_PIN_LIST=$jobs/pins.list
 : > "$LINT_PIN_LIST"
 lint_scratch > /dev/null
 unset LINT_PIN_LIST
-npins=0 nmoved=0
+# every kind of check the lint queues is named here: a positive one gets a drop case, a lacksf one
+# its phrase seeded, an absent-phrase one (x y w W X) none; a kind named nowhere fails, so a new one
+# cannot go without a case
+pos_types=" i c e a A p S o "
+seed_types=" f "
+absent_types=" x y w W X "
+moved_types=" a S p o "
+npins=0 nmoved=0 nanch=0
 while IFS=$'\t' read -r -u 4 ptype pfile pdesc pphrase panchor; do
-  case $ptype in i|c|e|a|A|p|S|o|f) ;; *) continue ;; esac
+  case $absent_types in *" $ptype "*) continue ;; esac
+  case $pos_types$seed_types in *" $ptype "*) ;;
+    *) echo "FAIL pin list: '$pdesc' is a check of kind '$ptype', which this test has no drop case for"; fails=$((fails+1)); continue ;;
+  esac
   prel=${pfile#"$scratch"/}
   if [ "$prel" = "$pfile" ] || [ ! -f "$pristine/$prel" ] || [ -z "$pdesc" ] || [ -z "$pphrase" ]; then
     echo "FAIL pin list: '$pdesc' ($pphrase) names no file under the scratch tree: $pfile"
     fails=$((fails+1)); continue
   fi
   npins=$((npins+1))
-  if [ "$ptype" = f ]; then   # a lacksf: the phrase seeded into the doc fails it
+  if [[ $seed_types == *" $ptype "* ]]; then   # a lacksf: the phrase seeded into the doc fails it
     fresh
     printf '\n%s\n' "$pphrase" >> "$scratch/$prel"
     expect "pin $npins: $prel with '$pdesc' seeded fails" 1 "present: $pdesc ("
@@ -1201,22 +1128,43 @@ while IFS=$'\t' read -r -u 4 ptype pfile pdesc pphrase panchor; do
   # a pinned phrase moved out of its scope, still fails: ahead of the doc for a section or a
   # paragraph (the last section of a doc runs to its end), to its end for the opening or an
   # anchored line (the anchor's line no longer holds it)
-  case $ptype in a|S|p|o)
+  # a pattern pinned to the start of a line fails once its lines start with another word
+  if [ "$ptype" = e ] && [ "${pphrase:0:1}" = '^' ]; then
+    nanch=$((nanch+1))
+    fresh
+    prefix_matching "$prel" "$pphrase"
+    expect "pin $npins: $prel with '$pdesc' no longer at the start of its line fails" 1 ": $pdesc ("
+  fi
+  if [[ $moved_types == *" $ptype "* ]]; then
     nmoved=$((nmoved+1))
     fresh
     drop_phrase "$prel" "$pphrase" $([ "$ptype" = p ] && echo -i)
     if [ "$ptype" = o ] || [ "$ptype" = a ]; then printf '\n%s\n' "$pphrase" >> "$scratch/$prel"
     else { printf '%s\n\n' "$pphrase"; cat "$scratch/$prel"; } > "$scratch/$prel.new" && mv "$scratch/$prel.new" "$scratch/$prel"; fi
     expect "pin $npins: $prel with '$pdesc' moved out of its scope fails" 1 ": $pdesc ("
-  esac
+  fi
 done 4< "$jobs/pins.list"
 expect_flush all
-# the derivation must have found the pins it derives from, the tables' included
-if [ "$npins" -gt 0 ] && [ "$nmoved" -gt 0 ] && [ "$(grep -c . "$repo_root/scripts/implement-spec-pins.tsv")" -gt 0 ]; then
-  echo "ok   $npins pin cases derived from the lint's list ($nmoved of them also moved out of their scope)"
+# the derivation must have found the pins it derives from: the list holds a pin for every row of
+# each pin table, so a table whose pins_from call is lost gets no drop case and fails here
+guard=1
+for table in implement-spec-pins repo-plumbing-pins; do
+  read -r found want < <(awk -F '\t' 'NR == FNR { if ($0 !~ /^#/ && NF >= 3) want[$2]; next }
+    $3 in want { got[$3] } END { for (k in want) w++; for (k in got) g++; print g + 0, w + 0 }' "$repo_root/scripts/$table.tsv" "$jobs/pins.list")
+  if [ "$want" -eq 0 ] || [ "$found" -ne "$want" ]; then
+    echo "FAIL pin list holds $found of the $want rows of $table.tsv"; fails=$((fails+1)); guard=0
+  fi
+done
+if [ "$npins" -gt 0 ] && [ "$nmoved" -gt 0 ] && [ "$nanch" -gt 0 ] && [ "$guard" = 1 ]; then
+  echo "ok   $npins pin cases derived from the lint's list ($nmoved also moved out of their scope, $nanch also off the start of their line)"
 else
-  echo "FAIL no pin case was derived from the lint's list ($npins pins, $nmoved moved)"; fails=$((fails+1))
+  echo "FAIL no pin case was derived from the lint's list ($npins pins, $nmoved moved, $nanch anchored)"; fails=$((fails+1))
 fi
+
+# the derived anchored case needs the lint's pattern to open with ^: the one review tool paragraph
+# pin, which names no heading, must stay anchored on its line (losing the ^ makes it match mid-line)
+pin_phrase "the one review tool paragraph"
+fx_check "the one review tool paragraph pin is anchored on its line" test "${pp:0:1}" = '^'
 
 # a pin table row short of a field, or with an unknown check, fails the lint rather than being
 # skipped or read as an empty phrase (which every doc holds)
@@ -1229,12 +1177,31 @@ for table in implement-spec-pins repo-plumbing-pins; do
     # a sec row is the repo plumbing table's own kind; the other table has no heading for it
     ! { [ "$table" = repo-plumbing-pins ] && [[ $row == sec* ]]; } || continue
     fresh
-    mkdir "$scratch/pins" && cp "$repo_root/scripts/$table.tsv" "$scratch/pins/"
+    mkdir "$scratch/pins" && cp "$repo_root/scripts/implement-spec-pins.tsv" "$repo_root/scripts/repo-plumbing-pins.tsv" "$scratch/pins/"
     printf '%s\n' "$row" >> "$scratch/pins/$table.tsv"
     pins_dir=$scratch/pins
     expect "$table.tsv with the row '${row//$'\t'/<tab>}' fails" 1 "$table.tsv: ${case#*|}"
     unset pins_dir
   done
+done
+
+# section 1 lints the implement-spec file it is handed, so the cases below edit a scratch copy of it
+# and hand that copy to expect (chezmoi-9v4.1.6): the human-stop line passing "no merge steps"
+# while a merge procedure still fails, and the cases of its lacks checks
+spec=$scratch/spec.md
+fresh_spec() { fresh; cp "$scratch/skills/implement-spec/SKILL.md" "$spec"; }
+
+fresh_spec
+expect "implement-spec with the human-stop merge line passes" 0 "" "$spec" "$scratch/docs/WORKFLOW.md"
+
+# a pin table gone from the pins directory turns its pins off unless the lint fails naming it
+for table in implement-spec-pins repo-plumbing-pins; do
+  fresh
+  mkdir "$scratch/pins" && cp "$repo_root/scripts/implement-spec-pins.tsv" "$repo_root/scripts/repo-plumbing-pins.tsv" "$scratch/pins/"
+  rm "$scratch/pins/$table.tsv"
+  pins_dir=$scratch/pins
+  expect "a pins directory without $table.tsv fails" 1 "missing pin table: $scratch/pins/$table.tsv"
+  unset pins_dir
 done
 
 fresh_spec
@@ -1533,49 +1500,7 @@ fresh
 printf '%s\n' "The wrong form: \`/dev:task-orchestrator\`'s Two entries." >> "$scratch/docs/agents/coding-standards.md"
 expect "a bare heading cite in the coding standards passes section 18" 0
 
-# the model (dev-9k5.1.3): the loop sentence, the table's header and its three rows, each dropped
-# whole and each pinned cell dropped from its row alone, so a cell kept elsewhere cannot pass
 orch=docs/agents/orchestration.md
-# each case is <row>@<cell>@<the lint's description>, so a case fails on its own pin
-for case in "Task@| task orchestrator |@task row: the task orchestrator" \
-  "Task@| one implementer in a worktree |@task row: one implementer in a worktree" \
-  "Task@| the check command |@Task row: the check command" \
-  "Task@| the task's body |@task row: the task's body as spec" \
-  "Task@| the task diff |@task row: the task diff as standards" \
-  "Task@; none at \`low\` |@task row: both axes at the review model, none at low" \
-  "Task@| an implementer by pointer brief, same worktree |@task row: a fix-up by pointer brief, same worktree" \
-  "Task@| reports its reviewed branch, which the story orchestrator merges |@task row: lands by reporting its reviewed branch for the story orchestrator to merge" \
-  "Task@| three fix-ups |@task row: three fix-ups" \
-  "Story@| story orchestrator |@story row: the story orchestrator" \
-  "Story@| task orchestrators in parallel over the frontier |@story row: task orchestrators over the frontier" \
-  "Story@| the check command |@Story row: the check command" \
-  "Story@| the story's body |@story row: the story's body as spec" \
-  "Story@what entered since the last standards review: conflict resolutions, cross-task coherence and the story gate's fix-up commits@story row: what entered since as standards" \
-  "Story@| both axes, at the review model of the story's max tier |@story row: both axes at the review model of the story's max tier" \
-  "Story@| an implementer by pointer brief in a fix-up worktree |@story row: a fix-up by pointer brief in a fix-up worktree" \
-  "Story@| merges each reviewed task branch after the stray-commit check; push, the PR staying a draft |@story row: lands by merging each reviewed task branch, then a push, the PR a draft" \
-  "Story@| three fix-ups; three conflict resolutions per landing |@story row: three fix-ups and three conflict resolutions per landing" \
-  "Epic@| epic orchestrator |@epic row: the epic orchestrator" \
-  "Epic@| story orchestrators in parallel over the frontier |@epic row: story orchestrators over the frontier" \
-  "Epic@| the check command as the forge runs it |@epic row: the check command as the forge runs it" \
-  "Epic@| the Jira Epic's spec |@epic row: the Jira Epic's spec" \
-  "Epic@| none, the axis is skipped |@epic row: no standards axis" \
-  "Epic@| the spec axis only, at the review model of the epic's max tier |@epic row: the spec axis only at the review model of the epic's max tier" \
-  'Epic@| findings filed as `ready-for-agent` tasks under the story, that story re-run in add mode |@epic row: findings filed as tasks, the story re-run in add mode' \
-  "Epic@the PR marked ready, the human merges@epic row: the PR marked ready, the human merges" \
-  "Epic@| three per story |@epic row: three per story" \
-  "Task@| the checks green on the tip the review called clean |@Task row: the one exit" \
-  "Story@| the checks green on the tip the review called clean |@Story row: the one exit" \
-  "Epic@| the checks green on the tip the review called clean |@Epic row: the one exit"; do
-  r=${case%%@*} cell=${case#*@} desc=${case##*@}
-  cell=${cell%@*}
-  fresh
-  # the cell goes from its own row only: a piped cell becomes "| x |", keeping the row's shape,
-  # an unpiped phrase becomes "x"
-  awk -v r="| **$r** |" -v c="$cell" 'index($0, r) == 1 { i = index($0, c); x = substr(c, 1, 1) == "|" ? "| x |" : "x"; if (i) $0 = substr($0, 1, i - 1) x substr($0, i + length(c)) } { print }' \
-    "$scratch/$orch" > "$scratch/$orch.new" && mv "$scratch/$orch.new" "$scratch/$orch"
-  sec=6 expect "orchestration doc's $r row without '$cell' fails" 1 "$desc"
-done
 # the task row's budget regaining the conflict resolutions the landing took to the story row
 fresh
 awk 'index($0, "| **Task** |") == 1 { sub(/\| three fix-ups \|/, "| three fix-ups; three conflict resolutions per landing |") } { print }' \
@@ -1623,9 +1548,6 @@ fresh
 swap_phrase skills/task-orchestrator/SKILL.md '^(You are the .*)within three fix-ups' '\1within three fix-ups and three conflict resolutions per landing'
 sec=16 expect "task-orchestrator whose row regains conflict resolutions fails" 1 "present: the row's conflict resolutions"
 
-fresh
-swap_phrase skills/implement-story/SKILL.md "^   Apply the rules doc's Repo plumbing and Cut-off probe" '   Apply the plumbing'
-expect "a step 3 that does not apply the repo plumbing and Cut-off probe fails" 1 "missing: step 3 applies the rules doc's Repo plumbing and Cut-off probe"
 
 fresh
 echo "grep -q '^check:' <owner>/Makefile tells which" >> "$scratch/skills/implement-story/SKILL.md"
@@ -1677,18 +1599,11 @@ fresh
 swap_phrase skills/implement-story/SKILL.md '^(3\. A conflict goes to an implementer.*)Green: ' "\\1Green: repeat 1's guards and 2's stray-commit check. "
 sec=8 expect "implement-story repeating the reviewed-tip guard after a resolution fails" 1 "present: the reviewed-tip guard repeated after a conflict resolution"
 fresh
-swap_phrase skills/implement-story/SKILL.md '^(3\. A conflict goes to an implementer.*)timeout: 600000' '\1a timeout'
-swap_phrase skills/implement-story/SKILL.md '^(3\. A conflict goes to an implementer.*)timeout: 600000' '\1a timeout'
-sec=8 expect "implement-story whose conflict implementer has no ten-minute limit fails" 1 "missing: the conflict implementer's check and test timeout"
-fresh
 printf '%s\n' 'whose hand-rolled `task/<task-slug>` carries commits' >> "$scratch/skills/implement-story/SKILL.md"
 sec=8 expect "implement-story's brief limiting the gate entry to the hand-rolled route fails" 1 "present: the gate entry limited to the hand-rolled route"
 fresh
 printf '%s\n' 'git log --oneline <branch>..task/<task-slug>' >> "$scratch/skills/implement-story/SKILL.md"
 sec=8 expect "implement-story carrying the cut-off probe's old branch test fails" 1 "present: a second copy of the cut-off probe's old hand-rolled branch test"
-fresh
-swap_phrase skills/implement-story/SKILL.md '^(4\. \*\*Work the frontier\.\*\*.*)at `model: opus`' '\1at `model: sonnet`'
-sec=8 expect "implement-story spawning task orchestrators below opus fails" 1 "missing: the frontier spawn is at opus"
 for case in '   - `<id> closed`: nothing more for that task.|present: a closed report from the task orchestrator' \
   'A task orchestrator is a subagent, not a skill. Send this, filled in:|present: the pasted task orchestrator brief'; do
   fresh
@@ -1722,10 +1637,6 @@ fresh
 rm -r "$scratch/skills/implement-task"
 sec="11 17" expect "a missing implement-task skill dir fails the namespace rule" 1 "/dev:implement-task names no skill"
 
-  "missing in the **Review verdict.** paragraph: the no-seam-test case skips a standalone task without test seams"
-
-  "missing in the **Review verdict.** paragraph: a fanned-out reviewer reports once, after every sub-agent has"
-
 fresh
 printf '%s\n' '| **Standalone task** | story orchestrator | one task orchestrator |' >> "$scratch/docs/agents/orchestration.md"
 sec=6 expect "orchestration with a fourth table row fails" 1 "present: a fourth row in the table"
@@ -1735,24 +1646,6 @@ fresh
 swap_phrase skills/implement-story/SKILL.md '^7\. \*\*Story gate\.\*\*' '7. **Story review.**'
 expect "implement-story step 7 not headed the story gate fails" 1 "missing: step 7 is the story gate"
 
-# the recorded-tree phrase sits on step 3's line too: dropped from step 7's line alone, it fails
-fresh
-swap_phrase skills/implement-story/SKILL.md '^(7\. .*)a tree with a green record \(`exit=0`\) is checked: run nothing' '\1a tree is read'
-expect "story gate step 7 not reading a green tree's record fails" 1 "missing: the story gate reads a green tree's check record and runs nothing"
-fresh
-swap_phrase skills/implement-story/SKILL.md '^(7\. .*)a red record is no check, so the tree is checked again' '\1a red record is read'
-expect "story gate step 7 reusing a red record fails" 1 "missing: the story gate checks a red-recorded tree again"
-# a fix-up that commits nothing has its tree checked again, dropped from step 3's or step 7's line
-# alone, fails (dev-vnf)
-fresh
-swap_phrase skills/task-orchestrator/SKILL.md '^(3\. .*)After a red, a fix-up that commits nothing leaves the tree red-recorded, so the next pass checks it again' '\1a fix-up that commits nothing is read'
-sec=16 expect "task-orchestrator dropping the commits-nothing rule fails" 1 "missing: the task gate checks a red's fix-up that commits nothing again"
-for case in '^(7\. .*)After a red, a fix-up that commits nothing leaves the tree red-recorded, so the next pass checks it again|missing: the story gate checks a red'"'"'s fix-up that commits nothing again' \
-  '^(7\. .*)a green on a tip the `review:` note still names exits|missing: the story gate exits on a green tip its review: note still names'; do
-  fresh
-  swap_phrase skills/implement-story/SKILL.md "${case%%|*}" '\1a fix-up that commits nothing is read'
-  expect "implement-story dropping the commits-nothing rule ('${case%%|*}') fails" 1 "${case#*|}"
-done
 # a red record read as checked, seeded back on step 3's, step 7's or step 9's line, fails (dev-6qi)
 fresh
 swap_phrase skills/task-orchestrator/SKILL.md '^(3\. .*)$' '\1 So a tree with a record is checked: read its exit and run nothing.'
@@ -1765,15 +1658,11 @@ for case in '^(7\. .*)$|\1 So a tree with a record is checked: read its exit and
   expect "implement-story regaining '${rest%%|*}' fails" 1 "${rest#*|}"
 done
 
-# the stall line is read on step 7's line: dropped there while the report template keeps it
+# the checks named after the review on step 7's line: the order pin fails; the phrase comes from
+# the lint's own pin for it
 fresh
-swap_phrase skills/implement-story/SKILL.md '^(7\. .*)`failed: <check> <command>`' '\1a failed line'
-expect "story gate step 7 without its failed: <check> <command> stall line fails" 1 "missing: the story gate's stall line"
-
-# the checks named after the review on step 7's line: the order pin fails
-fresh
-swap_phrase skills/implement-story/SKILL.md '^(7\. .*)Each pass runs the checks first' '\1Each pass begins'
-swap_phrase skills/implement-story/SKILL.md '^(7\. .*)$' '\1 Each pass runs the checks first.'
+pin_phrase "the story gate runs the checks first in each pass"
+move_to_line_end skills/implement-story/SKILL.md '^7\. ' "$pp"
 expect "story gate step 7 with the checks after the two-axis review fails" 1 "missing: the story gate (step 7) runs the checks before the reviewed-tip compare"
 
 # the retired story-gate wording seeded back on its own line fails: a landing agent, a budgeted minors
@@ -1813,36 +1702,14 @@ fresh
 echo 'Then run the seams and keep the command and its output.' >> "$scratch/skills/implement-story/SKILL.md"
 expect "implement-story with 'the command and its output' seeded fails" 1 "the command and its output"
 
-# the reviewer brief's phrases are read on /dev:task-orchestrator's step 3 line alone (each phrase
-# sits once on that line, so the swap hits it)
-for phrase in 'verdict: clean' 'verdict: blocking \(<n>\)' '\*\*blocking\*\* or \*\*minor\*\*' 'within the budget above'; do
-  fresh
-  swap_phrase skills/task-orchestrator/SKILL.md "^(3\. .*)$phrase" '\1'
-  sec=16 expect "task-orchestrator step 3 without '$phrase' fails" 1
-done
-
-# each pointer is checked on its own line: step 3 of /dev:task-orchestrator and step 7 of /dev:implement-story
-fresh
-swap_phrase skills/task-orchestrator/SKILL.md "^(3\. .*)the rules doc's Review verdict" '\1the rules doc'
-sec=16 expect "task-orchestrator step 3 without its pointer at the Review verdict rule fails" 1
-
-fresh
-swap_phrase skills/implement-story/SKILL.md "^(7\. .*)the rules doc's Review verdict" '\1the rules doc'
-expect "story review step 7 without its pointer at the Review verdict rule fails" 1
-
 fresh
 swap_phrase skills/task-orchestrator/SKILL.md '^3\. \*\*Check gate\*\*, every tier' '3. The checks'
 sec=16 expect "task-orchestrator step 3 not opening with the loop fails" 1 "missing: task orchestrator step 3 opens with the check gate, every tier"
 
-# position, each pin on its own: the opener kept, a reviewer spawned ahead of the checks' green
-# (the green's own spawn kept too), then a green that spawns no reviewer
+# position: a reviewer spawned ahead of the checks' green (the green's own spawn kept too)
 fresh
 swap_phrase skills/task-orchestrator/SKILL.md '^(3\. \*\*Check gate\*\*, every tier, )' '\1for `medium` and `high` spawn two **reviewers** alongside it, '
 sec=16 expect "task-orchestrator step 3 spawning the reviewers before the checks' green fails" 1 "present: task orchestrator step 3 spawns a reviewer ahead of the checks' green"
-
-fresh
-swap_phrase skills/task-orchestrator/SKILL.md '^(3\. .*Green: a `low` task exits the loop, go to step 4; for `medium` and `high`, )spawn two \*\*reviewers\*\*' '\1hand the task to two **reviewers**'
-sec=16 expect "task-orchestrator step 3 whose green spawns no reviewer fails" 1 "missing: the check gate runs before step 3's reviewer"
 
 fresh
 swap_phrase skills/task-orchestrator/SKILL.md '^(3\. .*)$' "\\1 Brief the reviewer with the skill's two sub-agents spawned at the tier's review model too."

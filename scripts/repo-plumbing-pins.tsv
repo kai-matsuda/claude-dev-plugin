@@ -54,4 +54,5 @@ sec	the cut-off probe restores a task branch to its hand-rolled path, which step
 sec	the cut-off probe stops and reports when the restore path is taken	stop and report it rather than choose another path
 sec	the cut-off probe's restore prunes with the sandbox disabled	git -C <owner> worktree prune` with the sandbox disabled
 sec	the Bead trailer match is an exact line match	an exact line match
+# The tail of the "no check target" phrase above, pinned again on its own: that row's drop takes the whole phrase, this one only the tail and keeps the rest of the sentence, so a reword of the tail alone still fails.
 sec	a repo with no check target fails the run before any task orchestrator starts, at the tail	before any task orchestrator starts
