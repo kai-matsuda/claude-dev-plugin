@@ -18,10 +18,10 @@
 # The last section drives the version-bump rule on a throwaway git repo (VERSION_BUMP_REPO,
 # VERSION_BUMP_BASE; the other cases point the repo at a non-repo path and pin the base to HEAD):
 # its shipping pathspec, uncommitted edits and bumps, and the base on a detached HEAD.
-# The lint of the plugin's own tree is the Makefile's first step, not repeated here.
+# The lint of the plugin's own tree is one of the Makefile's steps, not repeated here.
 # Each case's lint run goes in the background against the scratch tree, moved into the case's
-# own dir (one tree per expect: fresh builds it, expect takes it), one per CPU, and the results
-# print in case order. Every fresh and snapshot runs in this shell, one after another, so each
+# own dir (one tree per expect: fresh builds it, expect takes it), one per CPU (LINT_TEST_SLOTS
+# forces the count), and the results print in case order. Every fresh and snapshot runs in this shell, one after another, so each
 # is one process: fresh is a cp of a pristine tree built once, the snapshot is a mv, and the
 # verdicts are read and tallied with builtins. Every case but the baseline lints with
 # LINT_UNCHANGED listing its files still byte-identical to the pristine tree, whose queued checks
@@ -58,7 +58,7 @@ njobs=0 shown=0 nl=$'\n'
 mkfifo "$jobs/slots" && exec 3<>"$jobs/slots" || exit 1
 # slots_put <n>: puts n tokens in the pool
 slots_put() { local i; for ((i = 0; i < $1; i++)); do printf x >&3; done; }
-nslots=$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)
+nslots=${LINT_TEST_SLOTS:-$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)}
 slots_put "$nslots"
 case_timeout=${LINT_CASE_TIMEOUT:-120}
 # a slot frees within a case timeout of being taken, plus the case's setup and judging, which
@@ -1259,6 +1259,14 @@ fx_check "the derived cases share their lint runs (under one run per ten cases)"
 pin_phrase "the one review tool paragraph"
 fx_check "the one review tool paragraph pin is anchored on its line" test "${pinned_phrase:0:1}" = '^'
 
+# edit_rows <rename|reword> <table>: writes the pins copy of the table with each row whose description
+# (field 2) is in $rows renamed, or with its phrase (field 3) reworded to hold none of its sweep (the
+# row's line number ends the new phrase, so no two rows read alike)
+edit_rows() {
+  ROWS=$rows awk -F '\t' -v OFS='\t' -v mode="$1" 'BEGIN { n = split(ENVIRON["ROWS"], r, "\n"); for (i = 1; i <= n; i++) hit[r[i]] }
+    $1 !~ /^#/ && ($2 in hit) { if (mode == "rename") $2 = $2 " (renamed)"; else $3 = "a phrase reworded to hold none of its sweep, row " NR }
+    { print }' "$repo_root/scripts/$2.tsv" > "$scratch/pins/$2.tsv"
+}
 # pins_copy: a fresh tree and a copy of the pin tables in it to edit, which the lint reads as its
 # pins directory (pins_dir, which the caller unsets once its case has run)
 pins_copy() {
@@ -1300,33 +1308,38 @@ sec="0 1 6" expect "a missing pins directory fails" 1 "no such directory: $scrat
 unset pins_dir
 
 # a row another check reads by its description (row_phrase, row_sweep) and then finds renamed fails the
-# lint naming it, rather than turning that check off; the descriptions come from the lint's own calls
+# lint naming it, rather than turning that check off; the descriptions come from the lint's own calls.
+# Every such row is renamed in one copy of the table and the lint run once: each rename draws its own
+# message, so one run must name every row (a row's rename touches no other row's message)
 for table in $pin_tables; do
-  nrows=0
-  while IFS= read -r -u 5 row; do
-    nrows=$((nrows+1))
-    pins_copy
-    awk -F '\t' -v OFS='\t' -v d="$row" '$1 !~ /^#/ && $2 == d { $2 = d " (renamed)" } { print }' \
-      "$repo_root/scripts/$table.tsv" > "$scratch/pins/$table.tsv"
-    sec= expect "$table.tsv with the row '$row' renamed fails" 1 "no row '$row' in $table.tsv"
-    unset pins_dir
-  done 5< <(grep -oE "$table \"[^\"]+\"" "$lint" | sed -e 's/^[^ ]* "//' -e 's/"$//' | sort -u)
+  rows=$(grep -oE "$table \"[^\"]+\"" "$lint" | sed -e 's/^[^ ]* "//' -e 's/"$//' | sort -u)
+  nrows=0 msgs=
+  while IFS= read -r row; do
+    [ -n "$row" ] || continue
+    nrows=$((nrows+1)) msgs+="${msgs:+$nl}no row '$row' in $table.tsv"
+  done <<<"$rows"
   [ "$nrows" -gt 0 ] || { echo "FAIL the lint reads no row of $table.tsv by its description"; fails=$((fails+1)); }
+  pins_copy
+  edit_rows rename "$table"
+  sec= expect "$table.tsv with each row the lint reads by its description renamed fails naming all $nrows" 1 "$msgs"
+  unset pins_dir
 done
 
 # a row whose sweep field (the part of the phrase a skill must not restate) is no longer inside its
-# phrase fails the lint, rather than leaving the sweep guarding the old wording (dev-yqpz)
+# phrase fails the lint, rather than leaving the sweep guarding the old wording (dev-yqpz); every such
+# row is reworded in one copy and the lint run once, for the same reason as the renames above
 for table in $pin_tables; do
-  nsweeps=0
-  while IFS= read -r -u 5 row; do
-    nsweeps=$((nsweeps+1))
-    pins_copy
-    awk -F '\t' -v OFS='\t' -v d="$row" '$1 !~ /^#/ && $2 == d { $3 = "a phrase reworded to hold none of its sweep" } { print }' \
-      "$repo_root/scripts/$table.tsv" > "$scratch/pins/$table.tsv"
-    sec= expect "$table.tsv with the phrase of '$row' reworded and its sweep left fails" 1 "$table.tsv: the sweep of '$row' is not inside its phrase"
-    unset pins_dir
-  done 5< <(awk -F '\t' '$1 !~ /^#/ && NF >= 4 && $4 != "" { print $2 }' "$repo_root/scripts/$table.tsv")
+  rows=$(awk -F '\t' '$1 !~ /^#/ && NF >= 4 && $4 != "" { print $2 }' "$repo_root/scripts/$table.tsv")
+  nsweeps=0 msgs=
+  while IFS= read -r row; do
+    [ -n "$row" ] || continue
+    nsweeps=$((nsweeps+1)) msgs+="${msgs:+$nl}$table.tsv: the sweep of '$row' is not inside its phrase"
+  done <<<"$rows"
   [ "$nsweeps" -gt 0 ] || { echo "FAIL $table.tsv holds no row with a sweep field"; fails=$((fails+1)); }
+  pins_copy
+  edit_rows reword "$table"
+  sec= expect "$table.tsv with the phrase of each row with a sweep reworded and its sweep left fails naming all $nsweeps" 1 "$msgs"
+  unset pins_dir
 done
 
 # a doc that keeps the no-check-target setup line but loses the clause after it fails: the clause is

@@ -47,38 +47,58 @@ fx_check "never runs the scripts directly" bash -c '! grep -Eq "run:.*scripts/" 
 fx_check "limits the token to contents: read" bash -c 'sed -n "/^permissions:/,/^[a-z]/p" "$1" | grep -Eq "contents:[[:space:]]*read"' _ "$wf"
 fx_check "cancels superseded runs with a concurrency group" bash -c 'b=$(sed -n "/^concurrency:/,/^[a-z]/p" "$1"); grep -Eq "group:" <<<"$b" && grep -Eq "cancel-in-progress:[[:space:]]*true" <<<"$b"' _ "$wf"
 mk=$repo_root/Makefile
-ci_block=$(awk '/^ci:/{f=1;print;next} f&&!/^\t/{exit} f{print}' "$mk")
 fx_check "the Makefile lint target aliases check" grep -Eq '^lint:[[:space:]]*check([[:space:]]|$)' "$mk"
 fx_check "the lint help line says it aliases check" grep -Eq '^lint:.*##.*alias.*check' "$mk"
-check_block=$(awk '/^check:/{f=1;print;next} f&&!/^\t/{exit} f{print}' "$mk")
-fx_check "the check target runs ci and the fixtures side by side" bash -c 'tail -n +2 <<<"$1" | grep -Eq "\\\$\(MAKE\) fixtures[^;]*&" && tail -n +2 <<<"$1" | grep -Fq "\$(MAKE) ci"' _ "$check_block"
-fx_check "the ci target runs the workflow test" bash -c 'grep -Fq scripts/test-ci-workflow.sh <<<"$1"' _ "$ci_block"
-fx_check "the ci target runs no fixtures, direct or via make" bash -c '! tail -n +2 <<<"$1" | grep -Eq "fixture|MAKE"' _ "$ci_block"
+# make -n prints each target's recipe with its steps spelled out, so the checks below read what
+# the target runs, not how the Makefile spells it
+fx_scratch_dir test-ci-workflow || exit 1
+plan() { make -n --no-print-directory -C "$repo_root" "$1" 2>&1; }
+check_plan=$(plan check) ci_plan=$(plan ci) fixtures_plan=$(plan fixtures)
+fx_check "the ci target runs the workflow test" grep -Fq scripts/test-ci-workflow.sh <<<"$ci_plan"
+fx_check "the ci target runs no fixtures, direct or via make" bash -c '! grep -Eq "fixture|MAKE|make " <<<"$1"' _ "$ci_plan"
+fx_check "the fixtures target runs a fixture test" grep -Fq scripts/test-fixture-dag.sh <<<"$fixtures_plan"
+fx_check "the check target runs every step of ci and of the fixtures" bash -c '
+  for s in $(grep -oE "[a-z/-]+\.sh" <<<"$1$2" | sort -u); do grep -Fq "$s" <<<"$3" || { echo "check lacks $s" >&2; exit 1; }; done' _ "$ci_plan" "$fixtures_plan" "$check_plan"
+# one pool: a ci step run apart from the pool would hold its seconds ahead of or behind it
+fx_check "the check target runs its steps in one side-by-side run, no sub-make" bash -c '
+  [ "$(grep -c "wait \$p" <<<"$1")" = 1 ] && ! grep -Eq "make (ci|fixtures)|MAKE" <<<"$1"' _ "$check_plan"
 # Help text that enumerates scripts goes stale when one joins or leaves a target, so no help
-# line names a script its recipe runs (by stem, test- and fixture- dropped) or lists names in
-# the "a, b and c tests" shape the old ci text had.
+# line names a script its target runs (by stem, test- and fixture- dropped) or lists names in
+# the "a, b and c tests" shape the old ci text had. The steps come from make -n, as the recipes
+# spell them only as lists.
 help_names_scripts() { # <makefile>
-  awk '
-    /^[a-z]+:.*##/ { t = $1; sub(/:.*/, "", t); h = tolower($0); sub(/.*## /, "", h)
-                     if (h ~ /\.sh|, [a-z-]+ and [a-z-]+ (tests|fixtures)/) { print t ": lists scripts"; bad = 1 }
-                     next }
-    !/^\t/ { t = ""; next }
-    t && match($0, /[^\/[:space:]]+\.sh/) { s = substr($0, RSTART, RLENGTH - 3); sub(/^test-/, "", s); sub(/^fixture-/, "", s)
-                     if (length(s) >= 4 && index(h, s)) { print t ": " s; bad = 1 } }
-    END { exit bad }' "$1"
+  local t h s bad=0
+  while IFS=$'\t' read -r t h; do
+    h=$(tr 'A-Z' 'a-z' <<<"$h")
+    if grep -Eq '\.sh|, [a-z-]+ and [a-z-]+ (tests|fixtures)' <<<"$h"; then echo "$t: lists scripts"; bad=1; fi
+    for s in $(make -n --no-print-directory -f "$1" "$t" 2>&1 | grep -oE '[^/[:space:]]+\.sh' | sort -u); do
+      s=${s%.sh}; s=${s#test-}; s=${s#fixture-}
+      if [ "${#s}" -ge 4 ] && [[ $h == *"$s"* ]]; then echo "$t: $s"; bad=1; fi
+    done
+  done < <(awk '/^[a-z]+:.*##/ { t = $1; sub(/:.*/, "", t); h = $0; sub(/.*## /, "", h); print t "\t" h }' "$1")
+  return $bad
 }
-fx_check "no Makefile help line names a script its recipe runs" help_names_scripts "$mk"
-fx_check "the ci target runs the test git-init check" bash -c 'grep -Fq scripts/check-test-git-init.sh <<<"$1"' _ "$ci_block"
+fx_check "no Makefile help line names a script its target runs" help_names_scripts "$mk"
+# the check must bite: a script's stem seeded into a target's help line is caught, for the
+# ci target, the fixtures target and check, whose recipes name no script themselves
+help_seeded() { # <target> <stem>: the Makefile with the stem appended to the target's help line
+  sed -E "s/^($1:.*## .*)\$/\1 $2/" "$mk" > "$scratch/seeded.mk"
+  grep -Eq "^$1:.*## .*$2\$" "$scratch/seeded.mk" || return 2   # the seed missed the help line
+  help_names_scripts "$scratch/seeded.mk"
+}
+# a seed that misses its target's help line returns 2, so it reads as a failure, not as caught (1)
+fx_check "a seed that misses its help line is a failure, not a catch" eval 'help_seeded no-such-target guard-rm >/dev/null 2>&1; [ $? = 2 ]'
+fx_check "a script stem seeded into the ci help line is caught" eval 'help_seeded ci guard-rm >/dev/null 2>&1; [ $? = 1 ]'
+fx_check "a script stem seeded into the fixtures help line is caught" eval 'help_seeded fixtures stage-boundary >/dev/null 2>&1; [ $? = 1 ]'
+fx_check "a script stem seeded into the check help line is caught" eval 'help_seeded check guard-rm >/dev/null 2>&1; [ $? = 1 ]'
+fx_check "the ci target runs the test git-init check" bash -c 'grep -Fq scripts/check-test-git-init.sh <<<"$1"' _ "$ci_plan"
 # a step's line in a CI log says where the time went, and its CPU seconds say whether it waited or
 # worked: under its elapsed seconds, the shell's user and sys, then the step's (the times builtin)
-fx_scratch_dir test-ci-workflow || exit 1
-printf 'include %s\ntimed_step:\n\t$(call timed,true)\nside_step:\n\t$(call side_by_side,true)\ntimed_red:\n\t$(call timed,false)\nside_red:\n\t$(call side_by_side,true false)\n' "$mk" > "$scratch/probe.mk"
+printf 'include %s\nside_step:\n\t$(call side_by_side,true)\nside_red:\n\t$(call side_by_side,true false)\n' "$mk" > "$scratch/probe.mk"
 cpu_follows() { # <output of a step named true>
   awk '/^true: [0-9]+s$/ { on = 1; next } on && /^[0-9]+m[0-9.]+s [0-9]+m[0-9.]+s$/ { n++ } END { exit n != 2 }' <<<"$1"
 }
-fx_check "a timed step prints its CPU seconds under its elapsed seconds" cpu_follows "$(make -s -C "$scratch" -f probe.mk timed_step 2>&1)"
 fx_check "a side-by-side step prints its CPU seconds under its elapsed seconds" cpu_follows "$(make -s -C "$scratch" -f probe.mk side_step 2>&1)"
-fx_check "a red timed step fails its target" eval '! make -s -C "$scratch" -f probe.mk timed_red >/dev/null 2>&1'
 fx_check "a red side-by-side step fails its target" eval '! make -s -C "$scratch" -f probe.mk side_red >/dev/null 2>&1'
 
 # the git-init check: a test script that inits a repo itself, directly or through a git_* wrapper,

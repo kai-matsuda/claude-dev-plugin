@@ -12,6 +12,10 @@ status: accepted
 > which runs `make ci` and the fixture tests side by side; `make lint` is a deprecated alias
 > of `make check`. The last consequence below describes the setup before that change.
 
+> Amended 2026-11-01 (dev-5o5f): `make check` no longer starts `make ci` as a sub-make. It
+> runs every `make ci` step and the fixture tests in one side-by-side pool, so the steps share
+> the runner's cores.
+
 # The feature workflow ships as a Claude Code plugin, not as dotfiles
 
 The feature workflow lived in the chezmoi source of `vangogh500/dotfiles` and reached a machine with `make apply`.
