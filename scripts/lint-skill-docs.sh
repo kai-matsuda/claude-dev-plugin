@@ -203,8 +203,8 @@
 #      pair), or the right marking beside a skill not in backticks (dev-hcn9). The names are read
 #      from that skill's SKILL.md (numbered or ## to #### headings; bold steps, hyphens,
 #      punctuation and indents included, regex characters escaped), in the closed list of shapes
-#      docs/agents/coding-standards.md states and nothing beside it; a changed SKILL.md has every rules
-#      doc and SKILL.md re-read.
+#      docs/agents/coding-standards.md states and nothing beside it; a changed SKILL.md has every
+#      rules doc and SKILL.md re-read.
 # Usage: scripts/lint-skill-docs.sh [implement-spec SKILL.md [WORKFLOW.md]]
 # A section whose doc is missing fails naming it ("missing document: <path>") rather than being
 # skipped, so a renamed skill or rules doc cannot turn its checks off (dev-dov); each section
@@ -2512,15 +2512,16 @@ if [ -f "$standards" ]; then
   # backtick before the skill leaves it read as backticked, whatever follows it, so only a bare
   # skill, or one with a stray closing backtick, is read
   cite_toks() {
-    local pre='(^|[^`/A-Za-z:-])' sk="/dev:$skill" skill_alone
+    # pre: what may stand before a bare skill (the check matches in any case, so a-z is A-Z too)
+    local pre='(^|[^`/a-z:-])' sk="/dev:$skill" skill_alone
     if [ "$1" = bare ]; then
       poss="($pre$sk\`?'s\`?|\`$sk's\`?)"
       skill_alone="($pre$sk\`?|\`$sk)"
-      gap="( [a-z]+){0,2} (of|in) $sk(\`|[^A-Za-z-]|\$)"
+      gap="( [a-z]+){0,2} (of|in) $sk([^A-Za-z-]|\$)"
     else
       poss="$sk\`?'s\`?"
       skill_alone="$sk\`?"
-      gap="( [a-z]+){0,2} (of|in) \`?$sk(\`|[^A-Za-z-]|\$)"
+      gap="( [a-z]+){0,2} (of|in) \`?$sk([^A-Za-z-]|\$)"
     fi
     skfirst="$skill_alone[,:;]?( (—|-))?( (the|step|section))*"
   }

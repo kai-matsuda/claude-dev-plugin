@@ -2171,11 +2171,20 @@ setup_names() { printf '%s\n' "## Foo bar" "" "**Foo bar.** A step." >> "$scratc
 prep=setup_names cite_passes $orch "a bare /dev:setup-repo beside a name of /dev:setup" \
   "As the \"Foo bar\" heading of /dev:setup-repo says." \
   "As the **Foo bar** step of /dev:setup-repo says."
-# a bare skill after a character that is not a space is no bare skill (a path or a prefix), so the
-# right marking beside it passes: / and : are in the class of characters before the skill
+# a bare skill straight after a letter (either case; the check ignores case), a slash, a colon or a
+# hyphen is no bare skill (a path or a prefix), so the right marking beside it passes: one seed
+# per member of the class
 cite_passes $orch "a skill name inside a path or a prefix" \
   "See foo$SK's **Story gate** says." \
-  "See x:$SK **Story gate** says."
+  "See a$SK **Story gate** says." \
+  "See z$SK **Story gate** says." \
+  "See x:$SK **Story gate** says." \
+  "See x-$SK **Story gate** says." \
+  "See /$SK **Story gate** says."
+# any other character before it leaves the skill bare, so the same marking fails
+cite_seeds $orch "$bare_msg" "a bare skill after a character outside that class" \
+  "See 1$SK's **Story gate** says." \
+  "See ($SK's **Story gate**) says."
 
 # a skill whose name is the start of another's (/dev:setup, /dev:setup-repo) is not read inside it
 fresh
@@ -2192,8 +2201,8 @@ fresh
 printf '%s\n' "Run \`git status\` in \`/dev:implement-story\`, then see \`/dev:implement-story\`'s \`notes\`." >> "$scratch/$orch"
 expect "a backticked word that is no known name passes section 18" 0
 
-# the [A-Z] branch for a skill with a bare capital after a backticked possessive, and the bold/quote
-# forms after a bare possessive in a SKILL.md of another skill
+# the [A-Z] branch for a skill with a bare capital after a backticked possessive, and the quote
+# form after a bare possessive in a SKILL.md of another skill
 fresh
 printf '%s\n' "As \`/dev:task-orchestrator\`'s Two entries says." >> "$scratch/skills/implement-task/SKILL.md"
 sec=18 expect "a capital heading after a backticked possessive in a SKILL.md fails section 18" 1 "present: an unquoted heading cite of a skill in $scratch/skills/implement-task/SKILL.md"
