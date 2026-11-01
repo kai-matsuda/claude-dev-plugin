@@ -84,7 +84,7 @@ A cutter that returns no block headed `<owner repo> <story-id> <story title>` (a
 
 ### 4. Quiz the user on the tasks
 
-Present every returned block in one merged quiz, in the story DAG's topological order (each story after every story it waits on, by any edge; the rest in gather order), each task with its title, tier, blockers inside its story, and what it delivers. A re-cut block also shows its kept and dropped tasks, its new bump and its moved edges, as `/dev:story-to-tasks` returns them. Put each block's cross-repo gaps beside the story they belong to. Ask the user:
+Present every returned block in one merged quiz, in the story DAG's topological order (each story after every story it waits on, by any edge; the rest in gather order), each task with its title, tier, blockers inside its story, and what it delivers. A re-cut block also shows its kept and dropped tasks, its new bump and its moved edges, as `/dev:story-to-tasks`'s **Re-cut** returns them. Put each block's cross-repo gaps beside the story they belong to. Ask the user:
 
 - Does the granularity feel right? (too coarse / too fine)
 - Are the blocking edges correct: does each task only depend on tasks of its story that genuinely gate it, and is each check asserting files other tasks of its story create blocked, directly or transitively, on all of them?

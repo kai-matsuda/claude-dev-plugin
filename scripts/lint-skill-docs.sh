@@ -2383,11 +2383,12 @@ fi
 # item (read as a label, not a step). A comma after the closing quote passes only in the "of"
 # word order, and a second cite in a list only in the possessive order. A name that is both a
 # step and a heading in one skill takes only the bare checks: either marking passes. The
-# heading extractor reads ## to #### lines inside code fences and tags too,
-# so story-to-tasks's template (in an <issue-template> tag) gives Parent, What to build and
-# Acceptance criteria. The bare check also fails plain prose that opens on a short name (Deliver
-# in `/dev:implement-task` the way a story does): no real doc does today, and the fix is a
-# reword.
+# heading extractor reads ## to #### lines inside code fences and tags too, so story-to-tasks's
+# template (in an <issue-template> tag) gives Parent, What to build and Acceptance criteria. The
+# bare check also fails plain prose that opens on a short name (Deliver in `/dev:implement-task`
+# the way a story does): no real doc does today, and the fix is a reword. A possessive cite of a
+# skill with no directory ("`/dev:nope`'s Name") passes here, as only the existing skills are
+# matched; section 11 fails it.
 standards=$agents/coding-standards.md
 # each file is read as one line (lackswc, as section 5 does, dev-86j), so a cite split across a
 # line break fails too
@@ -2440,12 +2441,9 @@ if doc 18 "cross-skill cites" "$standards"; then
     # the file's own skill, when it is a SKILL.md, is no cross-skill cite
     own=
     case $f in "$skills"/*/SKILL.md) own=${f%/SKILL.md}; own=${own##*/} ;; esac
-    # one pattern per skill, so a SKILL.md's own skill is left out like in the checks below
-    for sk in "$skills"/*/; do
-      sk=${sk%/}; sk=${sk##*/}
-      [ "$sk" = "$own" ] && continue
-      lackswc "an unquoted heading cite of a skill in $f" "\`/dev:$sk\`'s [A-Z]"
-    done
+    # one pattern over the other skills (skill_names, section 17's list), the file's own left out
+    others=${skill_names//|$own|/|}; others=${others#|}; others=${others%|}
+    [ -z "$others" ] || lackswc "an unquoted heading cite of a skill in $f" "\`/dev:($others)\`'s [A-Z]"
     while IFS=$'\t' read -r skill kind name; do
       [ -n "$name" ] || continue
       # a skill's own steps and headings are no cross-skill cite

@@ -1384,7 +1384,8 @@ echo 'Prose may keep a semicolon; one, two.' >> "$scratch/docs/SEQUENCES.md"
 expect "a semicolon outside a mermaid block passes" 0
 
 # another skill's rule is cited in one form (dev-q47w): a heading cited bare after a
-# possessive fails in any rules doc or SKILL.md but the coding standards, which show the wrong form
+# possessive fails in any rules doc or SKILL.md but the coding standards, which show the wrong
+# form
 fresh
 printf '%s\n' "As \`/dev:task-orchestrator\`'s Two entries says." >> "$scratch/docs/agents/orchestration.md"
 sec=18 expect "a bare heading cite of a skill in a rules doc fails section 18" 1 "present: an unquoted heading cite of a skill in $scratch/docs/agents/orchestration.md"
