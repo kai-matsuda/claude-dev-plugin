@@ -78,16 +78,19 @@ help_names_scripts() { # <makefile>
   done < <(awk '/^[a-z]+:.*##/ { t = $1; sub(/:.*/, "", t); h = $0; sub(/.*## /, "", h); print t "\t" h }' "$1")
   return $bad
 }
-fx_check "no Makefile help line names a script its recipe runs" help_names_scripts "$mk"
+fx_check "no Makefile help line names a script its target runs" help_names_scripts "$mk"
 # the check must bite: a script's stem seeded into a target's help line is caught, for the
 # ci target, the fixtures target and check, whose recipes name no script themselves
 help_seeded() { # <target> <stem>: the Makefile with the stem appended to the target's help line
   sed -E "s/^($1:.*## .*)\$/\1 $2/" "$mk" > "$scratch/seeded.mk"
-  grep -Fq "$2" "$scratch/seeded.mk" && help_names_scripts "$scratch/seeded.mk"
+  grep -Eq "^$1:.*## .*$2\$" "$scratch/seeded.mk" || return 2   # the seed missed the help line
+  help_names_scripts "$scratch/seeded.mk"
 }
-fx_check "a script stem seeded into the ci help line is caught" eval '! help_seeded ci guard-rm >/dev/null 2>&1'
-fx_check "a script stem seeded into the fixtures help line is caught" eval '! help_seeded fixtures stage-boundary >/dev/null 2>&1'
-fx_check "a script stem seeded into the check help line is caught" eval '! help_seeded check guard-rm >/dev/null 2>&1'
+# a seed that misses its target's help line returns 2, so it reads as a failure, not as caught (1)
+fx_check "a seed that misses its help line is a failure, not a catch" eval 'help_seeded no-such-target guard-rm >/dev/null 2>&1; [ $? = 2 ]'
+fx_check "a script stem seeded into the ci help line is caught" eval 'help_seeded ci guard-rm >/dev/null 2>&1; [ $? = 1 ]'
+fx_check "a script stem seeded into the fixtures help line is caught" eval 'help_seeded fixtures stage-boundary >/dev/null 2>&1; [ $? = 1 ]'
+fx_check "a script stem seeded into the check help line is caught" eval 'help_seeded check guard-rm >/dev/null 2>&1; [ $? = 1 ]'
 fx_check "the ci target runs the test git-init check" bash -c 'grep -Fq scripts/check-test-git-init.sh <<<"$1"' _ "$ci_plan"
 # a step's line in a CI log says where the time went, and its CPU seconds say whether it waited or
 # worked: under its elapsed seconds, the shell's user and sys, then the step's (the times builtin)

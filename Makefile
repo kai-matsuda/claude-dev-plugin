@@ -29,8 +29,9 @@ fixture_steps = scripts/test-fixture-stage-boundary.sh scripts/test-fixture-stor
   scripts/test-fixture-dag.sh scripts/test-fixture-retro.sh scripts/test-fixture-story-cut.sh \
   scripts/test-fixture-story-cutter.sh scripts/test-fixture-triage.sh
 
-# every step of ci and the fixtures runs in one side-by-side run, so no step waits for another
-# and the longest one starts at once; red when any is
+# every step of ci and the fixtures runs in one side-by-side run, so no step waits on another
+# and the longest one starts at once (ordering only: they still share the runner's cores); red
+# when any is
 check: ## Everything: ci and the fixture tests at once (needs bd and cargo); the target CI calls
 	$(call side_by_side,$(ci_steps) $(fixture_steps))
 

@@ -9,8 +9,12 @@ status: accepted
 
 > Amended 2026-10-26 (dev-iyr, INFRA-33): the fixture tests no longer stay local. With
 > `0014-one-loop-at-three-rows.md`'s single check command, GitHub Actions calls `make check`,
-> which runs every `make ci` step and the fixture tests in one side-by-side pool; `make lint` is a deprecated alias
+> which runs `make ci` and the fixture tests side by side; `make lint` is a deprecated alias
 > of `make check`. The last consequence below describes the setup before that change.
+
+> Amended 2026-11-01 (dev-5o5f): `make check` no longer starts `make ci` as a sub-make. It
+> runs every `make ci` step and the fixture tests in one side-by-side pool, so the steps share
+> the runner's cores.
 
 # The feature workflow ships as a Claude Code plugin, not as dotfiles
 

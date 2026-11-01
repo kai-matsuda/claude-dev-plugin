@@ -21,8 +21,7 @@
 # The lint of the plugin's own tree is one of the Makefile's steps, not repeated here.
 # Each case's lint run goes in the background against the scratch tree, moved into the case's
 # own dir (one tree per expect: fresh builds it, expect takes it), one per CPU (LINT_TEST_SLOTS
-# forces the count), and the results
-# print in case order. Every fresh and snapshot runs in this shell, one after another, so each
+# forces the count), and the results print in case order. Every fresh and snapshot runs in this shell, one after another, so each
 # is one process: fresh is a cp of a pristine tree built once, the snapshot is a mv, and the
 # verdicts are read and tallied with builtins. Every case but the baseline lints with
 # LINT_UNCHANGED listing its files still byte-identical to the pristine tree, whose queued checks
@@ -54,12 +53,12 @@ fx_scratch_dir test-lint-skill-docs || exit 1
 jobs=$scratch/.jobs
 mkdir -p "$jobs"
 njobs=0 shown=0 nl=$'\n'
-# a rolling pool of one run per CPU, or LINT_TEST_SLOTS: a case takes a slot token from this FIFO before it starts
+# a rolling pool of one run per CPU: a case takes a slot token from this FIFO before it starts
 # and puts it back when it ends (bash 3.2 has no wait -n to wait on any one job)
 mkfifo "$jobs/slots" && exec 3<>"$jobs/slots" || exit 1
 # slots_put <n>: puts n tokens in the pool
 slots_put() { local i; for ((i = 0; i < $1; i++)); do printf x >&3; done; }
-nslots=${LINT_TEST_SLOTS:-$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)}   # LINT_TEST_SLOTS forces the pool size
+nslots=${LINT_TEST_SLOTS:-$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)}
 slots_put "$nslots"
 case_timeout=${LINT_CASE_TIMEOUT:-120}
 # a slot frees within a case timeout of being taken, plus the case's setup and judging, which
@@ -1261,8 +1260,8 @@ pin_phrase "the one review tool paragraph"
 fx_check "the one review tool paragraph pin is anchored on its line" test "${pinned_phrase:0:1}" = '^'
 
 # edit_rows <rename|reword> <table>: writes the pins copy of the table with each row whose description
-# ($2) is in $rows renamed, or with its phrase ($3) reworded to hold none of its sweep (the row's line
-# number ends the new phrase, so no two rows read alike)
+# (field 2) is in $rows renamed, or with its phrase (field 3) reworded to hold none of its sweep (the
+# row's line number ends the new phrase, so no two rows read alike)
 edit_rows() {
   ROWS=$rows awk -F '\t' -v OFS='\t' -v mode="$1" 'BEGIN { n = split(ENVIRON["ROWS"], r, "\n"); for (i = 1; i <= n; i++) hit[r[i]] }
     $1 !~ /^#/ && ($2 in hit) { if (mode == "rename") $2 = $2 " (renamed)"; else $3 = "a phrase reworded to hold none of its sweep, row " NR }
@@ -1315,10 +1314,10 @@ unset pins_dir
 for table in $pin_tables; do
   rows=$(grep -oE "$table \"[^\"]+\"" "$lint" | sed -e 's/^[^ ]* "//' -e 's/"$//' | sort -u)
   nrows=0 msgs=
-  while IFS= read -r -u 5 row; do
+  while IFS= read -r row; do
     [ -n "$row" ] || continue
     nrows=$((nrows+1)) msgs+="${msgs:+$nl}no row '$row' in $table.tsv"
-  done 5<<<"$rows"
+  done <<<"$rows"
   [ "$nrows" -gt 0 ] || { echo "FAIL the lint reads no row of $table.tsv by its description"; fails=$((fails+1)); }
   pins_copy
   edit_rows rename "$table"
@@ -1332,10 +1331,10 @@ done
 for table in $pin_tables; do
   rows=$(awk -F '\t' '$1 !~ /^#/ && NF >= 4 && $4 != "" { print $2 }' "$repo_root/scripts/$table.tsv")
   nsweeps=0 msgs=
-  while IFS= read -r -u 5 row; do
+  while IFS= read -r row; do
     [ -n "$row" ] || continue
     nsweeps=$((nsweeps+1)) msgs+="${msgs:+$nl}$table.tsv: the sweep of '$row' is not inside its phrase"
-  done 5<<<"$rows"
+  done <<<"$rows"
   [ "$nsweeps" -gt 0 ] || { echo "FAIL $table.tsv holds no row with a sweep field"; fails=$((fails+1)); }
   pins_copy
   edit_rows reword "$table"
