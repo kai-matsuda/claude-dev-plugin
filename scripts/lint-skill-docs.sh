@@ -2421,15 +2421,20 @@ fi
 # standards, which show the wrong forms as examples, and a SKILL.md citing its own skill. The
 # other wrong forms fail the same way (dev-mnz6): a step name in quotes, a heading in bold,
 # either one bare before "of"/"in" `/dev:x`, and a bare name after the possessive and
-# "step"/"section" (the quoted and bold checks take either word too).
+# "step"/"section" (the quoted and bold checks take either word too). The quoted and bold checks
+# also fail a skill-first cite (the skill, an optional comma and the marked name straight after:
+# `/dev:x` "Step name") and match the name in any case (dev-wh65).
 # Limits: a name is matched only as the skill's own words (any characters but a bold marker;
 # every regex character in it is escaped), with at most two lowercase words and then of/in
 # between it and the skill (or one "step"/"section" after the possessive), so a longer gap
 # passes, and so does a cite that names the skill without backticks, a name in backticks,
 # "of the `/dev:x` skill", a name in italics, a skill cite with an argument ("`/dev:x <id>`'s
 # Name"), a skill in parentheses, a gap word that is hyphenated or capitalised, a link word other
-# than of/in, single or curly quotes, a case-changed name, a bold name inside quotes, a curly
-# apostrophe, a skill-first cite, a name directly before the skill with no link word ("the git
+# than of/in, single or curly quotes, a bare name in another case ("`/dev:x`'s check gate": lower
+# case reads as plain prose, so only a capitalised bare name fails; the marked checks are
+# case-insensitive), a bold name inside quotes, a curly apostrophe, a bare skill-first cite (a
+# name with no marking after the skill reads as prose; only the quoted step and the bold heading
+# are caught), a name directly before the skill with no link word ("the git
 # rule `/dev:x` states", dev-xyrl), and a bold lead-in with no period that opens no numbered
 # item (read as a label, not a step). A comma after the closing quote passes only in the "of"
 # word order, and a second cite in a list only in the possessive order. A name that is both a
@@ -2490,7 +2495,7 @@ if [ -f "$standards" ]; then
   # possessive and an optional step or section or ahead of the gap; reads skill, kind, name, ref and gap
   cite_marked() {
     [ "$kind" = "$1" ] || return 0   # a name of kind both has no wrong marking (dev-mnz6)
-    lackswc "$2 of /dev:$skill in $f" "$ref's( (step|section))? $3$name[.,;:]?$3|$3$name[.,;:]?$3$gap"
+    lacksw "$2 of /dev:$skill in $f" "$ref's( (step|section))? $3$name[.,;:]?$3|$ref,? $3$name[.,;:]?$3|$3$name[.,;:]?$3$gap"
   }
   # every skill's SKILL.md is read too (dev-xyrl), the skills' own docs binding like a rules doc
   for f in "$agents"/*.md "$skills"/*/SKILL.md; do

@@ -1873,6 +1873,28 @@ fresh
 printf '%s\n' "As /dev:implement-story's \"Story gate\" and the Story gate step of /dev:implement-story say." >> "$scratch/$orch"
 expect "a skill cited without backticks passes section 18" 0
 
+# skill-first and case-changed wrong cites (dev-wh65): the skill directly before a step name in
+# quotes or a heading in bold, and a marked name whose case changed
+fresh
+printf '%s\n' "As \`/dev:implement-story\` \"Story gate\" says." >> "$scratch/$orch"
+sec=18 expect "a skill-first step name in quotes fails section 18" 1 "present: a step name cited in quotes of /dev:implement-story in $scratch/$orch"
+
+fresh
+printf '%s\n' "As \`/dev:task-orchestrator\`, **Two entries** says." >> "$scratch/$orch"
+sec=18 expect "a skill-first heading in bold fails section 18" 1 "present: a heading cited in bold of /dev:task-orchestrator in $scratch/$orch"
+
+fresh
+printf '%s\n' "As \`/dev:implement-story\`'s \"story gate\" says." >> "$scratch/$orch"
+sec=18 expect "a step name in quotes with its case changed fails section 18" 1 "present: a step name cited in quotes of /dev:implement-story in $scratch/$orch"
+
+fresh
+printf '%s\n' "As the **two entries** section of \`/dev:task-orchestrator\` says." >> "$scratch/$orch"
+sec=18 expect "a heading in bold with its case changed fails section 18" 1 "present: a heading cited in bold of /dev:task-orchestrator in $scratch/$orch"
+
+fresh
+printf '%s\n' "As \`/dev:implement-story\` **Story gate** and \`/dev:task-orchestrator\` \"Two entries\" say." >> "$scratch/$orch"
+expect "the right marking skill-first passes section 18" 0
+
 # a skill gaining a name makes an unchanged rules doc's text a wrong cite (the doc's line 'sweep of
 # /dev:implement-story' reads bare once the skill has a heading 'sweep')
 fresh
