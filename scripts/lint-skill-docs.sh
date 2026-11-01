@@ -2436,9 +2436,10 @@ fi
 # pair (**`Name`**) or around it (`**Name**`), with or without punctuation; a backtick that is
 # part of the name (**`git` rule**) is no pair around it. Every check but the bare skill-first
 # one matches the name in any case; that one matches its own case only.
-# Limits: what the lint reads and what it leaves is listed in full in the cross-skill cite rule of
-# docs/agents/coding-standards.md ("The lint reads the shapes below"); this comment does not repeat
-# it, so a change to a regex changes that paragraph and not a second copy. Names are the skill's
+# Limits: what the lint reads and what it leaves is listed in the cross-skill cite rule of
+# docs/agents/coding-standards.md ("The lint reads the shapes below"), bar the two limits kept
+# below; this comment does not repeat the rule's list, so a change to a regex changes that
+# paragraph and not a second copy. Names are the skill's
 # own words (every regex character escaped, any characters but a bold marker). A bare skill is read
 # only beside a known name: a bare skill with a capitalised word that is no step or heading
 # ("/dev:x's Jira key"), a quoted or bold word that is no name, or no cite at all passes. A second
@@ -2507,15 +2508,16 @@ if [ -f "$standards" ]; then
   # or around its possessive too, and ends on an edge that no letter or hyphen continues, so
   # /dev:setup is no match in /dev:setup-repo. The form "bare" is the skill not set in a whole
   # pair of backticks (bare, or a backtick at one end only, or one that swallows the
-  # possessive): the right marking beside it is wrong (dev-hcn9). In the of/in order a backtick
-  # before the skill is a stray one only when no closing backtick follows within one word, so a
-  # skill with a one-word argument in one pair (`/dev:x <id>`) is a backticked skill
+  # possessive): the right marking beside it is wrong (dev-hcn9). In the "bare" of/in order a
+  # backtick before the skill is a stray one only when no closing backtick pairs with it after
+  # a run of argument words (each opening with < or -) or a suffix (.md, /x), so a skill with
+  # arguments in one pair (`/dev:x <id> --flag`) is a backticked skill
   cite_toks() {
     local pre='(^|[^`/A-Za-z:-])' sk="/dev:$skill"
     if [ "$1" = bare ]; then
       poss="($pre$sk\`?'s\`?|\`$sk's\`?)"
       skill_alone="($pre$sk\`?|\`$sk)"
-      gap="( [a-z]+){0,2} (of|in) ($sk(\`|[^A-Za-z-]|\$)|\`$sk([^\`A-Za-z/ -]|\$| [^\` ]*( |\$)))"
+      gap="( [a-z]+){0,2} (of|in) ($sk(\`|[^A-Za-z-]|\$)|\`$sk([^\`A-Za-z/ .-]|\.([^A-Za-z\`]|\$)|( [<-][^\` ]*)*( [^\`<-]|\$)))"
     else
       poss="$sk\`?'s\`?"
       skill_alone="$sk\`?"

@@ -139,8 +139,10 @@ a backtick straight before a name that follows the skill or its possessive (with
 "step" or "section", comma, colon, semicolon or dash, and "the", "step" or "section"
 between), a stray closing backtick after a bare name in the before-"of"/"in" place with no
 space after it, a space after a name inside the backticks, or at both ends of it, a bold
-lead-in with no period that opens no numbered item, a skill cite with a one-word argument
-inside its backticks (`/dev:implement-story <id>` is a backticked skill), a hyphenated word
+lead-in with no period that opens no numbered item, a skill cite with arguments or a suffix
+inside its backticks (`/dev:implement-story <id> --flag`, `/dev:implement-story.md` are a
+backticked skill, so the right mark beside one passes; in the "of"/"in" order a bare, quoted,
+bold or backticked name before it is still read and fails), a hyphenated word
 between a name and "of" or "in", a link word other than "of" or "in", a name straight before
 the skill with no link word, a parenthesis between the skill and the name or before the
 skill in the "of"/"in" order (a parenthesis around the whole cite is read), and any words
