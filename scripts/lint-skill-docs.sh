@@ -2437,7 +2437,7 @@ fi
 # part of the name (**`git` rule**) is no pair around it. Every check but the bare skill-first
 # one matches the name in any case; that one matches its own case only.
 # Limits: what the lint reads and what it leaves is listed in the cross-skill cite rule of
-# docs/agents/coding-standards.md ("The lint reads the shapes below"), bar the two limits kept
+# docs/agents/coding-standards.md ("The lint reads the shapes below"), bar the limits kept
 # below; this comment does not repeat the rule's list, so a change to a regex changes that
 # paragraph and not a second copy. Names are the skill's
 # own words (every regex character escaped, any characters but a bold marker). A bare skill is read
@@ -2501,7 +2501,7 @@ if [ -f "$standards" ]; then
   fi
   f=$saved_f unchanged_f=/
   # cite_toks <form>: sets the skill's regexes for the three word orders, from $skill: poss (the
-  # skill and its possessive), skill_alone (the skill alone), skfirst (skill_alone with what may
+  # skill and its possessive), skfirst (the skill alone with what may
   # stand between it and a name that follows it with no possessive: a comma, colon or semicolon,
   # a dash, and the words the, step and section) and gap (up to two words, then of/in and the
   # skill). The form "any" is the skill backticked or bare, with a stray backtick at either end
@@ -2509,15 +2509,14 @@ if [ -f "$standards" ]; then
   # /dev:setup is no match in /dev:setup-repo. The form "bare" is the skill not set in a whole
   # pair of backticks (bare, or a backtick at one end only, or one that swallows the
   # possessive): the right marking beside it is wrong (dev-hcn9). In the "bare" of/in order a
-  # backtick before the skill is a stray one only when no closing backtick pairs with it after
-  # a run of argument words (each opening with < or -) or a suffix (.md, /x), so a skill with
-  # arguments in one pair (`/dev:x <id> --flag`) is a backticked skill
+  # backtick before the skill leaves it read as backticked, whatever follows it, so only a bare
+  # skill, or one with a stray closing backtick, is read
   cite_toks() {
-    local pre='(^|[^`/A-Za-z:-])' sk="/dev:$skill"
+    local pre='(^|[^`/A-Za-z:-])' sk="/dev:$skill" skill_alone
     if [ "$1" = bare ]; then
       poss="($pre$sk\`?'s\`?|\`$sk's\`?)"
       skill_alone="($pre$sk\`?|\`$sk)"
-      gap="( [a-z]+){0,2} (of|in) ($sk(\`|[^A-Za-z-]|\$)|\`$sk([^\`A-Za-z/ .-]|\.([^A-Za-z\`]|\$)|( [<-][^\` ]*)*( [^\`<-]|\$)))"
+      gap="( [a-z]+){0,2} (of|in) $sk(\`|[^A-Za-z-]|\$)"
     else
       poss="$sk\`?'s\`?"
       skill_alone="$sk\`?"
@@ -2536,7 +2535,7 @@ if [ -f "$standards" ]; then
   # skill, kind, name and the file in f
   cite_marked() {
     case "|$1|" in *"|$kind|"*) ;; *) return 0 ;; esac   # kind both is checked only where <wants> lists it (dev-mnz6)
-    local poss skill_alone gap skfirst
+    local poss gap skfirst
     cite_toks "$4"
     lacksw "$2 of /dev:$skill in $f" "$(three_orders "$3$name[.,;:]?$3[.,;:]?")"
   }
