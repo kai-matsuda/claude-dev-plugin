@@ -705,6 +705,7 @@ row_phrase implement-spec-pins "add-mode stall hint without an external ref" && 
 
 # ---- 1. /implement-spec epic orchestrator ----
 if doc 1 "/implement-spec epic orchestrator" "${1:-$skills/implement-spec/SKILL.md}"; then
+hasc "the report's failed: forms name a merge conflict" 'for a conflicted PR; or step 6'"'"'s epic review line'
 lacks "worktree steps" 'worktree'
 # its home database gate is the tracker doc's rule, which section 6 checks (dev-e87)
 hasc "/implement-spec cites the tracker doc's \"Has a database\" rule" "$pin_cite_has_a_database_rule"
@@ -1289,14 +1290,19 @@ sec_has "## Delivery" "Delivery reads the merge state on every forge PR, ahead o
 sec_has "## Delivery" "Delivery reads the gh merge state and head together" 'gh pr view <n> --repo <forge-slug> --json mergeable,headRefOid'
 sec_has "## Delivery" "Delivery reads a gh conflict as CONFLICTING" 'a `mergeable` of `CONFLICTING`'
 sec_has "## Delivery" "Delivery reads a tea conflict from git, not the forge's mergeable" 'git -C <owner> merge-tree --write-tree origin/<default branch> <branch>'
-sec_has "## Delivery" "Delivery says why tea's mergeable is not read" "tea's \`mergeable\` is also false for a WIP PR and while the forge is still checking"
+sec_has "## Delivery" "Delivery says why tea's mergeable is not read" "by Gitea's source tea's \`mergeable\` is also false for a WIP PR and while the forge is still checking"
 sec_has "## Delivery" "Delivery notes a conflict so the unit is not finished" 'bd -C <owner> note <unit-id> "checks red: <tip SHA> merge conflict"'
 sec_has "## Delivery" "Delivery treats an unreadable merge state as a forge error" 'A merge read that fails or returns no state is a forge error'
-sec_has "## Delivery" "Delivery reads the merge state again before taking none reported" 'read the merge state once more before taking `checks: skipped: none reported`'
+sec_has "## Delivery" "Delivery reads the merge state again before taking none reported" 'so read the merge state once more first, one read'
 sec_has "## Delivery" "Delivery ends a conflicted PR on a failed: line" 'A PR git cannot merge ends the delivery on `failed: merge conflict <PR URL>`'
-sec_has "## Delivery" "Delivery's conflicted PR records no delivery" 'with no `delivered:` or `pr:` note, so the task stays open'
-sec_has "## Delivery" "Delivery reads an unknown merge state again" 'a `gh` merge state of `UNKNOWN` is read again, never read as a conflict'
-sec_has "## Delivery" "Delivery tells a conflict from a repo with no checks" 'So a conflict is never `checks: skipped: none reported`'
+sec_has "## Delivery" "Delivery's conflicted PR records no delivery" 'with no `delivered:` or `pr:` note, so the unit stays open'
+sec_has "## Delivery" "Delivery reads an unknown merge state again" 'A `gh` merge state of `UNKNOWN` is not yet known: it is read again, never read as a conflict'
+sec_has "## Delivery" "Delivery tells a conflict from a repo with no checks" 'is a forge with no checks, for a repo whose workflows never run on PRs'
+sec_has "## Delivery" "Delivery reads a head other than the tip like UNKNOWN" 'a head other than `<tip SHA>` (the push not yet seen) read like `UNKNOWN`'
+sec_has "## Delivery" "Delivery fetches the default branch with the sandbox disabled on tea" 'git -C <owner> fetch origin <default branch>` (with the sandbox disabled, as the push is)'
+sec_has "## Delivery" "Delivery verifies the default branch ref before merge-tree" 'git -C <owner> rev-parse --verify origin/<default branch>'
+sec_has "## Delivery" "Delivery's conflict fix is the human's" 'resolve the conflict on the branch, and a rerun pushes it again and reads the merge state again'
+sec_has "## Delivery" "Delivery's conflict does not spend the wait's timeout" 'the wait is not entered and its timeout is not spent'
 sec_has "## Delivery" "Delivery bounds the forge-check wait" 'at most six calls in all'
 sec_has "## Delivery" "Delivery says no workflows skips the checks" '`checks: skipped: no workflows`'
 sec_has "## Delivery" "Delivery says no checks reported skips the checks" '`checks: skipped: none reported`'
@@ -1418,9 +1424,9 @@ para_has "$head_tmpdir" "a git call takes no export in front" 'each git call its
 # file edits in a worktree go through the Edit tool, not sed -f or a python heredoc (dev-xvq5)
 para_has "$head_literal_paths" "file edits go through the Edit tool" 'the Edit tool, in place of `sed -f` or a python heredoc'
 para_has "$head_idle_rule" "the Idle rule names the check command" 'every run of the check command'
-# the story orchestrator's forge-check wait is the one shell wait the rule allows (dev-xc2),
+# the story orchestrator's forge-check wait is the one long shell wait the rule allows (dev-xc2),
 # the task orchestrator's lock wait gone with the lock (dev-b8d.1.4), which section 5 sweeps
-para_has "$head_idle_rule" "the Idle rule names the forge-check wait as its one shell wait" "The one long shell wait is the story orchestrator's"
+para_has "$head_idle_rule" "the Idle rule names the forge-check wait as its one long shell wait" "The one long shell wait is the story orchestrator's"
 para_has "$head_idle_rule" "the Idle rule cites the Delivery section for the forge-check wait" "forge-check wait (the rules doc's Delivery section)"
 # (no step number cited for the wait: section 5's sweep covers docs/agents, dev-90up)
 lacks "the Idle rule's second shell wait" 'two shell waits|The other is the story orchestrator'
@@ -1903,6 +1909,8 @@ row_sweep implement-spec-pins "mark ready with tea" && line_lacks '^8\. ' "the d
 line_has '^   The tasks are ' "a checks red: note unfinishes the story" 'with no `checks red:` line after it'
 hasc "report template shows the checks: line" 'checks:  skipped: <no forge | no workflows | none reported>'
 hasc "report template's failed: line names a red forge check" 'or forge check <name> <run URL>'
+hasc "report template's failed: line names a merge conflict" 'or merge conflict <PR URL>'
+hasc "step 8 leaves a conflicted story not finished" 'A red forge check or a PR git cannot merge leaves the story not finished'
 line_has '^9\. ' "step 9 removes the check records" '`rm -rf <owner>/.tmp/checks`'
 # a run that ends failed on a red keeps the red tree's log in place for the human, the
 # failed: line's words unchanged, while every other run still removes the records (dev-15s)
@@ -2079,6 +2087,7 @@ fi
 # re-enters at the gate on a failed run's commits with a fresh budget; the report ends on resume:.
 if doc 17 "/implement-task" "$skills/implement-task/SKILL.md"; then
 opening_has "the frontmatter names a standalone task" 'Implement one standalone task bead'
+hasc "report template's failed: line names a merge conflict" 'or merge conflict <PR URL>'
 # the three refusals, each one line that creates nothing
 hasc "the non-task refusal" '`<id> is of type <type>, not a task; /dev:implement-task takes a standalone task bead id.`'
 hasc "the story-task refusal names /dev:implement-story" "\`<id> refused: its parent <story-id> is a story; run $cmd_implement_story\`"
