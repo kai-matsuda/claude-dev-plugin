@@ -2478,22 +2478,29 @@ if [ -f "$standards" ]; then
     # one pattern over the other skills (skill_names, section 17's list), the file's own left out
     others=${skill_names//|$own|/|}; others=${others#|}; others=${others%|}
     [ -z "$others" ] || lackswc "an unquoted heading cite of a skill in $f" "\`/dev:($others)\`'s [A-Z]"
-    # every pattern below holds `/dev:<skill>`, one token that no line break splits, so a file
-    # that never names the skill can match none of them: most files name few skills. The test is
-    # a fixed-string one of each ref against these lines, so it knows no skill name's alphabet
-    cited=$(grep -F '`/dev:' "$f")
+    # every pattern below holds `/dev:<skill>` and the name's first word, tokens no line break
+    # splits, so a file lacking either can match none of them: most files name few skills, and the
+    # regexes are the run's cost, in gawk above all. Both tests are fixed-string, so they know no
+    # skill name's alphabet; a first word with a regex escape in it goes unfiltered. The pin list
+    # takes every check
+    names_here=$cite_names
+    [ -n "${LINT_PIN_LIST:-}" ] || names_here=$(awk -F '\t' -v own="$own" '
+      NR == FNR { text = text $0 "\n"; next }
+      $3 != "" && $1 != own && index(text, "`/dev:" $1 "`") {
+        w = $3; sub(/ .*/, "", w)
+        if (index(w, "\\") || index(text, w)) print
+      }' "$f" - <<<"$cite_names")
     while IFS=$'\t' read -r skill kind name; do
       [ -n "$name" ] || continue
       # a skill's own steps and headings are no cross-skill cite
       [ "$skill" = "$own" ] && continue
       ref="\`/dev:$skill\`"
-      [ -n "${LINT_PIN_LIST:-}" ] || case $cited in *"$ref"*) ;; *) continue ;; esac
       gap="( [a-z]+){0,2} (of|in) $ref"
       lackswc "a bare cite of /dev:$skill in $f" "(^|[^*\"A-Za-z])$name$gap"
       lackswc "a bare cite after a possessive and step or section of /dev:$skill in $f" "$ref's (step|section) $name([^A-Za-z]|$)"
       cite_marked step "a step name cited in quotes" '"'
       cite_marked heading "a heading cited in bold" '\*\*'
-    done <<< "$cite_names"
+    done <<< "$names_here"
   done
   unchanged=$saved_unchanged unchanged_f=/
 fi
