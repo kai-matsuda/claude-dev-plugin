@@ -189,7 +189,7 @@ The list is closed: a rule that wants to join needs an ADR.
 ## Scratch space
 
 **Exploration notes** go in `.spec-notes/<epic-id>/`, repo-relative, written by
-`/dev:implement-story`'s **exploration subagent** and shared by every later subagent of that story.
+`/dev:implement-story`'s exploration subagent and shared by every later subagent of that story.
 The directory is that skill's alone: the story cut's orientation is the story bead's design
 field, not a file.
 

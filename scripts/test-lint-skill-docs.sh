@@ -1956,6 +1956,40 @@ fresh
 printf '%s\n' "The Owner of \`/dev:triage\` and the Alone of \`/dev:story-to-tasks\` are words." >> "$scratch/$orch"
 expect "a list label or a bare bold label is no step name in section 18" 0
 
+# a bold lead-in with no period is a label, not a step name (dev-bjkt): the rule says so, so a
+# lead-in that carries a rule is marked with a period inside the bold (**The set to cut.**) and
+# a cite of it in quotes is the wrong form
+fresh
+printf '%s\n' "As \`/dev:spec-to-tasks\`'s \"The set to cut\" says." >> "$scratch/$orch"
+sec=18 expect "a rule-carrying lead-in cited in quotes fails section 18" 1 "present: a step name cited in quotes of /dev:spec-to-tasks in $scratch/$orch"
+
+fresh
+printf '%s\n' "**Zed label** is a label with no period." >> "$scratch/skills/implement-story/SKILL.md"
+printf '%s\n' "As \`/dev:implement-story\`'s \"Zed label\" says." >> "$scratch/$orch"
+expect "a bold lead-in with no period cited in quotes passes section 18" 0
+
+# a step name opens a line, after an optional list marker; a bold term inside a sentence is none
+# (dev-bjkt), so the lint and the rule agree on a list item and a mid-line shape
+fresh
+printf '%s\n' "- **Zed item.** A rule." >> "$scratch/skills/implement-story/SKILL.md"
+printf '%s\n' "As \`/dev:implement-story\`'s \"Zed item\" says." >> "$scratch/$orch"
+sec=18 expect "a list item step name cited in quotes fails section 18" 1 "present: a step name cited in quotes of /dev:implement-story in $scratch/$orch"
+
+fresh
+printf '%s\n' "- **Zed item.** A rule." >> "$scratch/skills/implement-story/SKILL.md"
+printf '%s\n' "As \`/dev:implement-story\`'s **Zed item** says." >> "$scratch/$orch"
+expect "a list item step name cited in bold passes section 18" 0
+
+fresh
+printf '%s\n' "  - **Zed item.** A rule." >> "$scratch/skills/implement-story/SKILL.md"
+printf '%s\n' "As \`/dev:implement-story\`'s \"Zed item\" says." >> "$scratch/$orch"
+sec=18 expect "an indented list item step name cited in quotes fails section 18" 1 "present: a step name cited in quotes of /dev:implement-story in $scratch/$orch"
+
+fresh
+printf '%s\n' "Some words, **Zed middle.** A rule." >> "$scratch/skills/implement-story/SKILL.md"
+printf '%s\n' "As \`/dev:implement-story\`'s \"Zed middle\" says." >> "$scratch/$orch"
+expect "a mid-line bold term is no step name in section 18" 0
+
 fresh
 printf '%s\n' "The wrong form: \`/dev:task-orchestrator\`'s Two entries." >> "$scratch/docs/agents/coding-standards.md"
 expect "a bare heading cite in the coding standards passes section 18" 0
