@@ -227,7 +227,8 @@
 # such a file is skipped wherever its verdict depends on nothing the list leaves out: that file
 # and its fixed pattern for most, plus the skills and plugin dirs' layout for the namespace
 # rule, and the skills' cite names for section 18: every SKILL.md listed, or the names as
-# LINT_CITE_BASE holds them, a file a LINT_PIN_LIST run wrote beside its list (<list>.cites). The
+# LINT_CITE_BASE holds them, a file a LINT_PIN_LIST run wrote beside its list (<list>.cites). A
+# listed pin table counts too: with every table listed, a listed doc skips its section whole. The
 # list vouches for a file only in the role it had there, so a caller leaves out every path it
 # passes as an argument or override. Unset, every check runs.
 set -u
@@ -243,7 +244,7 @@ bad() { echo "FAIL: $*"; fail=1; }
 # opening_has (-F) on the lines before the first "## ". Each only queues its check: a section's
 # checks run in one awk pass when the next section opens (section) and at the end (checks_run),
 # so their FAIL lines print under their own section's header, at a cost of one process per
-# section rather than one or two per check (the regression test runs the lint over a thousand
+# section rather than one or two per check (the regression test runs the lint hundreds of
 # times, and its pool is CPU-bound).
 queue=
 unchanged=$'\n'
@@ -260,10 +261,13 @@ unchanged_file() {
   return $unchanged_rc
 }
 # drop_unchanged: stdin's paths, one per line, less the ones LINT_UNCHANGED lists, in one pass,
-# for a sweep over many files (where unchanged_file would match the list once per file)
+# for a sweep over many files (where unchanged_file would match the list once per file); a
+# LINT_PIN_LIST run keeps them all, since the pin list takes every check
 drop_unchanged() {
   # -s: an empty list would leave NR == FNR true on stdin too, and the sweep would print nothing
-  if [ -s "${LINT_UNCHANGED:-}" ]; then awk 'NR == FNR { u[$0]; next } !($0 in u)' "$LINT_UNCHANGED" -; else cat; fi
+  if [ -s "${LINT_UNCHANGED:-}" ] && [ -z "${LINT_PIN_LIST:-}" ]; then
+    awk 'NR == FNR { u[$0]; next } !($0 in u)' "$LINT_UNCHANGED" -
+  else cat; fi
 }
 # enqueue <check line>: queues it unless $f is a file LINT_UNCHANGED lists
 # LINT_PIN_LIST names a file every queued check is appended to first, one per line as
@@ -500,9 +504,13 @@ checks_run() {
 }
 # section <header>: runs the previous section's checks, then opens this one
 section() { checks_run; echo "== $1"; }
-# doc <n> <title> <file>: opens section n on <file> (sets f), true when it exists; a missing one
-# is a failure naming it, never a skipped section
-doc() { f=$3; section "$1. $2: $f"; [ -f "$f" ] || { bad "missing document: $f"; return 1; }; }
+# doc <n> <title> <file>: opens section n on <file> (sets f), true when it exists and its section has
+# something to check; a missing one is a failure naming it, never a skipped section. With <file>
+# and every pin table in LINT_UNCHANGED the section's whole body is skipped: its checks would each
+# skip <file> anyway, the tables are all a body reads besides, and the regression test runs the
+# lint hundreds of times, those calls being most of a run with one changed doc. With LINT_UNCHANGED
+# unset, or a table left out of it, every body runs and its rows are asked for
+doc() { f=$3; section "$1. $2: $f"; [ -f "$f" ] || { bad "missing document: $f"; return 1; }; [ -z "$tables_unchanged" ] || ! unchanged_file; }
 
 skills=${SKILLS_DIR:-$root/skills}
 agents=${AGENT_DOCS:-$root/docs/agents}
@@ -512,6 +520,17 @@ user_claude_md=${USER_CLAUDE_MD:-$root/CLAUDE.md}
 glossary_md=${GLOSSARY_MD:-$root/GLOSSARY.md}
 runbook=${2:-$root/docs/WORKFLOW.md}
 pins_dir=${LINT_PINS_DIR:-$root/scripts}
+# set when LINT_UNCHANGED lists every pin table the lint reads, which lets doc skip a listed doc's
+# section; a table gone counts as not listed, so pins_from reports it, and a LINT_PIN_LIST run
+# leaves it unset, since the pin list takes every check
+tables_unchanged=
+if [ -n "${LINT_UNCHANGED:-}" ] && [ -z "${LINT_PIN_LIST:-}" ]; then
+  tables_unchanged=1
+  for t in implement-spec-pins repo-plumbing-pins; do
+    [ -f "$pins_dir/$t.tsv" ] || tables_unchanged=
+    case $unchanged in *$'\n'"$pins_dir/$t.tsv"$'\n'*) ;; *) tables_unchanged= ;; esac
+  done
+fi
 # ---- the phrases more than one check pins, each written once and built into every check that pins it (dev-yqpz) ----
 # A whole pin phrase is written once: in this block, in a pin table row (read with row_phrase) or in its
 # one check, never typed again as its own literal on another lint line or table row; every check that
@@ -1093,7 +1112,6 @@ lacksw "retired review-only gate wording in $f" "$retired_gate"
 # docs, the project CLAUDE.md or the runbook, spelled ~/, $HOME/ or ${HOME}/ (INFRA-30)
 deployed='(~|\$HOME|\$\{HOME\})/(\.claude/docs|\.claude/hooks|\.local/share/chezmoi)'
 while IFS= read -r f; do
-  unchanged_file && continue
   lacks "dotfiles deployment path in $f" "$deployed"
 done < <({ find "$docs" -type f -name '*.md' 2>/dev/null; find "$agents" "$skills" -type f 2>/dev/null
   echo "$user_claude_md"; echo "$runbook"; } | grep . | sort -u | drop_unchanged)
@@ -2404,8 +2422,9 @@ fi
 standards=$agents/coding-standards.md
 # each file is read as one line (lackswc, as section 5 does, dev-86j), so a cite split across a
 # line break fails too
-if doc 18 "cross-skill cites" "$standards"; then
-  has "the cross-skill cite rule heading" "## Another skill's rule is cited in one form"
+doc 18 "cross-skill cites" "$standards" && has "the cross-skill cite rule heading" "## Another skill's rule is cited in one form"
+# the sweep reads every skill and doc, so the standards doc being listed in LINT_UNCHANGED leaves it to run
+if [ -f "$standards" ]; then
   # the cite targets of every skill, read in one pass: "<skill> <kind> <name>" with the kind step
   # or heading (both when the skill marks the name both ways), the name's regex characters
   # escaped. A step is a bold name opening a numbered item (**Name** or **Name.**) or opening a
@@ -2464,22 +2483,29 @@ if doc 18 "cross-skill cites" "$standards"; then
     # one pattern over the other skills (skill_names, section 17's list), the file's own left out
     others=${skill_names//|$own|/|}; others=${others#|}; others=${others%|}
     [ -z "$others" ] || lackswc "an unquoted heading cite of a skill in $f" "\`/dev:($others)\`'s [A-Z]"
-    # every pattern below holds `/dev:<skill>`, one token that no line break splits, so a file
-    # that never names the skill can match none of them: most files name few skills. The test is
-    # a fixed-string one of each ref against these lines, so it knows no skill name's alphabet
-    cited=$(grep -F '`/dev:' "$f")
+    # every pattern below holds `/dev:<skill>` and the name's first word, tokens no line break
+    # splits, so a file lacking either can match none of them: most files name few skills, and the
+    # regexes are the run's cost, in gawk above all. Both tests are fixed-string, so they know no
+    # skill name's alphabet; a first word with a regex escape in it goes unfiltered. The pin list
+    # takes every check
+    names_here=$cite_names
+    [ -n "${LINT_PIN_LIST:-}" ] || names_here=$(awk -F '\t' -v own="$own" '
+      NR == FNR { text = text $0 "\n"; next }
+      $3 != "" && $1 != own && index(text, "`/dev:" $1 "`") {
+        w = $3; sub(/ .*/, "", w)
+        if (index(w, "\\") || index(text, w)) print
+      }' "$f" - <<<"$cite_names")
     while IFS=$'\t' read -r skill kind name; do
       [ -n "$name" ] || continue
       # a skill's own steps and headings are no cross-skill cite
       [ "$skill" = "$own" ] && continue
       ref="\`/dev:$skill\`"
-      [ -n "${LINT_PIN_LIST:-}" ] || case $cited in *"$ref"*) ;; *) continue ;; esac
       gap="( [a-z]+){0,2} (of|in) $ref"
       lackswc "a bare cite of /dev:$skill in $f" "(^|[^*\"A-Za-z])$name$gap"
       lackswc "a bare cite after a possessive and step or section of /dev:$skill in $f" "$ref's (step|section) $name([^A-Za-z]|$)"
       cite_marked step "a step name cited in quotes" '"'
       cite_marked heading "a heading cited in bold" '\*\*'
-    done <<< "$cite_names"
+    done <<< "$names_here"
   done
   unchanged=$saved_unchanged unchanged_f=/
 fi

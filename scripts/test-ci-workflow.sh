@@ -69,6 +69,17 @@ help_names_scripts() { # <makefile>
 }
 fx_check "no Makefile help line names a script its recipe runs" help_names_scripts "$mk"
 fx_check "the ci target runs the test git-init check" bash -c 'grep -Fq scripts/check-test-git-init.sh <<<"$1"' _ "$ci_block"
+# a step's line in a CI log says where the time went, and its CPU seconds say whether it waited or
+# worked: under its elapsed seconds, the shell's user and sys, then the step's (the times builtin)
+fx_scratch_dir test-ci-workflow || exit 1
+printf 'include %s\ntimed_step:\n\t$(call timed,true)\nside_step:\n\t$(call side_by_side,true)\ntimed_red:\n\t$(call timed,false)\nside_red:\n\t$(call side_by_side,true false)\n' "$mk" > "$scratch/probe.mk"
+cpu_follows() { # <output of a step named true>
+  awk '/^true: [0-9]+s$/ { on = 1; next } on && /^[0-9]+m[0-9.]+s [0-9]+m[0-9.]+s$/ { n++ } END { exit n != 2 }' <<<"$1"
+}
+fx_check "a timed step prints its CPU seconds under its elapsed seconds" cpu_follows "$(make -s -C "$scratch" -f probe.mk timed_step 2>&1)"
+fx_check "a side-by-side step prints its CPU seconds under its elapsed seconds" cpu_follows "$(make -s -C "$scratch" -f probe.mk side_step 2>&1)"
+fx_check "a red timed step fails its target" eval '! make -s -C "$scratch" -f probe.mk timed_red >/dev/null 2>&1'
+fx_check "a red side-by-side step fails its target" eval '! make -s -C "$scratch" -f probe.mk side_red >/dev/null 2>&1'
 
 # the git-init check: a test script that inits a repo itself, directly or through a git_* wrapper,
 # fails it and is named; the lib's fx_git_repo, a bd init and a commented git init pass

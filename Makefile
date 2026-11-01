@@ -2,12 +2,15 @@
 
 .PHONY: help check lint ci fixtures
 
-# run one step and print its elapsed seconds after it, so a CI log says where the time went
-timed = @t=$$(date +%s); $(1); rc=$$?; echo "$(1): $$(( $$(date +%s) - t ))s"; exit $$rc
-# run the steps side by side, each one's output and elapsed seconds held in its own log under
-# .tmp/make, then print the logs in step order; red when any step is
+# run one step and print its elapsed seconds after it, then its CPU seconds (the times builtin: the
+# shell's user and sys, then the step's), so a CI log says where the time went and whether the
+# step waited or worked
+step = t=$$(date +%s); $(1); rc=$$?; echo "$(1): $$(( $$(date +%s) - t ))s"; times; exit $$rc
+timed = @$(call step,$(1))
+# run the steps side by side, each one's output, elapsed seconds and CPU seconds held in its own
+# log under .tmp/make, then print the logs in step order; red when any step is
 side_by_side = @mkdir -p .tmp/make; pids=; for s in $(1); do \
-	  { t=$$(date +%s); $$s; rc=$$?; echo "$$s: $$(( $$(date +%s) - t ))s"; exit $$rc; } \
+	  { $(call step,$$s); } \
 	    > .tmp/make/$$(basename $$s).log 2>&1 & pids="$$pids $$!"; \
 	done; rc=0; for p in $$pids; do wait $$p || rc=1; done; \
 	for s in $(1); do cat .tmp/make/$$(basename $$s).log; done; exit $$rc
