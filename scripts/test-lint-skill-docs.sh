@@ -1892,6 +1892,17 @@ cite_seeds() {
     sec=18 expect "$what ($form) fails section 18" 1 "$msg"
   done
 }
+# cite_passes <file> <what> <form>...: each form, appended to the file in a fresh tree, passes
+# section 18 (the passing twin of cite_seeds)
+cite_passes() {
+  local file=$1 what=$2 form
+  shift 2
+  for form in "$@"; do
+    fresh
+    printf '%s\n' "$form" >> "$scratch/$file"
+    sec=18 expect "$what ($form) passes section 18" 0
+  done
+}
 # a bare skill beside a name in the right marking, in all three orders; the loop asserts that a
 # present: line fails, and the cases after it assert which check
 cite_seeds $orch "present: " "a bare skill beside a name" \
@@ -2079,6 +2090,18 @@ cite_seeds $orch "$bare_msg $SK in $scratch/$orch" "a skill with a stray backtic
   "As $SK\` **Story gate** says." \
   "As the **Clean up** sweep of \`$SK says." \
   "As the **Clean up** sweep of $SK\` says."
+
+# a stray closing backtick after a bare possessive is not in backticks either, in both name marks
+cite_seeds $orch "$bare_msg" "a bare possessive with a stray closing backtick" \
+  "As $SK's\` **Story gate** says." \
+  "As /dev:task-orchestrator's\` \"Two entries\" says."
+
+# a skill and its argument inside one backtick pair is a backticked skill: the right marking
+# beside it passes, in the of/in order too
+cite_passes $orch "a backticked skill with an argument" \
+  "As the **Story gate** step of \`$SK <id>\` says." \
+  "As the \"Two entries\" heading of \`/dev:task-orchestrator <id>\` says." \
+  "As the **Story gate** step of \`$SK/x\` says."
 
 # bare skill beside a bare or quoted name in the of/in order, and a bare skill with a bare capital
 fresh
