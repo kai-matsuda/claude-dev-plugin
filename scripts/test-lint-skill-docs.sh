@@ -58,7 +58,7 @@ njobs=0 shown=0 nl=$'\n'
 mkfifo "$jobs/slots" && exec 3<>"$jobs/slots" || exit 1
 # slots_put <n>: puts n tokens in the pool
 slots_put() { local i; for ((i = 0; i < $1; i++)); do printf x >&3; done; }
-nslots=$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)
+nslots=${LINT_TEST_SLOTS:-$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)}   # LINT_TEST_SLOTS forces the pool size
 slots_put "$nslots"
 case_timeout=${LINT_CASE_TIMEOUT:-120}
 # a slot frees within a case timeout of being taken, plus the case's setup and judging, which
@@ -1300,33 +1300,42 @@ sec="0 1 6" expect "a missing pins directory fails" 1 "no such directory: $scrat
 unset pins_dir
 
 # a row another check reads by its description (row_phrase, row_sweep) and then finds renamed fails the
-# lint naming it, rather than turning that check off; the descriptions come from the lint's own calls
+# lint naming it, rather than turning that check off; the descriptions come from the lint's own calls.
+# Every such row is renamed in one copy of the table and the lint run once: each rename draws its own
+# message, so one run must name every row (a row's rename touches no other row's message)
 for table in $pin_tables; do
-  nrows=0
+  rows=$(grep -oE "$table \"[^\"]+\"" "$lint" | sed -e 's/^[^ ]* "//' -e 's/"$//' | sort -u)
+  nrows=0 msgs=
   while IFS= read -r -u 5 row; do
-    nrows=$((nrows+1))
-    pins_copy
-    awk -F '\t' -v OFS='\t' -v d="$row" '$1 !~ /^#/ && $2 == d { $2 = d " (renamed)" } { print }' \
-      "$repo_root/scripts/$table.tsv" > "$scratch/pins/$table.tsv"
-    sec= expect "$table.tsv with the row '$row' renamed fails" 1 "no row '$row' in $table.tsv"
-    unset pins_dir
-  done 5< <(grep -oE "$table \"[^\"]+\"" "$lint" | sed -e 's/^[^ ]* "//' -e 's/"$//' | sort -u)
+    [ -n "$row" ] || continue
+    nrows=$((nrows+1)) msgs+="${msgs:+$nl}no row '$row' in $table.tsv"
+  done 5<<<"$rows"
   [ "$nrows" -gt 0 ] || { echo "FAIL the lint reads no row of $table.tsv by its description"; fails=$((fails+1)); }
+  pins_copy
+  ROWS=$rows awk -F '\t' -v OFS='\t' 'BEGIN { n = split(ENVIRON["ROWS"], r, "\n"); for (i = 1; i <= n; i++) hit[r[i]] }
+    $1 !~ /^#/ && ($2 in hit) { $2 = $2 " (renamed)" } { print }' \
+    "$repo_root/scripts/$table.tsv" > "$scratch/pins/$table.tsv"
+  sec= expect "$table.tsv with each row the lint reads by its description renamed fails naming all $nrows" 1 "$msgs"
+  unset pins_dir
 done
 
 # a row whose sweep field (the part of the phrase a skill must not restate) is no longer inside its
-# phrase fails the lint, rather than leaving the sweep guarding the old wording (dev-yqpz)
+# phrase fails the lint, rather than leaving the sweep guarding the old wording (dev-yqpz); every such
+# row is reworded in one copy and the lint run once, for the same reason as the renames above
 for table in $pin_tables; do
-  nsweeps=0
+  rows=$(awk -F '\t' '$1 !~ /^#/ && NF >= 4 && $4 != "" { print $2 }' "$repo_root/scripts/$table.tsv")
+  nsweeps=0 msgs=
   while IFS= read -r -u 5 row; do
-    nsweeps=$((nsweeps+1))
-    pins_copy
-    awk -F '\t' -v OFS='\t' -v d="$row" '$1 !~ /^#/ && $2 == d { $3 = "a phrase reworded to hold none of its sweep" } { print }' \
-      "$repo_root/scripts/$table.tsv" > "$scratch/pins/$table.tsv"
-    sec= expect "$table.tsv with the phrase of '$row' reworded and its sweep left fails" 1 "$table.tsv: the sweep of '$row' is not inside its phrase"
-    unset pins_dir
-  done 5< <(awk -F '\t' '$1 !~ /^#/ && NF >= 4 && $4 != "" { print $2 }' "$repo_root/scripts/$table.tsv")
+    [ -n "$row" ] || continue
+    nsweeps=$((nsweeps+1)) msgs+="${msgs:+$nl}$table.tsv: the sweep of '$row' is not inside its phrase"
+  done 5<<<"$rows"
   [ "$nsweeps" -gt 0 ] || { echo "FAIL $table.tsv holds no row with a sweep field"; fails=$((fails+1)); }
+  pins_copy
+  ROWS=$rows awk -F '\t' -v OFS='\t' 'BEGIN { n = split(ENVIRON["ROWS"], r, "\n"); for (i = 1; i <= n; i++) hit[r[i]] }
+    $1 !~ /^#/ && ($2 in hit) { $3 = "a phrase reworded to hold none of its sweep (" NR ")" } { print }' \
+    "$repo_root/scripts/$table.tsv" > "$scratch/pins/$table.tsv"
+  sec= expect "$table.tsv with the phrase of each row with a sweep reworded and its sweep left fails naming all $nsweeps" 1 "$msgs"
+  unset pins_dir
 done
 
 # a doc that keeps the no-check-target setup line but loses the clause after it fails: the clause is

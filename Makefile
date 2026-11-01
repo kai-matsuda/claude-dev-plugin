@@ -18,32 +18,27 @@ side_by_side = @mkdir -p .tmp/make; pids=; for s in $(1); do \
 help: ## Show this help
 	@grep -E '^[a-z]+:.*##' $(MAKEFILE_LIST) | awk -F ':.*## ' '{printf "  %-8s %s\n", $$1, $$2}'
 
-# ci and the fixtures run side by side, the fixtures' output held in a log and printed after ci's
-# so neither interleaves the other; red when either is
+# the steps of ci and of the fixtures, one list each; a step is one script, run by its path
+ci_steps = scripts/lint-skill-docs.sh skills/glossary-lint/glossary-lint.sh \
+  scripts/check-test-git-init.sh scripts/test-lint-skill-docs.sh scripts/test-guard-rm.sh \
+  scripts/test-phases.sh scripts/test-glossary-lint.sh scripts/test-setup-skill.sh \
+  scripts/test-setup-repo-skill.sh scripts/test-readme.sh scripts/test-ci-workflow.sh \
+  scripts/test-check-target.sh
+# a fixture build mostly waits on bd, so the fixture tests, each on its own scratch paths, run
+# side by side
+fixture_steps = scripts/test-fixture-stage-boundary.sh scripts/test-fixture-stories.sh \
+  scripts/test-fixture-dag.sh scripts/test-fixture-retro.sh scripts/test-fixture-story-cut.sh \
+  scripts/test-fixture-story-cutter.sh scripts/test-fixture-triage.sh
+
+# every step of ci and the fixtures runs in one side-by-side run, so no step waits for another
+# and the longest one starts at once; red when any is
 check: ## Everything: ci and the fixture tests at once (needs bd and cargo); the target CI calls
-	@mkdir -p .tmp; $(MAKE) fixtures > .tmp/check-fixtures.log 2>&1 & pid=$$!; \
-	$(MAKE) ci; rc=$$?; wait $$pid; frc=$$?; cat .tmp/check-fixtures.log; \
-	[ $$rc = 0 ] && [ $$frc = 0 ]
+	$(call side_by_side,$(ci_steps) $(fixture_steps))
 
 lint: check ## Deprecated alias of check, kept for one release
 
-ci: ## Lint the skill docs and the glossary terms, and run every script test that needs no beads database (check runs it beside the fixtures)
-	$(call timed,scripts/lint-skill-docs.sh)
-	$(call timed,sh skills/glossary-lint/glossary-lint.sh)
-	$(call timed,scripts/check-test-git-init.sh)
-	$(call timed,scripts/test-lint-skill-docs.sh)
-	$(call timed,scripts/test-guard-rm.sh)
-	$(call timed,scripts/test-phases.sh)
-	$(call timed,scripts/test-glossary-lint.sh)
-	$(call timed,scripts/test-setup-skill.sh)
-	$(call timed,scripts/test-setup-repo-skill.sh)
-	$(call timed,scripts/test-readme.sh)
-	$(call timed,scripts/test-ci-workflow.sh)
-	$(call timed,scripts/test-check-target.sh)
+ci: ## Lint the skill docs and the glossary terms, and run every script test that needs no beads database
+	$(call side_by_side,$(ci_steps))
 
-# a fixture build mostly waits on bd, so the fixture tests, each on its own scratch paths, run
-# side by side
 fixtures: ## Run the scripted fixture tests at once against throwaway beads databases (needs bd and cargo)
-	$(call side_by_side,scripts/test-fixture-stage-boundary.sh scripts/test-fixture-stories.sh \
-	  scripts/test-fixture-dag.sh scripts/test-fixture-retro.sh scripts/test-fixture-story-cut.sh \
-	  scripts/test-fixture-story-cutter.sh scripts/test-fixture-triage.sh)
+	$(call side_by_side,$(fixture_steps))

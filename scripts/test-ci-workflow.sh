@@ -47,13 +47,20 @@ fx_check "never runs the scripts directly" bash -c '! grep -Eq "run:.*scripts/" 
 fx_check "limits the token to contents: read" bash -c 'sed -n "/^permissions:/,/^[a-z]/p" "$1" | grep -Eq "contents:[[:space:]]*read"' _ "$wf"
 fx_check "cancels superseded runs with a concurrency group" bash -c 'b=$(sed -n "/^concurrency:/,/^[a-z]/p" "$1"); grep -Eq "group:" <<<"$b" && grep -Eq "cancel-in-progress:[[:space:]]*true" <<<"$b"' _ "$wf"
 mk=$repo_root/Makefile
-ci_block=$(awk '/^ci:/{f=1;print;next} f&&!/^\t/{exit} f{print}' "$mk")
 fx_check "the Makefile lint target aliases check" grep -Eq '^lint:[[:space:]]*check([[:space:]]|$)' "$mk"
 fx_check "the lint help line says it aliases check" grep -Eq '^lint:.*##.*alias.*check' "$mk"
-check_block=$(awk '/^check:/{f=1;print;next} f&&!/^\t/{exit} f{print}' "$mk")
-fx_check "the check target runs ci and the fixtures side by side" bash -c 'tail -n +2 <<<"$1" | grep -Eq "\\\$\(MAKE\) fixtures[^;]*&" && tail -n +2 <<<"$1" | grep -Fq "\$(MAKE) ci"' _ "$check_block"
-fx_check "the ci target runs the workflow test" bash -c 'grep -Fq scripts/test-ci-workflow.sh <<<"$1"' _ "$ci_block"
-fx_check "the ci target runs no fixtures, direct or via make" bash -c '! tail -n +2 <<<"$1" | grep -Eq "fixture|MAKE"' _ "$ci_block"
+# make -n prints each target's recipe with its steps spelled out, so the checks below read what
+# the target runs, not how the Makefile spells it
+plan() { make -n -C "$repo_root" "$1" 2>&1; }
+check_plan=$(plan check) ci_plan=$(plan ci) fixtures_plan=$(plan fixtures)
+fx_check "the ci target runs the workflow test" grep -Fq scripts/test-ci-workflow.sh <<<"$ci_plan"
+fx_check "the ci target runs no fixtures, direct or via make" bash -c '! grep -Eq "fixture|MAKE|make " <<<"$1"' _ "$ci_plan"
+fx_check "the fixtures target runs a fixture test" grep -Fq scripts/test-fixture-dag.sh <<<"$fixtures_plan"
+fx_check "the check target runs every step of ci and of the fixtures" bash -c '
+  for s in $(grep -oE "[a-z/-]+\.sh" <<<"$1$2" | sort -u); do grep -Fq "$s" <<<"$3" || { echo "check lacks $s" >&2; exit 1; }; done' _ "$ci_plan" "$fixtures_plan" "$check_plan"
+# one pool: a ci step run apart from the pool would hold its seconds ahead of or behind it
+fx_check "the check target runs its steps in one side-by-side run, no sub-make" bash -c '
+  [ "$(grep -c "wait \$p" <<<"$1")" = 1 ] && ! grep -Eq "make (ci|fixtures)|MAKE" <<<"$1"' _ "$check_plan"
 # Help text that enumerates scripts goes stale when one joins or leaves a target, so no help
 # line names a script its recipe runs (by stem, test- and fixture- dropped) or lists names in
 # the "a, b and c tests" shape the old ci text had.
@@ -68,7 +75,7 @@ help_names_scripts() { # <makefile>
     END { exit bad }' "$1"
 }
 fx_check "no Makefile help line names a script its recipe runs" help_names_scripts "$mk"
-fx_check "the ci target runs the test git-init check" bash -c 'grep -Fq scripts/check-test-git-init.sh <<<"$1"' _ "$ci_block"
+fx_check "the ci target runs the test git-init check" bash -c 'grep -Fq scripts/check-test-git-init.sh <<<"$1"' _ "$ci_plan"
 # a step's line in a CI log says where the time went, and its CPU seconds say whether it waited or
 # worked: under its elapsed seconds, the shell's user and sys, then the step's (the times builtin)
 fx_scratch_dir test-ci-workflow || exit 1
