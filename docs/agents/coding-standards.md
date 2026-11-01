@@ -90,11 +90,12 @@ A rule the skill's `SKILL.md` marks with a bold step name is cited in bold
 a rule it marks with a heading is cited by the heading's words in quotes, the skill named
 beside them (`/dev:close-story`'s "The forge shows MERGED", `/dev:story-to-tasks`'s "Gather
 context"). A bold step name is a bold name that opens a line, after any indent or `- `
-marker, and either opens a numbered item or carries a period inside the bold
-(`**Story gate.**`, `- **Stall.**`). A bold lead-in with no period that opens no numbered
-item (`**Owner**`, `**Alone**:`) is a label, and a bold term inside a sentence (the
-**story orchestrator**) is neither; a cite of a label or such a term is outside this rule.
-A lead-in that another skill or a rules doc cites takes the period inside the bold, so it
-is cited in bold. A heading cited bare (`/dev:task-orchestrator`'s Two entries) or a step
-name cited in quotes is a cite in the wrong form. A cite of the rules doc's own sections, or of
-a skill's own steps and headings, is not a cross-skill cite and is outside this rule.
+marker, opens on a letter or a backtick, and either opens a numbered item or ends on a
+period inside the bold (`**Story gate.**`, `- **Stall.**`). A bold lead-in with no period
+that opens no numbered item (`**Owner**`, `**Alone**:`) is a label, and a bold term inside
+a sentence (the **story orchestrator**) is neither; a cite of a label or such a term is
+outside this rule, so a lead-in that another skill or a rules doc cites takes the period
+inside the bold and is cited in bold. A heading cited bare (`/dev:task-orchestrator`'s
+Two entries) or a step name cited in quotes is a cite in the wrong form. A cite of the
+rules doc's own sections, or of a skill's own steps and headings, is not a cross-skill
+cite and is outside this rule.

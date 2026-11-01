@@ -1981,6 +1981,11 @@ printf '%s\n' "As \`/dev:implement-story\`'s **Zed item** says." >> "$scratch/$o
 expect "a list item step name cited in bold passes section 18" 0
 
 fresh
+printf '%s\n' "  - **Zed item.** A rule." >> "$scratch/skills/implement-story/SKILL.md"
+printf '%s\n' "As \`/dev:implement-story\`'s \"Zed item\" says." >> "$scratch/$orch"
+sec=18 expect "an indented list item step name cited in quotes fails section 18" 1 "present: a step name cited in quotes of /dev:implement-story in $scratch/$orch"
+
+fresh
 printf '%s\n' "Some words, **Zed middle.** A rule." >> "$scratch/skills/implement-story/SKILL.md"
 printf '%s\n' "As \`/dev:implement-story\`'s \"Zed middle\" says." >> "$scratch/$orch"
 expect "a mid-line bold term is no step name in section 18" 0

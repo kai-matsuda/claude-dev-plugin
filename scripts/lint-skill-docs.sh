@@ -737,9 +737,9 @@ has "frontmatter" "$pin_frontmatter_disable_model_invocation"
 has "malformed epic refusal" "$pin_cite_malformed_epic_refusal"
 lacks "implement-spec restating the malformed-epic refusal" "$pin_malformed_epic_refusal_line"
 has "add-dir refusal" "$pin_add_dir_remedy"
-hasc "Human stop" '**Human stop**'
+hasc "Human stop" '**Human stop.**'
 hasc "Stall" '**Stall.**'
-hasc "Done" '**Done**'
+hasc "Done" '**Done.**'
 has "Finished story" 'finished story'
 hasc "finished story tolerates untriaged children" "$pin_needs_triage_wontfix"
 lacks "finished story keyed on ready-for-human alone" "$pin_not_ready_for_human_alone"
@@ -2464,8 +2464,8 @@ if [ -f "$standards" ]; then
   # line, indented or not, after an optional list marker "- ", with its period inside
   # (**Name.**); a bold label with no period that opens no numbered item (a list item
   # "- **Owner**", a table-like "**Alone**") is a label, no step, and a bold term inside a
-  # sentence is none, so neither is read. A heading is a ## to #### line, its number dropped. A name opens on a
-  # letter or a backtick.
+  # sentence is none, so neither is read. A heading is a ## to #### line, its number dropped. A
+  # name opens on a letter or a backtick.
   cite_names=$(awk '
     function esc(s) { gsub(/[][\\.^$*+?(){}|]/, "\\\\&", s); return s }
     function add(kind, name) {
