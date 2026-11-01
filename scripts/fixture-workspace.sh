@@ -177,7 +177,8 @@ T
 printf '/lib/\n/consumer/\n/.git-dirs/\n' > "$out/.gitignore"
 commit "$out" "chore: initial commit"
 
-# --- the three databases, side by side: a bd init is most of a build and they share nothing ---
+# --- the three databases, side by side: a bd init is most of a build and each writes its own
+# repo; only bd's and Dolt's user-level state is common to them ---
 init_pids=
 bd_init "$out/lib" lib & init_pids+=" $!"
 bd_init "$out/consumer" consumer & init_pids+=" $!"

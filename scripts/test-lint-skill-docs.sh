@@ -26,9 +26,11 @@
 # verdicts are read and tallied with builtins. Every case but the baseline lints with
 # LINT_UNCHANGED listing its files still byte-identical to the pristine tree, whose queued checks
 # the baseline shows pass, so a run checks only what its case seeded. The cases derived from
-# LINT_PIN_LIST share their runs: one seeded tree per kind and file (pin_case, seed_pins), its
-# verdicts read off one lint output (judge_batch), and a case a batch cannot vouch for runs alone,
-# so every derived case still prints its own verdict line.
+# LINT_PIN_LIST share their runs: one seeded tree per kind and file (pin_case, seed_pins), a check
+# apart from any seeding that takes its anchor (round_specs), its verdicts read off one lint output
+# (judge_batch), and a case a batch cannot vouch for runs alone, so every derived case still prints
+# its own verdict line. A shared tree's verdict stands for a tree of the case's own on the
+# conditions set out above the batch loop.
 # No wait in the pool is unbounded (dev-1ef): each lint run (under perl, which macOS and the
 # ubuntu runner ship) is killed, its whole process group, after LINT_CASE_TIMEOUT seconds
 # (default 120) and its case fails naming the timeout; a case's slot token goes back from an
@@ -724,6 +726,61 @@ drop_pin() {
     *) drop_phrase "$2" "$3" ;;
   esac
 }
+# round_specs <tree> <spec...>: keeps a check apart from a seeding that takes its anchor. A spec's
+# record whose seeding takes another record's anchor off a line of its file under <tree>, or that
+# holds an anchor a record already in the round takes, moves to the first round that has neither,
+# <spec>.<round>, the seeding read as seed_pins does it: a pattern's drop takes its whole line, a
+# phrase's every occurrence, a seed nothing. The anchor is read as the lint reads it: a section's is
+# its whole line, a paragraph's the line's start, and a line check's a pattern.
+round_specs() {
+  awk -F '\t' -v tree="$1" '
+    function holds(s, j) {
+      return at[j] == "S" ? s == an[j] : (at[j] == "p" ? index(s, an[j]) == 1 : s ~ an[j])
+    }
+    # true when the seeding of record r leaves a line that held anchor j without it
+    function cuts(r, j,   l, s, out, p, ci, i) {
+      if (K[r] == "seed") return 0
+      ci = (T[r] == "i" || T[r] == "p")
+      p = ci ? tolower(P[r]) : P[r]
+      for (l = 1; l <= nl[j]; l++) {
+        s = held[j, l]
+        if (T[r] == "e" || T[r] == "A") { if (s ~ P[r]) return 1; continue }
+        out = ""
+        while ((i = index(ci ? tolower(s) : s, p))) { out = out substr(s, 1, i - 1); s = substr(s, i + length(p)) }
+        if (!holds(out s, j)) return 1
+      }
+      return 0
+    }
+    # the id of the anchor of record r in its spec, its lines read from the tree the first time
+    function anchor(r,   key, j, s, c, path) {
+      c = (T[r] == "S" || T[r] == "p") ? T[r] : "a"
+      key = SP[r] SUBSEP c SUBSEP A[r]
+      if (key in id) return id[key]
+      j = id[key] = ++na; an[j] = A[r]; at[j] = c
+      spanch[SP[r], ++nspan[SP[r]]] = j
+      path = tree "/" F[r]
+      while ((getline s < path) > 0) if (holds(s, j)) held[j, ++nl[j]] = s
+      close(path)
+      return j
+    }
+    # true when record r cannot join round q of its spec
+    function clash(r, q,   sp, i, j) {
+      sp = SP[r]
+      for (i = 1; i <= nspan[sp]; i++) { j = spanch[sp, i]; if (((j, q) in taken) && cuts(r, j)) return 1 }
+      if (r in own) for (i = 1; i <= size[sp, q]; i++) if (cuts(member[sp, q, i], own[r])) return 1
+      return 0
+    }
+    { n++; SP[n] = FILENAME; REC[n] = $0; K[n] = $1; T[n] = $2; F[n] = $3; P[n] = $4; A[n] = $7 }
+    END {
+      for (r = 1; r <= n; r++) if (A[r] != "") own[r] = anchor(r)
+      for (r = 1; r <= n; r++) {
+        for (q = 0; clash(r, q); q++) ;
+        member[SP[r], q, ++size[SP[r], q]] = r
+        if (r in own) taken[own[r], q] = 1
+        print REC[r] > (q ? SP[r] "." q : SP[r])
+      }
+    }' "${@:2}"
+}
 # seed_pins <spec>: seeds the scratch tree with every record of a spec, one case per line, tab-separated:
 # <kind> <check type> <file under scratch> <phrase> <description> <message> [<anchor>] (the anchor last,
 # since read collapses empty fields). A kind's records seed one tree at once: drop drops the phrase
@@ -1080,9 +1137,16 @@ while IFS=$'\t' read -r -u 4 ptype pfile pdesc pphrase alt panchor; do
     pin_case moved 0 "$ptype" "$prel" "$pphrase" "pin $npins: $prel with '$pdesc' moved out of its scope fails" ": $pdesc ($pphrase" "$panchor"
   fi
 done 4< "$jobs/pins.derive"
-# each batch is one seeded tree and one lint run: a queued check reads one file and fires on its
-# phrase alone, so a tree holding a batch's seeds gives each check the verdict a tree of its own
-# would, and the run costs one lint where the cases alone would cost hundreds
+# each batch is one seeded tree and one lint run, where the cases alone would cost hundreds. A
+# queued check reads one file, its phrase in its anchor's scope, so a neighbour's seeding fires it
+# only through that phrase or that scope, and a batch's ok line says a drop of the case's own fires
+# it on these conditions. A neighbour that takes the check's anchor would fire it with the case's
+# own drop lost, so round_specs keeps the two to separate trees. A neighbour can still take the
+# check's phrase, or empty a line of its paragraph, which closes the paragraph early; that leaves
+# the case's own drop unseen, so the ok line then rests on drop_pin reading a phrase as the check
+# does, every occurrence, with no tree of its own to show it. A case the output does not vouch for
+# runs alone (judge_batch)
+round_specs "$pristine" "$jobs"/batch.*
 for batch_spec in "$jobs"/batch.*; do
   fresh
   seed_pins "$batch_spec"
@@ -1103,7 +1167,7 @@ done 4< "$jobs/retries"
 expect_flush all
 # judge_batch alone, on a made-up spec and lint output: what it cannot vouch for goes to the retry
 # file and never to an ok line
-batch_judged() { # <expected ok lines, |-joined> <expected retried descriptions, |-joined> <lint rc>
+judge_batch_gives() { # <expected ok lines, |-joined> <expected retried descriptions, |-joined> <lint rc>
   local oks retried
   rm -f "$jobs/judged.retry"
   oks=$(BATCH_RETRY=$jobs/judged.retry judge_batch "$jobs/judged.spec" "$(cat "$jobs/judged.lint")$nl$3" | sed 's/^ok   //' | paste -sd '|' -)
@@ -1118,9 +1182,42 @@ printf '%s\t%s\t%s\t%s\t%s\t%s\t\n' \
 printf '%s\n' '== 6. a' 'FAIL: missing: one (phrase-one)' 'FAIL: present: three (p3)' '12:seed-one' \
   'FAIL: present: four (p4)' '14:seed-one' '== 7. b' > "$jobs/judged.lint"
 fx_check "a batch vouches for a fired check and a seed shown under its own check, and retries the rest" \
-  batch_judged 'dropped pin|seed shown' 'silent pin|seed masked' 1
+  judge_batch_gives 'dropped pin|seed shown' 'silent pin|seed masked' 1
 fx_check "a batch whose lint did not end 1 vouches for nothing" \
-  batch_judged '' 'dropped pin|silent pin|seed shown|seed masked' 124
+  judge_batch_gives '' 'dropped pin|silent pin|seed shown|seed masked' 124
+
+# round_specs alone, on a made-up tree and spec: a check whose anchor a neighbour's seeding takes
+# away would fire with its own drop lost, so the two never share a tree
+mkdir "$jobs/rounds"
+printf '%s\n' '3. **Gate**, every tier: a pin' '## Landing' 'a pin of the section' '**Check.** a para pin' > "$jobs/rounds/a.md"
+round_specs_gives() { # <descriptions left in the tree, |-joined> <moved to its next round, |-joined> <records...>
+  local left moved want_left=$1 want_moved=$2
+  shift 2
+  rm -f "$jobs/judged.spec.0"*
+  printf '%s\n' "$@" > "$jobs/judged.spec.0"
+  round_specs "$jobs/rounds" "$jobs/judged.spec.0"
+  left=$(cut -f5 "$jobs/judged.spec.0" | paste -sd '|' -)
+  moved=$(cut -f5 "$jobs/judged.spec.0.1" 2>/dev/null | paste -sd '|' -)
+  [ "$left" = "$want_left" ] && [ "$moved" = "$want_moved" ]
+}
+# rec <kind> <check type> <phrase> <description> [<anchor>]: a spec record on a.md
+rec() { printf '%s\t%s\ta.md\t%s\t%s\t: %s\t%s' "$1" "$2" "$3" "$4" "$4" "${5:-}"; }
+fx_check "a phrase equal to a neighbour's anchor takes the next round" round_specs_gives 'anchored|plain' 'cutter' \
+  "$(rec drop S 'a pin of the section' anchored '## Landing')" "$(rec drop c '## Landing' cutter)" "$(rec drop c 'plain' plain)"
+fx_check "a phrase containing a neighbour's anchor takes the next round" round_specs_gives 'anchored' 'cutter' \
+  "$(rec drop p 'para pin' anchored '**Check.**')" "$(rec drop c '**Check.** a para' cutter)"
+fx_check "a phrase holding a piece of a neighbour's anchor takes the next round" round_specs_gives 'anchored' 'cutter' \
+  "$(rec drop a 'every tier' anchored '^3\. \*\*Gate\*\*')" "$(rec drop c '**Gate**' cutter)"
+fx_check "a check's anchor keeps out a phrase already in the tree" round_specs_gives 'cutter' 'anchored' \
+  "$(rec drop c '**Gate**' cutter)" "$(rec drop a 'every tier' anchored '^3\. \*\*Gate\*\*')"
+fx_check "a phrase dropped case-blind is read case-blind" round_specs_gives 'anchored' 'cutter' \
+  "$(rec drop p 'para pin' anchored '**Check.**')" "$(rec drop i '**CHECK.**' cutter)"
+fx_check "a pattern's drop takes its whole line" round_specs_gives 'anchored' 'cutter' \
+  "$(rec drop a 'every tier' anchored '^3\. ')" "$(rec drop e 'Gate' cutter)"
+fx_check "a phrase off the anchor's line stays in the tree" round_specs_gives 'anchored|plain' '' \
+  "$(rec drop a 'every tier' anchored '^3\. ')" "$(rec drop c 'a para pin' plain)"
+fx_check "a seed cuts nothing" round_specs_gives 'anchored|seeded' '' \
+  "$(rec drop a 'every tier' anchored '^3\. ')" "$(rec seed f '3. **Gate**' seeded)"
 
 # the pin tables under scripts/, one list for every loop over them
 pin_tables="implement-spec-pins repo-plumbing-pins"
@@ -1718,6 +1815,14 @@ expect "a skill's own heading cited in bold in its SKILL.md passes section 18" 0
 fresh
 printf '%s\n' "As \`/dev:implement-story\`'s Landing says." >> "$scratch/skills/implement-story/SKILL.md"
 expect "a skill's own heading cited bare in its SKILL.md passes section 18" 0
+
+# the lint skips a file that never names a skill, and that reading limits no skill's name: one
+# with a digit in it is cited like any other
+fresh
+mkdir "$scratch/skills/zed2"
+printf '%s\n' "---" "name: zed2" "description: A skill whose name holds a digit." "---" "" "# Zed2" "" "## Zed gate" >> "$scratch/skills/zed2/SKILL.md"
+printf '%s\n' "As the Zed gate of \`/dev:zed2\` says." >> "$scratch/$orch"
+sec=18 expect "a bare cite of a skill with a digit in its name fails section 18" 1 "present: a bare cite of /dev:zed2 in $scratch/$orch"
 
 # a #### heading is a cite target
 fresh

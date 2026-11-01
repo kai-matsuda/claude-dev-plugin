@@ -2465,8 +2465,9 @@ if doc 18 "cross-skill cites" "$standards"; then
     others=${skill_names//|$own|/|}; others=${others#|}; others=${others%|}
     [ -z "$others" ] || lackswc "an unquoted heading cite of a skill in $f" "\`/dev:($others)\`'s [A-Z]"
     # every pattern below holds `/dev:<skill>`, one token that no line break splits, so a file
-    # that never names the skill can match none of them: most files name few skills
-    cited=$(grep -o '`/dev:[a-z-]*`' "$f" | sort -u)
+    # that never names the skill can match none of them: most files name few skills. The test is
+    # a fixed-string one of each ref against these lines, so it knows no skill name's alphabet
+    cited=$(grep -F '`/dev:' "$f")
     while IFS=$'\t' read -r skill kind name; do
       [ -n "$name" ] || continue
       # a skill's own steps and headings are no cross-skill cite
