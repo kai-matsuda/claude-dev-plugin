@@ -132,7 +132,9 @@ word after a backticked possessive fails whether it is a name or not
 Every other typography is outside what the lint reads: curly quotes and apostrophes, en
 dashes and an em dash with no space around it, a separator with no space, single quotes,
 italics, double backticks, a name in both bold and quotes, a skill set in bold or quotes,
-any other punctuation outside the marks, a backtick before a name only when the name stands
-straight after the skill or its possessive (a backtick at either end of a name elsewhere
-leaves it bare, and it fails), a space inside the backticks, and any words beside a skill
-other than those three places. A reader still writes the one right form.
+any other punctuation outside the marks, a one-sided mark (a bold or quote mark that opens
+a name and is never closed, or closes one never opened), a stray backtick beside a right
+mark, a backtick before a name only when the name stands straight after the skill or its
+possessive (a backtick at either end of a name elsewhere leaves it bare, and it fails), a
+space inside the backticks, and any words beside a skill other than those three places. A
+skill in parentheses is read like any other. A reader still writes the one right form.

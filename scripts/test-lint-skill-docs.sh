@@ -1813,9 +1813,9 @@ printf '%s\n' "## Zed gate" "" "**Zed gate.** A step." >> "$scratch/skills/imple
 printf '%s\n' "As the Zed gate step of \`/dev:implement-story\` says." >> "$scratch/$orch"
 sec=18 expect "a name both a step and a heading cited bare fails section 18" 1 "present: a bare cite of /dev:implement-story in $scratch/$orch"
 
-# a name of kind both beside a bare skill fails in each mark, and inside backticks (the |both in
-# the two bare-skill checks turns these red when dropped; the backtick check has no kind filter)
-for form in "As /dev:implement-story's **Zed gate** says." "As /dev:implement-story's \"Zed gate\" says." "As /dev:implement-story's \`Zed gate\` says." "As \`/dev:implement-story\`'s \`Zed gate\` says."; do
+# a name of kind both in backticks fails, the skill bare or not (the backtick check has no kind
+# filter; the marks beside a bare skill are seeded further down)
+for form in "As /dev:implement-story's \`Zed gate\` says." "As \`/dev:implement-story\`'s \`Zed gate\` says."; do
   fresh
   printf '%s\n' "## Zed gate" "" "**Zed gate.** A step." >> "$scratch/skills/implement-story/SKILL.md"
   printf '%s\n' "$form" >> "$scratch/$orch"
@@ -1894,11 +1894,19 @@ cite_seeds() {
 }
 # a bare skill beside a name in the right marking, in all three orders; the loop asserts that a
 # present: line fails, and the cases after it assert which check
-for form in "As $SK's \"Story gate\" says." "As the **Clean up** sweep of $SK says." "As $SK \"Story gate\" says." "As $SK, \"Story gate\" says." "As $SK **Story gate** says." "As $SK: **Story gate** says." "As $SK's **Story gate** says." "As $SK's \"Story gate.\" says." "As the Story gate step of $SK says." "As $SK's story gate says." "As the \"Story gate\" step of $SK says." "As the **Story gate** step in $SK says."; do
-  fresh
-  printf '%s\n' "$form" >> "$scratch/$orch"
-  sec=18 expect "a bare skill beside a name ($form) fails section 18" 1 "present: "
-done
+cite_seeds $orch "present: " "a bare skill beside a name" \
+  "As $SK's \"Story gate\" says." \
+  "As the **Clean up** sweep of $SK says." \
+  "As $SK \"Story gate\" says." \
+  "As $SK, \"Story gate\" says." \
+  "As $SK **Story gate** says." \
+  "As $SK: **Story gate** says." \
+  "As $SK's **Story gate** says." \
+  "As $SK's \"Story gate.\" says." \
+  "As the Story gate step of $SK says." \
+  "As $SK's story gate says." \
+  "As the \"Story gate\" step of $SK says." \
+  "As the **Story gate** step in $SK says."
 fresh
 printf '%s\n' "As /dev:task-orchestrator's \"Two entries\" says." >> "$scratch/$orch"
 sec=18 expect "a skill cited without backticks after a possessive fails section 18" 1 "$bare_msg /dev:task-orchestrator in $scratch/$orch"
@@ -1920,11 +1928,14 @@ expect "a skill's own steps cited beside its bare skill pass section 18" 0
 
 # a name in backticks, in all three orders, with punctuation inside the marks too
 bt_msg="present: a name cited in backticks of"
-for form in "As \`/dev:implement-story\`'s \`Story gate\` says." "As \`/dev:implement-story\` \`Story gate\` says." "As /dev:implement-story \`Story gate\` says." "As \`/dev:implement-story\`'s \`Story gate.\` says." "As the \`Story gate,\` step of \`/dev:implement-story\` says." "As \`/dev:implement-story\`: \`Story gate\` says." "As \`/dev:implement-story\`'s \`story gate\` says."; do
-  fresh
-  printf '%s\n' "$form" >> "$scratch/$orch"
-  sec=18 expect "a step name in backticks ($form) fails section 18" 1 "$bt_msg /dev:implement-story in $scratch/$orch"
-done
+cite_seeds $orch "$bt_msg /dev:implement-story in $scratch/$orch" "a step name in backticks" \
+  "As \`/dev:implement-story\`'s \`Story gate\` says." \
+  "As \`/dev:implement-story\` \`Story gate\` says." \
+  "As /dev:implement-story \`Story gate\` says." \
+  "As \`/dev:implement-story\`'s \`Story gate.\` says." \
+  "As the \`Story gate,\` step of \`/dev:implement-story\` says." \
+  "As \`/dev:implement-story\`: \`Story gate\` says." \
+  "As \`/dev:implement-story\`'s \`story gate\` says."
 fresh
 printf '%s\n' "As \`/dev:task-orchestrator\`'s \`Two entries\` says." >> "$scratch/$orch"
 sec=18 expect "a heading cited in backticks fails section 18" 1 "$bt_msg /dev:task-orchestrator in $scratch/$orch"
@@ -1937,16 +1948,23 @@ sec=18 expect "a heading in backticks skill-first fails section 18" 1 "$bt_msg /
 
 # backticks around a name that is also in bold or quotes, or around the mark itself, fail in all
 # three orders with the skill backticked or bare
-for form in "As \`/dev:implement-story\`'s **\`Story gate\`** says." "As the **\`Story gate\`** step of \`/dev:implement-story\` says." "As \`/dev:implement-story\` **\`Story gate\`** says." "As \`/dev:task-orchestrator\`'s \"\`Two entries\`\" says." "As \`/dev:task-orchestrator\` \"\`Two entries\`\" says." "As \`/dev:implement-story\`'s \`**Story gate**\` says." "As the \`**Story gate**\` step of \`/dev:implement-story\` says." "As \`/dev:implement-story\` \`**Story gate**\` says." "As \`/dev:close-story\`'s \"\`The forge shows MERGED\`\" says." "As \`/dev:close-story\`'s \`\"The forge shows MERGED\"\` says." "As \`/dev:implement-story\`'s **\`Story gate.\`** says."; do
-  fresh
-  printf '%s\n' "$form" >> "$scratch/$orch"
-  sec=18 expect "a marked name in backticks ($form) fails section 18" 1 "$bt_msg"
-done
-for form in "As $SK's **\`Story gate\`** says." "As the **\`Story gate\`** step of $SK says." "As $SK **\`Story gate\`** says." "As $SK's \`**Story gate**\` says."; do
-  fresh
-  printf '%s\n' "$form" >> "$scratch/$orch"
-  sec=18 expect "a marked name in backticks beside a bare skill ($form) fails section 18" 1 "present: "
-done
+cite_seeds $orch "$bt_msg" "a marked name in backticks" \
+  "As \`/dev:implement-story\`'s **\`Story gate\`** says." \
+  "As the **\`Story gate\`** step of \`/dev:implement-story\` says." \
+  "As \`/dev:implement-story\` **\`Story gate\`** says." \
+  "As \`/dev:task-orchestrator\`'s \"\`Two entries\`\" says." \
+  "As \`/dev:task-orchestrator\` \"\`Two entries\`\" says." \
+  "As \`/dev:implement-story\`'s \`**Story gate**\` says." \
+  "As the \`**Story gate**\` step of \`/dev:implement-story\` says." \
+  "As \`/dev:implement-story\` \`**Story gate**\` says." \
+  "As \`/dev:close-story\`'s \"\`The forge shows MERGED\`\" says." \
+  "As \`/dev:close-story\`'s \`\"The forge shows MERGED\"\` says." \
+  "As \`/dev:implement-story\`'s **\`Story gate.\`** says."
+cite_seeds $orch "present: " "a marked name in backticks beside a bare skill" \
+  "As $SK's **\`Story gate\`** says." \
+  "As the **\`Story gate\`** step of $SK says." \
+  "As $SK **\`Story gate\`** says." \
+  "As $SK's \`**Story gate**\` says."
 
 # punctuation between the closing backtick and an outer mark (shape a), and between an inner mark
 # and the closing backtick (shape b), fails in all three orders, the skill backticked or bare
@@ -1983,19 +2001,34 @@ cite_seeds $orch "present: an unquoted heading cite of a skill in $scratch/$orch
   "As \`$SK\`'s Jira key says."
 
 # the shapes the rule leaves open pass: a backtick on one side of a name alone, and the one
-# unspaced em dash; bold with backticks inside or around is read, bold with quotes is not
-for form in "As $SK's \`Story gate says." "As ${SK}—**Story gate** says." "As \`$SK\`'s **\"Story gate\"** says."; do
+# unspaced em dash; bold with backticks inside or around is read, bold with quotes is not; a
+# one-sided bold or quote mark, and a stray backtick beside a right mark, are not read either
+for form in "As $SK's \`Story gate says." "As ${SK}—**Story gate** says." "As \`$SK\`'s **\"Story gate\"** says." "As the **Story gate step of \`$SK\` says." "As \`/dev:task-orchestrator\`'s \"Two entries says." "As the Two entries\" heading of \`/dev:task-orchestrator\` says." "As the \`**Story gate** step of \`$SK\` says." "As \`$SK\`'s **Story gate**\` says." "As \`/dev:task-orchestrator\`'s \`\"Two entries\" says."; do
   fresh
   printf '%s\n' "$form" >> "$scratch/$orch"
   expect "an open shape ($form) passes section 18" 0
 done
 
+# a skill in parentheses is read like any other
+cite_seeds $orch "present: " "a skill in parentheses" \
+  "As ($SK's **Story gate**) says."
+
+# a backtick straight after a bare name in the of/in order leaves it bare, with a gap of 0 to 2
+# words and the skill in any form (R4)
+cite_seeds $orch "present: a bare cite of" "a backtick after a bare name" \
+  "As the Story gate\` step of $SK says." \
+  "As the Story gate\` step of \`$SK\` says." \
+  "As the Two entries\` heading of /dev:task-orchestrator says." \
+  "As the Story gate\` of $SK says." \
+  "As the Story gate\` in \`$SK says." \
+  "As the Story gate\`. step of $SK says."
+
 # punctuation right after the marks (a period, comma, colon or semicolon) is read in the of/in order
-for form in "As the **\`Story gate\`**. step of \`/dev:implement-story\` says." "As the \`Story gate\`, step of \`/dev:implement-story\` says." "As the **Story gate**. step of /dev:implement-story says." "As the \"Two entries\"; heading of /dev:task-orchestrator says."; do
-  fresh
-  printf '%s\n' "$form" >> "$scratch/$orch"
-  sec=18 expect "punctuation after the marks ($form) fails section 18" 1 "present: a"
-done
+cite_seeds $orch "present: a" "punctuation after the marks" \
+  "As the **\`Story gate\`**. step of \`/dev:implement-story\` says." \
+  "As the \`Story gate\`, step of \`/dev:implement-story\` says." \
+  "As the **Story gate**. step of /dev:implement-story says." \
+  "As the \"Two entries\"; heading of /dev:task-orchestrator says."
 
 # a backtick that is part of a name stays in the name: **`git` rule.** is cited in bold
 for form in "As \`/dev:task-orchestrator\`'s **\`git\` rule** says." "As the **\`git\` rule** of \`/dev:task-orchestrator\` says." "As \`/dev:task-orchestrator\` **\`git\` rule** says."; do
@@ -2005,11 +2038,14 @@ for form in "As \`/dev:task-orchestrator\`'s **\`git\` rule** says." "As the **\
 done
 
 # a skill with a stray backtick (one end, or swallowing the possessive) is not in backticks
-for form in "As \`$SK's\` **Story gate** says." "As $SK\`'s **Story gate** says." "As \`$SK's **Story gate** says." "As \`$SK **Story gate** says." "As $SK\` **Story gate** says." "As the **Clean up** sweep of \`$SK says." "As the **Clean up** sweep of $SK\` says."; do
-  fresh
-  printf '%s\n' "$form" >> "$scratch/$orch"
-  sec=18 expect "a skill with a stray backtick ($form) fails section 18" 1 "$bare_msg $SK in $scratch/$orch"
-done
+cite_seeds $orch "$bare_msg $SK in $scratch/$orch" "a skill with a stray backtick" \
+  "As \`$SK's\` **Story gate** says." \
+  "As $SK\`'s **Story gate** says." \
+  "As \`$SK's **Story gate** says." \
+  "As \`$SK **Story gate** says." \
+  "As $SK\` **Story gate** says." \
+  "As the **Clean up** sweep of \`$SK says." \
+  "As the **Clean up** sweep of $SK\` says."
 
 # bare skill beside a bare or quoted name in the of/in order, and a bare skill with a bare capital
 fresh
@@ -2020,11 +2056,12 @@ printf '%s\n' "As /dev:task-orchestrator's Two entries says." >> "$scratch/$orch
 sec=18 expect "a bare capital heading after a bare possessive fails section 18" 1 "present: a bare cite after a possessive and step or section of /dev:task-orchestrator in $scratch/$orch"
 
 # bare-skill prose that spells a known name fails: the reword is the fix
-for form in "Read the steps of $SK first." "The landing in $SK is serial." "The report of /dev:task-orchestrator goes up." "/dev:task-orchestrator's report is one line." "Use /dev:triage, Report the items."; do
-  fresh
-  printf '%s\n' "$form" >> "$scratch/$orch"
-  sec=18 expect "bare-skill prose spelling a known name ($form) fails section 18" 1 "present: "
-done
+cite_seeds $orch "present: " "bare-skill prose spelling a known name" \
+  "Read the steps of $SK first." \
+  "The landing in $SK is serial." \
+  "The report of /dev:task-orchestrator goes up." \
+  "/dev:task-orchestrator's report is one line." \
+  "Use /dev:triage, Report the items."
 
 # a skill whose name is the start of another's (/dev:setup, /dev:setup-repo) is not read inside it
 fresh

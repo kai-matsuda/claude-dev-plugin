@@ -2443,36 +2443,40 @@ fi
 # words of letters between. The skill is backticked, bare, or has a backtick at one end only or
 # around its possessive. The marks are straight double quotes, ** and backticks, around the name
 # alone, with an optional period, comma, colon or semicolon after the name inside the marks, right
-# after them or between two of them (a stray mark is read too). A name is the skill's own words (every regex character escaped, any characters
-# but a bold marker). Names match in any case, except a bare name straight after a skill, which
-# matches in its own case only ("/dev:x story gate" passes). It fails: a bare skill beside a name
-# in the right mark; a name in the wrong mark (a step in quotes, a heading in bold) or a bare
-# heading; a name inside a pair of backticks, alone or with bold or quotes inside or around the
-# pair; and, as plain prose, a bare skill beside a name in any case ("the steps of
-# `/dev:implement-spec`", "/dev:triage, Report the items", "/dev:task-orchestrator's report is one
-# line"). A name that is both a step and a heading takes either mark and fails only bare, in
-# backticks, or in either mark beside a bare skill. A capital word after a backticked possessive
+# after them or between two of them (a stray mark is read too, but only inside the backtick
+# check). A name is the skill's own words (every regex character escaped, any characters but a
+# bold marker). Names match in any case, except a bare name straight after a skill, which matches
+# in its own case only ("/dev:x story gate" passes). It fails: a bare skill beside a name in the
+# right mark; a name in the wrong mark (a step in quotes, a heading in bold) or a bare heading (in
+# the of/in order a backtick right after the bare name, and a period, comma, colon or semicolon
+# after that, leave it bare); a name inside a pair of backticks, alone or with bold or quotes
+# inside or around the pair; and, as plain prose, a bare skill beside a name in any case ("the
+# steps of `/dev:implement-spec`", "/dev:triage, Report the items", "/dev:task-orchestrator's
+# report is one line"). A name that is both a step and a heading takes either mark and fails only
+# bare, in backticks, or in either mark beside a bare skill. A capital word after a backticked possessive
 # fails too ("`/dev:x`'s Jira key"), a known name or not. Every other typography is outside what
 # the lint reads: curly quotes and apostrophes, en dashes and an unspaced em dash, a separator
 # with no space, single quotes, italics, double backticks, a name in both bold and quotes, a skill
-# set in bold or quotes, any other punctuation outside the marks, a backtick before the name only
-# (straight after a skill or its possessive; elsewhere it leaves the name bare and fails), a space
-# inside the backticks, a bold lead-in with no period that opens no numbered item (read as a
-# label, not a step), a skill cite with an argument, a skill in parentheses, a hyphenated gap
-# word, a link word other than of/in, a name directly before the skill with no link word, and any
-# words beside a skill other than the three places. A bare skill is read only beside a known name:
-# a bare skill with a capitalised word that is no step or heading ("/dev:x's Jira key"), a quoted
-# or bold word that is no name, or no cite at all passes. A second cite in a list passes for every
-# one but the first. The
-# heading extractor reads ## to #### lines inside code fences and tags too, so story-to-tasks's
-# template (in an <issue-template> tag) gives Parent, What to build and Acceptance criteria. A
-# possessive cite of a skill with no directory ("`/dev:nope`'s Name") passes here, as only the
-# existing skills are matched; section 11 fails it.
+# set in bold or quotes, any other punctuation outside the marks, a one-sided mark (a bold or
+# quote mark opening a name and never closed, or closing one never opened), a stray backtick
+# beside a right mark, a backtick before the name only (straight after a skill or its possessive;
+# elsewhere it leaves the name bare and fails), a space inside the backticks, a bold lead-in with
+# no period that opens no numbered item (read as a label, not a step), a skill cite with an
+# argument, a hyphenated gap word, a link word other than of/in, a name directly before the skill
+# with no link word, and any words beside a skill other than the three places. A skill in
+# parentheses is read like any other. A bare skill is read only beside a known name: a bare skill
+# with a capitalised word that is no step or heading ("/dev:x's Jira key"), a quoted or bold word
+# that is no name, or no cite at all passes. A second cite in a list passes for every one but the
+# first. The heading extractor reads ## to #### lines inside code fences and tags too, so
+# story-to-tasks's template (in an <issue-template> tag) gives Parent, What to build and
+# Acceptance criteria. A possessive cite of a skill with no directory ("`/dev:nope`'s Name")
+# passes here, as only the existing skills are matched; section 11 fails it.
 standards=$agents/coding-standards.md
 # each file is read as one line (lacksw and lackswc, as section 5 does, dev-86j), so a cite
 # split across a line break fails too
 doc 18 "cross-skill cites" "$standards" && has "the cross-skill cite rule heading" "## Another skill's rule is cited in one form"
-# the sweep reads every skill and doc, so the standards doc being listed in LINT_UNCHANGED leaves it to run
+# the sweep reads every skill and doc, so the standards doc being listed in LINT_UNCHANGED leaves
+# it to run
 if [ -f "$standards" ]; then
   # the cite targets of every skill, read in one pass: "<skill> <kind> <name>" with the kind step
   # or heading (both when the skill marks the name both ways), the name's regex characters
@@ -2519,22 +2523,23 @@ if [ -f "$standards" ]; then
     for f in "$skills"/*/SKILL.md; do unchanged_file || { unchanged=$'\n'; break; }; done
   fi
   f=$saved_f unchanged_f=/
-  # cite_toks <form>: sets the skill's regexes for the three word orders, from $skill: p (the skill
-  # and its possessive), skill_alone (the skill alone) and skfirst (skill_alone with what may stand
-  # between it and a name that follows it with no possessive: a comma, colon or semicolon, a dash,
-  # and the words the, step and section) and gap (up to two words, then of/in and the skill). The form "any" is the skill
-  # backticked or bare, with a stray backtick at either end or around its possessive too, and ends
-  # on an edge that no letter or hyphen continues, so /dev:setup is no match in /dev:setup-repo.
-  # The form "bare" is the skill not set in a whole pair of backticks (bare, or a backtick at one
-  # end only, or one that swallows the possessive): the right marking beside it is wrong (dev-hcn9)
+  # cite_toks <form>: sets the skill's regexes for the three word orders, from $skill: poss (the
+  # skill and its possessive), skill_alone (the skill alone), skfirst (skill_alone with what may
+  # stand between it and a name that follows it with no possessive: a comma, colon or semicolon,
+  # a dash, and the words the, step and section) and gap (up to two words, then of/in and the
+  # skill). The form "any" is the skill backticked or bare, with a stray backtick at either end
+  # or around its possessive too, and ends on an edge that no letter or hyphen continues, so
+  # /dev:setup is no match in /dev:setup-repo. The form "bare" is the skill not set in a whole
+  # pair of backticks (bare, or a backtick at one end only, or one that swallows the
+  # possessive): the right marking beside it is wrong (dev-hcn9)
   cite_toks() {
     local pre='(^|[^`/A-Za-z:-])' sk="/dev:$skill"
     if [ "$1" = bare ]; then
-      p="($pre$sk\`?'s\`?|\`$sk's\`?)"
+      poss="($pre$sk\`?'s\`?|\`$sk's\`?)"
       skill_alone="($pre$sk\`?|\`$sk)"
       gap="( [a-z]+){0,2} (of|in) ($sk(\`|[^A-Za-z-]|\$)|\`$sk([^\`A-Za-z-]|\$))"
     else
-      p="\`?$sk\`?'s\`?"
+      poss="\`?$sk\`?'s\`?"
       skill_alone="\`?$sk\`?"
       gap="( [a-z]+){0,2} (of|in) \`?$sk(\`|[^A-Za-z-]|\$)"
     fi
@@ -2542,16 +2547,16 @@ if [ -f "$standards" ]; then
   }
   # three_orders <x>: the pattern for x in the three word orders, from the p, skfirst and gap that
   # cite_toks set, so the orders of one cite cannot drift between checks
-  three_orders() { printf '%s' "$p( (step|section))? $1|$skfirst $1|$1$gap"; }
+  three_orders() { printf '%s' "$poss( (step|section))? $1|$skfirst $1|$1$gap"; }
   # cite_marked <wants> <what> <mark> <skill form>: queues a check that a name of one of the kinds
   # <wants> (a |-list; never one of kind both unless listed) is not cited in the mark ('"' or
   # '\*\*'), in any case, in any of three word orders: after the possessive and an optional step
   # or section, straight after the skill (skill-first), or ahead of the gap. The skill form is
-  # "any" (a wrong marking) or "bare" (the right marking beside a skill not in backticks), as
-  # dev-hcn9 has it; reads skill, kind, name and the file in f
+  # "any" (a wrong marking) or "bare" (the right marking beside a skill not in backticks); reads
+  # skill, kind, name and the file in f (dev-hcn9)
   cite_marked() {
     case "|$1|" in *"|$kind|"*) ;; *) return 0 ;; esac   # kind both is checked only where <wants> lists it (dev-mnz6)
-    local p skill_alone gap skfirst
+    local poss skill_alone gap skfirst
     cite_toks "$4"
     lacksw "$2 of /dev:$skill in $f" "$(three_orders "$3$name[.,;:]?$3[.,;:]?")"
   }
@@ -2586,8 +2591,9 @@ if [ -f "$standards" ]; then
       [ "$skill" = "$own" ] && continue
       # the skill is matched backticked or bare, so a bare skill beside a name fails too (dev-hcn9)
       cite_toks any
-      lacksw "a bare cite of /dev:$skill in $f" "(^|[^*\"A-Za-z])$name$gap"
-      lacksw "a bare cite after a possessive and step or section of /dev:$skill in $f" "$p( (step|section))? $name([^A-Za-z]|$)"
+      # a backtick after the name (and a punctuation mark after it) leaves the name bare too
+      lacksw "a bare cite of /dev:$skill in $f" "(^|[^*\"A-Za-z])$name(\`[.,;:]?)?$gap"
+      lacksw "a bare cite after a possessive and step or section of /dev:$skill in $f" "$poss( (step|section))? $name([^A-Za-z]|$)"
       # case-sensitive: a lower-case word straight after a skill reads as prose ("`/dev:x` re-cut adds")
       lackswc "a bare skill-first cite of /dev:$skill in $f" "$skfirst $name([^A-Za-z]|$)"
       # a name is never set in backticks, step or heading, in any of the three orders: the name
