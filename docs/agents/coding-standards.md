@@ -118,18 +118,21 @@ semicolon or a spaced hyphen or em dash, and any of "the", "step" and "section";
 "of" or "in" the skill, at most two words of letters between. The skill is in backticks,
 bare, or has a backtick at one end only or around its possessive. The marks are straight
 double quotes, `**` and backticks, around the name alone, with an optional period, comma,
-colon or semicolon after the name inside the marks or right after them. Names match in any
-case, except a bare name straight after a skill, which matches in its own case only
-("/dev:implement-story story gate" passes). In those places the lint fails a bare skill
-beside a name in the right mark; a name in the wrong mark (a step in quotes, a heading in
-bold) or a bare heading; and a name inside backticks, alone or with bold or quotes inside or
-around the pair, whatever the skill's form. A name that is both a step and a heading takes
-either mark. Bare prose that spells a name in those places fails too ("the steps of
-/dev:implement-story", "/dev:task-orchestrator's report"); the fix is a reword.
+colon or semicolon after the name inside the marks, right after them or between two of them.
+Names match in any case, except a bare name straight after a skill, which matches in its own
+case only ("/dev:implement-story story gate" passes). In those places the lint fails a bare
+skill beside a name in the right mark; a name in the wrong mark (a step in quotes, a heading
+in bold) or a bare heading; and a name inside backticks, alone or with bold or quotes inside
+or around the pair, whatever the skill's form. A name that is both a step and a heading
+takes either mark. Bare prose that spells a name in those places fails too ("the steps of
+/dev:implement-story", "/dev:task-orchestrator's report"); the fix is a reword. A capital
+word after a backticked possessive fails whether it is a name or not
+(`/dev:implement-story`'s Jira key).
 
-Every other typography is outside what the lint reads: curly quotes and apostrophes, en and
-em dashes, a separator with no space, single quotes, italics, double backticks, a skill or
-name carrying more than one mark (a heading both bold and quoted), a skill set in bold or
-quotes, any other punctuation outside the marks, a backtick on one side of a name only, a
-space inside the backticks, and any words beside a skill other than those three places. A
-reader still writes the one right form.
+Every other typography is outside what the lint reads: curly quotes and apostrophes, en
+dashes and an em dash with no space around it, a separator with no space, single quotes,
+italics, double backticks, a name in both bold and quotes, a skill set in bold or quotes,
+any other punctuation outside the marks, a backtick before a name only when the name stands
+straight after the skill or its possessive (a backtick at either end of a name elsewhere
+leaves it bare, and it fails), a space inside the backticks, and any words beside a skill
+other than those three places. A reader still writes the one right form.
