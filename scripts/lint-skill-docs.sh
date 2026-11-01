@@ -2427,24 +2427,28 @@ fi
 # a bare name straight after the skill fails the same way (dev-wh65). Every check but the bare
 # skill-first one matches the name in any case; that one matches its own case only.
 # Limits: a name is matched only as the skill's own words (any characters but a bold marker;
-# every regex character in it is escaped), with at most two lowercase words and then of/in
-# between it and the skill (or one "step"/"section" after the possessive), so a longer gap
-# passes, and so does a cite that names the skill without backticks, a name in backticks,
-# "of the `/dev:x` skill", a name in italics, a skill cite with an argument ("`/dev:x <id>`'s
-# Name"), a skill in parentheses, a gap word that is hyphenated or capitalised, a link word other
-# than of/in, single or curly quotes, a bold name inside quotes, a curly apostrophe, a skill-first
-# cite with a link word other than the, step and section or a separator other than , : ; and a
-# dash, a bare skill-first name in another case than its own ("`/dev:x` re-cut adds": a lower-case
-# word straight after a skill reads as prose, the real "`/dev:story-to-tasks` re-cut adds"), a
-# name directly before the skill with no link word ("the git rule `/dev:x` states", dev-xyrl),
-# and a bold lead-in with no period that opens no numbered item (read as a label, not a step). A
-# comma after the closing quote passes only in the "of" word order, and a second cite in a list
+# every regex character in it is escaped), with at most two words of letters only, in any case,
+# and then of/in between it and the skill (or one "step"/"section" after the possessive), so a
+# longer gap passes, and so does a cite that names the skill without backticks, a name in
+# backticks, "of the `/dev:x` skill", a name in italics, a skill cite with an argument
+# ("`/dev:x <id>`'s Name"), a skill in parentheses, a gap word that is hyphenated, a link word
+# other than of/in, single or curly quotes, a bold name inside quotes, a curly apostrophe, a
+# skill-first cite with a link word other than the, step and section or a separator other than
+# , : ; and a spaced em dash or hyphen (an unspaced one, as in `/dev:x`—"A", `/dev:x`:**A**,
+# `/dev:x`,"A", an en dash or -- passes), a bare skill-first name in another case than its own
+# ("`/dev:x` re-cut adds", "`/dev:x` Two Entries", "`/dev:x` STORY GATE": a word straight after a
+# skill reads as prose when it is not in the name's own case, the real
+# "`/dev:story-to-tasks` re-cut adds"), a name directly before the skill with no link word
+# ("the git rule `/dev:x` states", dev-xyrl), and a bold lead-in with no period that opens no
+# numbered item (read as a label, not a step). A comma after the closing quote passes only in the "of" word order, and a second cite in a list
 # ("`/dev:x` "A", "B"; the possessive order too) passes for every one but the first. A name that
 # is both a step and a heading in one skill, in the same case or differing in case only, takes
 # only the bare checks: either marking passes. The heading extractor reads ## to #### lines
 # inside code fences and tags too, so story-to-tasks's template (in an <issue-template> tag)
 # gives Parent, What to build and Acceptance criteria. The bare checks also fail plain prose that
-# opens on a short name (Deliver in `/dev:implement-task` the way a story does): no real doc does
+# holds a name in any case before of/in the skill or after its possessive (the steps of
+# `/dev:implement-spec`, `/dev:implement-spec`'s steps, Deliver in `/dev:implement-task` the way
+# a story does), and one that opens a bare skill-first name in its own case: no real doc does
 # today, and the fix is a reword. A possessive cite of a skill with no directory
 # ("`/dev:nope`'s Name") passes here, as only the existing skills are matched; section 11 fails
 # it.
