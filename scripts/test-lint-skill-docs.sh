@@ -32,7 +32,8 @@
 # (judge_batch), and a case a batch cannot vouch for runs alone, so every derived case still prints
 # its own verdict line. A shared tree's verdict stands for a tree of the case's own on the
 # conditions set out above the batch loop.
-# Each part of the run prints its wall and CPU seconds on a "timing:" line (phase), for the CI log.
+# Each part of the run prints its wall and CPU seconds and the pool's slot count on a "timing:"
+# line (phase), for the CI log.
 # No wait in the pool is unbounded (dev-1ef): each lint run (under perl, which macOS and the
 # ubuntu runner ship) is killed, its whole process group, after LINT_CASE_TIMEOUT seconds
 # (default 120) and its case fails naming the timeout; a case's slot token goes back from an
@@ -273,22 +274,11 @@ phase() {
 }
 # expect <description> <expected exit code> [messages the output must contain, one per line] [lint args...]
 # Moves the scratch tree into the case's own dir and lints it there in the background, every
-# $scratch path in the message, the arguments and the override variables rewritten to it. A case
-# with a throwaway repo (bump_repo_dir) runs in the foreground on the scratch copy itself.
+# $scratch path in the message, the arguments and the override variables rewritten to it.
 expect() {
   local d=$1 want=$2 msg=${3:-} dir a v args
   args=()
   shift 3 2>/dev/null || shift $#
-  if [ -n "${bump_repo_dir:-}" ]; then
-    expect_flush all
-    njobs=$((njobs+1)) case_desc[njobs]=$d
-    : > "$jobs/$njobs.freed"   # it runs here and takes no slot
-    unchanged_files "$scratch" > "$jobs/$njobs.same"
-    unchanged_tables >> "$jobs/$njobs.same"
-    judge "$d" "$want" "$msg" "$(unchanged_list=$jobs/$njobs.same lint_scratch "$@")" > "$jobs/$njobs.out"
-    expect_flush all
-    return
-  fi
   njobs=$((njobs+1)) dir=$jobs/$njobs case_desc[njobs]=$d
   # fresh builds a tree for one expect: a second one on it would lint an empty dir
   if [ "$handed" = 1 ]; then
@@ -308,7 +298,7 @@ expect() {
     # says so; a case that died before its verdict gets one
     trap '[ -e "$dir.out" ] || echo "FAIL $d (its run died before judging it)" > "$dir.out"
       [ "${LINT_TEST_SEED:-}" = "drop:$njobs" ] || { printf x >&3; : > "$dir.freed"; }' EXIT
-    for v in skills_dir agent_docs claude_md glossary_md pins_dir; do
+    for v in skills_dir agent_docs claude_md glossary_md pins_dir bump_repo_dir; do
       [ -z "${!v:-}" ] || eval "$v=\${$v//\"\$scratch\"/\"\$dir\"}"
     done
     batch_scratch=$scratch
@@ -2130,6 +2120,8 @@ make_bump_repo() {
   # fx_git_repo refuses a dir that is not the new repo's top level, so a failed init cannot
   # commit into the enclosing checkout
   fx_git_repo "$bump_repo_dir" "$scratch/bump.gd" || return 1
+  # a relative link to the git dir, so the repo still opens once expect moves the tree
+  echo 'gitdir: ../bump.gd' > "$bump_repo_dir/.git"
   echo '{"name":"dev","version":"0.1.0"}' > "$bump_repo_dir/.claude-plugin/plugin.json"
   echo one > "$bump_repo_dir/docs/a.md"; echo one > "$bump_repo_dir/scripts/a.sh"
   git -C "$bump_repo_dir" add -A && git -C "$bump_repo_dir" commit -q -m base || return 1
@@ -2138,6 +2130,16 @@ make_bump_repo() {
 }
 bump_repo() { fresh; make_bump_repo "$1" || { echo "FAIL make the throwaway repo"; exit 1; }; }
 bump_commit() { git -C "$bump_repo_dir" add -A; git -C "$bump_repo_dir" commit -q -m "$1"; }
+# expect_keep <expect's arguments>: expect on the tree as it stands, with a copy of it left in the
+# scratch dir, for a case the next one builds on (expect takes the tree it is given)
+expect_keep() {
+  local kept=$jobs/kept
+  scratch_entries
+  mkdir "$kept" && cp -R "${entries[@]}" "$kept/" || { echo "FAIL keep the tree for the next case"; exit 1; }
+  expect "$@"
+  mv "$kept"/* "$scratch/" && rmdir "$kept"
+  handed=0
+}
 
 # LINT_UNCHANGED, which every case but the baseline lints with: a seeded failure in a file it
 # lists is skipped, while the same seed unlisted fails, as the retired-phrase cases show
@@ -2150,7 +2152,8 @@ list_unchanged() {
 expect_flush all
 fresh
 echo "cut one" >> "$scratch/skills/sample/SKILL.md"
-list_unchanged "$scratch/skills/sample/SKILL.md" "$repo_root"/scripts/*.tsv
+list_unchanged "$scratch/skills/sample/SKILL.md"
+unchanged_tables >> "$jobs/unchanged"
 fx_check "a seeded file LINT_UNCHANGED lists is not checked" \
   eval 'result_is 0 "" "$(unchanged_list=$jobs/unchanged lint_scratch)"'
 # a listed doc's section runs nothing while every pin table is listed too, so a row only that
@@ -2170,6 +2173,30 @@ fx_check "the same doc unlisted runs its section" \
 list_unchanged
 fx_check "the same doc listed without the pin tables runs its section" \
   eval 'result_is 1 "no row '\''epic review spec axis'\'' in implement-spec-pins.tsv" "$(pins_dir=$scratch/pins unchanged_list=$jobs/unchanged lint_scratch)"'
+# a table the lint reads, gone with the doc and the rest listed, is still a table not listed: its
+# section runs and fails naming it, whether or not the list names the gone path
+for table in $pin_tables; do
+  fresh
+  mkdir "$scratch/pins"
+  cp "$repo_root"/scripts/*.tsv "$scratch/pins/"
+  rm "$scratch/pins/$table.tsv"
+  list_unchanged "$scratch"/pins/*.tsv
+  fx_check "with $table.tsv gone and the docs and the other table listed, the lint fails naming it" \
+    eval 'result_is 1 "missing pin table: $scratch/pins/$table.tsv" "$(pins_dir=$scratch/pins unchanged_list=$jobs/unchanged lint_scratch)"'
+  printf '%s\n' "$scratch/pins/$table.tsv" >> "$jobs/unchanged"
+  fx_check "with $table.tsv gone and listed all the same, the lint fails naming it" \
+    eval 'result_is 1 "missing pin table: $scratch/pins/$table.tsv" "$(pins_dir=$scratch/pins unchanged_list=$jobs/unchanged lint_scratch)"'
+done
+# a pin list run holds every check, so a full LINT_UNCHANGED leaves it as long as the baseline's:
+# a doc skipped there would drop that doc's derived cases
+fresh
+list_unchanged
+unchanged_tables >> "$jobs/unchanged"
+export LINT_PIN_LIST=$jobs/pins.listed
+: > "$LINT_PIN_LIST"
+unchanged_list=$jobs/unchanged lint_scratch > /dev/null
+unset LINT_PIN_LIST
+fx_check "a pin list run with every file and table listed writes the whole list" cmp -s "$jobs/pins.list" "$jobs/pins.listed"
 # an empty list skips nothing, the sweeps over many files included
 fresh
 printf '```mermaid\nA->>B: one; two\n```\n' >> "$scratch/docs/agents/sample.md"
@@ -2183,7 +2210,8 @@ fx_check "an empty LINT_UNCHANGED skips no sweep" \
 fresh
 printf '%s\n' "See \`/dev:close-story\`'s Some rule." >> "$scratch/docs/agents/orchestration.md"
 echo "a line that names no step or heading" >> "$scratch/skills/sample/SKILL.md"
-list_unchanged "$scratch/docs/agents/orchestration.md" "$repo_root"/scripts/*.tsv
+list_unchanged "$scratch/docs/agents/orchestration.md"
+unchanged_tables >> "$jobs/unchanged"
 fx_check "a changed SKILL.md that moves no cite name leaves a listed doc unread in section 18" \
   eval 'result_is 0 "" "$(unchanged_list=$jobs/unchanged lint_scratch)"'
 fx_check "with no cite base a changed SKILL.md re-reads a listed doc in section 18" \
@@ -2240,7 +2268,7 @@ mkdir -p "$bump_repo_dir/skills/x"; echo s > "$bump_repo_dir/skills/x/SKILL.md";
 git -C "$bump_repo_dir" checkout -q main; git -C "$bump_repo_dir" merge -q --ff-only feat
 git -C "$bump_repo_dir" update-ref refs/remotes/origin/main main; git -C "$bump_repo_dir" checkout -q feat
 echo two > "$bump_repo_dir/skills/x/SKILL.md"
-expect "an uncommitted edit under skills/ without a version bump fails" 1 "version bump"
+expect_keep "an uncommitted edit under skills/ without a version bump fails" 1 "version bump"
 echo '{"name":"dev","version":"0.2.0"}' > "$bump_repo_dir/.claude-plugin/plugin.json"
 expect "an uncommitted edit under skills/ with an uncommitted bump passes" 0
 
@@ -2251,7 +2279,7 @@ expect "an untracked file under skills/ without a version bump fails" 1 "version
 bump_repo feat
 echo two > "$bump_repo_dir/docs/a.md"; bump_commit "docs change"
 diff_base=HEAD
-expect "the base variable overrides the merge-base" 0
+expect_keep "the base variable overrides the merge-base" 0
 diff_base=HEAD~1
 expect "a base variable naming the PR base diffs against it" 1 "version bump"
 diff_base=derive
@@ -2281,7 +2309,7 @@ for diff_base in main derive; do
   bump_repo feat
   echo two > "$bump_repo_dir/docs/a.md"; bump_commit "docs change"
   git -C "$bump_repo_dir" checkout -q --detach
-  expect "a detached HEAD with base $diff_base and no version bump fails" 1 "version bump"
+  expect_keep "a detached HEAD with base $diff_base and no version bump fails" 1 "version bump"
   echo '{"name":"dev","version":"0.2.0"}' > "$bump_repo_dir/.claude-plugin/plugin.json"; bump_commit "bump"
   expect "a detached HEAD with base $diff_base and a version bump passes" 0
 done

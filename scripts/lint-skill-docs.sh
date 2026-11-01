@@ -244,7 +244,7 @@ bad() { echo "FAIL: $*"; fail=1; }
 # opening_has (-F) on the lines before the first "## ". Each only queues its check: a section's
 # checks run in one awk pass when the next section opens (section) and at the end (checks_run),
 # so their FAIL lines print under their own section's header, at a cost of one process per
-# section rather than one or two per check (the regression test runs the lint over a thousand
+# section rather than one or two per check (the regression test runs the lint hundreds of
 # times, and its pool is CPU-bound).
 queue=
 unchanged=$'\n'
@@ -261,10 +261,13 @@ unchanged_file() {
   return $unchanged_rc
 }
 # drop_unchanged: stdin's paths, one per line, less the ones LINT_UNCHANGED lists, in one pass,
-# for a sweep over many files (where unchanged_file would match the list once per file)
+# for a sweep over many files (where unchanged_file would match the list once per file); a
+# LINT_PIN_LIST run keeps them all, since the pin list takes every check
 drop_unchanged() {
   # -s: an empty list would leave NR == FNR true on stdin too, and the sweep would print nothing
-  if [ -s "${LINT_UNCHANGED:-}" ]; then awk 'NR == FNR { u[$0]; next } !($0 in u)' "$LINT_UNCHANGED" -; else cat; fi
+  if [ -s "${LINT_UNCHANGED:-}" ] && [ -z "${LINT_PIN_LIST:-}" ]; then
+    awk 'NR == FNR { u[$0]; next } !($0 in u)' "$LINT_UNCHANGED" -
+  else cat; fi
 }
 # enqueue <check line>: queues it unless $f is a file LINT_UNCHANGED lists
 # LINT_PIN_LIST names a file every queued check is appended to first, one per line as
@@ -517,12 +520,15 @@ user_claude_md=${USER_CLAUDE_MD:-$root/CLAUDE.md}
 glossary_md=${GLOSSARY_MD:-$root/GLOSSARY.md}
 runbook=${2:-$root/docs/WORKFLOW.md}
 pins_dir=${LINT_PINS_DIR:-$root/scripts}
-# set when LINT_UNCHANGED lists every pin table, which lets doc skip a listed doc's section
+# set when LINT_UNCHANGED lists every pin table the lint reads, which lets doc skip a listed doc's
+# section; a table gone counts as not listed, so pins_from reports it, and a LINT_PIN_LIST run
+# leaves it unset, since the pin list takes every check
 tables_unchanged=
-if [ -n "${LINT_UNCHANGED:-}" ]; then
+if [ -n "${LINT_UNCHANGED:-}" ] && [ -z "${LINT_PIN_LIST:-}" ]; then
   tables_unchanged=1
-  for t in "$pins_dir"/*.tsv; do
-    case $unchanged in *$'\n'"$t"$'\n'*) ;; *) tables_unchanged= ;; esac
+  for t in implement-spec-pins repo-plumbing-pins; do
+    [ -f "$pins_dir/$t.tsv" ] || tables_unchanged=
+    case $unchanged in *$'\n'"$pins_dir/$t.tsv"$'\n'*) ;; *) tables_unchanged= ;; esac
   done
 fi
 # ---- the phrases more than one check pins, each written once and built into every check that pins it (dev-yqpz) ----
@@ -1106,7 +1112,6 @@ lacksw "retired review-only gate wording in $f" "$retired_gate"
 # docs, the project CLAUDE.md or the runbook, spelled ~/, $HOME/ or ${HOME}/ (INFRA-30)
 deployed='(~|\$HOME|\$\{HOME\})/(\.claude/docs|\.claude/hooks|\.local/share/chezmoi)'
 while IFS= read -r f; do
-  unchanged_file && continue
   lacks "dotfiles deployment path in $f" "$deployed"
 done < <({ find "$docs" -type f -name '*.md' 2>/dev/null; find "$agents" "$skills" -type f 2>/dev/null
   echo "$user_claude_md"; echo "$runbook"; } | grep . | sort -u | drop_unchanged)
