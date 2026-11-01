@@ -18,9 +18,10 @@
 # The last section drives the version-bump rule on a throwaway git repo (VERSION_BUMP_REPO,
 # VERSION_BUMP_BASE; the other cases point the repo at a non-repo path and pin the base to HEAD):
 # its shipping pathspec, uncommitted edits and bumps, and the base on a detached HEAD.
-# The lint of the plugin's own tree is the Makefile's first step, not repeated here.
+# The lint of the plugin's own tree is one of the Makefile's steps, not repeated here.
 # Each case's lint run goes in the background against the scratch tree, moved into the case's
-# own dir (one tree per expect: fresh builds it, expect takes it), one per CPU, and the results
+# own dir (one tree per expect: fresh builds it, expect takes it), one per CPU (LINT_TEST_SLOTS
+# forces the count), and the results
 # print in case order. Every fresh and snapshot runs in this shell, one after another, so each
 # is one process: fresh is a cp of a pristine tree built once, the snapshot is a mv, and the
 # verdicts are read and tallied with builtins. Every case but the baseline lints with
@@ -53,7 +54,7 @@ fx_scratch_dir test-lint-skill-docs || exit 1
 jobs=$scratch/.jobs
 mkdir -p "$jobs"
 njobs=0 shown=0 nl=$'\n'
-# a rolling pool of one run per CPU: a case takes a slot token from this FIFO before it starts
+# a rolling pool of one run per CPU, or LINT_TEST_SLOTS: a case takes a slot token from this FIFO before it starts
 # and puts it back when it ends (bash 3.2 has no wait -n to wait on any one job)
 mkfifo "$jobs/slots" && exec 3<>"$jobs/slots" || exit 1
 # slots_put <n>: puts n tokens in the pool
@@ -1259,6 +1260,14 @@ fx_check "the derived cases share their lint runs (under one run per ten cases)"
 pin_phrase "the one review tool paragraph"
 fx_check "the one review tool paragraph pin is anchored on its line" test "${pinned_phrase:0:1}" = '^'
 
+# edit_rows <rename|reword> <table>: writes the pins copy of the table with each row whose description
+# ($2) is in $rows renamed, or with its phrase ($3) reworded to hold none of its sweep (the row's line
+# number ends the new phrase, so no two rows read alike)
+edit_rows() {
+  ROWS=$rows awk -F '\t' -v OFS='\t' -v mode="$1" 'BEGIN { n = split(ENVIRON["ROWS"], r, "\n"); for (i = 1; i <= n; i++) hit[r[i]] }
+    $1 !~ /^#/ && ($2 in hit) { if (mode == "rename") $2 = $2 " (renamed)"; else $3 = "a phrase reworded to hold none of its sweep, row " NR }
+    { print }' "$repo_root/scripts/$2.tsv" > "$scratch/pins/$2.tsv"
+}
 # pins_copy: a fresh tree and a copy of the pin tables in it to edit, which the lint reads as its
 # pins directory (pins_dir, which the caller unsets once its case has run)
 pins_copy() {
@@ -1312,9 +1321,7 @@ for table in $pin_tables; do
   done 5<<<"$rows"
   [ "$nrows" -gt 0 ] || { echo "FAIL the lint reads no row of $table.tsv by its description"; fails=$((fails+1)); }
   pins_copy
-  ROWS=$rows awk -F '\t' -v OFS='\t' 'BEGIN { n = split(ENVIRON["ROWS"], r, "\n"); for (i = 1; i <= n; i++) hit[r[i]] }
-    $1 !~ /^#/ && ($2 in hit) { $2 = $2 " (renamed)" } { print }' \
-    "$repo_root/scripts/$table.tsv" > "$scratch/pins/$table.tsv"
+  edit_rows rename "$table"
   sec= expect "$table.tsv with each row the lint reads by its description renamed fails naming all $nrows" 1 "$msgs"
   unset pins_dir
 done
@@ -1331,9 +1338,7 @@ for table in $pin_tables; do
   done 5<<<"$rows"
   [ "$nsweeps" -gt 0 ] || { echo "FAIL $table.tsv holds no row with a sweep field"; fails=$((fails+1)); }
   pins_copy
-  ROWS=$rows awk -F '\t' -v OFS='\t' 'BEGIN { n = split(ENVIRON["ROWS"], r, "\n"); for (i = 1; i <= n; i++) hit[r[i]] }
-    $1 !~ /^#/ && ($2 in hit) { $3 = "a phrase reworded to hold none of its sweep (" NR ")" } { print }' \
-    "$repo_root/scripts/$table.tsv" > "$scratch/pins/$table.tsv"
+  edit_rows reword "$table"
   sec= expect "$table.tsv with the phrase of each row with a sweep reworded and its sweep left fails naming all $nsweeps" 1 "$msgs"
   unset pins_dir
 done

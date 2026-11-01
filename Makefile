@@ -6,7 +6,6 @@
 # shell's user and sys, then the step's), so a CI log says where the time went and whether the
 # step waited or worked
 step = t=$$(date +%s); $(1); rc=$$?; echo "$(1): $$(( $$(date +%s) - t ))s"; times; exit $$rc
-timed = @$(call step,$(1))
 # run the steps side by side, each one's output, elapsed seconds and CPU seconds held in its own
 # log under .tmp/make, then print the logs in step order; red when any step is
 side_by_side = @mkdir -p .tmp/make; pids=; for s in $(1); do \
