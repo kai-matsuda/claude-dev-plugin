@@ -1996,7 +1996,7 @@ cite_seeds docs/agents/seed.md "$bt_msg" "a name in backticks with punctuation a
 cite_seeds docs/agents/sample.md "present: " "a doc naming a skill only bare" \
   "As $SK's \"Story gate\" and /dev:task-orchestrator's \"Two entries\" say."
 
-# a name of kind both beside a bare skill fails in each right mark, and the backtick pair too
+# a name of kind both beside a bare skill fails in each right mark
 prep=zed_step cite_seeds $orch "$bare_msg" "a name of kind both beside a bare skill" \
   "As $SK's **Zed gate** says." \
   "As $SK's \"Zed gate\" says." \
@@ -2143,6 +2143,39 @@ cite_seeds $orch "present: " "bare-skill prose spelling a known name" \
   "The report of /dev:task-orchestrator goes up." \
   "/dev:task-orchestrator's report is one line." \
   "Use /dev:triage, Report the items."
+
+# the file edges of the bare skill's regexes (dev-hcn9 review 1 of the fourth orchestrator): a
+# cite ending the file with no final newline, and one opening the file, each alone in a new doc
+# edge_seeds <message> <what> <text>...: each text, written with no final newline to a new rules
+# doc, fails section 18 with the message
+edge_seeds() {
+  local msg=$1 what=$2 text
+  shift 2
+  for text in "$@"; do
+    fresh
+    printf '%s' "$text" > "$scratch/docs/agents/seed.md"
+    sec=18 expect "$what ($text) fails section 18" 1 "$msg"
+  done
+}
+edge_seeds "present: " "a bare skill ending a doc with no final newline" \
+  "As the **Clean up** sweep of $SK" \
+  "As the **Story gate** step of $SK" \
+  "As the Story gate step of $SK" \
+  "As the \"Story gate\" step of $SK"
+cite_seeds docs/agents/seed.md "$bare_msg" "a bare skill opening a doc" \
+  "$SK's **Story gate** says." \
+  "$SK **Story gate** says."
+# the right marking beside a bare skill fails only for a name of the bare skill: the cited name is
+# another skill's, though /dev:setup-repo begins with /dev:setup
+setup_names() { printf '%s\n' "## Foo bar" "" "**Foo bar.** A step." >> "$scratch/skills/setup/SKILL.md"; }
+prep=setup_names cite_passes $orch "a bare /dev:setup-repo beside a name of /dev:setup" \
+  "As the \"Foo bar\" heading of /dev:setup-repo says." \
+  "As the **Foo bar** step of /dev:setup-repo says."
+# a bare skill after a character that is not a space is no bare skill (a path or a prefix), so the
+# right marking beside it passes: / and : are in the class of characters before the skill
+cite_passes $orch "a skill name inside a path or a prefix" \
+  "See foo$SK's **Story gate** says." \
+  "See x:$SK **Story gate** says."
 
 # a skill whose name is the start of another's (/dev:setup, /dev:setup-repo) is not read inside it
 fresh

@@ -203,7 +203,7 @@
 #      pair), or the right marking beside a skill not in backticks (dev-hcn9). The names are read
 #      from that skill's SKILL.md (numbered or ## to #### headings; bold steps, hyphens,
 #      punctuation and indents included, regex characters escaped), in the closed list of shapes
-#      the section's comment states and nothing beside it; a changed SKILL.md has every rules
+#      docs/agents/coding-standards.md states and nothing beside it; a changed SKILL.md has every rules
 #      doc and SKILL.md re-read.
 # Usage: scripts/lint-skill-docs.sh [implement-spec SKILL.md [WORKFLOW.md]]
 # A section whose doc is missing fails naming it ("missing document: <path>") rather than being

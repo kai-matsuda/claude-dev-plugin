@@ -117,19 +117,19 @@ optional "step" or "section"; straight after the skill, with an optional comma, 
 semicolon or a spaced hyphen or em dash, and any of "the", "step" and "section"; and before
 "of" or "in" the skill, at most two words of letters between. The skill is in backticks,
 bare, or has a backtick at one end only or around its possessive; in the "of"/"in" order a
-backtick before the skill leaves it backticked (see below), and only one after it is stray. The marks are straight
-double quotes, `**` and backticks, around the name alone, with an optional period, comma,
-colon or semicolon after the name inside the marks, right after them or between two of them.
-Names match in any case, except a bare name straight after a skill, which matches in its own
-case only ("/dev:implement-story story gate" passes). In those places the lint fails a bare
-skill beside a name in the right mark; a name in the wrong mark (a step in quotes, a heading
-in bold) or a bare heading; and a name inside backticks, alone or with bold or quotes inside
-or around the pair, whatever the skill's form. A name that is both a step and a heading
-takes either mark. Bare prose that spells a name in those places fails too ("the steps of
-/dev:implement-story", "/dev:task-orchestrator's report", "run bd story gate in
-/dev:implement-story", a lower-case spelling included); the fix is a reword. A capital word
-after a backticked possessive fails whether it is a name or not (`/dev:implement-story`'s
-Jira key).
+backtick before the skill leaves it backticked (see below), and only one after it is stray.
+The marks are straight double quotes, `**` and backticks, around the name alone, with an
+optional period, comma, colon or semicolon after the name inside the marks, right after them
+or between two of them. Names match in any case, except a bare name straight after a skill,
+which matches in its own case only ("/dev:implement-story story gate" passes). In those
+places the lint fails a bare skill beside a name in the right mark; a name in the wrong mark
+(a step in quotes, a heading in bold) or a bare heading; and a name inside backticks, alone
+or with bold or quotes inside or around the pair, whatever the skill's form. A name that is
+both a step and a heading takes either mark. Bare prose that spells a name in those places
+fails too ("the steps of /dev:implement-story", "/dev:task-orchestrator's report", "run bd
+story gate in /dev:implement-story", a lower-case spelling included); the fix is a reword. A
+capital word after a backticked possessive fails whether it is a name or not
+(`/dev:implement-story`'s Jira key).
 
 Every other shape is outside what the lint reads, among them: curly quotes and apostrophes,
 en dashes and an em dash with no space around it, a separator with no space, single quotes,
@@ -139,17 +139,19 @@ name and is never closed, or closes one never opened), a stray backtick beside a
 a backtick straight before a name that follows the skill or its possessive (with an optional
 "step" or "section", comma, colon, semicolon or dash, and "the", "step" or "section"
 between), a stray closing backtick after a bare name in the before-"of"/"in" place with no
-space after it, a space before or after a name inside the backticks, or at both ends of
-it, a bold
-lead-in with no period that opens no numbered item, a backtick straight before the skill in
-the "of"/"in" order, whatever follows the skill (arguments, a suffix, words, punctuation or
-nothing, a closing backtick or none): it is a backticked skill, so the right mark beside it
-passes, while a bare, quoted, bold or backticked name before it is still read and fails, a
-hyphenated word
-between a name and "of" or "in", a link word other than "of" or "in", a name straight before
-the skill with no link word, a parenthesis between the skill and the name or before the
-skill in the "of"/"in" order (a parenthesis around the whole cite is read), and any words
-beside a skill other than those three places. A backtick before a name in the "of"/"in"
-order, or straight after a bare name anywhere, is read and fails. The paragraphs above say
-which forms are wrong; the lint fails them only in the shapes the paragraph above reads, and
-any shape it does not read is outside the lint. A reader still writes the one right form.
+space after it, a space before or after a name inside the backticks, or at both ends of it,
+a bold lead-in with no period that opens no numbered item, a hyphenated word between a name
+and "of" or "in", a link word other than "of" or "in", a name straight before the skill with
+no link word, a parenthesis between the skill and the name or before the skill in the
+"of"/"in" order (a parenthesis around the whole cite is read), any words beside a skill
+other than those three places, and a backtick straight before the skill in the "of"/"in"
+order, whatever follows the skill (arguments, a suffix, words, punctuation or nothing, a
+closing backtick or none): it is a backticked skill, so the right mark beside it passes.
+
+A bare, quoted, bold or backticked name before such a skill is still read and fails. A
+backtick before a name in the "of"/"in" order, or straight after a bare name anywhere, is
+read and fails, except the closing backtick after a bare name before "of"/"in" with no space
+after it, which the list above leaves unread. The first paragraph above says which forms are
+wrong; the lint fails them only in the shapes the paragraph that begins "The lint reads"
+names, and any shape it does not read is outside the lint. A reader still writes the one
+right form.
