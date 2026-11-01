@@ -738,7 +738,7 @@ has "malformed epic refusal" "$pin_cite_malformed_epic_refusal"
 lacks "implement-spec restating the malformed-epic refusal" "$pin_malformed_epic_refusal_line"
 has "add-dir refusal" "$pin_add_dir_remedy"
 hasc "Human stop" '**Human stop**'
-hasc "Stall" '**Stall**'
+hasc "Stall" '**Stall.**'
 hasc "Done" '**Done**'
 has "Finished story" 'finished story'
 hasc "finished story tolerates untriaged children" "$pin_needs_triage_wontfix"
@@ -2461,9 +2461,10 @@ if [ -f "$standards" ]; then
   # the cite targets of every skill, read in one pass: "<skill> <kind> <name>" with the kind step
   # or heading (both when the skill marks the name both ways), the name's regex characters
   # escaped. A step is a bold name opening a numbered item (**Name** or **Name.**) or opening a
-  # line, indented or not, with its period inside (**Name.**); a bold label with no period that
-  # opens no numbered item (a list item "- **Owner**", a table-like "**Alone**") is a label, no
-  # step, and is not read. A heading is a ## to #### line, its number dropped. A name opens on a
+  # line, indented or not, after an optional list marker "- ", with its period inside
+  # (**Name.**); a bold label with no period that opens no numbered item (a list item
+  # "- **Owner**", a table-like "**Alone**") is a label, no step, and a bold term inside a
+  # sentence is none, so neither is read. A heading is a ## to #### line, its number dropped. A name opens on a
   # letter or a backtick.
   cite_names=$(awk '
     function esc(s) { gsub(/[][\\.^$*+?(){}|]/, "\\\\&", s); return s }
@@ -2483,6 +2484,7 @@ if [ -f "$standards" ]; then
       s = $0; sub(/^[ \t]+/, "", s)
       numbered = (s ~ /^[0-9]+\. \*\*/)
       if (numbered) sub(/^[0-9]+\. /, "", s)
+      else sub(/^- /, "", s)
       if (substr(s, 1, 2) != "**") next
       s = substr(s, 3); e = index(s, "**")
       if (e == 0) next

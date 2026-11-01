@@ -1968,6 +1968,23 @@ printf '%s\n' "**Zed label** is a label with no period." >> "$scratch/skills/imp
 printf '%s\n' "As \`/dev:implement-story\`'s \"Zed label\" says." >> "$scratch/$orch"
 expect "a bold lead-in with no period cited in quotes passes section 18" 0
 
+# a step name opens a line, after an optional list marker; a bold term inside a sentence is none
+# (dev-bjkt), so the lint and the rule agree on a list item and a mid-line shape
+fresh
+printf '%s\n' "- **Zed item.** A rule." >> "$scratch/skills/implement-story/SKILL.md"
+printf '%s\n' "As \`/dev:implement-story\`'s \"Zed item\" says." >> "$scratch/$orch"
+sec=18 expect "a list item step name cited in quotes fails section 18" 1 "present: a step name cited in quotes of /dev:implement-story in $scratch/$orch"
+
+fresh
+printf '%s\n' "- **Zed item.** A rule." >> "$scratch/skills/implement-story/SKILL.md"
+printf '%s\n' "As \`/dev:implement-story\`'s **Zed item** says." >> "$scratch/$orch"
+expect "a list item step name cited in bold passes section 18" 0
+
+fresh
+printf '%s\n' "Some words, **Zed middle.** A rule." >> "$scratch/skills/implement-story/SKILL.md"
+printf '%s\n' "As \`/dev:implement-story\`'s \"Zed middle\" says." >> "$scratch/$orch"
+expect "a mid-line bold term is no step name in section 18" 0
+
 fresh
 printf '%s\n' "The wrong form: \`/dev:task-orchestrator\`'s Two entries." >> "$scratch/docs/agents/coding-standards.md"
 expect "a bare heading cite in the coding standards passes section 18" 0
