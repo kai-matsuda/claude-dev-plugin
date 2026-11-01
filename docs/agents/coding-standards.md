@@ -101,9 +101,20 @@ rules doc's own sections, or of a skill's own steps and headings, is not a cross
 cite and is outside this rule.
 
 A cite names the skill in backticks (`/dev:close-story`), never bare
-(/dev:close-story's "The forge shows MERGED"). A cited step or heading is marked only by bold
-or quotes, never by backticks (`/dev:implement-story`'s `Story gate`), whether or not the skill
-is in backticks: a name in backticks is a cite in the wrong form. A skill named bare in prose
-that cites none of its rules ("run /dev:close-story", "/dev:close-story's Jira key") is outside
-this rule. The lint reads a bare skill or a backticked name only beside a step or heading that
-skill's `SKILL.md` has; any other words beside a bare skill pass.
+(/dev:close-story's "The forge shows MERGED"); a backtick at one end of the skill only, or one
+that swallows its possessive (`/dev:close-story's`), leaves it bare. A cited step or heading is
+marked only by bold or quotes: a name inside a pair of backticks is a cite in the wrong form,
+whether the pair stands inside the mark (**`Story gate`**), around it (`**Story gate**`) or
+alone (`Story gate`), and whether or not the skill is in backticks. A backtick that is part of
+a name stays in it: the step **`git` rule** of `/dev:task-orchestrator` is cited in bold, its
+backticks included. A skill named bare in prose that cites none of its rules ("run
+/dev:close-story", "/dev:close-story's Jira key") is outside this rule.
+
+The lint reads a skill beside a step or heading that skill's `SKILL.md` has, in three places:
+after the skill's possessive and an optional "step" or "section"; straight after the skill,
+with an optional comma, colon, semicolon or dash and any of "the", "step" and "section"; and
+before "of" or "in" the skill, at most two lowercase words between. Beside such a name a bare
+skill, a name in the wrong mark or a name in backticks fails, and so does bare prose that
+spells a name there ("the steps of /dev:implement-story", "/dev:task-orchestrator's report");
+the fix is a reword. It leaves open a name with a backtick on one side only, a name with a
+space inside its backticks, and any words beside a skill other than those three places.
