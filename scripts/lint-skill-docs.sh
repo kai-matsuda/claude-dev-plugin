@@ -227,7 +227,8 @@
 # such a file is skipped wherever its verdict depends on nothing the list leaves out: that file
 # and its fixed pattern for most, plus the skills and plugin dirs' layout for the namespace
 # rule, and the skills' cite names for section 18: every SKILL.md listed, or the names as
-# LINT_CITE_BASE holds them, a file a LINT_PIN_LIST run wrote beside its list (<list>.cites). The
+# LINT_CITE_BASE holds them, a file a LINT_PIN_LIST run wrote beside its list (<list>.cites). A
+# listed pin table counts too: with every table listed, a listed doc skips its section whole. The
 # list vouches for a file only in the role it had there, so a caller leaves out every path it
 # passes as an argument or override. Unset, every check runs.
 set -u
@@ -500,9 +501,13 @@ checks_run() {
 }
 # section <header>: runs the previous section's checks, then opens this one
 section() { checks_run; echo "== $1"; }
-# doc <n> <title> <file>: opens section n on <file> (sets f), true when it exists; a missing one
-# is a failure naming it, never a skipped section
-doc() { f=$3; section "$1. $2: $f"; [ -f "$f" ] || { bad "missing document: $f"; return 1; }; }
+# doc <n> <title> <file>: opens section n on <file> (sets f), true when it exists and its section has
+# something to check; a missing one is a failure naming it, never a skipped section. With <file>
+# and every pin table in LINT_UNCHANGED the section's whole body is skipped: its checks would each
+# skip <file> anyway, the tables are all a body reads besides, and the regression test runs the
+# lint hundreds of times, those calls being most of a run with one changed doc. With LINT_UNCHANGED
+# unset, or a table left out of it, every body runs and its rows are asked for
+doc() { f=$3; section "$1. $2: $f"; [ -f "$f" ] || { bad "missing document: $f"; return 1; }; [ -z "$tables_unchanged" ] || ! unchanged_file; }
 
 skills=${SKILLS_DIR:-$root/skills}
 agents=${AGENT_DOCS:-$root/docs/agents}
@@ -512,6 +517,14 @@ user_claude_md=${USER_CLAUDE_MD:-$root/CLAUDE.md}
 glossary_md=${GLOSSARY_MD:-$root/GLOSSARY.md}
 runbook=${2:-$root/docs/WORKFLOW.md}
 pins_dir=${LINT_PINS_DIR:-$root/scripts}
+# set when LINT_UNCHANGED lists every pin table, which lets doc skip a listed doc's section
+tables_unchanged=
+if [ -n "${LINT_UNCHANGED:-}" ]; then
+  tables_unchanged=1
+  for t in "$pins_dir"/*.tsv; do
+    case $unchanged in *$'\n'"$t"$'\n'*) ;; *) tables_unchanged= ;; esac
+  done
+fi
 # ---- the phrases more than one check pins, each written once and built into every check that pins it (dev-yqpz) ----
 # A whole pin phrase is written once: in this block, in a pin table row (read with row_phrase) or in its
 # one check, never typed again as its own literal on another lint line or table row; every check that
@@ -2404,8 +2417,9 @@ fi
 standards=$agents/coding-standards.md
 # each file is read as one line (lackswc, as section 5 does, dev-86j), so a cite split across a
 # line break fails too
-if doc 18 "cross-skill cites" "$standards"; then
-  has "the cross-skill cite rule heading" "## Another skill's rule is cited in one form"
+doc 18 "cross-skill cites" "$standards" && has "the cross-skill cite rule heading" "## Another skill's rule is cited in one form"
+# the sweep reads every skill and doc, so the standards doc being listed in LINT_UNCHANGED leaves it to run
+if [ -f "$standards" ]; then
   # the cite targets of every skill, read in one pass: "<skill> <kind> <name>" with the kind step
   # or heading (both when the skill marks the name both ways), the name's regex characters
   # escaped. A step is a bold name opening a numbered item (**Name** or **Name.**) or opening a

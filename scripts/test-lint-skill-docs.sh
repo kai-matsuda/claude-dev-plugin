@@ -25,12 +25,14 @@
 # is one process: fresh is a cp of a pristine tree built once, the snapshot is a mv, and the
 # verdicts are read and tallied with builtins. Every case but the baseline lints with
 # LINT_UNCHANGED listing its files still byte-identical to the pristine tree, whose queued checks
-# the baseline shows pass, so a run checks only what its case seeded. The cases derived from
+# the baseline shows pass, and the repo's pin tables unless it reads its own, so a run checks only
+# what its case seeded and skips the section of every doc it left alone. The cases derived from
 # LINT_PIN_LIST share their runs: one seeded tree per kind and file (pin_case, seed_pins), a check
 # apart from any seeding that takes its anchor (round_specs), its verdicts read off one lint output
 # (judge_batch), and a case a batch cannot vouch for runs alone, so every derived case still prints
 # its own verdict line. A shared tree's verdict stands for a tree of the case's own on the
 # conditions set out above the batch loop.
+# Each part of the run prints its wall and CPU seconds on a "timing:" line (phase), for the CI log.
 # No wait in the pool is unbounded (dev-1ef): each lint run (under perl, which macOS and the
 # ubuntu runner ship) is killed, its whole process group, after LINT_CASE_TIMEOUT seconds
 # (default 120) and its case fails naming the timeout; a case's slot token goes back from an
@@ -117,6 +119,10 @@ unchanged_files() {
       }
       for (r in got) if (got[r] == "D" && !(r in moved)) print dir r "/"
     }' "$jobs/pristine.list" -
+}
+# unchanged_tables: the repo's pin tables, the ones the baseline read, unless the case reads its own
+unchanged_tables() {
+  [ -n "${pins_dir:-}" ] || printf '%s\n' "$repo_root"/scripts/*.tsv
 }
 # the scratch dir's top-level entries in $entries, dotfiles included and .jobs left out, with
 # no process: the sweep below and expect's move both start from it, so a dotfile a case writes
@@ -253,6 +259,18 @@ expect_flush() {
     case "$nl$verdict" in *"$nl"FAIL*) fails=$((fails+1));; esac
   done
 }
+# phase <name>: waits for every case, then prints the wall and CPU seconds since the last phase,
+# so a CI log shows each part's cost and how many cores it got (CPU over wall) beside the pool's
+# slots: this test's wall time on a host follows its CPU seconds over that host's cores
+phase_wall=0 phase_cpu=0
+phase() {
+  local cpu
+  expect_flush all
+  times > "$jobs/times"
+  cpu=$(awk '{ for (i = 1; i <= 2; i++) { split($i, t, /[ms]/); c += t[1] * 60 + t[2] } } END { printf "%d", c }' "$jobs/times")
+  echo "timing: $1: $((SECONDS - phase_wall))s wall, $((cpu - phase_cpu))s cpu on $nslots slots"
+  phase_wall=$SECONDS phase_cpu=$cpu
+}
 # expect <description> <expected exit code> [messages the output must contain, one per line] [lint args...]
 # Moves the scratch tree into the case's own dir and lints it there in the background, every
 # $scratch path in the message, the arguments and the override variables rewritten to it. A case
@@ -266,6 +284,7 @@ expect() {
     njobs=$((njobs+1)) case_desc[njobs]=$d
     : > "$jobs/$njobs.freed"   # it runs here and takes no slot
     unchanged_files "$scratch" > "$jobs/$njobs.same"
+    unchanged_tables >> "$jobs/$njobs.same"
     judge "$d" "$want" "$msg" "$(unchanged_list=$jobs/$njobs.same lint_scratch "$@")" > "$jobs/$njobs.out"
     expect_flush all
     return
@@ -306,6 +325,7 @@ expect() {
       unchanged_files "$dir" | awk 'NR == FNR { if ($0 != "") role[$0]; next }
         { for (r in role) if ($0 == r || $0 == r "/" || index($0, r "/") == 1) next; print }' \
         "$dir.roles" - > "$dir.same"
+      unchanged_tables >> "$dir.same"
       unchanged_list=$dir.same
     fi
     if [ -n "${batch:-}" ]; then
@@ -336,6 +356,7 @@ lint_scratch > /dev/null
 unset LINT_PIN_LIST
 # the same run left the pristine tree's cite names beside the list, for section 18 (LINT_UNCHANGED)
 export LINT_CITE_BASE=$jobs/pins.list.cites
+phase "baseline and pin list"
 
 # pin_phrase <description>: sets pinned_phrase to the phrase of the lint's pin of that description, from its list
 pin_phrase() {
@@ -1051,6 +1072,7 @@ ban_nth ban_unsealed "a PR closed unmerged takes OPEN's path" 1
 echo "- A PR $ban_unsealed: it takes \`OPEN\`'s path." >> "$scratch/skills/spec-to-stories/SKILL.md"
 expect "spec-to-stories re-cutting a story whose PR closed unmerged fails" 1
 
+phase "hand-written cases ahead of the derived ones"
 # every kind of check the lint queues is named here: a positive one gets a drop case, a lacksf one
 # its phrase seeded, an absent-phrase one (x y w W X) each plain text it bans seeded; a kind named
 # nowhere fails, so a new one cannot go without a case
@@ -1164,7 +1186,7 @@ while IFS= read -r -u 4 record; do
   seed_pins "$jobs/retried"
   sec= expect "$pdesc" 1 "$pmsg"
 done 4< "$jobs/retries"
-expect_flush all
+phase "derived cases"
 # judge_batch alone, on a made-up spec and lint output: what it cannot vouch for goes to the retry
 # file and never to an ok line
 judge_batch_gives() { # <expected ok lines, |-joined> <expected retried descriptions, |-joined> <lint rc>
@@ -2095,6 +2117,7 @@ fresh
 echo 'The `/dev:not-built-yet` runs it.' >> "$scratch/GLOSSARY.md"
 expect "the glossary naming another missing skill fails" 1 "/dev:not-built-yet names no skill"
 
+phase "hand-written cases after the derived ones"
 # --- the version-bump rule, on a throwaway git repo the lint reads via VERSION_BUMP_REPO ---
 # The other cases pin the diff base to HEAD (an empty diff) and point VERSION_BUMP_REPO at a
 # path that is no repo, so the checkout the test runs in never decides them; these cases let the
@@ -2118,12 +2141,35 @@ bump_commit() { git -C "$bump_repo_dir" add -A; git -C "$bump_repo_dir" commit -
 
 # LINT_UNCHANGED, which every case but the baseline lints with: a seeded failure in a file it
 # lists is skipped, while the same seed unlisted fails, as the retired-phrase cases show
+# list_unchanged <path...>: $jobs/unchanged lists what the scratch tree holds unchanged and the
+# paths given, so a run here costs what a case's does and names only the files the check is about
+list_unchanged() {
+  unchanged_files "$scratch" > "$jobs/unchanged"
+  [ $# -eq 0 ] || printf '%s\n' "$@" >> "$jobs/unchanged"
+}
 expect_flush all
 fresh
 echo "cut one" >> "$scratch/skills/sample/SKILL.md"
-printf '%s\n' "$scratch/skills/sample/SKILL.md" > "$jobs/unchanged"
+list_unchanged "$scratch/skills/sample/SKILL.md" "$repo_root"/scripts/*.tsv
 fx_check "a seeded file LINT_UNCHANGED lists is not checked" \
   eval 'result_is 0 "" "$(unchanged_list=$jobs/unchanged lint_scratch)"'
+# a listed doc's section runs nothing while every pin table is listed too, so a row only that
+# section asks for goes unasked (the list is taken at its word), and the same table with the doc
+# unlisted, or a table unlisted, fails naming the row: a run pays only for the docs its case
+# changed, not one function call per check of every section
+fresh
+mkdir "$scratch/pins"
+cp "$repo_root"/scripts/*.tsv "$scratch/pins/"
+grep -v '^has	epic review spec axis	' "$repo_root/scripts/implement-spec-pins.tsv" > "$scratch/pins/implement-spec-pins.tsv"
+list_unchanged "$scratch"/pins/*.tsv
+fx_check "a doc LINT_UNCHANGED lists, with every pin table, has its section skipped whole" \
+  eval 'result_is 0 "" "$(pins_dir=$scratch/pins unchanged_list=$jobs/unchanged lint_scratch)"'
+grep -vxF "$scratch/docs/agents/orchestration.md" "$jobs/unchanged" > "$jobs/unchanged.less"
+fx_check "the same doc unlisted runs its section" \
+  eval 'result_is 1 "no row '\''epic review spec axis'\'' in implement-spec-pins.tsv" "$(pins_dir=$scratch/pins unchanged_list=$jobs/unchanged.less lint_scratch)"'
+list_unchanged
+fx_check "the same doc listed without the pin tables runs its section" \
+  eval 'result_is 1 "no row '\''epic review spec axis'\'' in implement-spec-pins.tsv" "$(pins_dir=$scratch/pins unchanged_list=$jobs/unchanged lint_scratch)"'
 # an empty list skips nothing, the sweeps over many files included
 fresh
 printf '```mermaid\nA->>B: one; two\n```\n' >> "$scratch/docs/agents/sample.md"
@@ -2137,7 +2183,7 @@ fx_check "an empty LINT_UNCHANGED skips no sweep" \
 fresh
 printf '%s\n' "See \`/dev:close-story\`'s Some rule." >> "$scratch/docs/agents/orchestration.md"
 echo "a line that names no step or heading" >> "$scratch/skills/sample/SKILL.md"
-printf '%s\n' "$scratch/docs/agents/orchestration.md" > "$jobs/unchanged"
+list_unchanged "$scratch/docs/agents/orchestration.md" "$repo_root"/scripts/*.tsv
 fx_check "a changed SKILL.md that moves no cite name leaves a listed doc unread in section 18" \
   eval 'result_is 0 "" "$(unchanged_list=$jobs/unchanged lint_scratch)"'
 fx_check "with no cite base a changed SKILL.md re-reads a listed doc in section 18" \
@@ -2291,5 +2337,7 @@ git -C "$bump_repo_dir" branch -q -D main
 expect "with no local main the merge-base uses origin/main" 0
 unset bump_repo_dir sec
 
-expect_flush all
+phase "version-bump cases"
+fx_check "a phase prints its wall seconds, its CPU seconds and the slots" \
+  grep -Eq '^timing: a phase: [0-9]+s wall, [0-9]+s cpu on [0-9]+ slots$' <<<"$(phase_cpu=0; phase "a phase")"
 fx_report_fails
