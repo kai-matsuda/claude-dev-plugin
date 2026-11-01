@@ -2030,6 +2030,11 @@ cite_seeds $orch "present: " "a backtick after a name" \
 fresh
 printf '%s\n' "As the Story gate\`.step of $SK says." >> "$scratch/$orch"
 expect "a backtick after a bare name with no space after it passes section 18" 0
+# that closing backtick is unread only in the of/in order: after the possessive or the skill it
+# still sits beside a space and the name is read
+cite_passes $orch "a backticked name with a space inside the backticks after a skill" \
+  "As \`$SK\`'s \` Story gate\` says." \
+  "As $SK \` Story gate\` says."
 
 # a lower-case phrase that spells a name before in/of the skill is read too
 cite_seeds $orch "present: a bare cite of" "a name spelled in lower case in prose" \
@@ -2056,7 +2061,12 @@ cite_seeds $orch "present: a" "punctuation after the marks" \
   "As the **\`Story gate\`**. step of \`/dev:implement-story\` says." \
   "As the \`Story gate\`, step of \`/dev:implement-story\` says." \
   "As the **Story gate**. step of /dev:implement-story says." \
-  "As the \"Two entries\"; heading of /dev:task-orchestrator says."
+  "As the \"Two entries\"; heading of /dev:task-orchestrator says." \
+  "As the \"Story gate\", step of \`$SK\` says." \
+  "As the \"Story gate\": step of \`$SK\` says." \
+  "As the **Two entries**: heading of \`/dev:task-orchestrator\` says." \
+  "As the Story gate\`, step of \`$SK\` says." \
+  "As the Story gate\`: step of \`$SK\` says."
 
 # a backtick that is part of a name stays in the name: **`git` rule.** is cited in bold
 cite_passes $orch "a name holding backticks cited in bold" "As \`/dev:task-orchestrator\`'s **\`git\` rule** says." "As the **\`git\` rule** of \`/dev:task-orchestrator\` says." "As \`/dev:task-orchestrator\` **\`git\` rule** says."
@@ -2144,8 +2154,9 @@ cite_seeds $orch "present: " "bare-skill prose spelling a known name" \
   "/dev:task-orchestrator's report is one line." \
   "Use /dev:triage, Report the items."
 
-# the file edges of the bare skill's regexes (dev-hcn9 review 1 of the fourth orchestrator): a
-# cite ending the file with no final newline, and one opening the file, each alone in a new doc
+# the file edges of the bare skill's regexes: a cite ending the file with no final newline (the
+# of/in order's end-of-line alternative), and one opening the file (the skill's start-of-line
+# alternative), each alone in a new doc
 # edge_seeds <message> <what> <text>...: each text, written with no final newline to a new rules
 # doc, fails section 18 with the message
 edge_seeds() {
@@ -2180,7 +2191,30 @@ cite_passes $orch "a skill name inside a path or a prefix" \
   "See z$SK **Story gate** says." \
   "See x:$SK **Story gate** says." \
   "See x-$SK **Story gate** says." \
-  "See /$SK **Story gate** says."
+  "See /$SK **Story gate** says." \
+  "See Z$SK **Story gate** says."
+# in the possessive and skill-first orders the wrong mark or a bare name beside a prefixed skill
+# still fails: those checks read the skill anywhere
+cite_seeds $orch "present: " "a wrong mark or bare name beside a prefixed skill" \
+  "See foo$SK's \"Story gate\" says." \
+  "See foo$SK's Story gate says." \
+  "See foo$SK \"Story gate\" says." \
+  "See foo$SK Story gate says." \
+  "See foo/dev:task-orchestrator's **Two entries** says."
+# in the of/in order a prefixed skill (a letter, slash, colon or hyphen straight before it, no
+# space) is not read at all, so even a wrong mark or a bare name passes
+cite_passes $orch "a prefixed skill in the of/in order" \
+  "As the \"Story gate\" step of foo$SK says." \
+  "As the Story gate step of foo$SK says." \
+  "As the **Two entries** heading of foo/dev:task-orchestrator says." \
+  "As the \`Story gate\` step of foo$SK says." \
+  "As the \"Story gate\" step of x-$SK says." \
+  "As the \"Story gate\" step of /$SK says."
+# a suffix other than a letter or hyphen leaves a bare skill bare in the of/in order
+cite_seeds $orch "$bare_msg" "a bare skill with a suffix" \
+  "As the **Story gate** step of $SK.md says." \
+  "As the **Story gate** step of $SK/x says." \
+  "As the **Story gate** step of ${SK}_x says."
 # any other character before it leaves the skill bare, so the same marking fails
 cite_seeds $orch "$bare_msg" "a bare skill after a character outside that class" \
   "See 1$SK's **Story gate** says." \

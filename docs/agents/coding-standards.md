@@ -139,8 +139,8 @@ name and is never closed, or closes one never opened), a stray backtick beside a
 a backtick straight before a name that follows the skill or its possessive (with an optional
 "step" or "section", comma, colon, semicolon or dash, and "the", "step" or "section"
 between), a stray closing backtick after a bare name in the before-"of"/"in" place with no
-space after it, a space before or after a name inside the backticks (bar the closing backtick of a
-bare name, below), or at both ends of it,
+space after it, a space before or after a name inside the backticks (bar that closing
+backtick, below), or at both ends of it,
 a bold lead-in with no period that opens no numbered item, a hyphenated word between a name
 and "of" or "in", a link word other than "of" or "in", a name straight before the skill with
 no link word, a parenthesis between the skill and the name or before the skill in the
@@ -148,13 +148,16 @@ no link word, a parenthesis between the skill and the name or before the skill i
 other than those three places, and a backtick straight before the skill in the "of"/"in"
 order, whatever follows the skill (arguments, a suffix, words, punctuation or nothing, a
 closing backtick or none): it is a backticked skill, so the right mark beside it passes.
-A letter, slash, colon or hyphen straight before a skill (a path or a prefix) leaves it no bare
-skill, so the right mark beside it passes; a wrong mark or a bare name beside it still fails,
-since those checks read the skill anywhere.
+After the possessive and skill-first, a letter, slash, colon or hyphen straight before a
+skill (a path or a prefix) leaves it no bare skill, so the right mark beside it passes; a
+wrong mark or a bare name beside it still fails, since those checks read the skill anywhere.
+In the "of"/"in" order a skill with such a prefix is not read at all, so any mark passes,
+and a bare skill followed by a suffix other than a letter or hyphen (a period, slash or
+underscore) is still bare.
 
 A bare, quoted, bold or backticked name before such a skill is still read and fails. A
-backtick before a name in the "of"/"in" order, or straight after a bare name anywhere, is
-read and fails, except the closing backtick after a bare name before "of"/"in" with no space
+backtick before a name in the "of"/"in" order, or straight after a bare name before
+"of"/"in", is read and fails, except the closing backtick after a bare name with no space
 after it, which the list above leaves unread. The first paragraph above says which forms are
 wrong; the lint fails them only in the shapes the paragraph that begins "The lint reads"
 names, and any shape it does not read is outside the lint. A reader still writes the one
