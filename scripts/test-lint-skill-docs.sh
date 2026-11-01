@@ -1873,6 +1873,78 @@ fresh
 printf '%s\n' "As /dev:implement-story's \"Story gate\" and the Story gate step of /dev:implement-story say." >> "$scratch/$orch"
 expect "a skill cited without backticks passes section 18" 0
 
+# skill-first and case-changed wrong cites (dev-wh65): the skill directly before a step name in
+# quotes or a heading in bold (a marked name whose case changed is seeded in a doc of its own below)
+fresh
+printf '%s\n' "As \`/dev:implement-story\` \"Story gate\" says." >> "$scratch/$orch"
+sec=18 expect "a skill-first step name in quotes fails section 18" 1 "present: a step name cited in quotes of /dev:implement-story in $scratch/$orch"
+
+fresh
+printf '%s\n' "As \`/dev:task-orchestrator\`, **Two entries** says." >> "$scratch/$orch"
+sec=18 expect "a skill-first heading in bold fails section 18" 1 "present: a heading cited in bold of /dev:task-orchestrator in $scratch/$orch"
+
+fresh
+printf '%s\n' "As \`/dev:implement-story\` **Story gate** and \`/dev:task-orchestrator\` \"Two entries\" say." >> "$scratch/$orch"
+expect "the right marking skill-first passes section 18" 0
+
+# review 1 of dev-wh65: a case-changed cite fails in a doc lacking the name's first word in its
+# original case (the prefilter reads the file case-insensitively)
+fresh
+printf '%s\n' "As \`/dev:implement-story\`'s \"story gate\" says." > "$scratch/docs/agents/seed.md"
+sec=18 expect "a case-changed step name in quotes fails in a doc without the original-case word" 1 "present: a step name cited in quotes of /dev:implement-story in $scratch/docs/agents/seed.md"
+
+fresh
+printf '%s\n' "As the **two entries** section of \`/dev:task-orchestrator\` says." > "$scratch/docs/agents/seed.md"
+sec=18 expect "a case-changed heading in bold fails in a doc without the original-case word" 1 "present: a heading cited in bold of /dev:task-orchestrator in $scratch/docs/agents/seed.md"
+
+# a bare name in another case, in every order
+fresh
+printf '%s\n' "As \`/dev:implement-story\`'s story gate says." > "$scratch/docs/agents/seed.md"
+sec=18 expect "a lower-case bare name after the possessive fails section 18" 1 "present: a bare cite after a possessive and step or section of /dev:implement-story in $scratch/docs/agents/seed.md"
+
+fresh
+printf '%s\n' "As the check gate of \`/dev:implement-story\` says, and the story gate of \`/dev:implement-story\`." > "$scratch/docs/agents/seed.md"
+sec=18 expect "a lower-case bare name before 'of' fails section 18" 1 "present: a bare cite of /dev:implement-story in $scratch/docs/agents/seed.md"
+
+fresh
+printf '%s\n' "As \`/dev:implement-story\` Story gate says." > "$scratch/docs/agents/seed.md"
+sec=18 expect "a bare skill-first step name fails section 18" 1 "present: a bare skill-first cite of /dev:implement-story in $scratch/docs/agents/seed.md"
+
+fresh
+printf '%s\n' "As \`/dev:task-orchestrator\`, Two entries says." > "$scratch/docs/agents/seed.md"
+sec=18 expect "a bare skill-first heading after a comma fails section 18" 1 "present: a bare skill-first cite of /dev:task-orchestrator in $scratch/docs/agents/seed.md"
+
+# a lower-case word straight after a skill reads as prose (the real "`/dev:story-to-tasks` re-cut adds"),
+# so a bare skill-first cite is caught in the name's own case only
+fresh
+printf '%s\n' "As \`/dev:task-orchestrator\` two entries says." > "$scratch/docs/agents/seed.md"
+sec=18 expect "a lower-case bare skill-first heading passes section 18" 0
+
+# a skill-first marked cite with another separator or a link word
+for form in "\`/dev:implement-story\`: \"Story gate\"" "\`/dev:implement-story\` step \"Story gate\"" "\`/dev:implement-story\` the \"Story gate\" step" "\`/dev:implement-story\`; \"Story gate\"" "\`/dev:implement-story\` - \"Story gate\"" "\`/dev:implement-story\` \"story gate\""; do
+  fresh
+  printf '%s\n' "As $form says." > "$scratch/docs/agents/seed.md"
+  sec=18 expect "a skill-first step in quotes ($form) fails section 18" 1 "present: a step name cited in quotes of /dev:implement-story in $scratch/docs/agents/seed.md"
+done
+for form in "\`/dev:task-orchestrator\` section **Two entries**" "\`/dev:task-orchestrator\` — **Two entries**" "\`/dev:task-orchestrator\`: **Two entries**" "\`/dev:task-orchestrator\`; **Two entries**" "\`/dev:task-orchestrator\` - **Two entries**" "\`/dev:task-orchestrator\` **two entries**"; do
+  fresh
+  printf '%s\n' "As $form says." > "$scratch/docs/agents/seed.md"
+  sec=18 expect "a skill-first heading in bold ($form) fails section 18" 1 "present: a heading cited in bold of /dev:task-orchestrator in $scratch/docs/agents/seed.md"
+done
+
+# a bare skill-first name after a colon, "the", "step", a semicolon or a hyphen
+for form in "\`/dev:implement-story\`: Story gate" "\`/dev:implement-story\` the Story gate" "\`/dev:implement-story\` step Story gate" "\`/dev:implement-story\`; Story gate" "\`/dev:implement-story\` - Story gate"; do
+  fresh
+  printf '%s\n' "As $form says." > "$scratch/docs/agents/seed.md"
+  sec=18 expect "a bare skill-first step name ($form) fails section 18" 1 "present: a bare skill-first cite of /dev:implement-story in $scratch/docs/agents/seed.md"
+done
+
+# a step and a heading differing only in case are one name of kind both: the right markings pass
+fresh
+printf '%s\n' "## Story Gate" >> "$scratch/skills/implement-story/SKILL.md"
+printf '%s\n' "As \`/dev:implement-story\`'s **Story gate** and \`/dev:implement-story\`'s \"Story Gate\" say." > "$scratch/docs/agents/seed.md"
+expect "a step and a heading differing in case take either marking in section 18" 0
+
 # a skill gaining a name makes an unchanged rules doc's text a wrong cite (the doc's line 'sweep of
 # /dev:implement-story' reads bare once the skill has a heading 'sweep')
 fresh
