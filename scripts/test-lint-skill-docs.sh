@@ -2236,6 +2236,10 @@ cite_passes $orch "a prefixed skill in the of/in order" \
   "As the \`Story gate\` step of foo$SK says." \
   "As the \"Story gate\" step of x-$SK says." \
   "As the \"Story gate\" step of /$SK says."
+# a gap word with a hyphen is not a word of letters, so the of/in order does not read it
+cite_passes $orch "a hyphenated gap word in the of/in order" \
+  "As the **Story gate** well-known step of $SK says." \
+  "As the \"Story gate\" well-known step of \`$SK\` says."
 # a suffix other than a letter or hyphen leaves a bare skill bare in the of/in order
 cite_seeds $orch "$bare_msg" "a bare skill with a suffix" \
   "As the **Story gate** step of $SK.md says." \
