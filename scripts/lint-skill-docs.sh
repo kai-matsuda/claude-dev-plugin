@@ -226,9 +226,10 @@
 # "<dir>/" a dir laid out as there (the same paths under it, each of the same kind). A check on
 # such a file is skipped wherever its verdict depends on nothing the list leaves out: that file
 # and its fixed pattern for most, plus the skills and plugin dirs' layout for the namespace
-# rule, and every skill's SKILL.md for section 18. The list vouches for a file only in the role
-# it had there, so a caller leaves out every path it passes as an argument or override. Unset,
-# every check runs.
+# rule, and the skills' cite names for section 18: every SKILL.md listed, or the names as
+# LINT_CITE_BASE holds them, a file a LINT_PIN_LIST run wrote beside its list (<list>.cites). The
+# list vouches for a file only in the role it had there, so a caller leaves out every path it
+# passes as an argument or override. Unset, every check runs.
 set -u
 root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 fail=0
@@ -310,14 +311,25 @@ pins_from() {
     esac
   done < "$1"
 }
-# table_field <table> <row description> <field>: that field (3 the phrase, 4 the sweep) of the pin
-# table's row of that description, as the table writes it
-table_field() { awk -F '\t' -v d="$2" -v n="$3" '$1 !~ /^#/ && $2 == d { print $n; exit }' "$pins_dir/$1.tsv"; }
+# table_field <table> <row description> <field>: sets table_value to that field (3 the phrase, 4 the
+# sweep) of the pin table's row of that description, as the table writes it, empty with no such row or
+# table. A run asks dozens of times, so a table is read once, as \036<description>\037<phrase>\t<sweep>
+# rows, and asked with builtins
+table_field() {
+  local text=table_text_${1//-/_} row LC_ALL=C
+  [ -n "${!text+set}" ] || printf -v "$text" '%s' \
+    "$(awk -F '\t' '$1 !~ /^#/ { print "\036" $2 "\037" $3 "\t" $4 }' "$pins_dir/$1.tsv" 2>/dev/null)"
+  table_value=
+  case ${!text} in *$'\036'"$2"$'\037'*) ;; *) return 0 ;; esac
+  row=${!text}; row=${row#*$'\036'"$2"$'\037'}; row=${row%%$'\n'*}
+  if [ "$3" = 3 ]; then table_value=${row%%$'\t'*}; else table_value=${row#*$'\t'}; fi
+}
 # row_phrase <table> <row description>: sets row_text to that row's phrase, as the table writes it, for
 # a check in another doc that must follow the row when it is reworded (dev-yqpz); a missing row
 # fails the lint and leaves row_text empty
 row_phrase() {
-  row_text=$(table_field "$1" "$2" 3)
+  table_field "$1" "$2" 3
+  row_text=$table_value
   # a missing table is reported once, by pins_from, in the section that reads it
   [ -n "$row_text" ] || [ ! -f "$pins_dir/$1.tsv" ] || { bad "no row '$2' in $1.tsv"; return 1; }
   [ -n "$row_text" ]
@@ -326,9 +338,8 @@ row_phrase() {
 # sweep field, else its phrase less the backtick a code span opens or closes it with
 row_sweep() {
   row_phrase "$1" "$2" || return 1
-  local sweep
-  sweep=$(table_field "$1" "$2" 4)
-  if [ -n "$sweep" ]; then row_text=$sweep; else row_text=${row_text#\`} row_text=${row_text%\`}; fi
+  table_field "$1" "$2" 4
+  if [ -n "$table_value" ]; then row_text=$table_value; else row_text=${row_text#\`} row_text=${row_text%\`}; fi
 }
 # hasc_row, lacksf_row <description> <table> <row description>: hasc or lacksf of that row
 hasc_row() { row_phrase "$2" "$3" && hasc "$1" "$row_text"; }
@@ -1028,7 +1039,8 @@ retired_route='flat[ -](epics?|shape)|small[ -]bug path|mattpocock-skills:implem
 # caught either: the join puts two spaces at a block start, which the pattern's one space misses.
 skill_names='|'
 for given in "$skills"/*/; do
-  [ -d "$given" ] && skill_names+="$(basename "$given")|"
+  given=${given%/}
+  [ -d "$given" ] && skill_names+="${given##*/}|"
 done
 while IFS= read -r f; do
   case $f in
@@ -2394,11 +2406,6 @@ standards=$agents/coding-standards.md
 # line break fails too
 if doc 18 "cross-skill cites" "$standards"; then
   has "the cross-skill cite rule heading" "## Another skill's rule is cited in one form"
-  # the checks depend on the skills' names, so one changed SKILL.md has every rules doc and
-  # SKILL.md read again, whatever LINT_UNCHANGED vouches for
-  saved_f=$f saved_unchanged=$unchanged
-  for f in "$skills"/*/SKILL.md; do unchanged_file || { unchanged=$'\n'; break; }; done
-  f=$saved_f unchanged_f=/
   # the cite targets of every skill, read in one pass: "<skill> <kind> <name>" with the kind step
   # or heading (both when the skill marks the name both ways), the name's regex characters
   # escaped. A step is a bold name opening a numbered item (**Name** or **Name.**) or opening a
@@ -2427,7 +2434,17 @@ if doc 18 "cross-skill cites" "$standards"; then
       if (name ~ /\.$/) { sub(/\.$/, "", name); add("step", name) }
       else if (numbered) add("step", name)
     }
-    END { for (x in k) { split(x, p, SUBSEP); print p[1] "\t" k[x] "\t" p[2] } }' "$skills"/*/SKILL.md)
+    END { for (x in k) { split(x, p, SUBSEP); print p[1] "\t" k[x] "\t" p[2] } }' "$skills"/*/SKILL.md | LC_ALL=C sort)
+  # the checks depend on the skills' names, so a changed SKILL.md that moves one has every rules
+  # doc and SKILL.md read again, whatever LINT_UNCHANGED vouches for; one that leaves them as
+  # LINT_CITE_BASE holds them moves no verdict on a listed file
+  cite_key=$skill_names$'\n'$cite_names
+  [ -z "${LINT_PIN_LIST:-}" ] || printf '%s\n' "$cite_key" > "$LINT_PIN_LIST.cites"
+  saved_f=$f saved_unchanged=$unchanged
+  if [ ! -s "${LINT_CITE_BASE:-}" ] || [ "$cite_key" != "$(<"$LINT_CITE_BASE")" ]; then
+    for f in "$skills"/*/SKILL.md; do unchanged_file || { unchanged=$'\n'; break; }; done
+  fi
+  f=$saved_f unchanged_f=/
   # cite_marked <want> <what> <mark>: queues a check that a name of kind <want> (never one of
   # kind both) is not cited in the mark ('"' or '\*\*') in either word order, after the
   # possessive and an optional step or section or ahead of the gap; reads skill, kind, name, ref and gap
@@ -2438,17 +2455,25 @@ if doc 18 "cross-skill cites" "$standards"; then
   # every skill's SKILL.md is read too (dev-xyrl), the skills' own docs binding like a rules doc
   for f in "$agents"/*.md "$skills"/*/SKILL.md; do
     [ "$f" = "$standards" ] && continue   # it shows the wrong forms as examples
+    # a listed file queues nothing here, and the loop below is most of a run's cost (the pin list
+    # still takes its checks)
+    [ -n "${LINT_PIN_LIST:-}" ] || ! unchanged_file || continue
     # the file's own skill, when it is a SKILL.md, is no cross-skill cite
     own=
     case $f in "$skills"/*/SKILL.md) own=${f%/SKILL.md}; own=${own##*/} ;; esac
     # one pattern over the other skills (skill_names, section 17's list), the file's own left out
     others=${skill_names//|$own|/|}; others=${others#|}; others=${others%|}
     [ -z "$others" ] || lackswc "an unquoted heading cite of a skill in $f" "\`/dev:($others)\`'s [A-Z]"
+    # every pattern below holds `/dev:<skill>`, one token that no line break splits, so a file
+    # that never names the skill can match none of them: most files name few skills. The test is
+    # a fixed-string one of each ref against these lines, so it knows no skill name's alphabet
+    cited=$(grep -F '`/dev:' "$f")
     while IFS=$'\t' read -r skill kind name; do
       [ -n "$name" ] || continue
       # a skill's own steps and headings are no cross-skill cite
       [ "$skill" = "$own" ] && continue
       ref="\`/dev:$skill\`"
+      [ -n "${LINT_PIN_LIST:-}" ] || case $cited in *"$ref"*) ;; *) continue ;; esac
       gap="( [a-z]+){0,2} (of|in) $ref"
       lackswc "a bare cite of /dev:$skill in $f" "(^|[^*\"A-Za-z])$name$gap"
       lackswc "a bare cite after a possessive and step or section of /dev:$skill in $f" "$ref's (step|section) $name([^A-Za-z]|$)"

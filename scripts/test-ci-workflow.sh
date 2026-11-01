@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Tests for .github/workflows/ci.yml: it runs on every push and on pull requests, checks out
+# Tests for .github/workflows/ci.yml: it runs on a push to main and on pull requests, checks out
 # mattpocock/skills at a pinned tag as the lint's PLUGIN_SKILLS, installs bd with CI blanked, sets the
 # version-bump rule's base to the PR base, and runs the Makefile's check target, never the scripts;
 # and the ci target's git-init check refuses a test script that inits a repo outside the lib.
@@ -10,9 +10,29 @@ wf=$repo_root/.github/workflows/ci.yml
 source "$repo_root/scripts/fixture-test-lib.sh"   # fx_check, fx_report_fails
 
 fx_check "the workflow exists" test -f "$wf"
-fx_check "runs on every push" grep -Eq '^[[:space:]]+push:' "$wf"
+fx_check "runs on a push" grep -Eq '^[[:space:]]+push:' "$wf"
 fx_check "runs on pull requests" grep -Eq '^[[:space:]]+pull_request:' "$wf"
-fx_check "push is not limited to branches" bash -c '! sed -n "/^[[:space:]]*push:/,/^[[:space:]]*pull_request:/p" "$1" | grep -Eq "branches"' _ "$wf"
+# a PR branch's push would fire both triggers, so one PR tip would get two runs: push is main's alone
+# push_branches: the branches of the push trigger of the workflow on stdin, one per line, read
+# from a flow list ([main]) or a block list (- main), quotes and trailing comments off
+push_branches() {
+  sed -n "/^[[:space:]]*push:/,/^[[:space:]]*pull_request:/p" | awk '
+    function names(s,   i, n, w) {
+      sub(/[[:space:]]+#.*/, "", s); gsub(/[][,"\047]/, " ", s)
+      n = split(s, w, " "); for (i = 1; i <= n; i++) print w[i]
+    }
+    /^[[:space:]]*branches:/ { on = 1; sub(/^[^:]*:/, ""); names($0); next }
+    on && /^[[:space:]]*-[[:space:]]/ { sub(/^[[:space:]]*-/, ""); names($0); next }
+    { on = 0 }'
+}
+pushes_main_alone() { [ "$(push_branches <<<"$1")" = main ]; } # <workflow text>
+fx_check "a push runs CI on main and on no other branch" pushes_main_alone "$(<"$wf")"
+# the same branches in either YAML form read alike, so a reformat of the workflow is no failure
+fx_check "branches as a block list read as main alone" pushes_main_alone $'on:\n  push:\n    branches:\n      - main\n  pull_request:\n'
+pushes_other_branches() { ! pushes_main_alone "$1"; }
+fx_check "a second branch in a block list is more than main" pushes_other_branches $'on:\n  push:\n    branches:\n      - main\n      - dev\n  pull_request:\n'
+fx_check "a second branch in a flow list is more than main" pushes_other_branches $'on:\n  push:\n    branches: [main, dev]\n  pull_request:\n'
+fx_check "pull requests are not limited to a branch or path" bash -c '! sed -n "/^[[:space:]]*pull_request:/,/^[a-z]/p" "$1" | grep -Eq "branches|paths"' _ "$wf"
 fx_check "checks out mattpocock/skills" grep -Eq 'repository:[[:space:]]*mattpocock/skills' "$wf"
 fx_check "pins the mattpocock/skills checkout itself to a version tag" bash -c 'grep -A3 "repository:[[:space:]]*mattpocock/skills" "$1" | grep -Eq "ref:[[:space:]]*v[0-9]+\.[0-9]+\.[0-9]+[[:space:]]*$"' _ "$wf"
 fx_check "points PLUGIN_SKILLS at the skills dir of the mattpocock checkout path" bash -c 'p=$(grep -E "^[[:space:]]+path:" "$1" | head -1 | sed "s/.*path:[[:space:]]*//"); [ -n "$p" ] && grep -Fq "PLUGIN_SKILLS: \${{ github.workspace }}/$p/skills" "$1"' _ "$wf"
