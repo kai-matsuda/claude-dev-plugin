@@ -79,7 +79,8 @@ The harness mechanics (Waiting, the Idle rule, Cut-off agents, literal paths, Co
    failed:  <bead-id> <open blocker or failure reason>     (one per line, as the orchestrator's block has them:
                                                             a task, <check> <command> for a red check,
                                                             push <command>: <error>, or forge check <name> <run URL>
-                                                            for a red forge check; or step 6's epic review line)
+                                                            for a red forge check, or the conflict line
+                                                            for a conflicted PR; or step 6's epic review line)
    checks:  skipped: <reason>                              (as the orchestrator's block has it)
    human:   <bead-id> <title>                              (one per open ready-for-human task in the story)
    human:   <owner repo> <story-id> <pr url>: the PR to merge and the /dev:close-story <story-id> to run

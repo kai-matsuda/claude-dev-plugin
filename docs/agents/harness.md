@@ -49,10 +49,11 @@ in `orchestration.md`) and any other long lint or test run passes `timeout: 6000
 Bash call (INFRA-30's run: two `make lint` calls
 were backgrounded that way, and one agent went looking for its own process with `ps`).
 This is the mechanism behind the no-polling rule above, and why INFRA-29's until-loops
-and Monitors woke agents with stale state. The one shell wait is the story orchestrator's
+and Monitors woke agents with stale state. The one long shell wait is the story orchestrator's
 forge-check wait (the rules doc's Delivery section): one
 foreground Bash call that waits for the PR's forge checks on the pushed tip, bounded by its
-`timeout: 600000` and run again while a check is still pending, at most six calls.
+`timeout: 600000` and run again while a check is still pending, at most six calls (its
+merge-state re-read before it, `sleep 10` between at most six reads, is a short compound call too).
 The Bash tool's text says foreground `sleep` is blocked and points at `Monitor`; a check
 (2026-10-22, chezmoi-sn1) ran a foreground `until` loop unblocked in a session and in a subagent
 alike, and the observed run wins.

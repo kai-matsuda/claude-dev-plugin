@@ -61,7 +61,8 @@ The session running this skill is a **story orchestrator**, the story row with a
    PR:      <url>    (or  branch: <name> @ <tip SHA>)
    failed:  <reason>                                  (the task orchestrator's second failure,
             or push <command>: <error>                or the push the Delivery section could not make,
-            or forge check <name> <run URL>           or each forge check that went red)
+            or forge check <name> <run URL>           or each forge check that went red,
+            or merge conflict <PR URL>                or the PR git cannot merge)
    checks:  skipped: <no forge | no workflows | none reported>
    split:   <new-id> <title>                          (one per bead of a needs-split cut)
    worktrees: <absolute path> <unmerged <worktree branch> | <error>>

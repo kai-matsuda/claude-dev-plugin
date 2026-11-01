@@ -312,8 +312,10 @@ _Avoid_: push guard, stray check
 **Forge-check wait**:
 The story orchestrator's wait, after the delivery push, for the PR's forge checks on the
 pushed tip, before the delivery is recorded: a red check is a `failed: forge check <name>
-<run URL>` line and leaves the story unfinished; a repo with no forge or no checks delivers
-with a `checks: skipped` line. The one shell wait the Idle rule allows.
+<run URL>` line and leaves the story unfinished; a PR git cannot merge, read first, is a
+`failed: merge conflict <PR URL>` line and leaves it unfinished too; a repo with no forge or
+no checks delivers with a `checks: skipped` line. The one long shell wait the Idle rule
+allows (the merge-state re-read adds only a bounded `sleep 10` loop).
 _Avoid_: CI wait, check poll
 
 **Cut-off**:
