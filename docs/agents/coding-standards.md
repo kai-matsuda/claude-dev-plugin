@@ -100,8 +100,10 @@ Two entries) or a step name cited in quotes is a cite in the wrong form. A cite 
 rules doc's own sections, or of a skill's own steps and headings, is not a cross-skill
 cite and is outside this rule.
 
-The skill is always named in backticks (`/dev:close-story`), never bare
-(/dev:close-story's "The forge shows MERGED"), and the name is never set in backticks,
-step or heading (`/dev:implement-story`'s `Story gate`): bold and quotes are the only
-markings of a cited name, so a name in backticks is a cite in the wrong form. A skill
-named in prose that cites no rule ("run /dev:close-story") is outside this rule.
+A cite names the skill in backticks (`/dev:close-story`), never bare
+(/dev:close-story's "The forge shows MERGED"). A cited step or heading is marked only by bold
+or quotes, never by backticks (`/dev:implement-story`'s `Story gate`), whether or not the skill
+is in backticks: a name in backticks is a cite in the wrong form. A skill named bare in prose
+that cites none of its rules ("run /dev:close-story", "/dev:close-story's Jira key") is outside
+this rule. The lint reads a bare skill or a backticked name only beside a step or heading that
+skill's `SKILL.md` has; any other words beside a bare skill pass.
