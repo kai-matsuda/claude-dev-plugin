@@ -1813,6 +1813,15 @@ printf '%s\n' "## Zed gate" "" "**Zed gate.** A step." >> "$scratch/skills/imple
 printf '%s\n' "As the Zed gate step of \`/dev:implement-story\` says." >> "$scratch/$orch"
 sec=18 expect "a name both a step and a heading cited bare fails section 18" 1 "present: a bare cite of /dev:implement-story in $scratch/$orch"
 
+# a name of kind both beside a bare skill fails in each mark, and inside backticks (the |both in
+# the bare checks and the backtick check; a dropped |both turns these red)
+for form in "As /dev:implement-story's **Zed gate** says." "As /dev:implement-story's \"Zed gate\" says." "As /dev:implement-story's \`Zed gate\` says." "As \`/dev:implement-story\`'s \`Zed gate\` says."; do
+  fresh
+  printf '%s\n' "## Zed gate" "" "**Zed gate.** A step." >> "$scratch/skills/implement-story/SKILL.md"
+  printf '%s\n' "$form" >> "$scratch/$orch"
+  sec=18 expect "a name of kind both ($form) fails section 18" 1 "present: a"
+done
+
 # the cite rule binds a skill doc too (dev-xyrl): a wrong cite of another skill's rule in a
 # SKILL.md fails section 18 in the bare and quoted forms, and the right forms pass
 fresh
@@ -1872,7 +1881,8 @@ expect "a bare cite of 'the /dev:x skill' passes section 18" 0
 # a skill is always named in backticks, and a name is never set in them (dev-hcn9)
 bare_msg="present: a skill cited without backticks of"
 SK=/dev:implement-story
-# a bare skill beside a name in the right marking, in all three orders, each naming the check
+# a bare skill beside a name in the right marking, in all three orders; the loop asserts that a
+# present: line fails, and the cases after it assert which check
 for form in "As $SK's \"Story gate\" says." "As the **Clean up** sweep of $SK says." "As $SK \"Story gate\" says." "As $SK, \"Story gate\" says." "As $SK **Story gate** says." "As $SK: **Story gate** says." "As $SK's **Story gate** says." "As $SK's \"Story gate.\" says." "As the Story gate step of $SK says." "As $SK's story gate says." "As the \"Story gate\" step of $SK says." "As the **Story gate** step in $SK says."; do
   fresh
   printf '%s\n' "$form" >> "$scratch/$orch"
@@ -1925,6 +1935,13 @@ for form in "As $SK's **\`Story gate\`** says." "As the **\`Story gate\`** step 
   fresh
   printf '%s\n' "$form" >> "$scratch/$orch"
   sec=18 expect "a marked name in backticks beside a bare skill ($form) fails section 18" 1 "present: "
+done
+
+# punctuation right after the marks (a period, comma, colon or semicolon) is read in the of/in order
+for form in "As the **\`Story gate\`**. step of \`/dev:implement-story\` says." "As the \`Story gate\`, step of \`/dev:implement-story\` says." "As the **Story gate**. step of /dev:implement-story says." "As the \"Two entries\"; heading of /dev:task-orchestrator says."; do
+  fresh
+  printf '%s\n' "$form" >> "$scratch/$orch"
+  sec=18 expect "punctuation after the marks ($form) fails section 18" 1 "present: a"
 done
 
 # a backtick that is part of a name stays in the name: **`git` rule.** is cited in bold

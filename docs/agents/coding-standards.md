@@ -100,21 +100,36 @@ Two entries) or a step name cited in quotes is a cite in the wrong form. A cite 
 rules doc's own sections, or of a skill's own steps and headings, is not a cross-skill
 cite and is outside this rule.
 
-A cite names the skill in backticks (`/dev:close-story`), never bare
-(/dev:close-story's "The forge shows MERGED"); a backtick at one end of the skill only, or one
-that swallows its possessive (`/dev:close-story's`), leaves it bare. A cited step or heading is
-marked only by bold or quotes: a name inside a pair of backticks is a cite in the wrong form,
-whether the pair stands inside the mark (**`Story gate`**), around it (`**Story gate**`) or
-alone (`Story gate`), and whether or not the skill is in backticks. A backtick that is part of
-a name stays in it: the step **`git` rule** of `/dev:task-orchestrator` is cited in bold, its
-backticks included. A skill named bare in prose that cites none of its rules ("run
-/dev:close-story", "/dev:close-story's Jira key") is outside this rule.
+A cite names the skill in backticks (`/dev:close-story`), never bare (/dev:close-story's
+"The forge shows MERGED"), and never in bold or quotes; a backtick at one end of the skill
+only, or one that swallows its possessive (`/dev:close-story's`), leaves it bare. A cited
+step or heading is marked only by bold or quotes, one of the two and not both: a name inside
+a pair of backticks is a cite in the wrong form, whether the pair stands inside the mark
+(**`Story gate`**), around it (`**Story gate**`) or alone (`Story gate`), and whether or not
+the skill is in backticks. A backtick that is part of a name stays in it: the step **`git`
+rule** of `/dev:task-orchestrator` is cited in bold, its backticks included. A skill named
+bare in prose that cites none of its rules ("run /dev:close-story", "/dev:close-story's Jira
+key") is outside this rule.
 
-The lint reads a skill beside a step or heading that skill's `SKILL.md` has, in three places:
-after the skill's possessive and an optional "step" or "section"; straight after the skill,
-with an optional comma, colon, semicolon or dash and any of "the", "step" and "section"; and
-before "of" or "in" the skill, at most two lowercase words between. Beside such a name a bare
-skill, a name in the wrong mark or a name in backticks fails, and so does bare prose that
-spells a name there ("the steps of /dev:implement-story", "/dev:task-orchestrator's report");
-the fix is a reword. It leaves open a name with a backtick on one side only, a name with a
-space inside its backticks, and any words beside a skill other than those three places.
+The lint reads a closed list and nothing more. It reads a skill beside a step or heading
+name that skill's `SKILL.md` has, in three places: after the skill's possessive and an
+optional "step" or "section"; straight after the skill, with an optional comma, colon or
+semicolon or a spaced hyphen or em dash, and any of "the", "step" and "section"; and before
+"of" or "in" the skill, at most two words of letters between. The skill is in backticks,
+bare, or has a backtick at one end only or around its possessive. The marks are straight
+double quotes, `**` and backticks, around the name alone, with an optional period, comma,
+colon or semicolon after the name inside the marks or right after them. Names match in any
+case, except a bare name straight after a skill, which matches in its own case only
+("/dev:implement-story story gate" passes). In those places the lint fails a bare skill
+beside a name in the right mark; a name in the wrong mark (a step in quotes, a heading in
+bold) or a bare heading; and a name inside backticks, alone or with bold or quotes inside or
+around the pair, whatever the skill's form. A name that is both a step and a heading takes
+either mark. Bare prose that spells a name in those places fails too ("the steps of
+/dev:implement-story", "/dev:task-orchestrator's report"); the fix is a reword.
+
+Every other typography is outside what the lint reads: curly quotes and apostrophes, en and
+em dashes, a separator with no space, single quotes, italics, double backticks, a skill or
+name carrying more than one mark (a heading both bold and quoted), a skill set in bold or
+quotes, any other punctuation outside the marks, a backtick on one side of a name only, a
+space inside the backticks, and any words beside a skill other than those three places. A
+reader still writes the one right form.
