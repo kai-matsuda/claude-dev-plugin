@@ -1966,8 +1966,8 @@ cite_seeds $orch "present: " "a marked name in backticks beside a bare skill" \
   "As $SK **\`Story gate\`** says." \
   "As $SK's \`**Story gate**\` says."
 
-# punctuation between the closing backtick and an outer mark (shape a), and between an inner mark
-# and the closing backtick (shape b), fails in all three orders, the skill backticked or bare
+# punctuation between the closing backtick and an outer mark, and between an inner mark and the
+# closing backtick, fails in all three orders, the skill backticked or bare
 cite_seeds docs/agents/seed.md "$bt_msg" "a name in backticks with punctuation among the marks" \
   "As the \`Story gate\`**.** step of \`/dev:implement-story\` says." \
   "As the \"\`Two entries\`,\" heading of \`/dev:task-orchestrator\` says." \
@@ -2009,12 +2009,45 @@ for form in "As $SK's \`Story gate says." "As ${SK}—**Story gate** says." "As 
   expect "an open shape ($form) passes section 18" 0
 done
 
-# a skill in parentheses is read like any other
-cite_seeds $orch "present: " "a skill in parentheses" \
+# a parenthesis around the whole cite is read; one between the skill and the name, or before the
+# skill in the of/in order, is outside what the lint reads
+cite_seeds $orch "present: " "a skill in parentheses around the whole cite" \
   "As ($SK's **Story gate**) says."
+for form in "As the **Story gate** step of ($SK) says." "As the Story gate step of ($SK) says." "As the \"Story gate\" step of ($SK) says." "As the \"Two entries\" heading of (/dev:task-orchestrator) says." "As ($SK) **Story gate** says." "As ($SK) \"Story gate\" says." "As ($SK) Story gate says." "As ($SK)'s **Story gate** says." "As ($SK)'s \"Story gate\" says."; do
+  fresh
+  printf '%s\n' "$form" >> "$scratch/$orch"
+  expect "a parenthesis inside a cite ($form) is outside what is read" 0
+done
+
+# a backtick straight before a name that follows the skill or its possessive (after an optional
+# step or section) is outside what the lint reads; the same backtick after the name is read
+for form in "As $SK's step \`Story gate says." "As $SK's section \`Story gate says." "As /dev:task-orchestrator's section \`Two entries says." "As $SK the \`Story gate says."; do
+  fresh
+  printf '%s\n' "$form" >> "$scratch/$orch"
+  expect "a backtick before a name ($form) is outside what is read" 0
+done
+cite_seeds $orch "present: " "a backtick after a name" \
+  "As $SK's step Story gate\` says." \
+  "As /dev:task-orchestrator's section Two entries\` says."
+
+# a stray backtick after a bare name in the of/in order is read only with a space after it, or
+# after one period, comma, colon or semicolon that follows it
+fresh
+printf '%s\n' "As the Story gate\`.step of $SK says." >> "$scratch/$orch"
+expect "a backtick after a bare name with no space after it passes section 18" 0
+
+# a lower-case phrase that spells a name before in/of the skill is read too
+cite_seeds $orch "present: a bare cite of" "a name spelled in lower case in prose" \
+  "Run bd story gate in $SK first."
+
+# a backtick around the possessive: the skill form of the any-form branch
+cite_seeds $orch "present: " "a backtick around a possessive" \
+  "As \`/dev:task-orchestrator's\` Two entries says." \
+  "As \`$SK's\` \"Story gate\" says." \
+  "As \`$SK's\` Story gate says."
 
 # a backtick straight after a bare name in the of/in order leaves it bare, with a gap of 0 to 2
-# words and the skill in any form (R4)
+# words and the skill in any form
 cite_seeds $orch "present: a bare cite of" "a backtick after a bare name" \
   "As the Story gate\` step of $SK says." \
   "As the Story gate\` step of \`$SK\` says." \
