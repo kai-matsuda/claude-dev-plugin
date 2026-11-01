@@ -39,7 +39,7 @@ Work from whatever is already in the conversation context.
 
 - `issue_type` is anything but `story` → `<id> refused: <id> is <type>, not a story`;
 - `status` is `closed` → `<id> refused: story is closed`;
-- its notes hold a `pr:` line → `<id> refused: finished story (pr: note present); a later run never touches it; to add work to it use add mode (/dev:spec-to-stories <KEY>-<n>, or the epic bead id when the story has no key)`, unless its notes carry a `recut:` line (`recut: <dep repo> publish <crate> <version>`, written by add mode's `OPEN` path while the PR is still open) naming a `## Blocked by` publish blocker that no bump child covers yet: then the cut goes on as a re-cut that adds that blocker's bump with its edges and drops nothing, and the next run delivers the same PR again.
+- its notes hold a `pr:` line → `<id> refused: finished story (pr: note present); a later run never touches it; to add work to it use add mode (/dev:spec-to-stories <KEY>-<n>, or the epic bead id when the story has no key)`, unless its notes carry a `recut:` line (`recut: <dep repo> publish <crate> <version>`, written by add mode's `OPEN` path (`/dev:spec-to-stories`'s **A finished story an addition touches**) while the PR is still open) naming a `## Blocked by` publish blocker that no bump child covers yet: then the cut goes on as a re-cut that adds that blocker's bump with its edges and drops nothing, and the next run delivers the same PR again.
 
 From the story body read the deliverable paragraph, `## Test seams`, `## Parent` (home name, epic bead id, `<KEY>-<n>`) and `## Blocked by`. Read the story's existing children with `bd list --parent <id> --all --json`: any child at all makes this a **re-cut**.
 
