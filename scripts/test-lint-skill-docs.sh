@@ -1869,9 +1869,30 @@ fresh
 printf '%s\n' "As the Story gate of the \`/dev:implement-story\` skill says." >> "$scratch/$orch"
 expect "a bare cite of 'the /dev:x skill' passes section 18" 0
 
+# a skill is always named in backticks, and a name is never set in them (dev-hcn9)
 fresh
-printf '%s\n' "As /dev:implement-story's \"Story gate\" and the Story gate step of /dev:implement-story say." >> "$scratch/$orch"
-expect "a skill cited without backticks passes section 18" 0
+printf '%s\n' "As /dev:implement-story's \"Story gate\" says." >> "$scratch/$orch"
+sec=18 expect "a skill cited without backticks after a possessive fails section 18" 1 "present: a skill cited without backticks in $scratch/$orch"
+
+fresh
+printf '%s\n' "As the **Clean up** sweep of /dev:implement-story says." >> "$scratch/$orch"
+sec=18 expect "a skill cited without backticks in the word order fails section 18" 1 "present: a skill cited without backticks in $scratch/$orch"
+
+fresh
+printf '%s\n' "Run /dev:implement-story and see its plumbing." >> "$scratch/$orch"
+expect "a skill named without backticks outside a cite passes section 18" 0
+
+fresh
+printf '%s\n' "As \`/dev:implement-story\`'s \`Story gate\` says." >> "$scratch/$orch"
+sec=18 expect "a step name cited in backticks fails section 18" 1 "present: a name cited in backticks of /dev:implement-story in $scratch/$orch"
+
+fresh
+printf '%s\n' "As \`/dev:task-orchestrator\`'s \`Two entries\` says." >> "$scratch/$orch"
+sec=18 expect "a heading cited in backticks fails section 18" 1 "present: a name cited in backticks of /dev:task-orchestrator in $scratch/$orch"
+
+fresh
+printf '%s\n' "As the \`Two entries\` heading of \`/dev:task-orchestrator\` says." >> "$scratch/$orch"
+sec=18 expect "a heading in backticks in the word order fails section 18" 1 "present: a name cited in backticks of /dev:task-orchestrator in $scratch/$orch"
 
 # skill-first and case-changed wrong cites (dev-wh65): the skill directly before a step name in
 # quotes or a heading in bold (a marked name whose case changed is seeded in a doc of its own below)

@@ -99,3 +99,9 @@ inside the bold and is cited in bold. A heading cited bare (`/dev:task-orchestra
 Two entries) or a step name cited in quotes is a cite in the wrong form. A cite of the
 rules doc's own sections, or of a skill's own steps and headings, is not a cross-skill
 cite and is outside this rule.
+
+The skill is always named in backticks (`/dev:close-story`), never bare
+(/dev:close-story's "The forge shows MERGED"), and the name is never set in backticks,
+step or heading (`/dev:implement-story`'s `Story gate`): bold and quotes are the only
+markings of a cited name, so a name in backticks is a cite in the wrong form. A skill
+named in prose that cites no rule ("run /dev:close-story") is outside this rule.

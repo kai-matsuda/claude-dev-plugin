@@ -2415,7 +2415,8 @@ fi
 
 # ---- 18. cross-skill cites ----
 # dev-q47w: the coding standards state how a rules doc or SKILL.md cites another skill's rule: a
-# bold step name in bold, a heading in quotes with its skill named. A skill named in backticks
+# bold step name in bold, a heading in quotes with its skill named in backticks, never a name in
+# backticks (dev-hcn9). A skill named in backticks
 # and followed by a possessive and a bare capitalised heading ("`/dev:x`'s Two entries") is a
 # heading cite in neither form, so it fails in every rules doc and SKILL.md but the coding
 # standards, which show the wrong forms as examples, and a SKILL.md citing its own skill. The
@@ -2429,8 +2430,7 @@ fi
 # Limits: a name is matched only as the skill's own words (any characters but a bold marker;
 # every regex character in it is escaped), with at most two words of letters only, in any case,
 # and then of/in between it and the skill (or one "step"/"section" after the possessive), so a
-# longer gap passes, and so does a cite that names the skill without backticks, a name in
-# backticks, "of the `/dev:x` skill", a name in italics, a skill cite with an argument
+# longer gap passes, and so does "of the `/dev:x` skill", a name in italics, a skill cite with an argument
 # ("`/dev:x <id>`'s Name"), a skill in parentheses, a gap word that is hyphenated, a link word
 # other than of/in, single or curly quotes, a bold name inside quotes, a curly apostrophe, a
 # skill-first cite with a link word other than the, step and section or a separator other than
@@ -2523,6 +2523,10 @@ if [ -f "$standards" ]; then
     # one pattern over the other skills (skill_names, section 17's list), the file's own left out
     others=${skill_names//|$own|/|}; others=${others#|}; others=${others%|}
     [ -z "$others" ] || lackswc "an unquoted heading cite of a skill in $f" "\`/dev:($others)\`'s [A-Z]"
+    # a skill is named in backticks (dev-hcn9): a possessive cite or a marked name before of/in
+    # with the skill bare of them is wrong; a skill named bare outside a cite is not
+    [ -z "$others" ] || lackswc "a skill cited without backticks in $f" "(^|[^\`/A-Za-z:-])/dev:($others)'s( (step|section))? (\"|\*\*|[A-Z])"
+    [ -z "$others" ] || lacksw "a skill cited without backticks in $f" "(\"|\*\*)[.,;:]?( [a-z]+){0,2} (of|in) /dev:($others)([^A-Za-z-]|$)"
     # every pattern below holds `/dev:<skill>` and the name's first word, tokens no line break
     # splits, so a file lacking either can match none of them: most files name few skills, and the
     # regexes are the run's cost, in gawk above all. Both tests are fixed-string, the word's in
@@ -2549,6 +2553,8 @@ if [ -f "$standards" ]; then
       lacksw "a bare cite after a possessive and step or section of /dev:$skill in $f" "$ref's( (step|section))? $name([^A-Za-z]|$)"
       # case-sensitive: a lower-case word straight after a skill reads as prose ("`/dev:x` re-cut adds")
       lackswc "a bare skill-first cite of /dev:$skill in $f" "$skfirst $name([^A-Za-z]|$)"
+      # a name is never set in backticks, step or heading (dev-hcn9)
+      lacksw "a name cited in backticks of /dev:$skill in $f" "$ref's( (step|section))? \`$name\`|\`$name\`$gap"
       cite_marked step "a step name cited in quotes" '"'
       cite_marked heading "a heading cited in bold" '\*\*'
     done <<< "$names_here"
