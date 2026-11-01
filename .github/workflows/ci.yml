@@ -1,13 +1,15 @@
 name: ci
 
+# a PR tip runs once, on pull_request; push is main's alone, or a PR branch's push would fire both
 on:
   push:
+    branches: [main]
   pull_request:
 
 permissions:
   contents: read
 
-# push and pull_request both fire for a PR branch: a newer run supersedes the older one
+# a newer run on the same ref supersedes the older one
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true

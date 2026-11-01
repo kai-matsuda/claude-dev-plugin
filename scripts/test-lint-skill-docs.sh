@@ -25,7 +25,10 @@
 # is one process: fresh is a cp of a pristine tree built once, the snapshot is a mv, and the
 # verdicts are read and tallied with builtins. Every case but the baseline lints with
 # LINT_UNCHANGED listing its files still byte-identical to the pristine tree, whose queued checks
-# the baseline shows pass, so a run checks only what its case seeded.
+# the baseline shows pass, so a run checks only what its case seeded. The cases derived from
+# LINT_PIN_LIST share their runs: one seeded tree per kind and file (pin_case, seed_pins), its
+# verdicts read off one lint output (judge_batch), and a case a batch cannot vouch for runs alone,
+# so every derived case still prints its own verdict line.
 # No wait in the pool is unbounded (dev-1ef): each lint run (under perl, which macOS and the
 # ubuntu runner ship) is killed, its whole process group, after LINT_CASE_TIMEOUT seconds
 # (default 120) and its case fails naming the timeout; a case's slot token goes back from an
@@ -189,6 +192,29 @@ judge() {
   echo "FAIL $1 ($why)"
   grep '^FAIL' <<<"$4" | head -5 | sed 's/^/       /'
 }
+# judge_batch <spec> <lint output>: one ok line per record of the spec (its fields under seed_pins)
+# the lint's output vouches for; every other record goes to $BATCH_RETRY, to run alone. The output
+# vouches for a record when the lint ended 1 and printed its message, which names its check's
+# phrase, and for a seed when the line it seeded is also among the hits shown under that message,
+# since another record's seed can fire the same check. The output's paths are the case's dir
+# ($BATCH_DIR); the spec's are the scratch dir's ($BATCH_SCRATCH)
+judge_batch() {
+  local rc=${2##*$'\n'}
+  printf '%s\n' "$2" | rc=$rc awk -F '\t' '
+    NR == FNR {
+      while (d != "" && (i = index($0, d))) $0 = substr($0, 1, i - 1) s substr($0, i + length(d))
+      out = out $0 "\n"; next }
+    {
+      i = index(out, $6)
+      ok = (ENVIRON["rc"] == 1 && i)
+      if (ok && $1 == "seed") {
+        hits = substr(out, i + length($6))
+        if (match(hits, /\n(FAIL|== )/)) hits = substr(hits, 1, RSTART)
+        ok = index(hits, ":" $4 "\n")
+      }
+      if (ok) print "ok   " $5; else print > ENVIRON["BATCH_RETRY"]
+    }' d="${BATCH_DIR:-}" s="${BATCH_SCRATCH:-}" - "$1"
+}
 # a wait for a slot outlasted $slot_timeout: print what has finished, then a FAIL naming each case
 # still holding a slot (one with no .freed marker), and end the run red
 pool_stall() { # <what was waiting>
@@ -237,7 +263,8 @@ expect() {
     expect_flush all
     njobs=$((njobs+1)) case_desc[njobs]=$d
     : > "$jobs/$njobs.freed"   # it runs here and takes no slot
-    judge "$d" "$want" "$msg" "$(lint_scratch "$@")" > "$jobs/$njobs.out"
+    unchanged_files "$scratch" > "$jobs/$njobs.same"
+    judge "$d" "$want" "$msg" "$(unchanged_list=$jobs/$njobs.same lint_scratch "$@")" > "$jobs/$njobs.out"
     expect_flush all
     return
   fi
@@ -263,6 +290,7 @@ expect() {
     for v in skills_dir agent_docs claude_md glossary_md pins_dir; do
       [ -z "${!v:-}" ] || eval "$v=\${$v//\"\$scratch\"/\"\$dir\"}"
     done
+    batch_scratch=$scratch
     msg=${msg//"$scratch"/"$dir"} scratch=$dir
     # with $full set the case lints every file, as the baseline must
     # the list vouches for a file only in the role the baseline linted it in, so every path the
@@ -278,7 +306,12 @@ expect() {
         "$dir.roles" - > "$dir.same"
       unchanged_list=$dir.same
     fi
-    judge "$d" "$want" "$msg" "$(lint_scratch ${args[@]+"${args[@]}"})" > "$dir.part" 2>&1
+    if [ -n "${batch:-}" ]; then
+      BATCH_RETRY=$dir.retry BATCH_DIR=$dir BATCH_SCRATCH=$batch_scratch \
+        judge_batch "$batch" "$(lint_scratch ${args[@]+"${args[@]}"})" > "$dir.part" 2>&1
+    else
+      judge "$d" "$want" "$msg" "$(lint_scratch ${args[@]+"${args[@]}"})" > "$dir.part" 2>&1
+    fi
     rm -rf "${dir:?}" "${dir:?}.same" "${dir:?}.roles"   # the case's tree goes here, off the parent's path
     # the .out appears whole or not at all, so expect_flush never prints half a verdict
     mv "$dir.part" "$dir.out"
@@ -299,6 +332,8 @@ export LINT_PIN_LIST=$jobs/pins.list
 : > "$LINT_PIN_LIST"
 lint_scratch > /dev/null
 unset LINT_PIN_LIST
+# the same run left the pristine tree's cite names beside the list, for section 18 (LINT_UNCHANGED)
+export LINT_CITE_BASE=$jobs/pins.list.cites
 
 # pin_phrase <description>: sets pinned_phrase to the phrase of the lint's pin of that description, from its list
 pin_phrase() {
@@ -320,21 +355,26 @@ ban() { pin_phrase "$2"; printf -v "$1" '%s' "$pinned_phrase"; }
 append_to_matching() {
   an="$2" t="$3" rewrite "$1" awk '{ if ($0 ~ ENVIRON["an"]) $0 = $0 " " ENVIRON["t"]; print }'
 }
-# absent_alternatives <type> <pattern>: the texts an absent-phrase check's pattern bans, one per line: the
+# alts(<type>, <pattern>): sets A[1..n], returns n: the texts an absent-phrase check's pattern bans: the
 # plain alternatives at the top level of a pattern (a \. is a dot), the whole phrase of a fixed-string check
 # (line_lacks); an alternative that holds a regex construct, or sits inside a group, is left to the
-# hand-written cases
+# hand-written cases. An awk function, since the pin list runs through it ten thousand times
+alts_fn='function alts(t, pat,   n, alt, c, i, depth) {
+    if (t == "X") { A[1] = pat; return 1 }
+    gsub(/\\\./, ".", pat)
+    for (i = 1; i <= length(pat) + 1; i++) {
+      c = substr(pat, i, 1)
+      if (c == "(" || c == "[") depth++; else if (c == ")" || c == "]") depth--
+      if (c == "" || (c == "|" && !depth)) {
+        if (alt != "" && alt !~ /[][^$()*+?{}\\]/) A[++n] = alt
+        alt = ""
+      } else alt = alt c
+    }
+    return n + 0
+  }'
+# absent_alternatives <type> <pattern>: alts' texts, one per line
 absent_alternatives() {
-  local pat=${2//\\./.} alt= c i depth=0 re='[]^$()*+?{}\\[]'
-  if [ "$1" = X ]; then printf '%s\n' "$2"; return; fi
-  for ((i = 0; i <= ${#pat}; i++)); do
-    c=${pat:i:1}
-    case $c in '('|'[') depth=$((depth+1)) ;; ')'|']') depth=$((depth-1)) ;; esac
-    if [ -z "$c" ] || { [ "$c" = '|' ] && [ "$depth" -eq 0 ]; }; then
-      [ -z "$alt" ] || [[ $alt =~ $re ]] || printf '%s\n' "$alt"
-      alt=
-    else alt+=$c; fi
-  done
+  t=$1 p=$2 awk "$alts_fn"' BEGIN { n = alts(ENVIRON["t"], ENVIRON["p"]); for (i = 1; i <= n; i++) print A[i] }'
 }
 # ban_pick <variable> <description> <n> <word>: sets the variable to the n-th plain alternative of the
 # pattern of that description (n empty: the first one holding <word>, which may be empty)
@@ -684,6 +724,30 @@ drop_pin() {
     *) drop_phrase "$2" "$3" ;;
   esac
 }
+# seed_pins <spec>: seeds the scratch tree with every record of a spec, one case per line, tab-separated:
+# <kind> <check type> <file under scratch> <phrase> <description> <message> [<anchor>] (the anchor last,
+# since read collapses empty fields). A kind's records seed one tree at once: drop drops the phrase
+# (drop_pin), start puts a word ahead of its lines, seed appends the phrase on a line of its own, and
+# moved takes the phrase out of the doc and puts it back outside its scope: ahead of the doc for a
+# section or a paragraph (the last section of a doc runs to its end), to its end for the opening or
+# an anchored line (the anchor's line no longer holds it). Every moved phrase leaves before any goes
+# back, so one record's drop never takes a piece out of another's moved phrase.
+seed_pins() {
+  local kind ptype prel pphrase pdesc pmsg panchor
+  while IFS=$'\t' read -r -u 6 kind ptype prel pphrase pdesc pmsg panchor; do
+    case $kind in
+      drop) drop_pin "$ptype" "$prel" "$pphrase" "$panchor" ;;
+      start) prefix_matching "$prel" "$pphrase" ;;
+      seed) printf '\n%s\n' "$pphrase" >> "$scratch/$prel" ;;
+      moved) if [ "$ptype" = p ]; then drop_phrase "$prel" "$pphrase" -i; else drop_phrase "$prel" "$pphrase"; fi ;;
+    esac
+  done 6< "$1"
+  while IFS=$'\t' read -r -u 6 kind ptype prel pphrase pdesc pmsg panchor; do
+    [ "$kind" = moved ] || continue
+    if [ "$ptype" = o ] || [ "$ptype" = a ]; then printf '\n%s\n' "$pphrase" >> "$scratch/$prel"
+    else { printf '%s\n\n' "$pphrase"; cat "$scratch/$prel"; } > "$scratch/$prel.new" && mv "$scratch/$prel.new" "$scratch/$prel"; fi
+  done 6< "$1"
+}
 # --- every section: a seeded copy fails that section alone, a missing document fails naming it ---
 # section_case <section> <file under scratch> <line appended> <description>
 section_case() {
@@ -937,33 +1001,58 @@ pos_types=" i c e a A p S o "
 seed_types=" f "
 absent_types=" x y w W X "
 moved_types=" a S p o "
-npins=0 nmoved=0 nanch=0 nabsent=0 seen_absent=$nl
-sweep_kinds=" skills/sample/SKILL.md docs/agents/sample.md docs/WORKFLOW.md CLAUDE.md GLOSSARY.md docs/SEQUENCES.md "
-while IFS=$'\t' read -r -u 4 ptype pfile pdesc pphrase panchor; do
+npins=0 nmoved=0 nanch=0 nabsent=0 nbatches=0 nretried=0
+# pin_case <kind> <round> <check type> <file under scratch> <phrase> <description> <message> [<anchor>]:
+# puts a derived case in its batch, the tree it shares with the cases of its kind, file and round
+pin_case() {
+  local spec=$jobs/batch.$1.${4//\//_}.$2
+  printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$1" "$3" "$4" "$5" "$6" "$7" "${8:-}" >> "$spec"
+}
+# the list as the loop below reads it, one line per case: <type> <file> <description> <phrase> <text>
+# [<anchor>], <text> "+" for a positive check or a line the loop must refuse, else one banned text per
+# line (a plain alternative of the phrase). One case per banned text and file; a sweep over many
+# files (w W) is seeded in the first file it names and in one file of each kind a reader meets (a
+# skill, a rules doc, the runbook, CLAUDE.md, the glossary). Over nine in ten of the list's lines ban no
+# plain text, so this pass is what spares the loop them.
+absent_types=$absent_types pre=$scratch/ awk -F '\t' -v OFS='\t' -v pristine="$pristine" "$alts_fn"'
+  BEGIN { split("skills/sample/SKILL.md docs/agents/sample.md docs/WORKFLOW.md CLAUDE.md GLOSSARY.md docs/SEQUENCES.md", w, " ")
+    for (i in w) sweep[w[i]] }
+  function exists(f,   line) { if (!(f in ex)) { ex[f] = ((getline line < f) >= 0); close(f) } return ex[f] }
+  {
+    rel = (index($2, ENVIRON["pre"]) == 1) ? substr($2, length(ENVIRON["pre"]) + 1) : ""
+    if (!index(ENVIRON["absent_types"], " " $1 " ") || rel == "" || $3 == "" || $4 == "" || !exists(pristine "/" rel)) {
+      print $1, $2, $3, $4, "+", $5; next }
+    n = alts($1, $4)
+    for (i = 1; i <= n; i++) {
+      if ($1 == "w" || $1 == "W") {
+        if (!(rel in sweep) && (($1, A[i]) in seen)) continue
+        seen[$1, A[i]]
+      }
+      if (($1, rel, A[i]) in seen) continue
+      seen[$1, rel, A[i]]
+      print $1, $2, $3, $4, A[i], $5
+    }
+  }' "$jobs/pins.list" > "$jobs/pins.derive"
+last_pin= round=0
+while IFS=$'\t' read -r -u 4 ptype pfile pdesc pphrase alt panchor; do
   if [[ $absent_types == *" $ptype "* ]]; then
     prel=${pfile#"$scratch"/}
     if [ "$prel" = "$pfile" ] || [ ! -f "$pristine/$prel" ] || [ -z "$pdesc" ] || [ -z "$pphrase" ]; then
       echo "FAIL pin list: '$pdesc' ($pphrase) names no file under the scratch tree: $pfile"
       fails=$((fails+1)); continue
     fi
-    alts=$(absent_alternatives "$ptype" "$pphrase")
-    while IFS= read -r -u 5 alt; do
-      [ -n "$alt" ] || continue
-      # one case per banned text and file; a sweep over many files (w W) is seeded in the first file it
-      # names and in one file of each kind a reader meets (a skill, a rules doc, the runbook, CLAUDE.md, the glossary)
-      key="$ptype|$prel|$alt"
-      if [[ $ptype == [wW] ]]; then
-        case $sweep_kinds in *" $prel "*) ;; *) case $seen_absent in *"$nl$ptype|$alt$nl"*) continue ;; esac ;; esac
-        case $seen_absent in *"$nl$ptype|$alt$nl"*) ;; *) seen_absent+="$ptype|$alt$nl" ;; esac
-      fi
-      case $seen_absent in *"$nl$key$nl"*) continue ;; esac
-      seen_absent+="$key$nl"
-      nabsent=$((nabsent+1))
+    nabsent=$((nabsent+1))
+    desc="absent $nabsent: $prel with '$alt' seeded fails '$pdesc'"
+    # line_lacks prints no hits to tell whose seed fired it, so its cases each take a tree
+    if [ "$ptype" = X ]; then
       fresh
-      if [ "$ptype" = X ]; then append_to_matching "$prel" "$panchor" "$alt"
-      else printf '\n%s\n' "$alt" >> "$scratch/$prel"; fi
-      sec= expect "absent $nabsent: $prel with '$alt' seeded fails '$pdesc'" 1 "present: $pdesc ("
-    done 5<<<"$alts"
+      append_to_matching "$prel" "$panchor" "$alt"
+      sec= expect "$desc" 1 "present: $pdesc ("
+      continue
+    fi
+    # a check's alternatives go in rounds, one to a tree, so each is seen to fire it
+    if [ "$ptype|$pfile|$pdesc" = "$last_pin" ]; then round=$((round+1)); else round=0 last_pin="$ptype|$pfile|$pdesc"; fi
+    pin_case seed "$round" "$ptype" "$prel" "$alt" "$desc" "present: $pdesc ($pphrase)"
     continue
   fi
   case $pos_types$seed_types in *" $ptype "*) ;;
@@ -976,34 +1065,63 @@ while IFS=$'\t' read -r -u 4 ptype pfile pdesc pphrase panchor; do
   fi
   npins=$((npins+1))
   if [[ $seed_types == *" $ptype "* ]]; then   # a lacksf: the phrase seeded into the doc fails it
-    fresh
-    printf '\n%s\n' "$pphrase" >> "$scratch/$prel"
-    expect "pin $npins: $prel with '$pdesc' seeded fails" 1 "present: $pdesc ("
+    pin_case seed 0 "$ptype" "$prel" "$pphrase" "pin $npins: $prel with '$pdesc' seeded fails" "present: $pdesc ($pphrase)"
     continue
   fi
-  fresh
-  drop_pin "$ptype" "$prel" "$pphrase" "$panchor"
-  expect "pin $npins: $prel without '$pdesc' fails" 1 ": $pdesc ("
+  pin_case drop 0 "$ptype" "$prel" "$pphrase" "pin $npins: $prel without '$pdesc' fails" ": $pdesc ($pphrase" "$panchor"
   # a pattern pinned to the start of a line fails once its lines start with another word
   if [ "$ptype" = e ] && [ "${pphrase:0:1}" = '^' ]; then
     nanch=$((nanch+1))
-    fresh
-    prefix_matching "$prel" "$pphrase"
-    expect "pin $npins: $prel with '$pdesc' no longer at the start of its line fails" 1 ": $pdesc ("
+    pin_case start 0 "$ptype" "$prel" "$pphrase" "pin $npins: $prel with '$pdesc' no longer at the start of its line fails" ": $pdesc ($pphrase"
   fi
-  # a pinned phrase moved out of its scope, still fails: ahead of the doc for a section or a
-  # paragraph (the last section of a doc runs to its end), to its end for the opening or an
-  # anchored line (the anchor's line no longer holds it)
+  # a pinned phrase moved out of its scope still fails
   if [[ $moved_types == *" $ptype "* ]]; then
     nmoved=$((nmoved+1))
-    fresh
-    drop_phrase "$prel" "$pphrase" $([ "$ptype" = p ] && echo -i)
-    if [ "$ptype" = o ] || [ "$ptype" = a ]; then printf '\n%s\n' "$pphrase" >> "$scratch/$prel"
-    else { printf '%s\n\n' "$pphrase"; cat "$scratch/$prel"; } > "$scratch/$prel.new" && mv "$scratch/$prel.new" "$scratch/$prel"; fi
-    expect "pin $npins: $prel with '$pdesc' moved out of its scope fails" 1 ": $pdesc ("
+    pin_case moved 0 "$ptype" "$prel" "$pphrase" "pin $npins: $prel with '$pdesc' moved out of its scope fails" ": $pdesc ($pphrase" "$panchor"
   fi
-done 4< "$jobs/pins.list"
+done 4< "$jobs/pins.derive"
+# each batch is one seeded tree and one lint run: a queued check reads one file and fires on its
+# phrase alone, so a tree holding a batch's seeds gives each check the verdict a tree of its own
+# would, and the run costs one lint where the cases alone would cost hundreds
+for batch_spec in "$jobs"/batch.*; do
+  fresh
+  seed_pins "$batch_spec"
+  nbatches=$((nbatches+1))
+  sec= batch=$batch_spec expect "batch ${batch_spec##*/batch.}" 1
+done
 expect_flush all
+# a case its batch could not vouch for (judge_batch) runs alone and decides for itself
+cat "$jobs"/*.retry > "$jobs/retries" 2>/dev/null
+while IFS= read -r -u 4 record; do
+  nretried=$((nretried+1))
+  printf '%s\n' "$record" > "$jobs/retried"
+  IFS=$'\t' read -r _ _ _ _ pdesc pmsg _ <<<"$record"
+  fresh
+  seed_pins "$jobs/retried"
+  sec= expect "$pdesc" 1 "$pmsg"
+done 4< "$jobs/retries"
+expect_flush all
+# judge_batch alone, on a made-up spec and lint output: what it cannot vouch for goes to the retry
+# file and never to an ok line
+batch_judged() { # <expected ok lines, |-joined> <expected retried descriptions, |-joined> <lint rc>
+  local oks retried
+  rm -f "$jobs/judged.retry"
+  oks=$(BATCH_RETRY=$jobs/judged.retry judge_batch "$jobs/judged.spec" "$(cat "$jobs/judged.lint")$nl$3" | sed 's/^ok   //' | paste -sd '|' -)
+  retried=$(cut -f5 "$jobs/judged.retry" 2>/dev/null | paste -sd '|' -)
+  [ "$oks" = "$1" ] && [ "$retried" = "$2" ]
+}
+printf '%s\t%s\t%s\t%s\t%s\t%s\t\n' \
+  drop c a.md phrase-one 'dropped pin' ': one (phrase-one' \
+  drop c a.md phrase-two 'silent pin' ': two (phrase-two' \
+  seed f a.md seed-one 'seed shown' 'present: three (p3)' \
+  seed f a.md seed-two 'seed masked' 'present: four (p4)' > "$jobs/judged.spec"
+printf '%s\n' '== 6. a' 'FAIL: missing: one (phrase-one)' 'FAIL: present: three (p3)' '12:seed-one' \
+  'FAIL: present: four (p4)' '14:seed-one' '== 7. b' > "$jobs/judged.lint"
+fx_check "a batch vouches for a fired check and a seed shown under its own check, and retries the rest" \
+  batch_judged 'dropped pin|seed shown' 'silent pin|seed masked' 1
+fx_check "a batch whose lint did not end 1 vouches for nothing" \
+  batch_judged '' 'dropped pin|silent pin|seed shown|seed masked' 124
+
 # the pin tables under scripts/, one list for every loop over them
 pin_tables="implement-spec-pins repo-plumbing-pins"
 # the derivation must have found the pins it derives from: the list holds a pin for every row of
@@ -1017,10 +1135,15 @@ for table in $pin_tables; do
   fi
 done
 if [ "$npins" -gt 0 ] && [ "$nmoved" -gt 0 ] && [ "$nanch" -gt 0 ] && [ "$nabsent" -gt 0 ] && [ "$guard" = 1 ]; then
-  echo "ok   $npins pin cases derived from the lint's list ($nmoved also moved out of their scope, $nanch also off the start of their line), $nabsent more seeding a banned text"
+  echo "ok   $npins pin cases derived from the lint's list ($nmoved also moved out of their scope, $nanch also off the start of their line), $nabsent more seeding a banned text, in $nbatches lint runs and $nretried alone"
 else
   echo "FAIL no pin case was derived from the lint's list ($npins pins, $nmoved moved, $nanch anchored, $nabsent banned texts)"; fails=$((fails+1))
 fi
+
+# the batches are what keep this test's minutes down: a derived case that takes to running alone
+# passes as before, so its cost is caught here
+fx_check "the derived cases share their lint runs (under one run per ten cases)" \
+  test "$(( (nbatches + nretried) * 10 ))" -lt "$((npins + nmoved + nanch + nabsent))"
 
 # the derived anchored case needs the lint's pattern to open with ^: the one review tool paragraph
 # pin, which names no heading, must stay anchored on its line (losing the ^ makes it match mid-line)
@@ -1902,6 +2025,18 @@ printf '```mermaid\nA->>B: one; two\n```\n' >> "$scratch/docs/agents/sample.md"
 : > "$jobs/unchanged"
 fx_check "an empty LINT_UNCHANGED skips no sweep" \
   eval 'result_is 1 "semicolon in a mermaid block" "$(unchanged_list=$jobs/unchanged lint_scratch)"'
+# section 18 trusts the list past a changed SKILL.md only while the skills' cite names are the ones
+# LINT_CITE_BASE holds: a skill's edit that moves no name leaves a listed doc skipped, and with no
+# base the same edit re-reads it (the skill gaining a heading, above, is the base that no longer
+# matches)
+fresh
+printf '%s\n' "See \`/dev:close-story\`'s Some rule." >> "$scratch/docs/agents/orchestration.md"
+echo "a line that names no step or heading" >> "$scratch/skills/sample/SKILL.md"
+printf '%s\n' "$scratch/docs/agents/orchestration.md" > "$jobs/unchanged"
+fx_check "a changed SKILL.md that moves no cite name leaves a listed doc unread in section 18" \
+  eval 'result_is 0 "" "$(unchanged_list=$jobs/unchanged lint_scratch)"'
+fx_check "with no cite base a changed SKILL.md re-reads a listed doc in section 18" \
+  eval 'result_is 1 "an unquoted heading cite of a skill in $scratch/docs/agents/orchestration.md" "$(LINT_CITE_BASE= unchanged_list=$jobs/unchanged lint_scratch)"'
 
 # a failed init commits nothing, here or in the enclosing checkout
 expect_flush all

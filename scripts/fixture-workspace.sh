@@ -113,7 +113,6 @@ T
 printf '/target\n' > "$out/lib/.gitignore"
 cargo generate-lockfile --offline --manifest-path "$out/lib/Cargo.toml" >/dev/null
 commit "$out/lib" "chore: initial commit"
-bd_init "$out/lib" lib
 
 # --- consumer: depends on lib by path ------------------------------------------
 git_init "$out/consumer" consumer
@@ -135,7 +134,6 @@ T
 printf '/target\n' > "$out/consumer/.gitignore"
 cargo generate-lockfile --offline --manifest-path "$out/consumer/Cargo.toml" >/dev/null
 commit "$out/consumer" "chore: initial commit"
-bd_init "$out/consumer" consumer
 
 # --- workspace root: manifest + inbox ------------------------------------------
 git_init "$out" workspace
@@ -178,7 +176,13 @@ repos:
 T
 printf '/lib/\n/consumer/\n/.git-dirs/\n' > "$out/.gitignore"
 commit "$out" "chore: initial commit"
-bd_init "$out" workspace
+
+# --- the three databases, side by side: a bd init is most of a build and they share nothing ---
+init_pids=
+bd_init "$out/lib" lib & init_pids+=" $!"
+bd_init "$out/consumer" consumer & init_pids+=" $!"
+bd_init "$out" workspace & init_pids+=" $!"
+for pid in $init_pids; do wait "$pid"; done   # under set -e a failed init ends the build here
 
 # --- --stories: a story-shaped feature FIX-1 ----------------------------------
 mk() { # <repo> <bd create args...>   prints the new bead id
