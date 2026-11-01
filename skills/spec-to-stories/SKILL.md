@@ -81,7 +81,7 @@ When the cut publishes more than once (a chain, or a deprecate-then-remove with 
 
 Ask the user:
 
-- Is the split right: does every repo the spec changes have a story, and does any repo need a second story? The user may split a repo's story for any reason: two deliveries stacked on each other's closure, two independent slices, a step that is not a publish, such as a deploy. For a split, ask which stories the new one waits on and which wait on it; a split at a deploy makes the later story wait on the earlier one's closure, and the earlier story's paragraph (its contract) names the deploy as its last step, a `ready-for-human` task its task cut creates, so `/dev:close-story`'s every-child-closed rule holds the story open until the deploy is done ("Before the story quiz").
+- Is the split right: does every repo the spec changes have a story, and does any repo need a second story? The user may split a repo's story for any reason: two deliveries stacked on each other's closure, two independent slices, a step that is not a publish, such as a deploy. For a split, ask which stories the new one waits on and which wait on it; a split at a deploy makes the later story wait on the earlier one's closure, and the earlier story's paragraph (its contract) names the deploy as its last step, a `ready-for-human` task its task cut creates, so `/dev:close-story`'s "Every task is closed" rule holds the story open until the deploy is done ("Before the story quiz").
 - Are the edges right: does each story wait on exactly what it directly needs?
 - Does each paragraph say what that PR must deliver, and nothing another story delivers?
 - Is each proposed version right?
