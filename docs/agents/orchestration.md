@@ -189,7 +189,7 @@ The list is closed: a rule that wants to join needs an ADR.
 ## Scratch space
 
 **Exploration notes** go in `.spec-notes/<epic-id>/`, repo-relative, written by
-`/dev:implement-story`'s exploration subagent and shared by every later subagent of that story.
+`/dev:implement-story`'s **exploration subagent** and shared by every later subagent of that story.
 The directory is that skill's alone: the story cut's orientation is the story bead's design
 field, not a file.
 
@@ -274,7 +274,7 @@ A fresh orchestrator at any row starts its unit's budget at three whatever notes
 and an agent resumed with its context keeps its own count (Cut-off agents in `harness.md`).
 The epic orchestrator counts a story's spent budget from the story's `epic fix-up` notes after this invocation's `epic review 1` note (The epic row, above).
 The bound a person wants is per invocation (dev-l4j): a person who types `/dev:implement-spec`, `/dev:implement-story` or `/dev:implement-task` again starts a new invocation,
-and a replaced task orchestrator's budget starts afresh, from the integration branch tip at the claim entry or from the tip its brief hands it at the gate entry (`/dev:task-orchestrator`),
+and a replaced task orchestrator's budget starts afresh, from the integration branch tip at the claim entry or from the tip its brief hands it at the gate entry (`/dev:task-orchestrator`'s "Two entries"),
 so neither the task row nor the story row records spent fix-ups for a later invocation to count from.
 A minors fix-up and a conflict resolution move the tip, so the checks rerun, but no reviewer
 runs again and no budget is spent: the gate exits on the moved tip once its checks are green.

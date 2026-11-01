@@ -199,10 +199,9 @@
 #      no other rules doc or SKILL.md cites another skill's heading bare after a possessive, even
 #      split across a line break. Nor does a step name of a skill in quotes, a heading in bold, or
 #      either one bare before "of"/"in" /dev:x or bare after "'s step"/"'s section" (dev-mnz6),
-#      the names
-#      read from that skill's SKILL.md (numbered or ## to #### headings; bold steps, hyphens,
-#      punctuation and indents included, regex characters escaped), within the limits the
-#      section's comment states; a changed SKILL.md has every rules doc and SKILL.md re-read.
+#      the names read from that skill's SKILL.md (numbered or ## to #### headings; bold steps,
+#      hyphens, punctuation and indents included, regex characters escaped), within the limits
+#      the section's comment states; a changed SKILL.md has every rules doc and SKILL.md re-read.
 # Usage: scripts/lint-skill-docs.sh [implement-spec SKILL.md [WORKFLOW.md]]
 # A section whose doc is missing fails naming it ("missing document: <path>") rather than being
 # skipped, so a renamed skill or rules doc cannot turn its checks off (dev-dov); each section
@@ -2370,7 +2369,8 @@ fi
 # heading cite in neither form, so it fails in every rules doc and SKILL.md but the coding
 # standards, which show the wrong forms as examples, and a SKILL.md citing its own skill. The
 # other wrong forms fail the same way (dev-mnz6): a step name in quotes, a heading in bold,
-# either one bare before "of"/"in" `/dev:x`, and a bare name after the possessive and "step"/"section" (the quoted and bold checks take either word too).
+# either one bare before "of"/"in" `/dev:x`, and a bare name after the possessive and
+# "step"/"section" (the quoted and bold checks take either word too).
 # Limits: a name is matched only as the skill's own words (any characters but a bold marker;
 # every regex character in it is escaped), with at most two lowercase words and then of/in
 # between it and the skill (or one "step"/"section" after the possessive), so a longer gap
@@ -2378,10 +2378,12 @@ fi
 # "of the `/dev:x` skill", a name in italics, a skill cite with an argument ("`/dev:x <id>`'s
 # Name"), a skill in parentheses, a gap word that is hyphenated or capitalised, a link word other
 # than of/in, single or curly quotes, a case-changed name, a bold name inside quotes, a curly
-# apostrophe, a skill-first cite, and a bold lead-in with no period that opens no numbered item
-# (read as a label, not a step). A comma after the closing quote passes only in the "of" word
-# order, and a second cite in a list only in the possessive order. A name that is both a step
-# and a heading in one skill takes only the bare checks: either marking passes. The heading extractor reads ## to #### lines inside code fences and tags too,
+# apostrophe, a skill-first cite, a name directly before the skill with no link word ("the git
+# rule `/dev:x` states", dev-xyrl), and a bold lead-in with no period that opens no numbered
+# item (read as a label, not a step). A comma after the closing quote passes only in the "of"
+# word order, and a second cite in a list only in the possessive order. A name that is both a
+# step and a heading in one skill takes only the bare checks: either marking passes. The
+# heading extractor reads ## to #### lines inside code fences and tags too,
 # so story-to-tasks's template (in an <issue-template> tag) gives Parent, What to build and
 # Acceptance criteria. The bare check also fails plain prose that opens on a short name (Deliver
 # in `/dev:implement-task` the way a story does): no real doc does today, and the fix is a

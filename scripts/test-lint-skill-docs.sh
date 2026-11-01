@@ -1585,11 +1585,11 @@ expect "right-form cites in a SKILL.md pass section 18" 0
 # its own rule in the wrong form, bare included, passes section 18
 fresh
 printf '%s\n' "As \`/dev:implement-story\`'s \"Story gate\" says." >> "$scratch/skills/implement-story/SKILL.md"
-expect "a skill's own heading cited in quotes in its SKILL.md passes section 18" 0
+expect "a skill's own step cited in quotes in its SKILL.md passes section 18" 0
 
 fresh
 printf '%s\n' "As \`/dev:implement-story\`'s **Landing** section says." >> "$scratch/skills/implement-story/SKILL.md"
-expect "a skill's own step cited in bold in its SKILL.md passes section 18" 0
+expect "a skill's own heading cited in bold in its SKILL.md passes section 18" 0
 
 fresh
 printf '%s\n' "As \`/dev:implement-story\`'s Landing says." >> "$scratch/skills/implement-story/SKILL.md"
