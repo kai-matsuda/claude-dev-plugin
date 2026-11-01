@@ -155,7 +155,8 @@ In the "of"/"in" order a skill with such a prefix is not read at all, so any mar
 and a bare skill followed by a suffix other than a letter or hyphen (a period, slash or
 underscore) is still bare.
 
-A bare, quoted, bold or backticked name before such a skill is still read and fails. A
+A bare, quoted, bold or backticked name before a backticked skill with arguments, or
+before a suffixed bare skill, is still read and fails. A
 backtick before a name in the "of"/"in" order, or straight after a bare name before
 "of"/"in", is read and fails, except the closing backtick after a bare name with no space
 after it, which the list above leaves unread. The first paragraph above says which forms are

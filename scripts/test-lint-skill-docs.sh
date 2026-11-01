@@ -1991,6 +1991,32 @@ cite_seeds docs/agents/seed.md "$bt_msg" "a name in backticks with punctuation a
   "As \`/dev:task-orchestrator\`'s \`Two entries\`**,** says." \
   "As \`$SK\`'s \`Story gate\`.** says."
 
+# the bare of/in gap takes none, one or two words between the name and "of"/"in" (a bare skill):
+# the first and second word, and the zero-word end, are each pinned
+cite_seeds $orch "$bare_msg" "a bare of/in gap of zero, one or two words" \
+  "As the **Story gate** of $SK says." \
+  "As the \"Two entries\" of /dev:task-orchestrator says." \
+  "As the **Story gate** final step of $SK says." \
+  "As the \"Two entries\" named heading of /dev:task-orchestrator says." \
+  "As the **Story gate** step text of $SK says." \
+  "As the \"Two entries\" heading text of /dev:task-orchestrator says."
+
+# each of the four marks (. , ; :) is read among the marks of a name in backticks: a colon inside
+# the backticks, a semicolon or colon outside them, and a semicolon after the closing backtick of
+# a bare name
+cite_seeds $orch "$bt_msg" "a colon or semicolon among the marks of a name in backticks" \
+  "As the \`Story gate:\` step of \`$SK\` says." \
+  "As \`$SK\`'s \`Story gate:\` says." \
+  "As \`$SK\`'s **\`Story gate:\`** says." \
+  "As \`$SK\` \`Story gate:\` says." \
+  "As the **\`Story gate\`;** step of \`$SK\` says." \
+  "As the **\`Story gate\`:** step of \`$SK\` says." \
+  "As the \`Story gate\`**;** step of \`$SK\` says." \
+  "As the \`Story gate\`**:** step of \`$SK\` says."
+cite_seeds $orch "present: a bare cite" "a semicolon after the closing backtick of a bare name" \
+  "As the Story gate\`; step of \`$SK\` says." \
+  "As the Story gate\`; step of $SK says."
+
 # a bare skill beside a known name fails when only the prefilter could pass it: a doc that names the
 # skill bare, never in backticks
 cite_seeds docs/agents/sample.md "present: " "a doc naming a skill only bare" \
