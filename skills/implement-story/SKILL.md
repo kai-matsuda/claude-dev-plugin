@@ -100,7 +100,8 @@ The session running this skill is the **story orchestrator** and follows `${CLAU
    failed:  <bead-id> <open blocker or failure reason>     (one per agent task left open,
             or <check> <command>                           or the check or review of step 7's fourth failure,
             or push <command>: <error>                     or the push step 8 could not make,
-            or forge check <name> <run URL>                or each forge check that went red)
+            or forge check <name> <run URL>                or each forge check that went red,
+            or merge conflict <PR URL>                     or the PR git cannot merge)
    checks:  skipped: <no forge | no workflows | none reported>   (step 8 found no forge checks to wait for)
    human:   <bead-id> <title>                              (one per open ready-for-human task)
    waiting: <repo> <story-id>                              (each story whose text blocker names a human gate task)

@@ -1285,11 +1285,18 @@ sec_has "## Delivery" "Delivery watches the gh checks" "$pin_gh_checks_watch"
 sec_has "## Delivery" "Delivery waits on the tea commit status" 'tea api --repo <owner> repos/{owner}/{repo}/commits/<tip SHA>/status | jq -e'
 sec_has "## Delivery" "Delivery's gh wait waits for the pushed tip as the PR head" '--json headRefOid -q .headRefOid)" = <tip SHA> ]'
 sec_has "## Delivery" "Delivery treats a failing forge read as an error, not a skip" 'is a forge error, never a skip'
-sec_has "## Delivery" "Delivery reads the PR's merge state before the wait" 'Read whether the PR can merge before the wait'
-sec_has "## Delivery" "Delivery ends a conflicted PR on a failed: line" 'a PR git cannot merge ends the delivery on `failed: merge conflict <PR URL>`'
-sec_has "## Delivery" "Delivery's conflicted PR records no delivery" 'no `delivered:` or `pr:` note, so the task stays open'
-sec_has "## Delivery" "Delivery reads an unknown merge state again" 'a merge state of `UNKNOWN` is read again, never read as a conflict'
-sec_has "## Delivery" "Delivery tells a conflict from a repo with no checks" 'a conflict is never `checks: skipped: none reported`'
+sec_has "## Delivery" "Delivery reads the merge state on every forge PR, ahead of the workflows read" 'Read whether the PR can merge on every forge PR, ahead of the workflows read'
+sec_has "## Delivery" "Delivery reads the gh merge state and head together" 'gh pr view <n> --repo <forge-slug> --json mergeable,headRefOid'
+sec_has "## Delivery" "Delivery reads a gh conflict as CONFLICTING" 'a `mergeable` of `CONFLICTING`'
+sec_has "## Delivery" "Delivery reads a tea conflict from git, not the forge's mergeable" 'git -C <owner> merge-tree --write-tree origin/<default branch> <branch>'
+sec_has "## Delivery" "Delivery says why tea's mergeable is not read" "tea's \`mergeable\` is also false for a WIP PR and while the forge is still checking"
+sec_has "## Delivery" "Delivery notes a conflict so the unit is not finished" 'bd -C <owner> note <unit-id> "checks red: <tip SHA> merge conflict"'
+sec_has "## Delivery" "Delivery treats an unreadable merge state as a forge error" 'A merge read that fails or returns no state is a forge error'
+sec_has "## Delivery" "Delivery reads the merge state again before taking none reported" 'read the merge state once more before taking `checks: skipped: none reported`'
+sec_has "## Delivery" "Delivery ends a conflicted PR on a failed: line" 'A PR git cannot merge ends the delivery on `failed: merge conflict <PR URL>`'
+sec_has "## Delivery" "Delivery's conflicted PR records no delivery" 'with no `delivered:` or `pr:` note, so the task stays open'
+sec_has "## Delivery" "Delivery reads an unknown merge state again" 'a `gh` merge state of `UNKNOWN` is read again, never read as a conflict'
+sec_has "## Delivery" "Delivery tells a conflict from a repo with no checks" 'So a conflict is never `checks: skipped: none reported`'
 sec_has "## Delivery" "Delivery bounds the forge-check wait" 'at most six calls in all'
 sec_has "## Delivery" "Delivery says no workflows skips the checks" '`checks: skipped: no workflows`'
 sec_has "## Delivery" "Delivery says no checks reported skips the checks" '`checks: skipped: none reported`'
@@ -1413,7 +1420,7 @@ para_has "$head_literal_paths" "file edits go through the Edit tool" 'the Edit t
 para_has "$head_idle_rule" "the Idle rule names the check command" 'every run of the check command'
 # the story orchestrator's forge-check wait is the one shell wait the rule allows (dev-xc2),
 # the task orchestrator's lock wait gone with the lock (dev-b8d.1.4), which section 5 sweeps
-para_has "$head_idle_rule" "the Idle rule names the forge-check wait as its one shell wait" "The one shell wait is the story orchestrator's"
+para_has "$head_idle_rule" "the Idle rule names the forge-check wait as its one shell wait" "The one long shell wait is the story orchestrator's"
 para_has "$head_idle_rule" "the Idle rule cites the Delivery section for the forge-check wait" "forge-check wait (the rules doc's Delivery section)"
 # (no step number cited for the wait: section 5's sweep covers docs/agents, dev-90up)
 lacks "the Idle rule's second shell wait" 'two shell waits|The other is the story orchestrator'
