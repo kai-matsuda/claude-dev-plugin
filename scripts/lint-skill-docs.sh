@@ -1302,7 +1302,7 @@ sec_has "## Delivery" "Delivery reads a head other than the tip like UNKNOWN" 'a
 sec_has "## Delivery" "Delivery fetches the default branch with the sandbox disabled on tea" 'git -C <owner> fetch origin <default branch>` (with the sandbox disabled, as the push is)'
 sec_has "## Delivery" "Delivery verifies the default branch ref before merge-tree" 'git -C <owner> rev-parse --verify origin/<default branch>'
 sec_has "## Delivery" "Delivery's conflict fix is the human's" 'resolve the conflict on the branch, and a rerun pushes it again and reads the merge state again'
-sec_has "## Delivery" "Delivery's conflict does not spend the wait's timeout" 'the wait is not entered and its timeout is not spent'
+sec_has "## Delivery" "Delivery's conflict does not spend the wait's timeout" 'the wait is not entered and its `timeout` is not spent'
 sec_has "## Delivery" "Delivery bounds the forge-check wait" 'at most six calls in all'
 sec_has "## Delivery" "Delivery says no workflows skips the checks" '`checks: skipped: no workflows`'
 sec_has "## Delivery" "Delivery says no checks reported skips the checks" '`checks: skipped: none reported`'
