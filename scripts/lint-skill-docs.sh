@@ -1280,9 +1280,15 @@ hasc "the Check record call is the shipped script" '`<plugin root>/scripts/check
 hasc "a red is read from the tail the script prints" 'a red is read from the tail the script prints, never a whole log'
 lacks "the compound record command in the rules doc" 'mkdir -p <owner>/.tmp/checks'
 # the implementer brief rule, stated once: a worktree brief says seam run, with the touched-modules fallback, and never the check command or the script
-hasc "the brief says seam run" 'A worktree brief at every row says seam run (the Seam run term in `GLOSSARY.md`)'
-hasc "the seam run fallback is the touched modules' tests" "the touched modules' tests for a standalone task that names no seams"
-hasc "the brief never says the check command or the script" 'It never says the check command or the script; only an orchestrator checks a tree.'
+para_has "$head_check_command" "the brief names the seam run" 'A worktree brief at every row names the seam run (the Seam run term in `GLOSSARY.md`)'
+para_has "$head_check_command" "the seam run fallback is the touched modules' tests" "the touched modules' tests for a standalone task that names no seams."
+para_has "$head_check_command" "the brief never says the check command or the script" 'It never says the check command or the script; only an orchestrator checks a tree.'
+# every other passage that cites the Check record call names the script
+para_has "$head_landing_a_task" "a resolved tree is checked through the Check record script" 'new tree, with the Check record script, then fast-forwards'
+para_has "$head_check_scope" "a check is one run of the check command through the Check record script" 'one run of the check command through the Check record script'
+para_has "$head_check_gate" "each pass runs the Check record script" 'Each pass runs the Check record script on the tip'
+sec_has "## Delivery" "the delivered tip's record is the one the Check record script wrote" 'which the Check record script wrote'
+hasc "the orchestrator runs the check command through the Check record script" 'run the check command through the Check record script, which writes'
 # the Delivery section, parametrised by the unit: the stray-commit check, the push, the PR body
 # with the check record as Evidence, the forge-check wait with its six-call bound, the notes order
 hase "Delivery section" '^## Delivery$'

@@ -104,8 +104,8 @@ implementer, not an inline edit.
 
 The orchestrator does: read the spec, story and tasks; spawn exploration, implementer and
 reviewer subagents (or, at the story row, task orchestrators, which own those per task)
-with the right `model:`; pass context pointers; track the frontier; run the check command and
-write its check record; run `bd` operations (claim, split, note, close); create and report the
+with the right `model:`; pass context pointers; track the frontier; run the check command through the Check record script, which writes
+its check record; run `bd` operations (claim, split, note, close); create and report the
 integration branch; and do repo plumbing that no task owns, namely the branch itself and
 the `.gitignore` entries from Scratch space.
 
@@ -163,8 +163,8 @@ the task row; the conflict resolutions, the coherence across tasks and the story
 since each task's diff was reviewed at its own row; nothing at the epic row, where the axis
 is skipped. So no line is read for standards twice (ADR 0014 in the plugin repo).
 
-**Check scope.** Every tree is checked once green. A check is one run of the check command on
-a tree (the Check record script), named by the tip's tree SHA, and a tree with a green check record (`exit=0`) counts as checked at
+**Check scope.** Every tree is checked once green. A check is one run of the check command through the Check record script
+on a tree, named by the tip's tree SHA, and a tree with a green check record (`exit=0`) counts as checked at
 any row, whichever orchestrator wrote it, so a later agent spends no check run on it.
 A red record skips nothing: a later pass or a resumed run checks that tree again, its record
 replacing the red one, so a flaky or environmental red never sticks to its tree (dev-6qi). A
@@ -245,7 +245,10 @@ share one gate (dev-yyu). Test seams are not checks: no order
 among them and no log per seam. A test seam stays the story's testing boundary, named in its
 body: the implementer's brief names the seams as where its tests go, and the reviewer's as
 where the unit's criteria must be exercised.
-A worktree brief at every row says seam run (the Seam run term in `GLOSSARY.md`): the tests at the unit's seams, or the touched modules' tests for a standalone task that names no seams. It never says the check command or the script; only an orchestrator checks a tree.
+A worktree brief at every row names the seam run (the Seam run term in `GLOSSARY.md`):
+the tests at the unit's seams, or
+the touched modules' tests for a standalone task that names no seams.
+It never says the check command or the script; only an orchestrator checks a tree.
 `make check` is the gate in every repo and the forge runs it.
 A repo whose forge needs steps it cannot run locally may add a `ci` target
 whose first prerequisite is `check` plus those steps, and its workflow then runs `make ci`;
