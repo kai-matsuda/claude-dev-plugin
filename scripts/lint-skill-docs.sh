@@ -217,8 +217,8 @@
 # GLOSSARY_MD overrides the root glossary (default: GLOSSARY.md under the repo root).
 # LINT_PINS_DIR overrides the directory of the pin tables (default: scripts under the repo root); a
 # missing directory or table fails, as a missing doc does.
-# LINT_PIN_LIST names a file every queued check goes to in place of running, for the regression
-# test to derive its drop cases from.
+# LINT_PIN_LIST names a file every check goes to in place of the queue, so none of them runs, for
+# the regression test to derive its drop cases from.
 # PLUGIN_SKILLS overrides the plugin skills directory (default: newest installed mattpocock-skills).
 # The last section is the version-bump rule (INFRA-30): a change to what the plugin ships
 # needs a changed version in .claude-plugin/plugin.json. VERSION_BUMP_REPO overrides the repo it
@@ -2594,7 +2594,7 @@ if [ -f "$standards" ]; then
   # (the right marking beside a skill not in backticks); reads skill and the file in f
   cite_marked() {
     [ -n "$1" ] || return 0
-    local poss gap skfirst
+    local poss gap skfirst orders
     cite_toks "$4"
     three_orders "$3(${1#|})[.,;:]?$3[.,;:]?"
     lacksw "$2 of /dev:$skill in $f" "$orders"
