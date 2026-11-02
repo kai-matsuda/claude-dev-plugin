@@ -2139,6 +2139,10 @@ hasc "the landed tip is noted" 'bd -C <owner> note <task-id> "review: <tip SHA>"
 # delivery: the rules doc's Delivery section, the PR opened ready, the notes in order, the close
 hasc "delivery by the rules doc's Delivery section" "as the rules doc's Delivery section says, with the standalone task as its unit"
 hasc "the PR opened ready, not draft" 'opened **ready**, not draft'
+# a tree with no green record is checked by the shipped script run on the owner checkout, a red
+# ending on the failed: check line, and the check records stay after a delivery (dev-9x6c.1.7)
+hasc "a tree with no green record is checked with the Check record script on the owner checkout" 'run the rules doc'"'"'s Check record script, `<plugin root>/scripts/check.sh`, with `<owner>` as its `<worktree path>`, `timeout: 600000`, and a red ends the run with `failed: check make check`'
+lacks "the clean-up removing the check records" 'rm -rf <owner>/[.]tmp/checks'
 lacks "a draft PR for a standalone task" 'gh pr create --draft|"WIP: '
 hasc "delivered: precedes pr:" 'the `delivered:` and `pr:` notes in that order'
 hasc "the task closes at delivery" "$pin_bd_close <task-id> --reason \"delivered: <pr: value>\""
