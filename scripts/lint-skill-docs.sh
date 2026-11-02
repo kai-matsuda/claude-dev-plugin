@@ -2481,9 +2481,9 @@ fi
 # After the possessive and skill-first, a letter, slash, colon or hyphen straight before a
 # skill (a path or a prefix) leaves it no bare skill, so the right mark beside it passes; a
 # wrong mark or a bare name beside it still fails, since those checks read the skill anywhere.
-# In the "of"/"in" order a skill with such a prefix is not read at all, so any mark passes,
-# and a bare skill followed by a suffix other than a letter or hyphen (a period, slash or
-# underscore) is still bare.
+# In the "of"/"in" order any character but a space or a backtick straight before a skill leaves
+# it unread, so any mark passes, and a bare skill followed by a suffix other than a letter or
+# hyphen (a period, slash or underscore) is still bare.
 #
 # A bare name, a name in backticks or a name in the wrong mark before a backticked skill
 # with arguments, and any of these or a right mark before a suffixed bare skill, is read
