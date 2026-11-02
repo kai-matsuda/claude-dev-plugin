@@ -2160,6 +2160,11 @@ hasc "the task orchestrator at opus" "$pin_spawn_at_opus"
 hasc "the brief's gate entry" "$gate_entry"
 # the landing is a fast-forward after the stray-commit check, and a review: note marks it
 hasc "the landing is a fast-forward" "$pin_ff_only_merge"
+# the owner-checkout guard counts untracked files, as the story gate's does, and says why; a dirty
+# checkout ends on the failed line naming the files (dev-yaiu)
+hasc "the landing guard counts untracked files" '`git -C <owner> status --porcelain` prints nothing (untracked files count, since the check runs on the working tree while the record keys on the committed tree)'
+hasc "the landing guard's dirty-checkout failed line names the files" '`failed: <task-id> owner checkout dirty: <files>`, `<files>` the paths that status call printed'
+lacks "the landing guard that hides untracked files" 'status --porcelain --untracked-files=no`'
 hasc "the landed tip is noted" 'bd -C <owner> note <task-id> "review: <tip SHA>"'
 # delivery: the rules doc's Delivery section, the PR opened ready, the notes in order, the close
 hasc "delivery by the rules doc's Delivery section" "as the rules doc's Delivery section says, with the standalone task as its unit"
