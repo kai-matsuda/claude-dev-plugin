@@ -210,6 +210,12 @@ checked again, and a sibling landing, a conflict resolution or a fix-up's commit
 tree that is checked again; a fix-up that commits nothing makes none.
 _Avoid_: pre-flight, verification step
 
+**Seam run**:
+An implementer's own run of the tests at its unit's test seams (its touched modules, for a
+task that names none), as many times as it likes while it builds. Never a check and never
+the check command: it writes no check record and counts for nothing at the gate.
+_Avoid_: local check, implementer check, dev check
+
 **Check record**:
 The command, its exit and its log of one check, written by the orchestrator that ran it
 under the owner checkout's scratch directory, keyed by the tree SHA. Only an orchestrator
