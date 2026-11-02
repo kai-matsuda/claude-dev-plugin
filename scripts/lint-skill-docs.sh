@@ -1878,6 +1878,12 @@ line_has "$G7" "the story gate confirms the owner checkout is on the integration
 line_has "$G7" "the story gate's off-branch failed line" '`failed: <story-id> not on <branch>`'
 line_has "$G7" "the story gate's clean-checkout guard says why untracked files count" 'untracked files count, since the check runs on the working tree while the record keys on the committed tree'
 line_has "$G7" "the dirty-checkout failed line names the files" '`failed: <story-id> owner checkout dirty: <files>`, `<files>` the paths that status call printed, classified as step 6 says'
+# the landing guard (dev-xbql): the owner checkout's clean-tree check counts untracked files, as
+# the story gate's does, and says why; a dirty checkout ends the landing on the failed line naming
+# the files, as implement-task's landing guard does (43264dc)
+hasc "the story landing guard counts untracked files" '`git -C <owner> status --porcelain` prints nothing (untracked files count, since the check runs on the working tree while the record keys on the committed tree)'
+hasc "the story landing guard's dirty-checkout failed line names the files" '`<task-id> failed: owner checkout dirty: <files>`, `<files>` the paths that status call printed'
+lacks "the story landing guard that hides untracked files" 'status --porcelain --untracked-files=no`'
 line_has "$G7" "the story gate leaves the green-record read to the script" 'resolved. The script reads the tip'"'"'s tree record itself: on a green record it runs nothing, whichever orchestrator wrote it'
 line_has "$G7" "the story gate has the script check a red-recorded tree again" 'a red record is no check, so the script checks the tree again'
 line_lacks "$G7" "the story gate reading the green record itself" "$rec_green"

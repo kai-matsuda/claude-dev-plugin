@@ -2493,6 +2493,12 @@ fresh
 ban banned_landing_guard "the landing guard that hides untracked files"
 printf '%s\n' "$banned_landing_guard" >> "$scratch/skills/implement-task/SKILL.md"
 sec=17 expect "the landing guard regaining --untracked-files=no fails" 1 "present: the landing guard that hides untracked files"
+# implement-story's landing guard regaining --untracked-files=no fails (an untracked file would
+# pass the guard while the check reads it), in section 8 with its own pins (dev-xbql)
+fresh
+ban banned_story_landing_guard "the story landing guard that hides untracked files"
+printf '%s\n' "$banned_story_landing_guard" >> "$scratch/skills/implement-story/SKILL.md"
+sec=8 expect "implement-story's landing guard regaining --untracked-files=no fails" 1 "present: the story landing guard that hides untracked files"
 # the resume path skipping the owner-checkout guard fails: its pinned phrase is dropped, so the
 # review: note's route runs to step 5 unguarded (dev-jv82)
 fresh
