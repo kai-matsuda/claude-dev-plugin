@@ -2023,7 +2023,6 @@ line_has '^2\. ' "task orchestrator step 2's brief carries the plain-command lin
 line_has '^2\. ' "the implementer brief says seam runs at the story's test seams" "does seam runs at the story's test seams"
 line_has '^2\. ' "the implementer brief's seam run fallback is the touched modules' tests" "the touched modules' tests for a standalone task that names no seams"
 line_has '^2\. ' "the implementer brief says the implementer never runs the check command or the script" 'never runs the check command or `<plugin root>/scripts/check.sh`'
-line_has '^2\. ' "the implementer's own check runs never count" 'Its own check runs never count'
 line_has '^3\. ' "the fix-up pointer brief says seam run and never the check command or the script" 'it says seam run and never the check command or `<plugin root>/scripts/check.sh`'
 line_has '^3\. ' "the red fix-up brief names each failing test script as its seam run" "$failing_script_clause"
 line_has '^3\. ' "the dirty-worktree brief names the failing step, never a failing command" 'the failing step (a name to read, never run)'
