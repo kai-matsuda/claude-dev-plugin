@@ -69,10 +69,12 @@ fx_scratch_dir() { # <name>
 fx_no_remote_git() { # the trace exists (every build runs git init) and has no remote-contacting git
   [ -s "$out.git-trace" ] && ! grep -qE "trace: (built-in|exec): git (ls-remote|clone|fetch|push|pull)( |$)" "$out.git-trace"
 }
+# A test's first build at $out runs every bd init under the trace; a later one replays them from
+# the seed beside $out (FIXTURE_BD_SEED, fixture-workspace.sh's header), its own git still traced.
 fx_traced_build() { # <what> <fixture-workspace.sh args...>   exits on a failed build
   local rc
   rm -f "$out.git-trace"; fx_cache_drop
-  GIT_TRACE=$out.git-trace "${script:?set script to fixture-workspace.sh}" "${@:2}" >/dev/null; rc=$?
+  FIXTURE_BD_SEED=$out.bd-seed GIT_TRACE=$out.git-trace "${script:?set script to fixture-workspace.sh}" "${@:2}" >/dev/null; rc=$?
   fx_check "$1: runs no git command that contacts a remote" fx_no_remote_git
   [ "$rc" = 0 ] || { echo "FAIL build $1"; exit 1; }
 }

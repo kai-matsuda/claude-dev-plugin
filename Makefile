@@ -23,8 +23,9 @@ ci_steps = scripts/lint-skill-docs.sh skills/glossary-lint/glossary-lint.sh \
   scripts/test-phases.sh scripts/test-glossary-lint.sh scripts/test-setup-skill.sh \
   scripts/test-setup-repo-skill.sh scripts/test-readme.sh scripts/test-ci-workflow.sh \
   scripts/test-check-target.sh
-# a fixture build mostly waits on bd, so the fixture tests, each on its own scratch paths, run
-# side by side
+# the fixture tests, each on its own scratch paths, run side by side; a build's bd calls are CPU,
+# not waiting, so these steps take cores from every other one (a rebuild skips bd init for that:
+# FIXTURE_BD_SEED in fixture-workspace.sh)
 fixture_steps = scripts/test-fixture-stage-boundary.sh scripts/test-fixture-stories.sh \
   scripts/test-fixture-dag.sh scripts/test-fixture-retro.sh scripts/test-fixture-story-cut.sh \
   scripts/test-fixture-story-cutter.sh scripts/test-fixture-triage.sh

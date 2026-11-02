@@ -2614,19 +2614,26 @@ phase "hand-written cases after the derived ones"
 # path that is no repo, so the checkout the test runs in never decides them; these cases let the
 # lint derive the merge-base itself (diff_base=derive) in a throwaway repo.
 # make_bump_repo <branch>: in the current scratch, a repo on main with a manifest at 0.1.0,
-# origin/main tracking that commit, <branch> checked out from it; fails, committing nothing, when the repo cannot be made
+# origin/main tracking that commit, <branch> checked out from it; fails, committing nothing, when the repo cannot be made.
+# The first repo is built and kept in $jobs/bump.seed and each later one is a copy of it: a build is
+# a dozen git calls in this shell, one after another, and every case starts from the same repo
 make_bump_repo() {
   bump_repo_dir=$scratch/bump
-  mkdir -p "$bump_repo_dir/.claude-plugin" "$bump_repo_dir/docs" "$bump_repo_dir/scripts"
-  # fx_git_repo refuses a dir that is not the new repo's top level, so a failed init cannot
-  # commit into the enclosing checkout
-  fx_git_repo "$bump_repo_dir" "$scratch/bump.gd" || return 1
-  # a relative link to the git dir, so the repo still opens once expect moves the tree
-  echo 'gitdir: ../bump.gd' > "$bump_repo_dir/.git"
-  echo '{"name":"dev","version":"0.1.0"}' > "$bump_repo_dir/.claude-plugin/plugin.json"
-  echo one > "$bump_repo_dir/docs/a.md"; echo one > "$bump_repo_dir/scripts/a.sh"
-  git -C "$bump_repo_dir" add -A && git -C "$bump_repo_dir" commit -q -m base || return 1
-  git -C "$bump_repo_dir" update-ref refs/remotes/origin/main main
+  if [ -d "$jobs/bump.seed" ]; then
+    cp -R "$jobs/bump.seed/." "$scratch/" || return 1
+  else
+    mkdir -p "$bump_repo_dir/.claude-plugin" "$bump_repo_dir/docs" "$bump_repo_dir/scripts"
+    # fx_git_repo refuses a dir that is not the new repo's top level, so a failed init cannot
+    # commit into the enclosing checkout
+    fx_git_repo "$bump_repo_dir" "$scratch/bump.gd" || return 1
+    # a relative link to the git dir, so the repo still opens once expect moves the tree
+    echo 'gitdir: ../bump.gd' > "$bump_repo_dir/.git"
+    echo '{"name":"dev","version":"0.1.0"}' > "$bump_repo_dir/.claude-plugin/plugin.json"
+    echo one > "$bump_repo_dir/docs/a.md"; echo one > "$bump_repo_dir/scripts/a.sh"
+    git -C "$bump_repo_dir" add -A && git -C "$bump_repo_dir" commit -q -m base || return 1
+    git -C "$bump_repo_dir" update-ref refs/remotes/origin/main main
+    mkdir "$jobs/bump.seed" && cp -R "$bump_repo_dir" "$scratch/bump.gd" "$jobs/bump.seed/" || return 1
+  fi
   [ "$1" = main ] || git -C "$bump_repo_dir" checkout -q -b "$1"
 }
 bump_repo() { fresh; make_bump_repo "$1" || { echo "FAIL make the throwaway repo"; exit 1; }; }
