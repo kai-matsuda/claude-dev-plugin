@@ -1731,6 +1731,7 @@ sec_has "$head_task_orchestrator_brief" "the brief carries a retry's reason" '`r
 sec_has "$head_task_orchestrator_brief" "the brief's gate entry" "$gate_entry"
 sec_has "$head_task_orchestrator_brief" "the gate entry's red log" "$pin_red_log_line"
 lacks "the pasted task orchestrator brief" 'A task orchestrator is a subagent, not a skill'
+line_has '^7\. ' "story red fix-up brief names each failing test script as its seam run" "each failing test script read off the log's FAIL lines (it runs that script green as its seam run before it reports)"
 line_has '^7\. ' "story fix-up brief names the seam run with its timeout" 'names the seam run, `timeout: 600000` on every seam run, and never the check command or the script'
 # every story-level fix-up after the first reuses the first's worktree and branch, the harness
 # doc's fix-up route, where the skill had left it unstated whether up to three shared one slug,
@@ -1944,7 +1945,8 @@ line_has '^9\. ' "step 9 names the red check's log on a failed: check run" 'leav
 line_lacks '^9\. ' "a rerun reading a red record as checked" 'reads the record as checked red'
 line_lacks '^9\. ' "step 9 removing the records on any run" 'removes the records'
 line_lacks '^9\. ' "step 9 tying the records to step 8's Evidence copy" 'step 8 having copied'
-line_has '^7\. ' "the red fix-up brief points at the log path alone" 'for a red, the record'"'"'s log path, `<owner>/.tmp/checks/<tree>/log` with `<tree>` from `git -C <owner> rev-parse <branch>^{tree}`, no pasted output'
+line_has '^7\. ' "the red fix-up brief points at the log path and the failing test scripts" 'for a red, the record'"'"'s log path, `<owner>/.tmp/checks/<tree>/log` with `<tree>` from `git -C <owner> rev-parse <branch>^{tree}`, and each failing test script'
+line_has '^7\. ' "the red fix-up brief pastes no output" 'before it reports), no pasted output;'
 line_lacks '^7\. ' "the red fix-up brief naming the failing command" "the failing command and the record's log path"
 hasc "report template's failed: line names the check" 'or <check> <command>'
 # the report marks the PR a draft and always carries the resume line (dev-9k5.1.9 review 1)
@@ -2016,6 +2018,7 @@ line_has '^2\. ' "the implementer brief's seam run fallback is the touched modul
 line_has '^2\. ' "the implementer brief says the implementer never runs the check command or the script" 'never runs the check command or `<plugin root>/scripts/check.sh`'
 line_has '^2\. ' "the implementer's own check runs never count" 'Its own check runs never count'
 line_has '^3\. ' "the fix-up pointer brief says seam run and never the check command or the script" 'it says seam run and never the check command or `<plugin root>/scripts/check.sh`'
+line_has '^3\. ' "the red fix-up brief names each failing test script as its seam run" "each failing test script read off the log's FAIL lines (it runs that script green as its seam run before it reports)"
 line_has '^3\. ' "the blocking fix-up brief's seam runs carry the timeout and never the check command" 'seam runs at the story'"'"'s test seams (the touched modules'"'"' tests for a standalone task that names no seams) with `timeout: 600000`, never the check command or `<plugin root>/scripts/check.sh`'
 line_lacks '^[23]\. ' "every check and test run in the briefs" 'every check and test run'
 line_has '^3\. ' "task orchestrator step 3's brief carries the plain-command line" "$plain_command"
@@ -2096,7 +2099,8 @@ line_lacks "$G3" "the per-round check log" 'checks-<round>-<k>.log'
 line_has "$G3" "a red gate reads the tail the script prints, never the whole output" 'Red: read the tail the script prints'
 line_has "$G3" "a red gate's note form (checks <round>: red <command>)" '`bd -C <owner> note <task-id> "checks <round>: red <command>"`'
 line_has "$G3" "a green gate writes no note" 'a green writes no note'
-line_has "$G3" "the gate's fix-up brief points at the log path" 'the log path, and no pasted output'
+line_has "$G3" "the gate's fix-up brief points at the log path and the failing test scripts" 'the log path, each failing test script'
+line_has "$G3" "the gate's fix-up brief pastes no output" ', and no pasted output, and it says seam run'
 line_has "$G3" "red and blocking fix-ups share one budget of three, the fourth failure is failed" 'The budget is three fix-ups of either cause; the fourth red or blocking verdict is `failed`'
 line_has "$G3" "the minors fix-up after a clean verdict spends no budget and advances no round" 'The minors fix-up spends no budget and advances no round'
 line_has "$G3" "the blocking fix-up fixes the note's in-scope minors" "fixes the note's blocking findings and its minors in the task's scope"
