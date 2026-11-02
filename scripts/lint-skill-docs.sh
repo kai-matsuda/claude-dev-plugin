@@ -1275,8 +1275,14 @@ hasc "Check record rule" "$head_check_record"
 para_has "$head_check_record" "keyed by the tree SHA" 'keyed by the tree SHA'
 para_has "$head_check_record" "only an orchestrator writes a record" 'Only an orchestrator writes a check record'
 para_has "$head_check_record" "the delivered tip's record is the Evidence" "the record of the delivered tip's tree"
-# the call that writes a record is stated once here, the brief and the story gate cite it
-hasc "Check record states the compound call" 'mkdir -p <worktree path>/.tmp; mkdir -p <owner>/.tmp/checks/<tree>; export TMPDIR=<worktree path>/.tmp; make -C <worktree path> '"$rec_call"' 2>&1; echo "command=make check exit=$?" > <owner>/.tmp/checks/<tree>/record; cat <owner>/.tmp/checks/<tree>/record'
+# the call that writes a record is the shipped script, stated once here, and no compound command is left
+hasc "the Check record call is the shipped script" '`<plugin root>/scripts/check.sh <worktree path> <owner>`, one foreground Bash call with `timeout: 600000`'
+hasc "a red is read from the tail the script prints" 'a red is read from the tail the script prints, never a whole log'
+lacks "the compound record command in the rules doc" 'mkdir -p <owner>/.tmp/checks'
+# the implementer brief rule, stated once: a worktree brief says seam run, with the touched-modules fallback, and never the check command or the script
+hasc "the brief says seam run" 'A worktree brief at every row says seam run (the Seam run term in `GLOSSARY.md`)'
+hasc "the seam run fallback is the touched modules' tests" "the touched modules' tests for a standalone task that names no seams"
+hasc "the brief never says the check command or the script" 'It never says the check command or the script; only an orchestrator checks a tree.'
 # the Delivery section, parametrised by the unit: the stray-commit check, the push, the PR body
 # with the check record as Evidence, the forge-check wait with its six-call bound, the notes order
 hase "Delivery section" '^## Delivery$'

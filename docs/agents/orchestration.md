@@ -44,7 +44,7 @@ integration branch. A `git merge` that applies is a command, not an edit, so it 
 break the never-implement rule. Landings are serial, one per report, so no lock is
 needed. A conflict goes to an implementer in the task's worktree, briefed to merge the
 integration tip into the task branch; the story orchestrator checks the resolved tree, a
-new tree, with the Check record call, then fast-forwards. The resolved tree is not reviewed
+new tree, with the Check record script, then fast-forwards. The resolved tree is not reviewed
 again: the story row's standards axis sees it. A landing closes the task. The story gate's
 fix-up branches land by the same procedure.
 A landing takes at most three conflict resolutions, apart from the fix-up budget, since a
@@ -164,7 +164,7 @@ since each task's diff was reviewed at its own row; nothing at the epic row, whe
 is skipped. So no line is read for standards twice (ADR 0014 in the plugin repo).
 
 **Check scope.** Every tree is checked once green. A check is one run of the check command on
-a tree, named by the tip's tree SHA, and a tree with a green check record (`exit=0`) counts as checked at
+a tree (the Check record script), named by the tip's tree SHA, and a tree with a green check record (`exit=0`) counts as checked at
 any row, whichever orchestrator wrote it, so a later agent spends no check run on it.
 A red record skips nothing: a later pass or a resumed run checks that tree again, its record
 replacing the red one, so a flaky or environmental red never sticks to its tree (dev-6qi). A
@@ -245,6 +245,7 @@ share one gate (dev-yyu). Test seams are not checks: no order
 among them and no log per seam. A test seam stays the story's testing boundary, named in its
 body: the implementer's brief names the seams as where its tests go, and the reviewer's as
 where the unit's criteria must be exercised.
+A worktree brief at every row says seam run (the Seam run term in `GLOSSARY.md`): the tests at the unit's seams, or the touched modules' tests for a standalone task that names no seams. It never says the check command or the script; only an orchestrator checks a tree.
 `make check` is the gate in every repo and the forge runs it.
 A repo whose forge needs steps it cannot run locally may add a `ci` target
 whose first prerequisite is `check` plus those steps, and its workflow then runs `make ci`;
@@ -257,10 +258,10 @@ record, the command, its exit and the log, under the owner checkout's scratch di
 green record treats it as checked, and one with a red record checks it again (Check scope). Only an orchestrator writes a check record: an
 implementer's own runs never count (trust rule 3). The PR's Evidence is the record of the delivered tip's tree.
 
-The call that writes a record is one foreground Bash call with `timeout: 600000`, a compound call (an exception to one command per Bash call), run once per tree: `mkdir -p <worktree path>/.tmp; mkdir -p <owner>/.tmp/checks/<tree>; export TMPDIR=<worktree path>/.tmp; make -C <worktree path> check > <owner>/.tmp/checks/<tree>/log 2>&1; echo "command=make check exit=$?" > <owner>/.tmp/checks/<tree>/record; cat <owner>/.tmp/checks/<tree>/record`. `<tree>` is the tip's tree, `git -C <worktree path> rev-parse HEAD^{tree}`, and `<worktree path>` the checkout holding that tip: the task's worktree, or `<owner>` when the owner checkout is on the branch. A green costs one `exit=0` line and no check output enters the orchestrator's context; a red is read by `tail -n 40 <log>`, never a whole log.
+The call that writes a record is `<plugin root>/scripts/check.sh <worktree path> <owner>`, one foreground Bash call with `timeout: 600000`, run once per tree. `<tree>` is the tip's tree, `git -C <worktree path> rev-parse HEAD^{tree}`, and `<worktree path>` the checkout holding that tip: the task's worktree, or `<owner>` when the owner checkout is on the branch. A green costs one `exit=0` line and no check output enters the orchestrator's context; a red is read from the tail the script prints, never a whole log.
 
 **Check gate.** At every row the gate exits when the checks are green on the tip the review called clean.
-Each pass runs the check command on the tip, unless its tree has a green record, then the review.
+Each pass runs the Check record script on the tip, unless its tree has a green record, then the review.
 A `low` task's gate is the checks alone, with no review.
 A red or a blocking verdict goes to a fresh implementer by pointer brief and the loop starts over
 (at the epic row, to `ready-for-agent` tasks under the story, The epic row above);
@@ -324,7 +325,7 @@ rounds.
 
 ## Delivery
 
-The delivery procedure, parametrised by the unit it delivers: a **story** (`/dev:implement-story`, and `/dev:implement-spec`'s story orchestrators) or a **standalone task** (delivered by its own skill). `<unit-id>` is the unit's bead, `<branch>` the branch it delivers (the story's integration branch, or the standalone task's branch), `<tip SHA>` that branch's tip, `<tree>` the tip's tree (`git -C <owner> rev-parse <branch>^{tree}`, the one the check gate's exit read), and `<check record>` the record of that tree, `<owner>/.tmp/checks/<tree>/record`. The typed command is the authority for the push and the PR (the Delivery authority paragraph above). What stays with each skill: opening the PR (a draft for a story, ready for a standalone task), the lines it appends to the PR body, the sibling refresh, and where a `failed:` line below goes in its report. A step below that ends the delivery on a `failed:` line writes no `delivered:` or `pr:` note and no `PR:` line.
+The delivery procedure, parametrised by the unit it delivers: a **story** (`/dev:implement-story`, and `/dev:implement-spec`'s story orchestrators) or a **standalone task** (delivered by its own skill). `<unit-id>` is the unit's bead, `<branch>` the branch it delivers (the story's integration branch, or the standalone task's branch), `<tip SHA>` that branch's tip, `<tree>` the tip's tree (`git -C <owner> rev-parse <branch>^{tree}`, the one the check gate's exit read), and `<check record>` the record of that tree, which the Check record script wrote, `<owner>/.tmp/checks/<tree>/record`. The typed command is the authority for the push and the PR (the Delivery authority paragraph above). What stays with each skill: opening the PR (a draft for a story, ready for a standalone task), the lines it appends to the PR body, the sibling refresh, and where a `failed:` line below goes in its report. A step below that ends the delivery on a `failed:` line writes no `delivered:` or `pr:` note and no `PR:` line.
 
 1. **Stray-commit check**, before any push: read every commit the push would carry but merges, `git -C <owner> log --no-merges --format='%H%x09%ae%x09%(trailers:key=Bead,valueonly,separator=%x2C)%x09%s' <default branch>..<branch>`, against the run's author, `git -C <owner> config user.email`. A commit with another author or no `Bead:` trailer came from outside the run (a test whose throwaway repo failed to init commits into the enclosing checkout): push nothing and end the delivery with one `failed: stray commit <sha> <subject>` line per such commit.
 2. **Push.** With a forge: `git -C <owner> push -u origin <branch>`, so the PR carries every merge. The push runs with the sandbox disabled, as forge commands do; only an error outside the sandbox is a refused push, and an ssh `Permission denied (publickey)` inside it is never read as one. A refused push ends the delivery with a `failed: push <command>: <error>` line. With no forge: push the branch when `<owner>` has an `origin` (the same command, the same `failed: push` line when refused); with no `origin` the branch stays local and the report names it.
