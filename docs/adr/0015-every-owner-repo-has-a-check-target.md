@@ -2,6 +2,13 @@
 status: accepted
 ---
 
+> Amended 2026-11-02 (dev-9x6c.1.3, INFRA-41): one permitted extension of the one-command
+> decision: a repo whose forge needs steps it cannot run locally may add a `ci` target whose
+> first prerequisite is `check` plus those steps, and its workflow then runs `make ci`.
+> `make check` stays the gate in every repo, `ci` is never a subset of `check`, and
+> `/dev:setup-repo` writes no `ci` target. The rule is stated once, in the rules doc's Check
+> command paragraph (`docs/agents/orchestration.md`).
+
 > Amends ADR 0014 (`docs/adr/0014-one-loop-at-three-rows.md`): its "a repo opts in by adding
 > the target" and the review-only gate that followed from it, with the dev-5e4 and dev-2p5
 > amendments that patched that gate.
@@ -55,11 +62,3 @@ alive, and each new rule about the moved tip would need its review-only twin.
 - The docs and skills name no review-only gate and no gate without a check command; the lint
   sweeps both phrases.
 - ADR 0014 keeps its text and points here.
-
-## Amendment: the ci extension
-
-The one permitted extension of the one-command decision: a repo whose forge needs steps it
-cannot run locally may add a `ci` target whose first prerequisite is `check` plus those steps,
-and its workflow then runs `make ci`. `make check` stays the gate in every repo, `ci` is never
-a subset of `check`, and `/dev:setup-repo` writes no `ci` target. The rule is stated once, in
-the rules doc's Check command paragraph (`docs/agents/orchestration.md`).

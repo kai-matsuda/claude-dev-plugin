@@ -2,6 +2,9 @@
 status: accepted
 ---
 
+> Amended 2026-11-02 (dev-9x6c.1.3, INFRA-41): this repo's `ci` target was dropped; see the amendment in ADR 0015
+> (`docs/adr/0015-every-owner-repo-has-a-check-target.md`).
+
 > Amended 2026-10-28 (dev-clo): the commit-lint git hook's script, `commit-lint.sh`, ships
 > in the plugin's `skills/setup/`, and `/dev:setup` prints the commands that copy it to
 > `~/.config/git` and wire `hook.commitlint`. The hook config stays per machine, as below;

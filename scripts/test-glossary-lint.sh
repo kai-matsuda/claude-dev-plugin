@@ -99,11 +99,11 @@ fx_check "the seeded synonym is the only hit" grep -qF 'glossary-lint: 1 violati
 
 # make check lints the tree itself: its lint step, named by what make -n prints, fails in the seeded
 # copy and passes once .glossary-allow permits the seeded sense
-ci_step=$(make -C "$repo_root" -n check | grep -oE "[a-z/-]*glossary-lint\.sh" | grep -vF test-glossary-lint.sh | sort -u)
-fx_check "make check has one glossary lint step" test "$(grep -c . <<<"$ci_step")" = 1
-ci_lint() { (cd "$copy" && sh "$ci_step") >/dev/null 2>&1; }
-fx_check "make check's lint step fails on a banned synonym in the tree" eval '! ci_lint'
+lint_step=$(make -C "$repo_root" -n check | grep -oE "[a-z/-]*glossary-lint\.sh" | grep -vF test-glossary-lint.sh | sort -u)
+fx_check "make check has one glossary lint step" test "$(grep -c . <<<"$lint_step")" = 1
+run_lint_step() { (cd "$copy" && sh "$lint_step") >/dev/null 2>&1; }
+fx_check "make check's lint step fails on a banned synonym in the tree" eval '! run_lint_step'
 printf 'seeded.md sub-orchestrator  # a sense the test permits\n' >> "$copy/.glossary-allow"
-fx_check "make check's lint step passes on a sense .glossary-allow permits" ci_lint
+fx_check "make check's lint step passes on a sense .glossary-allow permits" run_lint_step
 
 fx_report_fails

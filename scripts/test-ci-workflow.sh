@@ -63,7 +63,7 @@ fx_check "the check target runs the workflow test" grep -Fq scripts/test-ci-work
 fx_check "the fixtures target runs a fixture test" grep -Fq scripts/test-fixture-dag.sh <<<"$fixtures_plan"
 fx_check "the check target runs every step of the fixtures" bash -c '
   for s in $(grep -oE "[a-z/-]+\.sh" <<<"$1" | sort -u); do grep -Fq "$s" <<<"$2" || { echo "check lacks $s" >&2; exit 1; }; done' _ "$fixtures_plan" "$check_plan"
-# one pool: a ci step run apart from the pool would hold its seconds ahead of or behind it
+# one pool: a step run apart from it (one of the Makefile's ci_steps, say) would hold its seconds ahead of or behind it
 fx_check "the check target runs its steps in one side-by-side run, no sub-make" bash -c '
   [ "$(grep -c "wait \$p" <<<"$1")" = 1 ] && ! grep -Eq "make (ci|fixtures)|MAKE" <<<"$1"' _ "$check_plan"
 # Help text that enumerates scripts goes stale when one joins or leaves a target, so no help

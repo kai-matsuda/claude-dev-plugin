@@ -33,7 +33,7 @@ fixture_steps = scripts/test-fixture-stage-boundary.sh scripts/test-fixture-stor
 # every step of the check and the fixtures runs in one side-by-side run, so no step waits on another
 # and the longest one starts at once (ordering only: they still share the runner's cores); red
 # when any is
-check: ## Everything: the lint and every script and fixture test at once (needs bd and cargo); the target CI calls
+check: ## Lint and run every script and fixture test at once (needs bd and cargo); CI calls this target
 	$(call side_by_side,$(ci_steps) $(fixture_steps))
 
 lint: check ## Deprecated alias of check, kept for one release
