@@ -99,7 +99,7 @@ fx_check "the seeded synonym is the only hit" grep -qF 'glossary-lint: 1 violati
 
 # make check lints the tree itself: its lint step, named by what make -n prints, fails in the seeded
 # copy and passes once .glossary-allow permits the seeded sense
-ci_step=$(make -C "$repo_root" -n ci | grep -oE "[a-z/-]*glossary-lint\.sh" | grep -vF test-glossary-lint.sh | sort -u)
+ci_step=$(make -C "$repo_root" -n check | grep -oE "[a-z/-]*glossary-lint\.sh" | grep -vF test-glossary-lint.sh | sort -u)
 fx_check "make check has one glossary lint step" test "$(grep -c . <<<"$ci_step")" = 1
 ci_lint() { (cd "$copy" && sh "$ci_step") >/dev/null 2>&1; }
 fx_check "make check's lint step fails on a banned synonym in the tree" eval '! ci_lint'
