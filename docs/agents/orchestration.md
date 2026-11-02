@@ -248,6 +248,7 @@ where the unit's criteria must be exercised.
 A worktree brief at every row names the seam run (the Seam run term in `GLOSSARY.md`):
 the tests at the unit's seams, or
 the touched modules' tests for a standalone task that names no seams.
+A red fix-up's brief names each failing test script as its seam run.
 It never says the check command or the script; only an orchestrator checks a tree.
 `make check` is the gate in every repo and the forge runs it.
 A repo whose forge needs steps it cannot run locally may add a `ci` target
