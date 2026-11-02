@@ -8,10 +8,11 @@ repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 hook=$repo_root/hooks/guard-cd.sh
 source "$repo_root/scripts/fixture-test-lib.sh"   # fx_check, fails, fx_report_fails
 
+# hook_json <json>: run the hook on that stdin; prints the exit code
+hook_json() { "$hook" <<<"$1" >/dev/null 2>&1; echo $?; }
 # hook_rc <tool name> <command>: run the hook on the tool input for that command; prints the exit code
 hook_rc() {
-  "$hook" <<<"$(jq -cn --arg tool "$1" --arg cmd "$2" '{tool_name: $tool, tool_input: {command: $cmd}}')" >/dev/null 2>&1
-  echo $?
+  hook_json "$(jq -cn --arg tool "$1" --arg cmd "$2" '{tool_name: $tool, tool_input: {command: $cmd}}')"
 }
 # expect <expected exit code> <command>: on the Bash tool
 expect() {
@@ -27,6 +28,11 @@ expect 2 'cd'
 expect 2 '  cd /tmp && ls'
 expect 2 $'cd /tmp\nls'
 expect 2 $'\ncd /tmp'
+# a subshell or brace group opens with cd
+expect 2 '(cd /tmp && ls)'
+expect 2 '( cd /tmp && ls)'
+expect 2 '{ cd x; }'
+expect 2 '((cd /tmp))'
 
 # allowed: cd only later, in an argument or a path
 expect 0 'ls && cd /tmp'
@@ -39,8 +45,11 @@ expect 0 'make -C /tmp check'
 expect 0 'ls'
 
 # allowed: other tools and input the hook cannot read
-fx_check "a non-Bash tool with cd passes" test "$(hook_rc Edit 'cd /tmp')" = 0
-fx_check "unreadable input passes" test "$("$hook" <<<'not json' >/dev/null 2>&1; echo $?)" = 0
+expect 0 '(ls /tmp)'
+expect 0 '{ ls; }'
+fx_check "a non-Bash tool with cd passes" fx_eq "$(hook_rc Edit 'cd /tmp')" 0
+fx_check "input without a command passes" fx_eq "$(hook_json '{"tool_name":"Bash","tool_input":{}}')" 0
+fx_check "unreadable input passes" fx_eq "$(hook_json 'not json')" 0
 
 # the refusal names the alternatives
 msg=$("$hook" <<<"$(jq -cn '{tool_name: "Bash", tool_input: {command: "cd /tmp && ls"}}')" 2>&1 >/dev/null)

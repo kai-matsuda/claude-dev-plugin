@@ -13,8 +13,12 @@ command -v jq >/dev/null 2>&1 || exit 0
 cmd=$(jq -r 'select(.tool_name == "Bash") | .tool_input.command // empty' <<<"$input" 2>/dev/null) || exit 0
 [ -n "$cmd" ] || exit 0
 
-# the first word, after leading blanks and newlines
+# the first word, after leading blanks and newlines and any opening ( or { of a subshell or group
 trimmed=${cmd#"${cmd%%[![:space:]]*}"}
+while [[ $trimmed == [\(\{]* ]]; do
+  trimmed=${trimmed#?}
+  trimmed=${trimmed#"${trimmed%%[![:space:]]*}"}
+done
 first=${trimmed%%[[:space:];&|]*}
 if [ "$first" = cd ]; then
   echo 'guard-cd: a command may not start with cd; use the command'"'"'s own directory flag (git -C <dir>, bd -C <dir>, make -C <dir>), an absolute path, or the Edit tool for a file edit' >&2
