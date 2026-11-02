@@ -56,7 +56,7 @@ fx_check "changed tree: its own record" test -f "$w/.tmp/checks/$(tree_of "$w")/
 
 # red: record, tail, and a rerun
 r=$(make_repo red)
-echo 3 > "$r.rc"
+echo 2 > "$r.rc"
 outr=$("$script" "$r" "$r" 2>&1); rcr=$?
 fx_check "red: exits with the check's status" fx_eq "$rcr" 2
 fx_check "red: first line is the record line" fx_eq "$(head -1 <<<"$outr")" "command=make check exit=2"
@@ -79,15 +79,38 @@ fx_check "apart: make ran in the worktree, TMPDIR in the worktree" fx_eq "$(cat 
 
 # refusals: one line, non-zero, no record
 mkdir -p "$scratch/plain"
+before=$(ls "$o/.tmp/checks")
 outp=$("$script" "$scratch/plain" "$o" 2>&1); rcp=$?
 fx_check "not a git checkout: non-zero exit" test "$rcp" != 0
 fx_check "not a git checkout: one line" fx_eq "$(wc -l <<<"$outp" | tr -d ' ')" 1
 fx_check "not a git checkout: writes nothing" test ! -e "$scratch/plain/.tmp"
+fx_check "not a git checkout: no record under the owner" fx_eq "$(ls "$o/.tmp/checks")" "$before"
 n=$(make_repo nocheck)
 printf 'all:\n\t@true\n' > "$n/Makefile" && git -C "$n" commit -q -am nocheck
 outn=$("$script" "$w2" "$n" 2>&1); rcn=$?
 fx_check "no check target: non-zero exit" test "$rcn" != 0
 fx_check "no check target: one line" fx_eq "$(wc -l <<<"$outn" | tr -d ' ')" 1
 fx_check "no check target: writes nothing" test ! -e "$n/.tmp/checks"
+
+# the other refusals: one line, non-zero, nothing written
+outu=$("$script" "$w2" 2>&1); rcu=$?
+fx_check "usage: non-zero exit" test "$rcu" != 0
+fx_check "usage: one refusal line" fx_eq "$(wc -l <<<"$outu" | tr -d ' ')" 1
+e=$scratch/empty
+fx_git_repo "$e" || { echo "FAIL make repo empty"; exit 1; }
+oute=$("$script" "$e" "$o" 2>&1); rce=$?
+fx_check "no commit: non-zero exit" test "$rce" != 0
+fx_check "no commit: one refusal line" fx_eq "$(wc -l <<<"$oute" | tr -d ' ')" 1
+fx_check "no commit: writes nothing" test ! -e "$e/.tmp"
+chmod -w "$o/.tmp/checks"
+echo fresh > "$w2/fresh.txt" && git -C "$w2" add fresh.txt && git -C "$w2" commit -q -m fresh2
+outc=$("$script" "$w2" "$o" 2>&1); rcc=$?
+chmod +w "$o/.tmp/checks"
+fx_check "cannot create record dir: non-zero exit" test "$rcc" != 0
+fx_check "cannot create record dir: one refusal line" fx_eq "$(wc -l <<<"$outc" | tr -d ' ')" 1
+
+# check.sh's make database query is the rules doc's
+doc_awk() { grep pRrq "$1" | grep -o "awk '[^']*'"; }
+fx_check "check.sh's query is the rules doc's" fx_eq "$(doc_awk "$script")" "$(doc_awk "$repo_root/docs/agents/orchestration.md")"
 
 fx_report_fails

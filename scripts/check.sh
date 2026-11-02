@@ -18,17 +18,18 @@ tree=$(git -C "$wt" rev-parse 'HEAD^{tree}' 2>/dev/null) \
   || { echo "check.sh refused: $wt has no commit to check"; exit 2; }
 
 dir=$owner/.tmp/checks/$tree
-if [ -f "$dir/record" ] && [ "$(cat "$dir/record")" = "command=make check exit=0" ]; then
+green="command=make check exit=0"
+if [ -f "$dir/record" ] && [ "$(cat "$dir/record")" = "$green" ]; then
   cat "$dir/record"; exit 0
 fi
 
 (set +o pipefail; make -C "$owner" -pRrq : 2>/dev/null | awk '/^# Not a target:/{n=1;next} /^check::?([^=:]|$)/&&!n{c=1; if (/^check::? *[^ :]/) f=1} c&&/^#  (commands|recipe) to execute/{f=1} /^$/{c=0} {n=0} END{exit !f}') \
   || { echo "check.sh refused: no check target in $owner; run /dev:setup-repo there"; exit 2; }
 
-mkdir -p "$wt/.tmp" "$dir" || { echo "check.sh refused: cannot create $dir"; exit 2; }
+mkdir -p "$wt/.tmp" "$dir" 2>/dev/null || { echo "check.sh refused: cannot create $dir"; exit 2; }
 TMPDIR=$(cd "$wt/.tmp" && pwd -P) make -C "$wt" check >"$dir/log" 2>&1
 rc=$?
-echo "command=make check exit=$rc" > "$dir/record"
+echo "${green%0}$rc" > "$dir/record"
 cat "$dir/record"
 [ "$rc" = 0 ] || tail -n 40 "$dir/log"
 exit "$rc"
