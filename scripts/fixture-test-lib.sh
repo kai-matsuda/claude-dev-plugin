@@ -24,7 +24,7 @@ fx_is_repo_top() { # <dir>
   local top
   top=$(git -C "$1" rev-parse --show-toplevel 2>/dev/null) && [ "$top" = "$(cd "$1" && pwd -P)" ]
 }
-# The one way a test script (scripts/test-*.sh; make ci's check-test-git-init.sh refuses a
+# The one way a test script (scripts/test-*.sh; make check's check-test-git-init.sh refuses a
 # git init anywhere else in one) makes a throwaway git repo: an empty repo on main at <dir>, its
 # git dir at <git dir> (default <dir>.gd), with the test identity set and hooks and signing off
 # in its config, so later git -C <dir> calls need no flags. Fails unless <dir> is the new repo's

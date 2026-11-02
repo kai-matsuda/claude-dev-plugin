@@ -2,7 +2,7 @@
 # Tests for .github/workflows/ci.yml: it runs on a push to main and on pull requests, checks out
 # mattpocock/skills at a pinned tag as the lint's PLUGIN_SKILLS, installs bd with CI blanked, sets the
 # version-bump rule's base to the PR base, and runs the Makefile's check target, never the scripts;
-# and the ci target's git-init check refuses a test script that inits a repo outside the lib.
+# and the check target's git-init check refuses a test script that inits a repo outside the lib.
 # Usage: scripts/test-ci-workflow.sh
 set -uo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
