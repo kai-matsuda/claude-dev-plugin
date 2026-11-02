@@ -2010,6 +2010,14 @@ for step in 2 3; do
   line_has "^$step\\. " "task orchestrator step $step's brief starts with the TMPDIR line" "$tmpdir_line"
 done
 line_has '^2\. ' "task orchestrator step 2's brief carries the plain-command line" "$plain_command"
+# the implementer and fix-up briefs say seam run and never the check command or the script
+line_has '^2\. ' "the implementer brief says seam runs at the story's test seams" "does seam runs at the story's test seams"
+line_has '^2\. ' "the implementer brief's seam run fallback is the touched modules' tests" "the touched modules' tests for a standalone task that names no seams"
+line_has '^2\. ' "the implementer brief says the implementer never runs the check command or the script" 'never runs the check command or `<plugin root>/scripts/check.sh`'
+line_has '^2\. ' "the implementer's own check runs never count" 'Its own check runs never count'
+line_has '^3\. ' "the fix-up pointer brief says seam run and never the check command or the script" 'it says seam run and never the check command or `<plugin root>/scripts/check.sh`'
+line_has '^3\. ' "the blocking fix-up brief's seam runs carry the timeout and never the check command" 'seam runs at the story'"'"'s test seams (the touched modules'"'"' tests for a standalone task that names no seams) with `timeout: 600000`, never the check command or `<plugin root>/scripts/check.sh`'
+line_lacks '^[23]\. ' "every check and test run in the briefs" 'every check and test run'
 line_has '^3\. ' "task orchestrator step 3's brief carries the plain-command line" "$plain_command"
 line_has "$anchor_task_orchestrator_header" "the task orchestrator header carries the plain-command line" "$plain_command"
 line_has '^2\. ' "task orchestrator step 2's brief names the bare pwd step" "$pwd_step"
@@ -2075,13 +2083,16 @@ line_has "$G3" "a tree with a green check record is not checked again" "$rec_gre
 line_has "$G3" "a tree with a red check record is checked again" "$rec_red"
 line_lacks "$G3" "the gate skipping the run on a red record" "$rec_any"
 line_has "$G3" "the task gate checks a red's fix-up that commits nothing again" "$rec_fixup"
-line_has "$G3" "the gate cites the rules doc's check-record call" "the call the rules doc's Check record states"
+line_has "$G3" "the gate runs the shipped script in one foreground call" 'run `<plugin root>/scripts/check.sh <worktree path> <owner>` (`<worktree path>` the task'"'"'s worktree path) in one foreground Bash call with `timeout: 600000`'
+line_has "$G3" "the gate cites the rules doc's Check record script" "the rules doc's Check record script"
+line_has "$G3" "the green-record skip lives inside the script" 'skips a green-recorded tree itself'
+line_lacks "$G3" "the gate running the check command itself" 'run the check command in one foreground Bash call'
 line_lacks "$G3" "a second copy of the check-record call in the skill" "$rec_call"
 line_has "$G3" "the gate names the rules doc's Check record as the writer's rule" "Only you write a record, never an implementer (the rules doc's Check record)"
 line_has "$G3" "the gate reviews with mattpocock-skills:code-review" "$pin_code_review_tool"
 line_has "$G3" "the reviewer brief names the harness-route diff" '`git -C <worktree path> diff <branch>...HEAD`'
 line_lacks "$G3" "the per-round check log" 'checks-<round>-<k>.log'
-line_has "$G3" "a red gate reads a forty-line tail of the log, never the whole output" 'tail -n 40 <log>'
+line_has "$G3" "a red gate reads the tail the script prints, never the whole output" 'Red: read the tail the script prints'
 line_has "$G3" "a red gate's note form (checks <round>: red <command>)" '`bd -C <owner> note <task-id> "checks <round>: red <command>"`'
 line_has "$G3" "a green gate writes no note" 'a green writes no note'
 line_has "$G3" "the gate's fix-up brief points at the log path" 'the log path, and no pasted output'
