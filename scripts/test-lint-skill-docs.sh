@@ -2067,7 +2067,7 @@ fresh
 printf '%s\n' "As the Story gate\`.step of $SK says." >> "$scratch/$orch"
 expect "a backtick after a bare name with no space after it passes section 18" 0
 # that closing backtick is unread only in the of/in order: after the possessive or the skill it
-# still sits beside a space and the name is read
+# still sits beside a space and the name is unread
 cite_passes $orch "a backticked name with a space inside the backticks after a skill" \
   "As \`$SK\`'s \` Story gate\` says." \
   "As $SK \` Story gate\` says."
@@ -2242,8 +2242,9 @@ cite_seeds $orch "present: " "a wrong mark or bare name beside a prefixed skill"
   "See foo$SK \"Story gate\" says." \
   "See foo$SK Story gate says." \
   "See foo/dev:task-orchestrator's **Two entries** says."
-# in the of/in order a prefixed skill (a letter, slash, colon or hyphen straight before it, no
-# space) is not read at all, so even a wrong mark or a bare name passes
+# in the of/in order a skill with any character but a space or a backtick straight before it (a
+# letter, slash, colon or hyphen among them) is not read at all, so even a wrong mark or a bare
+# name passes
 cite_passes $orch "a prefixed skill in the of/in order" \
   "As the \"Story gate\" step of foo$SK says." \
   "As the Story gate step of foo$SK says." \
