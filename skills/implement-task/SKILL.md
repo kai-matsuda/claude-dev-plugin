@@ -3,8 +3,8 @@ name: implement-task
 description: "Implement one standalone task bead in its repo: spawn one task orchestrator, land its reviewed branch, deliver it as a PR opened ready and close the task. Use when given a task bead id with no story (an accepted retro item, a small bug) to implement, typed in the repo whose beads hold it."
 ---
 
-<!-- The story row with a frontier of one (INFRA-37): /dev:implement-story's plumbing, one
-     /dev:task-orchestrator, a fast-forward landing and the rules doc's Delivery section, with no
+<!-- The story row with a frontier of one (INFRA-37): `/dev:implement-story`'s plumbing, one
+     `/dev:task-orchestrator`, a fast-forward landing and the rules doc's Delivery section, with no
      story bead, no story gate and the PR opened ready. -->
 
 You have been given a **standalone task** bead id: a task with no story (`GLOSSARY.md`), typed in the repo whose beads hold it, a workspace's own tasks included. The issue tracker rules are in `${CLAUDE_PLUGIN_ROOT}/docs/agents/issue-tracker.md`.
