@@ -2079,13 +2079,14 @@ line_has "$anchor_task_step_2_implementer" "task orchestrator step 2's implement
 line_has "$G3" "the gate keys the check on the tree SHA" '`git -C <worktree path> rev-parse HEAD^{tree}`'
 line_has "$G3" "the gate reads the tree only of a clean worktree" 'First confirm the worktree is clean, `git -C <worktree path> status --porcelain` prints nothing; a dirty worktree goes to a fresh implementer as a red does'
 line_lacks "$G3" "the clean-worktree guard that hides untracked files" '`git -C <worktree path> status --porcelain --untracked-files=no`'
-line_has "$G3" "a tree with a green check record is not checked again" "$rec_green"
-line_has "$G3" "a tree with a red check record is checked again" "$rec_red"
+line_has "$G3" "the gate leaves the green-record read to the script" 'The script reads the tip'"'"'s tree record itself: on a green record it runs nothing, whichever orchestrator wrote it'
+line_has "$G3" "the gate has the script check a red-recorded tree again" 'a red record is no check, so the script checks the tree again and replaces the record'
+line_lacks "$G3" "the gate reading the green record itself" "$rec_green"
+line_lacks "$G3" "the gate reading the record path itself" 'its check record is `<owner>/.tmp/checks/<tree>/record`'
 line_lacks "$G3" "the gate skipping the run on a red record" "$rec_any"
 line_has "$G3" "the task gate checks a red's fix-up that commits nothing again" "$rec_fixup"
 line_has "$G3" "the gate runs the shipped script in one foreground call" 'run `<plugin root>/scripts/check.sh <worktree path> <owner>` (`<worktree path>` the task'"'"'s worktree path) in one foreground Bash call with `timeout: 600000`'
 line_has "$G3" "the gate cites the rules doc's Check record script" "the rules doc's Check record script"
-line_has "$G3" "the green-record skip lives inside the script" 'skips a green-recorded tree itself'
 line_lacks "$G3" "the gate running the check command itself" 'run the check command in one foreground Bash call'
 line_lacks "$G3" "a second copy of the check-record call in the skill" "$rec_call"
 line_has "$G3" "the gate names the rules doc's Check record as the writer's rule" "Only you write a record, never an implementer (the rules doc's Check record)"
@@ -2158,7 +2159,9 @@ hasc "delivery by the rules doc's Delivery section" "as the rules doc's Delivery
 hasc "the PR opened ready, not draft" 'opened **ready**, not draft'
 # a tree with no green record is checked by the shipped script run on the owner checkout, a red
 # ending on the failed: check make check line, and the check records stay after a delivery (dev-9x6c.1.7)
-hasc "a tree with no green record is checked with the Check record script on the owner checkout" 'run the rules doc'"'"'s Check record script, `<plugin root>/scripts/check.sh`, with `<owner>` as its `<worktree path>`, `timeout: 600000`, and a red ends the run with `failed: check make check`'
+hasc "the delivery runs the Check record call on the owner checkout" 'Run the rules doc'"'"'s Check record call, `<plugin root>/scripts/check.sh <owner> <owner>`, with `<owner>` as its `<worktree path>`, in one foreground Bash call with `timeout: 600000`, `<plugin root>` spelled as the path this session resolved'
+hasc "the delivery leaves the green-record read to the script" 'The script reads the tip'"'"'s tree record itself: on a green record it runs nothing, and a red or missing record is checked; a red ends the run with `failed: check make check`'
+lacks "the delivery reading the green record itself" 'with no green record there (`exit=0` in `<owner>/.tmp/checks/<tree>/record`)'
 lacks "the clean-up removing the check records" 'rm -rf <owner>/.tmp/checks'
 lacks "a draft PR for a standalone task" 'gh pr create --draft|"WIP: '
 hasc "delivered: precedes pr:" 'the `delivered:` and `pr:` notes in that order'
