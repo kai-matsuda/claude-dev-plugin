@@ -677,6 +677,7 @@ head_standalone_task='**The standalone task.**'
 head_task_orchestrator_brief='## Task orchestrator brief'
 head_branch_from_remote_ref='**Branches from a remote ref.**'
 anchor_step_3_draft_pr='^   With a forge, open a \*\*draft PR\*\*'
+failing_script_clause="each failing test script read off the log's FAIL lines (it runs that script green as its seam run before it reports; with no test-script FAIL line, the failing step's name and the touched modules' tests as its seam run)"
 gate_entry='`gate entry: <task branch> <worktree path> <tip SHA>`'
 rec_green='a tree with a green record (`exit=0`) is checked: run nothing'
 rec_red='a red record is no check, so the tree is checked again'
@@ -1731,8 +1732,8 @@ sec_has "$head_task_orchestrator_brief" "the brief carries a retry's reason" '`r
 sec_has "$head_task_orchestrator_brief" "the brief's gate entry" "$gate_entry"
 sec_has "$head_task_orchestrator_brief" "the gate entry's red log" "$pin_red_log_line"
 lacks "the pasted task orchestrator brief" 'A task orchestrator is a subagent, not a skill'
-line_has '^7\. ' "story red fix-up brief names each failing test script as its seam run" "each failing test script read off the log's FAIL lines (it runs that script green as its seam run before it reports)"
-line_has '^7\. ' "story fix-up brief names the seam run with its timeout" 'names the seam run, `timeout: 600000` on every seam run, and never the check command or the script'
+line_has '^7\. ' "story red fix-up brief names each failing test script as its seam run" "$failing_script_clause"
+line_has '^7\. ' "story fix-up brief names the seam run with its timeout" 'names the seam run, `timeout: 600000` on every seam run, and never the check command or `<plugin root>/scripts/check.sh`'
 # every story-level fix-up after the first reuses the first's worktree and branch, the harness
 # doc's fix-up route, where the skill had left it unstated whether up to three shared one slug,
 # and reaches it with git -C on either route (dev-6da)
@@ -1946,7 +1947,7 @@ line_lacks '^9\. ' "a rerun reading a red record as checked" 'reads the record a
 line_lacks '^9\. ' "step 9 removing the records on any run" 'removes the records'
 line_lacks '^9\. ' "step 9 tying the records to step 8's Evidence copy" 'step 8 having copied'
 line_has '^7\. ' "the red fix-up brief points at the log path and the failing test scripts" 'for a red, the record'"'"'s log path, `<owner>/.tmp/checks/<tree>/log` with `<tree>` from `git -C <owner> rev-parse <branch>^{tree}`, and each failing test script'
-line_has '^7\. ' "the red fix-up brief pastes no output" 'before it reports), no pasted output;'
+line_has '^7\. ' "the red fix-up brief pastes no output" ', no pasted output;'
 line_lacks '^7\. ' "the red fix-up brief naming the failing command" "the failing command and the record's log path"
 hasc "report template's failed: line names the check" 'or <check> <command>'
 # the report marks the PR a draft and always carries the resume line (dev-9k5.1.9 review 1)
@@ -2018,7 +2019,9 @@ line_has '^2\. ' "the implementer brief's seam run fallback is the touched modul
 line_has '^2\. ' "the implementer brief says the implementer never runs the check command or the script" 'never runs the check command or `<plugin root>/scripts/check.sh`'
 line_has '^2\. ' "the implementer's own check runs never count" 'Its own check runs never count'
 line_has '^3\. ' "the fix-up pointer brief says seam run and never the check command or the script" 'it says seam run and never the check command or `<plugin root>/scripts/check.sh`'
-line_has '^3\. ' "the red fix-up brief names each failing test script as its seam run" "each failing test script read off the log's FAIL lines (it runs that script green as its seam run before it reports)"
+line_has '^3\. ' "the red fix-up brief names each failing test script as its seam run" "$failing_script_clause"
+line_has '^3\. ' "the dirty-worktree brief names the failing step, never a failing command" 'the failing step (a name to read, never run)'
+line_lacks '^3\. ' "the red fix-up brief listing a failing command" 'the failing command, the log path'
 line_has '^3\. ' "the blocking fix-up brief's seam runs carry the timeout and never the check command" 'seam runs at the story'"'"'s test seams (the touched modules'"'"' tests for a standalone task that names no seams) with `timeout: 600000`, never the check command or `<plugin root>/scripts/check.sh`'
 line_lacks '^[23]\. ' "every check and test run in the briefs" 'every check and test run'
 line_has '^3\. ' "task orchestrator step 3's brief carries the plain-command line" "$plain_command"

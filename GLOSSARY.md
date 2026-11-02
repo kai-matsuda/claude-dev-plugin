@@ -212,7 +212,8 @@ _Avoid_: pre-flight, verification step
 
 **Seam run**:
 An implementer's own run of the tests at its unit's test seams (its touched modules, for a
-task that names none), as many times as it likes while it builds. Never a check and never
+task that names none), or of a failing test script a fix-up brief names, as many times as
+it likes while it builds. Never a check and never
 the check command: it writes no check record and counts for nothing at the gate.
 _Avoid_: local check, implementer check, dev check
 
