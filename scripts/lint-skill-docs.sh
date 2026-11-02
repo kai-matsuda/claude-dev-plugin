@@ -143,7 +143,7 @@
 #      (spec) and what entered since the task reviews (standards), sends a red or a blocking
 #      verdict to a fresh fix-up, three per story, the fourth failed, and spends nothing on the
 #      minors fix-up; its deliver step (8) leaves the PR a draft, its Evidence the delivered tip's
-#      check record, and step 9 removes the records; "Running the checks" and "the command and
+#      check record, and step 9 leaves the records in place; "Running the checks" and "the command and
 #      its output" are gone (section 5's sweep covers the review marker, the merger, the keyed
 #      branch, the Evidence run and the second-red stall) (dev-cq0.1.5, dev-1xf.1.3, dev-9k5.1.9); section 6 checks the
 #      rules doc's Check gate;
@@ -1265,12 +1265,30 @@ hasc "Check command rule" "$head_check_command"
 para_has "$head_check_command" "make check is the one check command" 'One command per owner repo, `make check`'
 row_phrase repo-plumbing-pins "the check command is make check" && row_text=${row_text#*since } && para_has "$head_check_command" "every owner repo has a check target" "${row_text%% target*}"
 para_has "$head_check_command" "a story run with no check target fails" 'with `failed: no check target`'
+# the ci extension rule (ADR 0015's amendment), stated once: the gate, the extension's shape, never
+# a subset, and setup-repo writes none
+para_has "$head_check_command" "make check is the gate in every repo and the forge runs it" '`make check` is the gate in every repo and the forge runs it'
+para_has "$head_check_command" "a ci target extends check with forge-only steps and the workflow runs make ci" 'whose first prerequisite is `check` plus those steps, and its workflow then runs `make ci`'
+para_has "$head_check_command" "ci is never a subset of check" '`ci` is never a subset of `check`'
+para_has "$head_check_command" "no other repo has a ci target and setup-repo writes none" 'No other repo has a `ci` target, and `/dev:setup-repo` writes none'
 hasc "Check record rule" "$head_check_record"
 para_has "$head_check_record" "keyed by the tree SHA" 'keyed by the tree SHA'
 para_has "$head_check_record" "only an orchestrator writes a record" 'Only an orchestrator writes a check record'
 para_has "$head_check_record" "the delivered tip's record is the Evidence" "the record of the delivered tip's tree"
-# the call that writes a record is stated once here, the brief and the story gate cite it
-hasc "Check record states the compound call" 'mkdir -p <worktree path>/.tmp; mkdir -p <owner>/.tmp/checks/<tree>; export TMPDIR=<worktree path>/.tmp; make -C <worktree path> '"$rec_call"' 2>&1; echo "command=make check exit=$?" > <owner>/.tmp/checks/<tree>/record; cat <owner>/.tmp/checks/<tree>/record'
+# the call that writes a record is the shipped script, stated once here, and no compound command is left
+hasc "the Check record call is the shipped script" '`<plugin root>/scripts/check.sh <worktree path> <owner>`, one foreground Bash call with `timeout: 600000`'
+hasc "a red is read from the tail the script prints" 'a red is read from the tail the script prints, never a whole log'
+lacks "the compound record command in the rules doc" 'mkdir -p <owner>/.tmp/checks'
+# the implementer brief rule, stated once: a worktree brief says seam run, with the touched-modules fallback, and never the check command or the script
+para_has "$head_check_command" "the brief names the seam run" 'A worktree brief at every row names the seam run (the Seam run term in `GLOSSARY.md`)'
+para_has "$head_check_command" "the seam run fallback is the touched modules' tests" "the touched modules' tests for a standalone task that names no seams."
+para_has "$head_check_command" "the brief never says the check command or the script" 'It never says the check command or the script; only an orchestrator checks a tree.'
+# every other passage that cites the Check record call names the script
+para_has "$head_landing_a_task" "a resolved tree is checked through the Check record script" 'new tree, with the Check record script, then fast-forwards'
+para_has "$head_check_scope" "a check is one run of the check command through the Check record script" 'one run of the check command through the Check record script'
+para_has "$head_check_gate" "each pass runs the Check record script" 'Each pass runs the Check record script on the tip'
+sec_has "## Delivery" "the delivered tip's record is the one the Check record script wrote" 'which the Check record script wrote'
+hasc "the orchestrator runs the check command through the Check record script" 'run the check command through the Check record script, which writes'
 # the Delivery section, parametrised by the unit: the stray-commit check, the push, the PR body
 # with the check record as Evidence, the forge-check wait with its six-call bound, the notes order
 hase "Delivery section" '^## Delivery$'
@@ -1521,6 +1539,8 @@ hasc "setup-repo runs init by the tracker doc's rule" 'which says where it runs 
 lacks "setup-repo restating the init rule" "$pin_never_through_c"
 # the stop reports the init commit as init made it, before the pruning amends it
 hasc "setup-repo stops before the pruning" 'A stop there comes before the pruning'
+# the check target step writes no ci target: the extension is a repo owner's to add (rules doc, Check command)
+hasc "setup-repo writes no ci target" 'It writes no `ci` target'
 fi
 # one has-a-database rule, stated once in the tracker doc and cited by every gate: .beads/ exists
 # and bd where names it (dev-e87); section 5 sweeps a gate on the directory alone, and section 1
@@ -1668,7 +1688,8 @@ sec_has "## Landing" "the landing merges the task branch" '`git -C <owner> merge
 sec_has "## Landing" "a conflicted merge is aborted, never resolved by the orchestrator" '`git -C <owner> merge --abort`'
 sec_has "## Landing" "a conflict goes to an implementer in the task's worktree" "A conflict goes to an implementer in the task's worktree"
 sec_has "## Landing" "the conflict implementer merges the integration tip into the task branch" "it is briefed to merge \`<branch>\`'s tip into the task branch"
-sec_has "## Landing" "the resolved tree is checked with the rules doc's call" "run the rules doc's Check record call with the task's worktree as its \`<worktree path>\`"
+sec_has "## Landing" "the resolved tree is checked with the rules doc's call" "run the rules doc's Check record call, \`<plugin root>/scripts/check.sh <worktree path> <owner>\`, with the task's worktree as its \`<worktree path>\`, in one foreground Bash call with \`timeout: 600000\`, \`<plugin root>\` spelled as the path this session resolved; the script runs nothing on a tree with a green record"
+line_lacks '^3\. A conflict goes to an implementer' "the landing reading the resolved tree's record itself" 'run nothing on a green record'
 sec_has "## Landing" "no reviewer runs on the resolution" 'No reviewer runs: the story row'"'"'s standards axis sees the resolution'
 sec_has "## Landing" "the landing then fast-forwards" "\`$pin_ff_only_merge\`"
 sec_has "## Landing" "a red on a resolved tree fails the landing" "\`<task-id> $pin_failed_red_after_conflict\`"
@@ -1687,7 +1708,7 @@ K='^3\. A conflict goes to an implementer'
 line_has "$K" "the conflict implementer's brief starts with the TMPDIR line" "$tmpdir_line"
 line_has "$K" "the conflict implementer's brief carries the plain-command line" "$plain_command"
 line_hase "$K" "the conflict implementer's brief puts the TMPDIR line ahead of the plain-command line" "$tmpdir_then_plain"
-line_has "$K" "the conflict implementer's check and test timeout" "$pin_timeout_600000"
+line_has "$K" "the conflict implementer's seam run timeout" 'with `timeout: 600000` on every seam run, never the check command or the script'
 line_has "$anchor_first_failure_report" "a first failure after a red on a resolved tree retries at the gate" 'that one enters at the gate on the resolved branch'
 # any other first failure probes for the commits its attempt left, as implement-task's retry does (dev-a3c0)
 line_has "$anchor_first_failure_report" "a first failure's retry runs the Cut-off probe" "step 4's Cut-off probe deciding its entry"
@@ -1710,7 +1731,7 @@ sec_has "$head_task_orchestrator_brief" "the brief carries a retry's reason" '`r
 sec_has "$head_task_orchestrator_brief" "the brief's gate entry" "$gate_entry"
 sec_has "$head_task_orchestrator_brief" "the gate entry's red log" "$pin_red_log_line"
 lacks "the pasted task orchestrator brief" 'A task orchestrator is a subagent, not a skill'
-line_has '^7\. ' "story fix-up brief names the check and test limit" 'the ten-minute limit on check and test runs'
+line_has '^7\. ' "story fix-up brief names the seam run with its timeout" 'names the seam run, `timeout: 600000` on every seam run, and never the check command or the script'
 # every story-level fix-up after the first reuses the first's worktree and branch, the harness
 # doc's fix-up route, where the skill had left it unstated whether up to three shared one slug,
 # and reaches it with git -C on either route (dev-6da)
@@ -1842,7 +1863,7 @@ lacksf "the retired lint placeholder" '`<lint>`'
 # verdict goes to a fresh fix-up and the loop starts over, three per story, the fourth failed; the
 # minors fix-up reruns the checks and spends nothing; the story orchestrator lands its fix-up
 # itself, no separate landing agent (section 5 sweeps the merger); "Running the checks" is gone. Step 8 leaves the PR a
-# draft, its Evidence the delivered tip's check record; step 9 removes the records
+# draft, its Evidence the delivered tip's check record; step 9 leaves the records in place
 G7='^7\. '
 hase "step 7 is the story gate" '^7\. \*\*Story gate\.\*\*'
 line_has "$G7" "the story gate names its row of the rules doc's table" "the story row of the rules doc's table"
@@ -1855,15 +1876,16 @@ line_has "$G7" "the story gate confirms the owner checkout is on the integration
 line_has "$G7" "the story gate's off-branch failed line" '`failed: <story-id> not on <branch>`'
 line_has "$G7" "the story gate's clean-checkout guard says why untracked files count" 'untracked files count, since the check runs on the working tree while the record keys on the committed tree'
 line_has "$G7" "the dirty-checkout failed line names the files" '`failed: <story-id> owner checkout dirty: <files>`, `<files>` the paths that status call printed, classified as step 6 says'
-line_has "$G7" "the story gate keys the check on the tip's tree" '`git -C <owner> rev-parse <branch>^{tree}`'
-line_has "$G7" "the story gate reads a green tree's check record and runs nothing" "$rec_green"
-line_has "$G7" "the story gate checks a red-recorded tree again" "$rec_red"
+line_has "$G7" "the story gate leaves the green-record read to the script" 'resolved. The script reads the tip'"'"'s tree record itself: on a green record it runs nothing, whichever orchestrator wrote it'
+line_has "$G7" "the story gate has the script check a red-recorded tree again" 'a red record is no check, so the script checks the tree again'
+line_lacks "$G7" "the story gate reading the green record itself" "$rec_green"
+line_lacks "$G7" "the story gate reading the record path itself" 'its record is `<owner>/.tmp/checks/<tree>/record`'
 line_lacks "$G7" "the story gate skipping the run on a red record" "$rec_any"
 line_has "$G7" "the story gate checks a red's fix-up that commits nothing again" "$rec_fixup"
 line_has "$G7" "the story gate exits on a green tip its review: note still names" 'a green on a tip the `review:` note still names exits'
 # the check-record call is defined once, in the rules doc's Check record, and step 7
 # names it with <owner> for the worktree path (dev-9k5.1.9 review 1)
-line_has "$G7" "the story gate writes the check record with the rules doc's call" "the rules doc's Check record call with \`<owner>\` as its \`<worktree path>\`"
+line_has "$G7" "the story gate runs the script with <owner> as its worktree path" "the rules doc's Check record call, \`<plugin root>/scripts/check.sh <owner> <owner>\`, with \`<owner>\` as its \`<worktree path>\`, in one foreground Bash call with \`timeout: 600000\`"
 line_lacks "$G7" "a second copy of the check-record call" "$rec_call"
 line_has "$G7" "the story keeps the reviewed tip in its notes" "The story keeps the reviewed tip in its notes: its \`review:\` note names the tip the gate exits on after a clean review, so a rerun reviews only a tip that has moved past it"
 # the story review round is numbered on from the notes, not from 1 per run, and its note names
@@ -1914,12 +1936,16 @@ hasc "report template shows the checks: line" 'checks:  skipped: <no forge | no 
 hasc "report template's failed: line names a red forge check" 'or forge check <name> <run URL>'
 hasc "report template's failed: line names a merge conflict" 'or merge conflict <PR URL>'
 hasc "step 8 leaves a conflicted story not finished" 'A red forge check or a PR git cannot merge leaves the story not finished'
-line_has '^9\. ' "step 9 removes the check records" '`rm -rf <owner>/.tmp/checks`'
+line_has '^9\. ' "step 9 leaves the check records alone" 'Leave `<owner>/.tmp/checks/` in place: a record outlives the run and a resumed run reads it'
+line_lacks '^9\. ' "step 9 removes the check records" '`rm -rf <owner>/.tmp/checks`'
 # a run that ends failed on a red keeps the red tree's log in place for the human, the
-# failed: line's words unchanged, while every other run still removes the records (dev-15s)
-line_has '^9\. ' "step 9 keeps the red check's log on a failed: check run" 'skips the removal and keeps the red check'"'"'s log in place'
+# failed: line's words unchanged, and no run removes the records (dev-15s)
+line_has '^9\. ' "step 9 names the red check's log on a failed: check run" 'leaves the red check'"'"'s log in place, whole rather than tailed'
 line_lacks '^9\. ' "a rerun reading a red record as checked" 'reads the record as checked red'
-line_has '^9\. ' "step 9 still removes the records on every other run" 'Every other run, a green delivery or one failed for any other reason, removes the records'
+line_lacks '^9\. ' "step 9 removing the records on any run" 'removes the records'
+line_lacks '^9\. ' "step 9 tying the records to step 8's Evidence copy" 'step 8 having copied'
+line_has '^7\. ' "the red fix-up brief points at the log path alone" 'for a red, the record'"'"'s log path, `<owner>/.tmp/checks/<tree>/log` with `<tree>` from `git -C <owner> rev-parse <branch>^{tree}`, no pasted output'
+line_lacks '^7\. ' "the red fix-up brief naming the failing command" "the failing command and the record's log path"
 hasc "report template's failed: line names the check" 'or <check> <command>'
 # the report marks the PR a draft and always carries the resume line (dev-9k5.1.9 review 1)
 hasc "report template marks the PR a draft" 'PR:      <url> (draft)'
@@ -1984,6 +2010,14 @@ for step in 2 3; do
   line_has "^$step\\. " "task orchestrator step $step's brief starts with the TMPDIR line" "$tmpdir_line"
 done
 line_has '^2\. ' "task orchestrator step 2's brief carries the plain-command line" "$plain_command"
+# the implementer and fix-up briefs say seam run and never the check command or the script
+line_has '^2\. ' "the implementer brief says seam runs at the story's test seams" "does seam runs at the story's test seams"
+line_has '^2\. ' "the implementer brief's seam run fallback is the touched modules' tests" "the touched modules' tests for a standalone task that names no seams"
+line_has '^2\. ' "the implementer brief says the implementer never runs the check command or the script" 'never runs the check command or `<plugin root>/scripts/check.sh`'
+line_has '^2\. ' "the implementer's own check runs never count" 'Its own check runs never count'
+line_has '^3\. ' "the fix-up pointer brief says seam run and never the check command or the script" 'it says seam run and never the check command or `<plugin root>/scripts/check.sh`'
+line_has '^3\. ' "the blocking fix-up brief's seam runs carry the timeout and never the check command" 'seam runs at the story'"'"'s test seams (the touched modules'"'"' tests for a standalone task that names no seams) with `timeout: 600000`, never the check command or `<plugin root>/scripts/check.sh`'
+line_lacks '^[23]\. ' "every check and test run in the briefs" 'every check and test run'
 line_has '^3\. ' "task orchestrator step 3's brief carries the plain-command line" "$plain_command"
 line_has "$anchor_task_orchestrator_header" "the task orchestrator header carries the plain-command line" "$plain_command"
 line_has '^2\. ' "task orchestrator step 2's brief names the bare pwd step" "$pwd_step"
@@ -2045,17 +2079,21 @@ line_has "$anchor_task_step_2_implementer" "task orchestrator step 2's implement
 line_has "$G3" "the gate keys the check on the tree SHA" '`git -C <worktree path> rev-parse HEAD^{tree}`'
 line_has "$G3" "the gate reads the tree only of a clean worktree" 'First confirm the worktree is clean, `git -C <worktree path> status --porcelain` prints nothing; a dirty worktree goes to a fresh implementer as a red does'
 line_lacks "$G3" "the clean-worktree guard that hides untracked files" '`git -C <worktree path> status --porcelain --untracked-files=no`'
-line_has "$G3" "a tree with a green check record is not checked again" "$rec_green"
-line_has "$G3" "a tree with a red check record is checked again" "$rec_red"
+line_has "$G3" "the gate leaves the green-record read to the script" 'The script reads the tip'"'"'s tree record itself: on a green record it runs nothing, whichever orchestrator wrote it'
+line_has "$G3" "the gate has the script check a red-recorded tree again" 'a red record is no check, so the script checks the tree again and replaces the record'
+line_lacks "$G3" "the gate reading the green record itself" "$rec_green"
+line_lacks "$G3" "the gate reading the record path itself" 'its check record is `<owner>/.tmp/checks/<tree>/record`'
 line_lacks "$G3" "the gate skipping the run on a red record" "$rec_any"
 line_has "$G3" "the task gate checks a red's fix-up that commits nothing again" "$rec_fixup"
-line_has "$G3" "the gate cites the rules doc's check-record call" "the call the rules doc's Check record states"
+line_has "$G3" "the gate runs the shipped script in one foreground call" 'run `<plugin root>/scripts/check.sh <worktree path> <owner>` (`<worktree path>` the task'"'"'s worktree path) in one foreground Bash call with `timeout: 600000`'
+line_has "$G3" "the gate cites the rules doc's Check record script" "the rules doc's Check record script"
+line_lacks "$G3" "the gate running the check command itself" 'run the check command in one foreground Bash call'
 line_lacks "$G3" "a second copy of the check-record call in the skill" "$rec_call"
 line_has "$G3" "the gate names the rules doc's Check record as the writer's rule" "Only you write a record, never an implementer (the rules doc's Check record)"
 line_has "$G3" "the gate reviews with mattpocock-skills:code-review" "$pin_code_review_tool"
 line_has "$G3" "the reviewer brief names the harness-route diff" '`git -C <worktree path> diff <branch>...HEAD`'
 line_lacks "$G3" "the per-round check log" 'checks-<round>-<k>.log'
-line_has "$G3" "a red gate reads a forty-line tail of the log, never the whole output" 'tail -n 40 <log>'
+line_has "$G3" "a red gate reads the tail the script prints, never the whole output" 'Red: read the tail the script prints'
 line_has "$G3" "a red gate's note form (checks <round>: red <command>)" '`bd -C <owner> note <task-id> "checks <round>: red <command>"`'
 line_has "$G3" "a green gate writes no note" 'a green writes no note'
 line_has "$G3" "the gate's fix-up brief points at the log path" 'the log path, and no pasted output'
@@ -2119,6 +2157,12 @@ hasc "the landed tip is noted" 'bd -C <owner> note <task-id> "review: <tip SHA>"
 # delivery: the rules doc's Delivery section, the PR opened ready, the notes in order, the close
 hasc "delivery by the rules doc's Delivery section" "as the rules doc's Delivery section says, with the standalone task as its unit"
 hasc "the PR opened ready, not draft" 'opened **ready**, not draft'
+# a tree with no green record is checked by the shipped script run on the owner checkout, a red
+# ending on the failed: check make check line, and the check records stay after a delivery (dev-9x6c.1.7)
+hasc "the delivery runs the Check record call on the owner checkout" 'Run the rules doc'"'"'s Check record call, `<plugin root>/scripts/check.sh <owner> <owner>`, with `<owner>` as its `<worktree path>`, in one foreground Bash call with `timeout: 600000`, `<plugin root>` spelled as the path this session resolved'
+hasc "the delivery leaves the green-record read to the script" 'The script reads the tip'"'"'s tree record itself: on a green record it runs nothing, and a red or missing record is checked; a red ends the run with `failed: check make check`'
+lacks "the delivery reading the green record itself" 'with no green record there (`exit=0` in `<owner>/.tmp/checks/<tree>/record`)'
+lacks "the clean-up removing the check records" 'rm -rf <owner>/.tmp/checks'
 lacks "a draft PR for a standalone task" 'gh pr create --draft|"WIP: '
 hasc "delivered: precedes pr:" 'the `delivered:` and `pr:` notes in that order'
 hasc "the task closes at delivery" "$pin_bd_close <task-id> --reason \"delivered: <pr: value>\""
@@ -2131,7 +2175,7 @@ hasc "the merge guard's closed-unmerged refusal" "\`<task-id> $pin_refused_pr_cl
 hasc "the merge guard cites the rules doc's Repo plumbing and Cut-off probe for its mechanism" "$merge_guard_cite"
 hasc "the merge guard's open PR delivers again" 'and deliver again (steps 2 to 5 once more, on it)'
 hasc "the branch form's refusals name the pr: value" 'the `pr:` value stands in for `<url>` in the refusals'
-# a finished task touches nothing: no worktree removed, no check record deleted (review 2)
+# a finished task touches nothing: no worktree removed (review 2)
 hasc "a finished task runs only the stray scan" "run only step 6's stray scan"
 hasc "a failed run re-enters at the gate" 'its next spawn is a gate entry'
 hasc "the probe for a failed run's commits is the rules doc's Cut-off probe" "$probe_cite"
