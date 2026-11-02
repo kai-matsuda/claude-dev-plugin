@@ -2436,12 +2436,63 @@ fi
 # pair (**`Name`**) or around it (`**Name**`), with or without punctuation; a backtick that is
 # part of the name (**`git` rule**) is no pair around it. Every check but the bare skill-first
 # one matches the name in any case; that one matches its own case only.
-# Limits: what the lint reads and what it leaves is listed in the cross-skill cite rule of
-# docs/agents/coding-standards.md ("The lint reads the shapes below"), bar the limits kept
-# below; this comment does not repeat the rule's list, so a change to a regex changes that
-# paragraph and not a second copy. Names are the skill's
-# own words (every regex character escaped, any characters but a bold marker). A bare skill is read
-# only beside a known name: a bare skill with a capitalised word that is no step or heading
+# Limits: the one list of what the lint reads and what it leaves open, bar the limits kept below
+# (the cross-skill cite rule in docs/agents/coding-standards.md points here, so a change to a
+# regex changes this list alone, bar those limits):
+#
+# The lint reads the shapes below and nothing more. It reads a skill beside a step or heading
+# name that skill's `SKILL.md` has, in three places: after the skill's possessive and an
+# optional "step" or "section"; straight after the skill, with an optional comma, colon or
+# semicolon or a spaced hyphen or em dash, and any of "the", "step" and "section"; and before
+# "of" or "in" the skill, at most two words of letters between. The skill is in backticks,
+# bare, or has a backtick at one end only or around its possessive; in the "of"/"in" order a
+# backtick before the skill leaves it backticked (see below), and only one after it is stray.
+# The marks are straight double quotes, `**` and backticks, around the name alone, with an
+# optional period, comma, colon or semicolon after the name inside the marks, right after them
+# or between two of them. Names match in any case, except a bare name straight after a skill,
+# which matches in its own case only ("/dev:implement-story story gate" passes). In those
+# places the lint fails a bare skill beside a name in the right mark; a name in the wrong mark
+# (a step in quotes, a heading in bold) or a bare heading; and a name inside backticks, alone
+# or with bold or quotes inside or around the pair, whatever the skill's form. Bare prose that
+# spells a name in those places fails too ("the steps of /dev:implement-story",
+# "/dev:task-orchestrator's report", "run bd story gate in /dev:implement-story", a lower-case
+# spelling included). A capital word after a backticked possessive fails whether it is a name
+# or not (`/dev:implement-story`'s Jira key).
+#
+# Every other shape is outside what the lint reads, among them: curly quotes and apostrophes,
+# en dashes and an em dash with no space around it, a separator with no space, single quotes,
+# italics, double backticks, a name in both bold and quotes, a skill set in bold or quotes,
+# any other punctuation among the marks, a one-sided mark (a bold or quote mark that opens a
+# name and is never closed, or closes one never opened), a stray backtick beside a right mark,
+# a backtick straight before a name that follows the skill or its possessive (with an optional
+# "step" or "section", comma, colon, semicolon or dash, and "the", "step" or "section"
+# between), a stray closing backtick after a bare name in the before-"of"/"in" place with no
+# space after it, a space before or after a name inside the backticks (bar that closing
+# backtick, below), or at both ends of it,
+# a bold lead-in with no period that opens no numbered item, a hyphenated word between a name
+# and "of" or "in", a link word other than "of" or "in", a name straight before the skill with
+# no link word, a parenthesis between the skill and the name or before the skill in the
+# "of"/"in" order (a parenthesis around the whole cite is read), any words beside a skill
+# other than those three places, and a backtick straight before the skill in the "of"/"in"
+# order, whatever follows the skill (arguments, a suffix, words, punctuation or nothing, a
+# closing backtick or none): it is a backticked skill, so the right mark beside it passes.
+# After the possessive and skill-first, a letter, slash, colon or hyphen straight before a
+# skill (a path or a prefix) leaves it no bare skill, so the right mark beside it passes; a
+# wrong mark or a bare name beside it still fails, since those checks read the skill anywhere.
+# In the "of"/"in" order a skill with such a prefix is not read at all, so any mark passes,
+# and a bare skill followed by a suffix other than a letter or hyphen (a period, slash or
+# underscore) is still bare.
+#
+# A bare name, a name in backticks or a name in the wrong mark before a backticked skill
+# with arguments, and any of these or a right mark before a suffixed bare skill, is read
+# and fails. A backtick before a name in the "of"/"in" order, or straight after a bare name
+# before "of"/"in", is read and fails, except the closing backtick after a bare name with
+# no space after it, which the list above leaves unread. The cite rule in
+# docs/agents/coding-standards.md says which forms are wrong; the lint fails them only in the
+# shapes above, and any shape it does not read is outside the lint.
+#
+# Names are the skill's own words (every regex character escaped, any characters but a bold
+# marker). A bare skill is read only beside a known name: a bare skill with a capitalised word that is no step or heading
 # ("/dev:x's Jira key"), a quoted or bold word that is no name, or no cite at all passes. A second
 # cite in a list passes for every one but the first.
 # The heading extractor reads ## to #### lines inside code fences and tags too, so
