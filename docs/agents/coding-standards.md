@@ -109,8 +109,9 @@ a pair of backticks is a cite in the wrong form, whether the pair stands inside 
 the skill is in backticks. A backtick that is part of a name stays in it: the step **`git`
 rule** of `/dev:task-orchestrator` is cited in bold, its backticks included. A skill named
 bare in prose that cites none of its rules ("run /dev:close-story", "/dev:close-story's Jira
-key") is outside this rule.
+key") is outside this rule. A name that is both a step and a heading takes either mark. Bare
+prose that spells a name beside a skill is wrong too; the fix is a reword.
 
-The lint's header in `scripts/lint-skill-docs.sh` (section 18) lists the shapes it reads and the
+The section 18 comment of `scripts/lint-skill-docs.sh` lists the shapes the lint reads and the
 shapes it leaves open; any shape it does not read is outside the lint, and a reader still
 writes the one right form.

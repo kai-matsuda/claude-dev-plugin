@@ -2436,8 +2436,9 @@ fi
 # pair (**`Name`**) or around it (`**Name**`), with or without punctuation; a backtick that is
 # part of the name (**`git` rule**) is no pair around it. Every check but the bare skill-first
 # one matches the name in any case; that one matches its own case only.
-# Limits: the one list of what the lint reads and what it leaves open (the cross-skill cite rule in
-# docs/agents/coding-standards.md points here, so a change to a regex changes this list alone):
+# Limits: the one list of what the lint reads and what it leaves open, bar the limits kept below
+# (the cross-skill cite rule in docs/agents/coding-standards.md points here, so a change to a
+# regex changes this list alone, bar those limits):
 #
 # The lint reads the shapes below and nothing more. It reads a skill beside a step or heading
 # name that skill's `SKILL.md` has, in three places: after the skill's possessive and an
@@ -2452,12 +2453,11 @@ fi
 # which matches in its own case only ("/dev:implement-story story gate" passes). In those
 # places the lint fails a bare skill beside a name in the right mark; a name in the wrong mark
 # (a step in quotes, a heading in bold) or a bare heading; and a name inside backticks, alone
-# or with bold or quotes inside or around the pair, whatever the skill's form. A name that is
-# both a step and a heading takes either mark. Bare prose that spells a name in those places
-# fails too ("the steps of /dev:implement-story", "/dev:task-orchestrator's report", "run bd
-# story gate in /dev:implement-story", a lower-case spelling included); the fix is a reword. A
-# capital word after a backticked possessive fails whether it is a name or not
-# (`/dev:implement-story`'s Jira key).
+# or with bold or quotes inside or around the pair, whatever the skill's form. Bare prose that
+# spells a name in those places fails too ("the steps of /dev:implement-story",
+# "/dev:task-orchestrator's report", "run bd story gate in /dev:implement-story", a lower-case
+# spelling included). A capital word after a backticked possessive fails whether it is a name
+# or not (`/dev:implement-story`'s Jira key).
 #
 # Every other shape is outside what the lint reads, among them: curly quotes and apostrophes,
 # en dashes and an em dash with no space around it, a separator with no space, single quotes,
@@ -2487,12 +2487,12 @@ fi
 # with arguments, and any of these or a right mark before a suffixed bare skill, is read
 # and fails. A backtick before a name in the "of"/"in" order, or straight after a bare name
 # before "of"/"in", is read and fails, except the closing backtick after a bare name with
-# no space after it, which the list above leaves unread. The cite rule in docs/agents/coding-standards.md says which forms are wrong; the lint fails
-# them only in the shapes above, and any shape it does not read is outside the lint.
+# no space after it, which the list above leaves unread. The cite rule in
+# docs/agents/coding-standards.md says which forms are wrong; the lint fails them only in the
+# shapes above, and any shape it does not read is outside the lint.
 #
-# Names are the skill's
-# own words (every regex character escaped, any characters but a bold marker). A bare skill is read
-# only beside a known name: a bare skill with a capitalised word that is no step or heading
+# Names are the skill's own words (every regex character escaped, any characters but a bold
+# marker). A bare skill is read only beside a known name: a bare skill with a capitalised word that is no step or heading
 # ("/dev:x's Jira key"), a quoted or bold word that is no name, or no cite at all passes. A second
 # cite in a list passes for every one but the first.
 # The heading extractor reads ## to #### lines inside code fences and tags too, so
