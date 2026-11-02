@@ -2038,6 +2038,13 @@ cite_seeds $orch "present: an unquoted heading cite of a skill in $scratch/$orch
 # one-sided bold or quote mark, and a stray backtick beside a right mark, are not read either
 cite_passes $orch "an open shape" "As $SK's \`Story gate says." "As ${SK}—**Story gate** says." "As \`$SK\`'s **\"Story gate\"** says." "As the **Story gate step of \`$SK\` says." "As \`/dev:task-orchestrator\`'s \"Two entries says." "As the Two entries\" heading of \`/dev:task-orchestrator\` says." "As the \`**Story gate** step of \`$SK\` says." "As \`$SK\`'s **Story gate**\` says." "As \`/dev:task-orchestrator\`'s \`\"Two entries\" says."
 
+# a mark that closes a name never opened is read after the possessive and skill-first, where the
+# name reads bare; in the of/in order it passes (the open shape above)
+cite_seeds $orch "present: a bare cite after a possessive and step or section of" \
+  "a mark closing a name never opened after the possessive" "As $SK's Story gate** says."
+cite_seeds $orch "present: a bare skill-first cite of" "a mark closing a name never opened skill-first" \
+  "As $SK Story gate** says."
+
 # a parenthesis around the whole cite is read; one between the skill and the name, or before the
 # skill in the of/in order, is outside what the lint reads
 cite_seeds $orch "present: " "a skill in parentheses around the whole cite" \
@@ -2050,6 +2057,9 @@ cite_passes $orch "a backtick before a name" "As $SK's step \`Story gate says." 
 cite_seeds $orch "present: " "a backtick after a name" \
   "As $SK's step Story gate\` says." \
   "As /dev:task-orchestrator's section Two entries\` says."
+# the skill-first order reads a backtick after a bare name too, with a space after it
+cite_seeds $orch "present: a bare skill-first cite of" "a backtick after a bare name, skill-first" \
+  "As $SK Story gate\` says."
 
 # a stray backtick after a bare name in the of/in order is read only with a space after it, or
 # after one period, comma, colon or semicolon that follows it
@@ -2061,6 +2071,11 @@ expect "a backtick after a bare name with no space after it passes section 18" 0
 cite_passes $orch "a backticked name with a space inside the backticks after a skill" \
   "As \`$SK\`'s \` Story gate\` says." \
   "As $SK \` Story gate\` says."
+
+# a space before a name in backticks is read in the of/in order, where the closing backtick after the
+# name leaves it bare; after the possessive and skill-first it is unread (the cases above)
+cite_seeds $orch "present: a bare cite of" "a space before a name in backticks in the of/in order" \
+  "As the \` Story gate\` step of $SK says."
 
 # a lower-case phrase that spells a name before in/of the skill is read too
 cite_seeds $orch "present: a bare cite of" "a name spelled in lower case in prose" \

@@ -2429,7 +2429,8 @@ fi
 # skill, an optional comma, colon, semicolon or dash, any of the, step and section, then the
 # marked name: `/dev:x` "Step name", `/dev:x`: **Heading**), and a bare name straight after the
 # skill fails the same way (dev-wh65). The skill is matched backticked or bare in all of these,
-# with a stray backtick at one end or around the possessive too, so a bare skill beside a known
+# with a stray backtick at one end or around the possessive too (in the of/in order a backtick
+# before the skill leaves it backticked, see below), so a bare skill beside a known
 # name fails, and so does the right marking (a step in bold, a heading in quotes) beside a skill
 # not in a whole pair of backticks (dev-hcn9). A name inside a pair of backticks fails in all
 # three orders, with the skill backticked or bare, alone or with the bold or quotes inside the
@@ -2463,12 +2464,13 @@ fi
 # en dashes and an em dash with no space around it, a separator with no space, single quotes,
 # italics, double backticks, a name in both bold and quotes, a skill set in bold or quotes,
 # any other punctuation among the marks, a one-sided mark (a bold or quote mark that opens a
-# name and is never closed, or closes one never opened), a stray backtick beside a right mark,
+# name and is never closed, or closes one never opened in the of/in order), a stray backtick
+# beside a right mark,
 # a backtick straight before a name that follows the skill or its possessive (with an optional
 # "step" or "section", comma, colon, semicolon or dash, and "the", "step" or "section"
 # between), a stray closing backtick after a bare name in the before-"of"/"in" place with no
-# space after it, a space before or after a name inside the backticks (bar that closing
-# backtick, below), or at both ends of it,
+# space after it, a space after a name inside the backticks, or a space before one in the
+# possessive and skill-first orders (in the of/in order a space before one is read, below),
 # a bold lead-in with no period that opens no numbered item, a hyphenated word between a name
 # and "of" or "in", a link word other than "of" or "in", a name straight before the skill with
 # no link word, a parenthesis between the skill and the name or before the skill in the
@@ -2487,7 +2489,10 @@ fi
 # with arguments, and any of these or a right mark before a suffixed bare skill, is read
 # and fails. A backtick before a name in the "of"/"in" order, or straight after a bare name
 # before "of"/"in", is read and fails, except the closing backtick after a bare name with
-# no space after it, which the list above leaves unread. The cite rule in
+# no space after it, which the list above leaves unread. A space before a name in backticks is
+# read in the of/in order when its closing backtick is straight after the name, so the name
+# fails as bare. A mark that closes a name never opened fails after the possessive and
+# skill-first, where the name reads bare, and passes in the of/in order. The cite rule in
 # docs/agents/coding-standards.md says which forms are wrong; the lint fails them only in the
 # shapes above, and any shape it does not read is outside the lint.
 #
