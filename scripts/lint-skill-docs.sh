@@ -1688,8 +1688,7 @@ sec_has "## Landing" "the landing merges the task branch" '`git -C <owner> merge
 sec_has "## Landing" "a conflicted merge is aborted, never resolved by the orchestrator" '`git -C <owner> merge --abort`'
 sec_has "## Landing" "a conflict goes to an implementer in the task's worktree" "A conflict goes to an implementer in the task's worktree"
 sec_has "## Landing" "the conflict implementer merges the integration tip into the task branch" "it is briefed to merge \`<branch>\`'s tip into the task branch"
-sec_has "## Landing" "the resolved tree is checked with the rules doc's call" "run the rules doc's Check record call, \`<plugin root>/scripts/check.sh <worktree path> <owner>\`, with the task's worktree as its \`<worktree path>\`"
-
+sec_has "## Landing" "the resolved tree is checked with the rules doc's call" "run the rules doc's Check record call, \`<plugin root>/scripts/check.sh <worktree path> <owner>\`, with the task's worktree as its \`<worktree path>\`, in one foreground Bash call with \`timeout: 600000\`, \`<plugin root>\` spelled as the path this session resolved; the script runs nothing on a tree with a green record"
 sec_has "## Landing" "no reviewer runs on the resolution" 'No reviewer runs: the story row'"'"'s standards axis sees the resolution'
 sec_has "## Landing" "the landing then fast-forwards" "\`$pin_ff_only_merge\`"
 sec_has "## Landing" "a red on a resolved tree fails the landing" "\`<task-id> $pin_failed_red_after_conflict\`"
@@ -1877,7 +1876,7 @@ line_has "$G7" "the story gate confirms the owner checkout is on the integration
 line_has "$G7" "the story gate's off-branch failed line" '`failed: <story-id> not on <branch>`'
 line_has "$G7" "the story gate's clean-checkout guard says why untracked files count" 'untracked files count, since the check runs on the working tree while the record keys on the committed tree'
 line_has "$G7" "the dirty-checkout failed line names the files" '`failed: <story-id> owner checkout dirty: <files>`, `<files>` the paths that status call printed, classified as step 6 says'
-line_has "$G7" "the story gate leaves the green-record read to the script" 'the script reads the tip'"'"'s tree record itself: a green one runs nothing, whichever orchestrator wrote it'
+line_has "$G7" "the story gate leaves the green-record read to the script" 'the script reads the tip'"'"'s tree record itself: on a green record it runs nothing, whichever orchestrator wrote it'
 line_has "$G7" "the story gate has the script check a red-recorded tree again" 'a red record is no check, so the script checks the tree again'
 line_lacks "$G7" "the story gate reading the green record itself" "$rec_green"
 line_lacks "$G7" "the story gate reading the record path itself" 'its record is `<owner>/.tmp/checks/<tree>/record`'
@@ -1940,10 +1939,13 @@ hasc "step 8 leaves a conflicted story not finished" 'A red forge check or a PR 
 line_has '^9\. ' "step 9 leaves the check records alone" 'Leave `<owner>/.tmp/checks/` in place: a record outlives the run and a resumed run reads it'
 line_lacks '^9\. ' "step 9 removes the check records" '`rm -rf <owner>/.tmp/checks`'
 # a run that ends failed on a red keeps the red tree's log in place for the human, the
-# failed: line's words unchanged, while every other run still removes the records (dev-15s)
+# failed: line's words unchanged, and no run removes the records (dev-15s)
 line_has '^9\. ' "step 9 names the red check's log on a failed: check run" 'leaves the red check'"'"'s log in place, whole rather than tailed'
 line_lacks '^9\. ' "a rerun reading a red record as checked" 'reads the record as checked red'
 line_lacks '^9\. ' "step 9 removing the records on any run" 'removes the records'
+line_lacks '^9\. ' "step 9 tying the records to step 8's Evidence copy" 'step 8 having copied'
+line_has '^7\. ' "the red fix-up brief points at the log path alone" 'for a red, the record'"'"'s log path, no pasted output'
+line_lacks '^7\. ' "the red fix-up brief naming the failing command" "the failing command and the record's log path"
 hasc "report template's failed: line names the check" 'or <check> <command>'
 # the report marks the PR a draft and always carries the resume line (dev-9k5.1.9 review 1)
 hasc "report template marks the PR a draft" 'PR:      <url> (draft)'
