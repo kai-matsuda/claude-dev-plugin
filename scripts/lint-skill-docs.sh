@@ -1689,6 +1689,7 @@ sec_has "## Landing" "a conflicted merge is aborted, never resolved by the orche
 sec_has "## Landing" "a conflict goes to an implementer in the task's worktree" "A conflict goes to an implementer in the task's worktree"
 sec_has "## Landing" "the conflict implementer merges the integration tip into the task branch" "it is briefed to merge \`<branch>\`'s tip into the task branch"
 sec_has "## Landing" "the resolved tree is checked with the rules doc's call" "run the rules doc's Check record call, \`<plugin root>/scripts/check.sh <worktree path> <owner>\`, with the task's worktree as its \`<worktree path>\`, in one foreground Bash call with \`timeout: 600000\`, \`<plugin root>\` spelled as the path this session resolved; the script runs nothing on a tree with a green record"
+line_lacks '^3\. A conflict goes to an implementer' "the landing reading the resolved tree's record itself" 'run nothing on a green record'
 sec_has "## Landing" "no reviewer runs on the resolution" 'No reviewer runs: the story row'"'"'s standards axis sees the resolution'
 sec_has "## Landing" "the landing then fast-forwards" "\`$pin_ff_only_merge\`"
 sec_has "## Landing" "a red on a resolved tree fails the landing" "\`<task-id> $pin_failed_red_after_conflict\`"
@@ -1705,7 +1706,6 @@ sec_has "## Landing" "a story fix-up's tip is read from its worktree" "its \`<ti
 lacksf "the reviewed-tip guard repeated after a conflict resolution" "repeat 1's guards"
 K='^3\. A conflict goes to an implementer'
 line_has "$K" "the conflict implementer's brief starts with the TMPDIR line" "$tmpdir_line"
-line_lacks "$K" "the landing reading the resolved tree's record itself" 'run nothing on a green record'
 line_has "$K" "the conflict implementer's brief carries the plain-command line" "$plain_command"
 line_hase "$K" "the conflict implementer's brief puts the TMPDIR line ahead of the plain-command line" "$tmpdir_then_plain"
 line_has "$K" "the conflict implementer's seam run timeout" 'with `timeout: 600000` on every seam run, never the check command or the script'
@@ -1876,7 +1876,7 @@ line_has "$G7" "the story gate confirms the owner checkout is on the integration
 line_has "$G7" "the story gate's off-branch failed line" '`failed: <story-id> not on <branch>`'
 line_has "$G7" "the story gate's clean-checkout guard says why untracked files count" 'untracked files count, since the check runs on the working tree while the record keys on the committed tree'
 line_has "$G7" "the dirty-checkout failed line names the files" '`failed: <story-id> owner checkout dirty: <files>`, `<files>` the paths that status call printed, classified as step 6 says'
-line_has "$G7" "the story gate leaves the green-record read to the script" 'the script reads the tip'"'"'s tree record itself: on a green record it runs nothing, whichever orchestrator wrote it'
+line_has "$G7" "the story gate leaves the green-record read to the script" 'resolved. The script reads the tip'"'"'s tree record itself: on a green record it runs nothing, whichever orchestrator wrote it'
 line_has "$G7" "the story gate has the script check a red-recorded tree again" 'a red record is no check, so the script checks the tree again'
 line_lacks "$G7" "the story gate reading the green record itself" "$rec_green"
 line_lacks "$G7" "the story gate reading the record path itself" 'its record is `<owner>/.tmp/checks/<tree>/record`'
@@ -1944,7 +1944,7 @@ line_has '^9\. ' "step 9 names the red check's log on a failed: check run" 'leav
 line_lacks '^9\. ' "a rerun reading a red record as checked" 'reads the record as checked red'
 line_lacks '^9\. ' "step 9 removing the records on any run" 'removes the records'
 line_lacks '^9\. ' "step 9 tying the records to step 8's Evidence copy" 'step 8 having copied'
-line_has '^7\. ' "the red fix-up brief points at the log path alone" 'for a red, the record'"'"'s log path, no pasted output'
+line_has '^7\. ' "the red fix-up brief points at the log path alone" 'for a red, the record'"'"'s log path, `<owner>/.tmp/checks/<tree>/log` with `<tree>` from `git -C <owner> rev-parse <branch>^{tree}`, no pasted output'
 line_lacks '^7\. ' "the red fix-up brief naming the failing command" "the failing command and the record's log path"
 hasc "report template's failed: line names the check" 'or <check> <command>'
 # the report marks the PR a draft and always carries the resume line (dev-9k5.1.9 review 1)
