@@ -213,6 +213,10 @@ every repo and subagent that has `jq`, so a brief carries no ban of its own (che
 
 For context around a match, or any `{m,n}` repeat, use `command grep`, not `grep`.
 
+**No leading `cd`.** The plugin's PreToolUse hook `<plugin root>/hooks/guard-cd.sh` refuses a
+Bash command whose first word is `cd`, so use the command's own directory flag or an
+absolute path.
+
 This section binds every session and subagent, orchestrating or not. Never prefix a command
 with `cd <repo> && …`: the Bash tool already starts in the repo root, and permission rules
 are matched against each part of a compound command separately, so the redundant `cd` is

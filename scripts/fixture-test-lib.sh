@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Helpers shared by the fixture tests (scripts/test-fixture-*.sh, test-lint-skill-docs.sh,
-# test-guard-rm.sh, test-phases.sh, test-glossary-lint.sh, test-setup-skill.sh,
+# test-guard-rm.sh, test-guard-cd.sh, test-phases.sh, test-glossary-lint.sh, test-setup-skill.sh,
 # test-setup-repo-skill.sh, test-ci-workflow.sh, test-readme.sh, test-check-target.sh,
 # test-check-script.sh).
 # Every helper is fx_-prefixed, so it neither shadows nor is shadowed by a sourcing script's own
