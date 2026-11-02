@@ -2158,6 +2158,10 @@ hasc "the branch: note" 'bd -C <owner> note <task-id> "branch: feat/<task-id>"'
 hasc "one task orchestrator through the skill" "$pin_call_task_orchestrator_skill"
 hasc "the task orchestrator at opus" "$pin_spawn_at_opus"
 hasc "the brief's gate entry" "$gate_entry"
+# a review: note's resume path runs the owner-checkout guard before step 5's check, untracked files
+# counted, as step 4's landing does, so a green record never keys a tree the checkout lacks (dev-jv82)
+hasc "the resume path runs the owner-checkout guard before step 5" 'it first runs the owner-checkout guard of step 4 (on `<branch>`, `git -C <owner> status --porcelain` prints nothing, untracked files counted'
+lacks "the resume path that goes straight to step 5" 'failed at delivery: go straight to step 5'
 # the landing is a fast-forward after the stray-commit check, and a review: note marks it
 hasc "the landing is a fast-forward" "$pin_ff_only_merge"
 # the owner-checkout guard counts untracked files, as the story gate's does, and says why; a dirty
