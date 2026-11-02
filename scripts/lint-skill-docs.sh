@@ -2156,6 +2156,10 @@ hasc "the landed tip is noted" 'bd -C <owner> note <task-id> "review: <tip SHA>"
 # delivery: the rules doc's Delivery section, the PR opened ready, the notes in order, the close
 hasc "delivery by the rules doc's Delivery section" "as the rules doc's Delivery section says, with the standalone task as its unit"
 hasc "the PR opened ready, not draft" 'opened **ready**, not draft'
+# a tree with no green record is checked by the shipped script run on the owner checkout, a red
+# ending on the failed: check make check line, and the check records stay after a delivery (dev-9x6c.1.7)
+hasc "a tree with no green record is checked with the Check record script on the owner checkout" 'run the rules doc'"'"'s Check record script, `<plugin root>/scripts/check.sh`, with `<owner>` as its `<worktree path>`, `timeout: 600000`, and a red ends the run with `failed: check make check`'
+lacks "the clean-up removing the check records" 'rm -rf <owner>/.tmp/checks'
 lacks "a draft PR for a standalone task" 'gh pr create --draft|"WIP: '
 hasc "delivered: precedes pr:" 'the `delivered:` and `pr:` notes in that order'
 hasc "the task closes at delivery" "$pin_bd_close <task-id> --reason \"delivered: <pr: value>\""
@@ -2168,7 +2172,7 @@ hasc "the merge guard's closed-unmerged refusal" "\`<task-id> $pin_refused_pr_cl
 hasc "the merge guard cites the rules doc's Repo plumbing and Cut-off probe for its mechanism" "$merge_guard_cite"
 hasc "the merge guard's open PR delivers again" 'and deliver again (steps 2 to 5 once more, on it)'
 hasc "the branch form's refusals name the pr: value" 'the `pr:` value stands in for `<url>` in the refusals'
-# a finished task touches nothing: no worktree removed, no check record deleted (review 2)
+# a finished task touches nothing: no worktree removed (review 2)
 hasc "a finished task runs only the stray scan" "run only step 6's stray scan"
 hasc "a failed run re-enters at the gate" 'its next spawn is a gate entry'
 hasc "the probe for a failed run's commits is the rules doc's Cut-off probe" "$probe_cite"
