@@ -124,6 +124,15 @@ fx_snapshot() { # <repo>
         dependencies: ((.dependencies // []) | map({type: .dependency_type, on: .title}) | sort_by(.on, .type))})
     | sort_by(.title)'
 }
+# npm's bd (CI's install) is a node script that spawns the binary beside it, so every bd call a
+# fixture makes, over a hundred a run, starts node first, on cores the other steps want. With that
+# layout the binary goes first on the PATH, for the scripts this one starts too; any other bd stays.
+fx_skip_bd_wrapper() {
+  local real
+  real=$(readlink -f "$(command -v bd)" 2>/dev/null) || return 0
+  case $real in */@beads/bd/bin/bd.js) [ ! -x "${real%.js}" ] || PATH=${real%/bd.js}:$PATH ;; esac
+}
+fx_skip_bd_wrapper
 fx_cache=${repo_root:?}/.fixtures/.bd-cache.$$
 fx_cache_drop
 trap 'rm -rf "${fx_cache:?}"; [ -z "${scratch:-}" ] || rm -rf "${scratch:?}"' EXIT

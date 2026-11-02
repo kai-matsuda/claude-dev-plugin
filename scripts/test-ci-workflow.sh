@@ -113,4 +113,20 @@ fx_check "the failure names the script that inits through a git_* wrapper" grep 
 fx_check "fx_git_repo, bd init and an init in a comment pass the git-init check" "$init_check" "$init_fixtures/good"
 fx_check "the fixture lib header lists this test" grep -Fq test-ci-workflow.sh "$repo_root/scripts/fixture-test-lib.sh"
 
+# the install above puts npm's node wrapper on the PATH, the binary beside it: laid out here as
+# npm lays it out, the lib's fixtures reach the binary, and any other bd is left as it is
+npm_bin=$scratch/npm/lib/node_modules/@beads/bd/bin
+mkdir -p "$npm_bin" "$scratch/npm/bin" "$scratch/plain"
+printf '#!/bin/sh\n' | tee "$npm_bin/bd.js" "$scratch/plain/bd" > /dev/null
+chmod +x "$npm_bin/bd.js" "$scratch/plain/bd"
+ln -s ../lib/node_modules/@beads/bd/bin/bd.js "$scratch/npm/bin/bd"
+bd_after() { # <dir first on the PATH>: the bd a fixture reaches from there
+  ( PATH=$1:$PATH; fx_skip_bd_wrapper; command -v bd )
+}
+fx_check "a wrapper with no binary beside it stays" fx_eq "$(bd_after "$scratch/npm/bin")" "$scratch/npm/bin/bd"
+printf '#!/bin/sh\n' > "$npm_bin/bd"
+chmod +x "$npm_bin/bd"
+fx_check "npm's node wrapper is skipped for the binary beside it" fx_eq "$(bd_after "$scratch/npm/bin")" "$npm_bin/bd"
+fx_check "a bd that is no npm wrapper stays" fx_eq "$(bd_after "$scratch/plain")" "$scratch/plain/bd"
+
 fx_report_fails
