@@ -55,3 +55,11 @@ alive, and each new rule about the moved tip would need its review-only twin.
 - The docs and skills name no review-only gate and no gate without a check command; the lint
   sweeps both phrases.
 - ADR 0014 keeps its text and points here.
+
+## Amendment: the ci extension
+
+The one permitted extension of the one-command decision: a repo whose forge needs steps it
+cannot run locally may add a `ci` target whose first prerequisite is `check` plus those steps,
+and its workflow then runs `make ci`. `make check` stays the gate in every repo, `ci` is never
+a subset of `check`, and `/dev:setup-repo` writes no `ci` target. The rule is stated once, in
+the rules doc's Check command paragraph (`docs/agents/orchestration.md`).

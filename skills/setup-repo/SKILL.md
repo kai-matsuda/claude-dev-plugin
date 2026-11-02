@@ -74,7 +74,7 @@ in step 4.
      with no tests or linters still gets a `check` target, the most useful check that can
      be inferred from what it holds (a syntax check of its scripts, a build, a parse of its
      configs, a lint of its docs) or the one the owner named in step 3, and never an
-     empty or `true` one.
+     empty or `true` one. It writes no `ci` target (the rules doc's Check command).
 6. **Report** what was written and what was left alone, and, if `core.hooksPath` was
    already set, whether the old hook was chained, and what the `check` target runs. Do not
    commit the CLAUDE.md, Makefile, GLOSSARY.md or `docs/adr/` changes unless the owner asks; the `bd init` commit is the

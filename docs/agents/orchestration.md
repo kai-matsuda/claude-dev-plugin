@@ -245,6 +245,11 @@ share one gate (dev-yyu). Test seams are not checks: no order
 among them and no log per seam. A test seam stays the story's testing boundary, named in its
 body: the implementer's brief names the seams as where its tests go, and the reviewer's as
 where the unit's criteria must be exercised.
+`make check` is the gate in every repo and the forge runs it.
+A repo whose forge needs steps it cannot run locally may add a `ci` target
+whose first prerequisite is `check` plus those steps, and its workflow then runs `make ci`;
+`ci` is never a subset of `check`.
+No other repo has a `ci` target, and `/dev:setup-repo` writes none.
 
 **Check record.** The orchestrator that runs the check command on a tree writes a check
 record, the command, its exit and the log, under the owner checkout's scratch directory

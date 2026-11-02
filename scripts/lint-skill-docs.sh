@@ -1265,6 +1265,12 @@ hasc "Check command rule" "$head_check_command"
 para_has "$head_check_command" "make check is the one check command" 'One command per owner repo, `make check`'
 row_phrase repo-plumbing-pins "the check command is make check" && row_text=${row_text#*since } && para_has "$head_check_command" "every owner repo has a check target" "${row_text%% target*}"
 para_has "$head_check_command" "a story run with no check target fails" 'with `failed: no check target`'
+# the ci extension rule (ADR 0015's amendment), stated once: the gate, the extension's shape, never
+# a subset, and setup-repo writes none
+para_has "$head_check_command" "make check is the gate in every repo and the forge runs it" '`make check` is the gate in every repo and the forge runs it'
+para_has "$head_check_command" "a ci target extends check with forge-only steps and the workflow runs make ci" 'whose first prerequisite is `check` plus those steps, and its workflow then runs `make ci`'
+para_has "$head_check_command" "ci is never a subset of check" '`ci` is never a subset of `check`'
+para_has "$head_check_command" "no other repo has a ci target and setup-repo writes none" 'No other repo has a `ci` target, and `/dev:setup-repo` writes none'
 hasc "Check record rule" "$head_check_record"
 para_has "$head_check_record" "keyed by the tree SHA" 'keyed by the tree SHA'
 para_has "$head_check_record" "only an orchestrator writes a record" 'Only an orchestrator writes a check record'
@@ -1521,6 +1527,8 @@ hasc "setup-repo runs init by the tracker doc's rule" 'which says where it runs 
 lacks "setup-repo restating the init rule" "$pin_never_through_c"
 # the stop reports the init commit as init made it, before the pruning amends it
 hasc "setup-repo stops before the pruning" 'A stop there comes before the pruning'
+# the check target step writes no ci target: the extension is a repo owner's to add (rules doc, Check command)
+hasc "setup-repo writes no ci target" 'It writes no `ci` target'
 fi
 # one has-a-database rule, stated once in the tracker doc and cited by every gate: .beads/ exists
 # and bd where names it (dev-e87); section 5 sweeps a gate on the directory alone, and section 1

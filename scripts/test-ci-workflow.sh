@@ -53,12 +53,16 @@ fx_check "the lint help line says it aliases check" grep -Eq '^lint:.*##.*alias.
 # the target runs, not how the Makefile spells it
 fx_scratch_dir test-ci-workflow || exit 1
 plan() { make -n --no-print-directory -C "$repo_root" "$1" 2>&1; }
-check_plan=$(plan check) ci_plan=$(plan ci) fixtures_plan=$(plan fixtures)
-fx_check "the ci target runs the workflow test" grep -Fq scripts/test-ci-workflow.sh <<<"$ci_plan"
-fx_check "the ci target runs no fixtures, direct or via make" bash -c '! grep -Eq "fixture|MAKE|make " <<<"$1"' _ "$ci_plan"
+check_plan=$(plan check) fixtures_plan=$(plan fixtures)
+# the one extension of the check command is a ci target in a repo whose forge needs steps it cannot
+# run locally; this repo's forge needs none, so check is the whole gate and make has no ci target
+no_ci_target() { ! make -C "$repo_root" -pRrq : 2>/dev/null | grep -Eq '^ci::?([^=:]|$)'; }
+fx_check "the Makefile has no ci target, asked of make" no_ci_target
+fx_check "make -n ci fails" bash -c '! make -n --no-print-directory -C "$1" ci >/dev/null 2>&1' _ "$repo_root"
+fx_check "the check target runs the workflow test" grep -Fq scripts/test-ci-workflow.sh <<<"$check_plan"
 fx_check "the fixtures target runs a fixture test" grep -Fq scripts/test-fixture-dag.sh <<<"$fixtures_plan"
-fx_check "the check target runs every step of ci and of the fixtures" bash -c '
-  for s in $(grep -oE "[a-z/-]+\.sh" <<<"$1$2" | sort -u); do grep -Fq "$s" <<<"$3" || { echo "check lacks $s" >&2; exit 1; }; done' _ "$ci_plan" "$fixtures_plan" "$check_plan"
+fx_check "the check target runs every step of the fixtures" bash -c '
+  for s in $(grep -oE "[a-z/-]+\.sh" <<<"$1" | sort -u); do grep -Fq "$s" <<<"$2" || { echo "check lacks $s" >&2; exit 1; }; done' _ "$fixtures_plan" "$check_plan"
 # one pool: a ci step run apart from the pool would hold its seconds ahead of or behind it
 fx_check "the check target runs its steps in one side-by-side run, no sub-make" bash -c '
   [ "$(grep -c "wait \$p" <<<"$1")" = 1 ] && ! grep -Eq "make (ci|fixtures)|MAKE" <<<"$1"' _ "$check_plan"
@@ -80,7 +84,7 @@ help_names_scripts() { # <makefile>
 }
 fx_check "no Makefile help line names a script its target runs" help_names_scripts "$mk"
 # the check must bite: a script's stem seeded into a target's help line is caught, for the
-# ci target, the fixtures target and check, whose recipes name no script themselves
+# fixtures target and check, whose recipes name no script themselves
 help_seeded() { # <target> <stem>: the Makefile with the stem appended to the target's help line
   sed -E "s/^($1:.*## .*)\$/\1 $2/" "$mk" > "$scratch/seeded.mk"
   grep -Eq "^$1:.*## .*$2\$" "$scratch/seeded.mk" || return 2   # the seed missed the help line
@@ -88,10 +92,9 @@ help_seeded() { # <target> <stem>: the Makefile with the stem appended to the ta
 }
 # a seed that misses its target's help line returns 2, so it reads as a failure, not as caught (1)
 fx_check "a seed that misses its help line is a failure, not a catch" eval 'help_seeded no-such-target guard-rm >/dev/null 2>&1; [ $? = 2 ]'
-fx_check "a script stem seeded into the ci help line is caught" eval 'help_seeded ci guard-rm >/dev/null 2>&1; [ $? = 1 ]'
 fx_check "a script stem seeded into the fixtures help line is caught" eval 'help_seeded fixtures stage-boundary >/dev/null 2>&1; [ $? = 1 ]'
 fx_check "a script stem seeded into the check help line is caught" eval 'help_seeded check guard-rm >/dev/null 2>&1; [ $? = 1 ]'
-fx_check "the ci target runs the test git-init check" bash -c 'grep -Fq scripts/check-test-git-init.sh <<<"$1"' _ "$ci_plan"
+fx_check "the check target runs the test git-init check" bash -c 'grep -Fq scripts/check-test-git-init.sh <<<"$1"' _ "$check_plan"
 # a step's line in a CI log says where the time went, and its CPU seconds say whether it waited or
 # worked: under its elapsed seconds, the shell's user and sys, then the step's (the times builtin)
 printf 'include %s\nside_step:\n\t$(call side_by_side,true)\nside_red:\n\t$(call side_by_side,true false)\n' "$mk" > "$scratch/probe.mk"
