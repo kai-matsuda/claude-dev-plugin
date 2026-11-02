@@ -217,8 +217,8 @@
 # GLOSSARY_MD overrides the root glossary (default: GLOSSARY.md under the repo root).
 # LINT_PINS_DIR overrides the directory of the pin tables (default: scripts under the repo root); a
 # missing directory or table fails, as a missing doc does.
-# LINT_PIN_LIST names a file every queued check is appended to first, for the regression test
-# to derive its drop cases from.
+# LINT_PIN_LIST names a file every queued check goes to in place of running, for the regression
+# test to derive its drop cases from.
 # PLUGIN_SKILLS overrides the plugin skills directory (default: newest installed mattpocock-skills).
 # The last section is the version-bump rule (INFRA-30): a change to what the plugin ships
 # needs a changed version in .claude-plugin/plugin.json. VERSION_BUMP_REPO overrides the repo it
@@ -273,12 +273,12 @@ drop_unchanged() {
   else cat; fi
 }
 # enqueue <check line>: queues it unless $f is a file LINT_UNCHANGED lists
-# LINT_PIN_LIST names a file every queued check is appended to first, one per line as
+# LINT_PIN_LIST names a file every check is appended to instead, one per line as
 # <type> <file> <description> <phrase> [<anchor>] (the queue's own line), for the regression test
-# to derive its drop cases from; the list holds every queued check, though enqueue still skips
-# queueing the checks of an unchanged file
+# to derive its drop cases from; such a run lists its checks and runs none of them, since section
+# 18 alone lists thousands and the test's baseline case runs them, with the names each file holds
 enqueue() {
-  [ -z "${LINT_PIN_LIST:-}" ] || printf '%s\n' "$1" >> "$LINT_PIN_LIST"
+  if [ -n "${LINT_PIN_LIST:-}" ]; then printf '%s\n' "$1" >> "$LINT_PIN_LIST"; return; fi
   unchanged_file || queue+="$1"$'\n'
 }
 has() { enqueue "i	$f	$1	$2"; }
@@ -2581,9 +2581,11 @@ if [ -f "$standards" ]; then
     fi
     skfirst="$skill_alone[,:;]?( (—|-))?( (the|step|section))*"
   }
-  # three_orders <x>: the pattern for x in the three word orders, from the poss, skfirst and gap
-  # that cite_toks set, so the orders of one cite cannot drift between checks
-  three_orders() { printf '%s' "$poss( (step|section))? $1|$skfirst $1|$1$gap"; }
+  # three_orders <x>: sets orders to the pattern for x in the three word orders, from the poss,
+  # skfirst and gap that cite_toks set, so the orders of one cite cannot drift between checks. A
+  # variable, not a $(...): this runs several times per name and file, and a fork each is most of
+  # a pin-list run
+  three_orders() { orders="$poss( (step|section))? $1|$skfirst $1|$1$gap"; }
   # cite_marked <wants> <what> <mark> <skill form>: queues a check that a name of one of the kinds
   # <wants> (a |-list; never one of kind both unless listed) is not cited in the mark ('"' or
   # '\*\*'), in any case, in any of three word orders: after the possessive and an optional step
@@ -2594,7 +2596,8 @@ if [ -f "$standards" ]; then
     case "|$1|" in *"|$kind|"*) ;; *) return 0 ;; esac   # kind both is checked only where <wants> lists it (dev-mnz6)
     local poss gap skfirst
     cite_toks "$4"
-    lacksw "$2 of /dev:$skill in $f" "$(three_orders "$3$name[.,;:]?$3[.,;:]?")"
+    three_orders "$3$name[.,;:]?$3[.,;:]?"
+    lacksw "$2 of /dev:$skill in $f" "$orders"
   }
   # every skill's SKILL.md is read too (dev-xyrl), the skills' own docs binding like a rules doc
   for f in "$agents"/*.md "$skills"/*/SKILL.md; do
@@ -2636,7 +2639,8 @@ if [ -f "$standards" ]; then
       # inside a pair of backticks, with a bold or quote mark inside or outside the pair too
       # (dev-hcn9). A backtick that is part of the name (**`git` rule**) is not a pair around it
       in_ticks="[*\"]*\`[*\"]*$name[*\".,;:]*\`[*\".,;:]*"
-      lacksw "a name cited in backticks of /dev:$skill in $f" "$(three_orders "$in_ticks")"
+      three_orders "$in_ticks"
+      lacksw "a name cited in backticks of /dev:$skill in $f" "$orders"
       cite_marked step "a step name cited in quotes" '"' any
       cite_marked heading "a heading cited in bold" '\*\*' any
       # a skill is named in backticks: the right marking beside a bare skill fails (dev-hcn9)

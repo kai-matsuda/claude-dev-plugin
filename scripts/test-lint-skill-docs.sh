@@ -2733,6 +2733,15 @@ export LINT_PIN_LIST=$jobs/pins.listed
 unchanged_list=$jobs/unchanged lint_scratch > /dev/null
 unset LINT_PIN_LIST
 fx_check "a pin list run with every file and table listed writes the whole list" cmp -s "$jobs/pins.list" "$jobs/pins.listed"
+# a pin list run lists its checks and runs none of them: the listing is what the test reads, and
+# section 18's thousands of checks, unfiltered there, would be most of the test's serial time
+fresh
+echo "cut one" >> "$scratch/skills/sample/SKILL.md"
+export LINT_PIN_LIST=$jobs/pins.seeded
+: > "$LINT_PIN_LIST"
+pin_run=$(lint_scratch)
+unset LINT_PIN_LIST
+fx_check "a pin list run on a seeded tree runs none of its queued checks" bash -c '! grep -q "retired phrase in" <<<"$1"' _ "$pin_run"
 # an empty list skips nothing, the sweeps over many files included
 fresh
 printf '```mermaid\nA->>B: one; two\n```\n' >> "$scratch/docs/agents/sample.md"
