@@ -2155,7 +2155,7 @@ hasc "the merge guard's closed-unmerged refusal" "\`<task-id> $pin_refused_pr_cl
 hasc "the merge guard cites the rules doc's Repo plumbing and Cut-off probe for its mechanism" "$merge_guard_cite"
 hasc "the merge guard's open PR delivers again" 'and deliver again (steps 2 to 5 once more, on it)'
 hasc "the branch form's refusals name the pr: value" 'the `pr:` value stands in for `<url>` in the refusals'
-# a finished task touches nothing: no worktree removed, no check record deleted (review 2)
+# a finished task touches nothing: no worktree removed (review 2)
 hasc "a finished task runs only the stray scan" "run only step 6's stray scan"
 hasc "a failed run re-enters at the gate" 'its next spawn is a gate entry'
 hasc "the probe for a failed run's commits is the rules doc's Cut-off probe" "$probe_cite"
