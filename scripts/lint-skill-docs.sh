@@ -2007,7 +2007,7 @@ line_has '^2\. ' "task orchestrator step 2's brief carries the plain-command lin
 # the implementer and fix-up briefs say seam run and never the check command or the script
 line_has '^2\. ' "the implementer brief says seam runs at the story's test seams" "does seam runs at the story's test seams"
 line_has '^2\. ' "the implementer brief's seam run fallback is the touched modules' tests" "the touched modules' tests for a standalone task that names no seams"
-line_has '^2\. ' "the implementer brief never runs the check command or the script" 'never runs the check command or `<plugin root>/scripts/check.sh`'
+line_has '^2\. ' "the implementer brief says the implementer never runs the check command or the script" 'never runs the check command or `<plugin root>/scripts/check.sh`'
 line_has '^2\. ' "the implementer's own check runs never count" 'Its own check runs never count'
 line_has '^3\. ' "the fix-up pointer brief says seam run and never the check command or the script" 'it says seam run and never the check command or `<plugin root>/scripts/check.sh`'
 line_has '^3\. ' "the blocking fix-up brief's seam runs carry the timeout and never the check command" 'seam runs at the story'"'"'s test seams (the touched modules'"'"' tests for a standalone task that names no seams) with `timeout: 600000`, never the check command or `<plugin root>/scripts/check.sh`'
