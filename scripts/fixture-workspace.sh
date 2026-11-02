@@ -97,15 +97,15 @@ bd_init() { # <dir> <prefix>   bd -C cannot init: it needs an existing .beads, s
   # export.auto false: the same walk makes every bd write under BD_EXPORT_AUTO print a "repair"
   # line that adds the enclosing origin to the fixture; this config beats the env var.
   # FIXTURE_BD_SEED (header): a seed this OUT left is replayed, its commit as init's own
-  local seed=${FIXTURE_BD_SEED:+$FIXTURE_BD_SEED/$2}
-  if [ -n "$seed" ] && [ -d "$seed" ]; then
-    cp -R "$seed/.beads" "$1/.beads" && cp "$seed/.gitignore" "$1/.gitignore"
+  local saved=${FIXTURE_BD_SEED:+$FIXTURE_BD_SEED/$2}
+  if [ -n "$saved" ] && [ -d "$saved" ]; then
+    cp -R "$saved/.beads" "$1/.beads" && cp "$saved/.gitignore" "$1/.gitignore"
     git -C "$1" add .beads .gitignore
     git -C "$1" commit -q --no-verify -m "bd init: initialize beads issue tracking"
   else
     ( cd "$1" && bd init --non-interactive --skip-agents --skip-hooks --prefix "$2" --remote '' >/dev/null )
-    if [ -n "$seed" ]; then
-      mkdir -p "$seed" && cp -R "$1/.beads" "$seed/.beads" && cp "$1/.gitignore" "$seed/.gitignore"
+    if [ -n "$saved" ]; then
+      mkdir -p "$saved" && cp -R "$1/.beads" "$saved/.beads" && cp "$1/.gitignore" "$saved/.gitignore"
     fi
   fi
   bd -C "$1" config set export.auto false >/dev/null

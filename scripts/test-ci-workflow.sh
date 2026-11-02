@@ -126,7 +126,9 @@ bd_after() { # <dir first on the PATH>: the bd a fixture reaches from there
 fx_check "a wrapper with no binary beside it stays" fx_eq "$(bd_after "$scratch/npm/bin")" "$scratch/npm/bin/bd"
 printf '#!/bin/sh\n' > "$npm_bin/bd"
 chmod +x "$npm_bin/bd"
-fx_check "npm's node wrapper is skipped for the binary beside it" fx_eq "$(bd_after "$scratch/npm/bin")" "$npm_bin/bd"
+# the skip puts the wrapper's resolved dir on the PATH, so the expected path is physical too: a
+# checkout reached through a symlink has a $scratch that differs from it
+fx_check "npm's node wrapper is skipped for the binary beside it" fx_eq "$(bd_after "$scratch/npm/bin")" "$(cd "$npm_bin" && pwd -P)/bd"
 fx_check "a bd that is no npm wrapper stays" fx_eq "$(bd_after "$scratch/plain")" "$scratch/plain/bd"
 
 fx_report_fails

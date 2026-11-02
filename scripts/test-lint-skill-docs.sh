@@ -2740,7 +2740,8 @@ fresh
 enclosing_head=$(git -C "$repo_root" rev-parse HEAD)
 touch "$scratch/bump.gd"   # a file where the git dir goes: init fails
 fx_check "fx_git_repo refuses a dir whose git dir path is an existing file" eval '! fx_git_repo "$scratch/bump" "$scratch/bump.gd"'
-fx_check "a throwaway repo whose init fails is refused" eval '! (make_bump_repo main)'
+# jobs points at no bump.seed, in the subshell alone: a seed would be copied in and no init would run
+fx_check "a throwaway repo whose init fails is refused" eval '! (jobs=$scratch/no-seed; make_bump_repo main)'
 fx_check "a failed throwaway init commits nothing into the enclosing checkout" fx_eq "$(git -C "$repo_root" rev-parse HEAD)" "$enclosing_head"
 mkdir -p "$scratch/plain"
 fx_check "a dir inside the enclosing checkout is no throwaway repo's top level" eval '! fx_is_repo_top "$scratch/plain"'
