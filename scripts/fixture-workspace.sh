@@ -51,6 +51,11 @@
 # any directory named `.git`, which git init needs and rm -rf hits, and no setting lifts that
 # (chezmoi-chk), so this is what lets the script and its tests run in-sandbox. A fixture
 # built by an older fixture-workspace.sh keeps a real `.git`: delete it once with the sandbox off.
+#
+# FIXTURE_BD_SEED names a dir, outside OUT, that saves a bd init: the first build at an OUT saves
+# what each bd init left there, and a later build at the same OUT copies it in place of running
+# one. A bd init is most of a build's cost, and the tests build twice or more to compare listings.
+# A seed holds to one OUT: Dolt's state names its absolute path. Unset, every build runs bd init.
 set -euo pipefail
 
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
@@ -91,7 +96,18 @@ bd_init() { # <dir> <prefix>   bd -C cannot init: it needs an existing .beads, s
   # not stop, so it would reach the enclosing checkout and adopt its origin as the Dolt remote.
   # export.auto false: the same walk makes every bd write under BD_EXPORT_AUTO print a "repair"
   # line that adds the enclosing origin to the fixture; this config beats the env var.
-  ( cd "$1" && bd init --non-interactive --skip-agents --skip-hooks --prefix "$2" --remote '' >/dev/null )
+  # FIXTURE_BD_SEED (header): a seed this OUT left is replayed, its commit as init's own
+  local saved=${FIXTURE_BD_SEED:+$FIXTURE_BD_SEED/$2}
+  if [ -n "$saved" ] && [ -d "$saved" ]; then
+    cp -R "$saved/.beads" "$1/.beads" && cp "$saved/.gitignore" "$1/.gitignore"
+    git -C "$1" add .beads .gitignore
+    git -C "$1" commit -q --no-verify -m "bd init: initialize beads issue tracking"
+  else
+    ( cd "$1" && bd init --non-interactive --skip-agents --skip-hooks --prefix "$2" --remote '' >/dev/null )
+    if [ -n "$saved" ]; then
+      mkdir -p "$saved" && cp -R "$1/.beads" "$saved/.beads" && cp "$1/.gitignore" "$saved/.gitignore"
+    fi
+  fi
   bd -C "$1" config set export.auto false >/dev/null
 }
 

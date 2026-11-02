@@ -31,7 +31,8 @@
 # apart from any seeding that takes its anchor (round_specs), its verdicts read off one lint output
 # (judge_batch), and a case a batch cannot vouch for runs alone, so every derived case still prints
 # its own verdict line. A shared tree's verdict stands for a tree of the case's own on the
-# conditions set out above the batch loop.
+# conditions set out above the batch loop. Section 18's cases share runs too, each in a small doc of
+# its own (cite_case, cite_flush, judge_cites), and one its run cannot vouch for runs alone as well.
 # Each part of the run prints its wall and CPU seconds and the pool's slot count on a "timing:"
 # line (phase), for the CI log.
 # No wait in the pool is unbounded (dev-1ef): each lint run (under perl, which macOS and the
@@ -320,7 +321,7 @@ expect() {
     fi
     if [ -n "${batch:-}" ]; then
       BATCH_RETRY=$dir.retry BATCH_DIR=$dir BATCH_SCRATCH=$batch_scratch \
-        judge_batch "$batch" "$(lint_scratch ${args[@]+"${args[@]}"})" > "$dir.part" 2>&1
+        "${judge_fn:-judge_batch}" "$batch" "$(lint_scratch ${args[@]+"${args[@]}"})" > "$dir.part" 2>&1
     else
       judge "$d" "$want" "$msg" "$(lint_scratch ${args[@]+"${args[@]}"})" > "$dir.part" 2>&1
     fi
@@ -1650,151 +1651,150 @@ expect "a quoted heading cite and a bold step cite pass section 18" 0
 # the other wrong forms the rule names (dev-mnz6): a step name in quotes, a heading in bold and a
 # bare cite in the "of /dev:x" word order, each failing in a rules doc but the coding standards
 orch=docs/agents/orchestration.md
-fresh
-printf '%s\n' "As \`/dev:implement-story\`'s \"Story gate\" says." >> "$scratch/$orch"
-sec=18 expect "a step name cited in quotes fails section 18" 1 "present: a step name cited in quotes of /dev:implement-story in $scratch/$orch"
+# Section 18's cases seed a line of prose, and a lint run over a rules doc pays for that doc's every
+# check, so they share their runs (dev-xier): cite_case keeps each case's text for a doc of its own,
+# docs/agents/cite-<n>.md, in one tree per $prep, and cite_flush lints each tree once. A case's own
+# doc says what the same text appended to <file> would: a check reads /dev:<skill> and a name
+# together, so a text holding them passes the file's filter on its own, and a text without them
+# fires nothing in <file> either. The cases above, on the rules doc itself, stand as the witnesses.
+cite_n=0 ncbatches=0 ncretried=0
+# cite_case <want: 1 fails, 0 passes> <file under scratch> <description> <message> <line>...: the
+# lines are the text; $no_nl drops the last newline
+cite_case() {
+  local want=$1 file=$2 d=$3 msg=$4 tree=${prep:-plain} text
+  shift 4
+  printf -v text '%s\n' "$@"
+  [ -z "${no_nl:-}" ] || text=${text%$nl}
+  cite_n=$((cite_n+1))
+  [ -d "$jobs/cites/$tree" ] || mkdir -p "$jobs/cites/$tree"
+  printf '%s' "$text" > "$jobs/cites/$tree/cite-$cite_n.md"
+  printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$want" "$cite_n" "$tree" "$file" "$d" "$msg" >> "$jobs/cites/$tree.spec"
+}
+# judge_cites <spec> <lint output>: an ok line per record the output vouches for, every other record
+# to $BATCH_RETRY, to run alone. A failing case is vouched for by a FAIL naming its doc with its
+# message (<file> in the message read as its doc), a passing one by no FAIL naming its doc. Nothing
+# is vouched for when the lint timed out, or when a FAIL fell outside section 18 or outside the
+# batch's docs, as a tree of the case's own would have shown. The output's paths are the case's dir
+# ($BATCH_DIR); the spec's are the scratch dir's ($BATCH_SCRATCH)
+judge_cites() {
+  local rc=${2##*$'\n'}
+  printf '%s\n' "$2" | rc=$rc awk -F '\t' -v dir="$BATCH_DIR" -v base="$BATCH_SCRATCH" '
+    NR == FNR {
+      if (/^== /) { sect = $0; sub(/^== /, "", sect); sub(/\..*/, "", sect) }
+      else if (/^FAIL/) {
+        F[++nf] = $0
+        if (sect != "18" || !index($0, dir "/docs/agents/cite-")) foreign = 1
+      }
+      next }
+    {
+      doc = dir "/docs/agents/cite-" $2 ".md"
+      msg = $6; p = base "/" $4
+      if ((i = index(msg, p))) msg = substr(msg, 1, i - 1) doc substr(msg, i + length(p))
+      hit = 0
+      for (i = 1; i <= nf; i++) if (index(F[i], doc) && index(F[i], msg)) hit = 1
+      ok = !foreign && (ENVIRON["rc"] == 0 || ENVIRON["rc"] == 1) && ($1 == 1 ? hit : !hit)
+      if (ok) print "ok   " $5; else print > ENVIRON["BATCH_RETRY"]
+    }' - "$1"
+}
+# cite_flush: lints each tree of kept cases, then runs alone, as the case was written, each one its
+# tree did not vouch for
+cite_flush() {
+  local spec tree want n file desc msg
+  expect_flush all
+  rm -f "$jobs"/*.retry
+  for spec in "$jobs"/cites/*.spec; do
+    tree=${spec##*/} tree=${tree%.spec}
+    fresh
+    [ "$tree" = plain ] || "$tree"
+    cp "${spec%.spec}"/* "$scratch/docs/agents/"
+    ncbatches=$((ncbatches+1))
+    sec= batch=$spec judge_fn=judge_cites expect "cite batch $tree" 1
+  done
+  expect_flush all
+  cat "$jobs"/*.retry > "$jobs/retries" 2>/dev/null
+  while IFS=$'\t' read -r -u 4 want n tree file desc msg; do
+    ncretried=$((ncretried+1))
+    fresh
+    [ "$tree" = plain ] || "$tree"
+    cat "$jobs/cites/$tree/cite-$n.md" >> "$scratch/$file"
+    sec=18 expect "$desc" "$want" "$msg"
+  done 4< "$jobs/retries"
+}
+cite_case 1 $orch "a step name cited in quotes fails section 18" "present: a step name cited in quotes of /dev:implement-story in $scratch/$orch" "As \`/dev:implement-story\`'s \"Story gate\" says."
 
-fresh
-printf '%s\n' "As the \"Clean up\" sweep of \`/dev:implement-story\` says." >> "$scratch/$orch"
-sec=18 expect "a step name in quotes in the word order fails section 18" 1 "present: a step name cited in quotes of /dev:implement-story in $scratch/$orch"
+cite_case 1 $orch "a step name in quotes in the word order fails section 18" "present: a step name cited in quotes of /dev:implement-story in $scratch/$orch" "As the \"Clean up\" sweep of \`/dev:implement-story\` says."
 
-fresh
-printf '%s\n' "As \`/dev:task-orchestrator\`'s **Two entries** says." >> "$scratch/$orch"
-sec=18 expect "a heading cited in bold fails section 18" 1 "present: a heading cited in bold of /dev:task-orchestrator in $scratch/$orch"
+cite_case 1 $orch "a heading cited in bold fails section 18" "present: a heading cited in bold of /dev:task-orchestrator in $scratch/$orch" "As \`/dev:task-orchestrator\`'s **Two entries** says."
 
-fresh
-printf '%s\n' "As the **Landing** section of \`/dev:implement-story\` says." >> "$scratch/$orch"
-sec=18 expect "a heading in bold in the word order fails section 18" 1 "present: a heading cited in bold of /dev:implement-story in $scratch/$orch"
+cite_case 1 $orch "a heading in bold in the word order fails section 18" "present: a heading cited in bold of /dev:implement-story in $scratch/$orch" "As the **Landing** section of \`/dev:implement-story\` says."
 
-fresh
-printf '%s\n' "As the Landing section of \`/dev:implement-story\` says." >> "$scratch/$orch"
-sec=18 expect "a bare heading in the word order fails section 18" 1 "present: a bare cite of /dev:implement-story in $scratch/$orch"
+cite_case 1 $orch "a bare heading in the word order fails section 18" "present: a bare cite of /dev:implement-story in $scratch/$orch" "As the Landing section of \`/dev:implement-story\` says."
 
-fresh
-printf '%s\n' "As the Clean up sweep of \`/dev:implement-story\` says." >> "$scratch/$orch"
-sec=18 expect "a bare step name in the word order fails section 18" 1 "present: a bare cite of /dev:implement-story in $scratch/$orch"
+cite_case 1 $orch "a bare step name in the word order fails section 18" "present: a bare cite of /dev:implement-story in $scratch/$orch" "As the Clean up sweep of \`/dev:implement-story\` says."
 
-fresh
-printf '%s\n' "As the **Clean up** sweep of \`/dev:implement-story\` and the \"Two entries\" section of \`/dev:task-orchestrator\` say." >> "$scratch/$orch"
-expect "the right form in the word order passes section 18" 0
+cite_case 0 $orch "the right form in the word order passes section 18" "" "As the **Clean up** sweep of \`/dev:implement-story\` and the \"Two entries\" section of \`/dev:task-orchestrator\` say."
 
 # the forms past the first cut (dev-mnz6 review 1): numbered and ### headings, step names that are
 # hyphenated, indented or opening no numbered item, punctuation inside the marking and more word orders
-fresh
-printf '%s\n' "As \`/dev:close-story\`'s **The forge shows MERGED** says." >> "$scratch/$orch"
-sec=18 expect "a numbered ## heading cited in bold fails section 18" 1 "present: a heading cited in bold of /dev:close-story in $scratch/$orch"
+cite_case 1 $orch "a numbered ## heading cited in bold fails section 18" "present: a heading cited in bold of /dev:close-story in $scratch/$orch" "As \`/dev:close-story\`'s **The forge shows MERGED** says."
 
-fresh
-printf '%s\n' "As the The forge shows MERGED step of \`/dev:close-story\` says." >> "$scratch/$orch"
-sec=18 expect "a numbered ## heading cited bare in the word order fails section 18" 1 "present: a bare cite of /dev:close-story in $scratch/$orch"
+cite_case 1 $orch "a numbered ## heading cited bare in the word order fails section 18" "present: a bare cite of /dev:close-story in $scratch/$orch" "As the The forge shows MERGED step of \`/dev:close-story\` says."
 
-fresh
-printf '%s\n' "As \`/dev:story-to-tasks\`'s **Gather context** says." >> "$scratch/$orch"
-sec=18 expect "a numbered ### heading cited in bold fails section 18" 1 "present: a heading cited in bold of /dev:story-to-tasks in $scratch/$orch"
+cite_case 1 $orch "a numbered ### heading cited in bold fails section 18" "present: a heading cited in bold of /dev:story-to-tasks in $scratch/$orch" "As \`/dev:story-to-tasks\`'s **Gather context** says."
 
-fresh
-printf '%s\n' "As \`/dev:implement-story\`'s \"Re-evaluate the frontier\" says." >> "$scratch/$orch"
-sec=18 expect "a hyphenated numbered step cited in quotes fails section 18" 1 "present: a step name cited in quotes of /dev:implement-story in $scratch/$orch"
+cite_case 1 $orch "a hyphenated numbered step cited in quotes fails section 18" "present: a step name cited in quotes of /dev:implement-story in $scratch/$orch" "As \`/dev:implement-story\`'s \"Re-evaluate the frontier\" says."
 
-fresh
-printf '%s\n' "As \`/dev:implement-spec\`'s \"Fix-up\" says." >> "$scratch/$orch"
-sec=18 expect "a hyphenated indented step cited in quotes fails section 18" 1 "present: a step name cited in quotes of /dev:implement-spec in $scratch/$orch"
+cite_case 1 $orch "a hyphenated indented step cited in quotes fails section 18" "present: a step name cited in quotes of /dev:implement-spec in $scratch/$orch" "As \`/dev:implement-spec\`'s \"Fix-up\" says."
 
-fresh
-printf '%s\n' "As the \"Merge guard\" of \`/dev:implement-story\` says." >> "$scratch/$orch"
-sec=18 expect "an indented step cited in quotes in the word order fails section 18" 1 "present: a step name cited in quotes of /dev:implement-story in $scratch/$orch"
+cite_case 1 $orch "an indented step cited in quotes in the word order fails section 18" "present: a step name cited in quotes of /dev:implement-story in $scratch/$orch" "As the \"Merge guard\" of \`/dev:implement-story\` says."
 
-fresh
-printf '%s\n' "As \`/dev:implement-task\`'s \"Close at delivery\" says." >> "$scratch/$orch"
-sec=18 expect "an indented step of implement-task cited in quotes fails section 18" 1 "present: a step name cited in quotes of /dev:implement-task in $scratch/$orch"
+cite_case 1 $orch "an indented step of implement-task cited in quotes fails section 18" "present: a step name cited in quotes of /dev:implement-task in $scratch/$orch" "As \`/dev:implement-task\`'s \"Close at delivery\" says."
 
-fresh
-printf '%s\n' "As the Cut off sweep of \`/dev:implement-spec\` says." >> "$scratch/$orch"
-sec=18 expect "an indented step cited bare in the word order fails section 18" 1 "present: a bare cite of /dev:implement-spec in $scratch/$orch"
+cite_case 1 $orch "an indented step cited bare in the word order fails section 18" "present: a bare cite of /dev:implement-spec in $scratch/$orch" "As the Cut off sweep of \`/dev:implement-spec\` says."
 
-fresh
-printf '%s\n' "As \`/dev:implement-story\`'s \"Story gate,\" says." >> "$scratch/$orch"
-sec=18 expect "punctuation inside the quotes still fails section 18" 1 "present: a step name cited in quotes of /dev:implement-story in $scratch/$orch"
+cite_case 1 $orch "punctuation inside the quotes still fails section 18" "present: a step name cited in quotes of /dev:implement-story in $scratch/$orch" "As \`/dev:implement-story\`'s \"Story gate,\" says."
 
-fresh
-printf '%s\n' "As \`/dev:task-orchestrator\`'s **Two entries.** says." >> "$scratch/$orch"
-sec=18 expect "punctuation inside the bold still fails section 18" 1 "present: a heading cited in bold of /dev:task-orchestrator in $scratch/$orch"
+cite_case 1 $orch "punctuation inside the bold still fails section 18" "present: a heading cited in bold of /dev:task-orchestrator in $scratch/$orch" "As \`/dev:task-orchestrator\`'s **Two entries.** says."
 
-fresh
-printf '%s\n' "As the \"Clean up\" step in \`/dev:implement-story\` says." >> "$scratch/$orch"
-sec=18 expect "a step name in quotes before 'in' fails section 18" 1 "present: a step name cited in quotes of /dev:implement-story in $scratch/$orch"
+cite_case 1 $orch "a step name in quotes before 'in' fails section 18" "present: a step name cited in quotes of /dev:implement-story in $scratch/$orch" "As the \"Clean up\" step in \`/dev:implement-story\` says."
 
-fresh
-printf '%s\n' "As \`/dev:implement-story\`'s step \"Clean up\" says." >> "$scratch/$orch"
-sec=18 expect "a step name in quotes after 'step' fails section 18" 1 "present: a step name cited in quotes of /dev:implement-story in $scratch/$orch"
+cite_case 1 $orch "a step name in quotes after 'step' fails section 18" "present: a step name cited in quotes of /dev:implement-story in $scratch/$orch" "As \`/dev:implement-story\`'s step \"Clean up\" says."
 
-fresh
-printf '%s\n' "As the \"Clean up\" final sweep of \`/dev:implement-story\` says." >> "$scratch/$orch"
-sec=18 expect "two words before 'of' still fail section 18" 1 "present: a step name cited in quotes of /dev:implement-story in $scratch/$orch"
+cite_case 1 $orch "two words before 'of' still fail section 18" "present: a step name cited in quotes of /dev:implement-story in $scratch/$orch" "As the \"Clean up\" final sweep of \`/dev:implement-story\` says."
 
-fresh
-printf '%s\n' "As \`/dev:close-story\`'s \"The forge shows MERGED\", the **Merge guard** step in \`/dev:implement-story\` and \`/dev:story-to-tasks\`'s \"Gather context\" say." >> "$scratch/$orch"
-expect "the right forms of numbered headings and indented steps pass section 18" 0
+cite_case 0 $orch "the right forms of numbered headings and indented steps pass section 18" "" "As \`/dev:close-story\`'s \"The forge shows MERGED\", the **Merge guard** step in \`/dev:implement-story\` and \`/dev:story-to-tasks\`'s \"Gather context\" say."
 
 # names with punctuation (dev-mnz6 review 2): parentheses, a backtick, a comma, in headings and in
 # period-marked steps, each reaching the check queue with its regex characters escaped
-fresh
-printf '%s\n' "As \`/dev:story-to-tasks\`'s **Explore the codebase (optional)** says." >> "$scratch/$orch"
-sec=18 expect "a heading with parentheses cited in bold fails section 18" 1 "present: a heading cited in bold of /dev:story-to-tasks in $scratch/$orch"
+cite_case 1 $orch "a heading with parentheses cited in bold fails section 18" "present: a heading cited in bold of /dev:story-to-tasks in $scratch/$orch" "As \`/dev:story-to-tasks\`'s **Explore the codebase (optional)** says."
 
-fresh
-printf '%s\n' "As the Explore the codebase (optional) step of \`/dev:story-to-tasks\` says." >> "$scratch/$orch"
-sec=18 expect "a heading with parentheses cited bare fails section 18" 1 "present: a bare cite of /dev:story-to-tasks in $scratch/$orch"
+cite_case 1 $orch "a heading with parentheses cited bare fails section 18" "present: a bare cite of /dev:story-to-tasks in $scratch/$orch" "As the Explore the codebase (optional) step of \`/dev:story-to-tasks\` says."
 
-fresh
-printf '%s\n' "As \`/dev:close-story\`'s **The \`pr:\` note exists** says." >> "$scratch/$orch"
-sec=18 expect "a heading with a backtick cited in bold fails section 18" 1 "present: a heading cited in bold of /dev:close-story in $scratch/$orch"
+cite_case 1 $orch "a heading with a backtick cited in bold fails section 18" "present: a heading cited in bold of /dev:close-story in $scratch/$orch" "As \`/dev:close-story\`'s **The \`pr:\` note exists** says."
 
-fresh
-printf '%s\n' "As \`/dev:spec-to-tasks\`'s **Comment on the Jira epic, and end** says." >> "$scratch/$orch"
-sec=18 expect "a heading with a comma cited in bold fails section 18" 1 "present: a heading cited in bold of /dev:spec-to-tasks in $scratch/$orch"
+cite_case 1 $orch "a heading with a comma cited in bold fails section 18" "present: a heading cited in bold of /dev:spec-to-tasks in $scratch/$orch" "As \`/dev:spec-to-tasks\`'s **Comment on the Jira epic, and end** says."
 
-fresh
-printf '%s\n' "As \`/dev:story-to-tasks\`'s \"Dependency pair, per edge\" says." >> "$scratch/$orch"
-sec=18 expect "a period-marked step with a comma cited in quotes fails section 18" 1 "present: a step name cited in quotes of /dev:story-to-tasks in $scratch/$orch"
+cite_case 1 $orch "a period-marked step with a comma cited in quotes fails section 18" "present: a step name cited in quotes of /dev:story-to-tasks in $scratch/$orch" "As \`/dev:story-to-tasks\`'s \"Dependency pair, per edge\" says."
 
-fresh
-printf '%s\n' "As \`/dev:task-orchestrator\`'s \"\`git\` rule\" says." >> "$scratch/$orch"
-sec=18 expect "a period-marked step with a backtick cited in quotes fails section 18" 1 "present: a step name cited in quotes of /dev:task-orchestrator in $scratch/$orch"
+cite_case 1 $orch "a period-marked step with a backtick cited in quotes fails section 18" "present: a step name cited in quotes of /dev:task-orchestrator in $scratch/$orch" "As \`/dev:task-orchestrator\`'s \"\`git\` rule\" says."
 
-fresh
-printf '%s\n' "As \`/dev:close-story\`'s \"The \`pr:\` note exists\", \`/dev:story-to-tasks\`'s \"Explore the codebase (optional)\" and the **Dependency pair, per edge** step of \`/dev:story-to-tasks\` say." >> "$scratch/$orch"
-expect "the right forms of names with punctuation pass section 18" 0
+cite_case 0 $orch "the right forms of names with punctuation pass section 18" "" "As \`/dev:close-story\`'s \"The \`pr:\` note exists\", \`/dev:story-to-tasks\`'s \"Explore the codebase (optional)\" and the **Dependency pair, per edge** step of \`/dev:story-to-tasks\` say."
 
 # a regex character in a name is no operator: a parenthesised name's text without its parentheses is no cite
-fresh
-printf '%s\n' "As \`/dev:story-to-tasks\`'s **Explore the codebase optional** says." >> "$scratch/$orch"
-expect "a name's parentheses are matched as characters in section 18" 0
+cite_case 0 $orch "a name's parentheses are matched as characters in section 18" "" "As \`/dev:story-to-tasks\`'s **Explore the codebase optional** says."
 
 # the line-break case of each new form, the 's section alternative, step/section bare and a name that is both
-fresh
-printf '%s\n' "As \`/dev:implement-story\`'s" "\"Story gate\" says." >> "$scratch/$orch"
-sec=18 expect "a step name in quotes split across a line break fails section 18" 1 "present: a step name cited in quotes of /dev:implement-story in $scratch/$orch"
+cite_case 1 $orch "a step name in quotes split across a line break fails section 18" "present: a step name cited in quotes of /dev:implement-story in $scratch/$orch" "As \`/dev:implement-story\`'s" "\"Story gate\" says."
 
-fresh
-printf '%s\n' "As \`/dev:task-orchestrator\`'s" "**Two entries** says." >> "$scratch/$orch"
-sec=18 expect "a heading in bold split across a line break fails section 18" 1 "present: a heading cited in bold of /dev:task-orchestrator in $scratch/$orch"
+cite_case 1 $orch "a heading in bold split across a line break fails section 18" "present: a heading cited in bold of /dev:task-orchestrator in $scratch/$orch" "As \`/dev:task-orchestrator\`'s" "**Two entries** says."
 
-fresh
-printf '%s\n' "As the Landing section of" "\`/dev:implement-story\` says." >> "$scratch/$orch"
-sec=18 expect "a bare cite in the word order split across a line break fails section 18" 1 "present: a bare cite of /dev:implement-story in $scratch/$orch"
+cite_case 1 $orch "a bare cite in the word order split across a line break fails section 18" "present: a bare cite of /dev:implement-story in $scratch/$orch" "As the Landing section of" "\`/dev:implement-story\` says."
 
-fresh
-printf '%s\n' "As \`/dev:task-orchestrator\`'s section **Two entries** says." >> "$scratch/$orch"
-sec=18 expect "a heading in bold after 'section' fails section 18" 1 "present: a heading cited in bold of /dev:task-orchestrator in $scratch/$orch"
+cite_case 1 $orch "a heading in bold after 'section' fails section 18" "present: a heading cited in bold of /dev:task-orchestrator in $scratch/$orch" "As \`/dev:task-orchestrator\`'s section **Two entries** says."
 
-fresh
-printf '%s\n' "As \`/dev:task-orchestrator\`'s section Two entries says." >> "$scratch/$orch"
-sec=18 expect "a bare heading after 'section' fails section 18" 1 "present: a bare cite after a possessive and step or section of /dev:task-orchestrator in $scratch/$orch"
+cite_case 1 $orch "a bare heading after 'section' fails section 18" "present: a bare cite after a possessive and step or section of /dev:task-orchestrator in $scratch/$orch" "As \`/dev:task-orchestrator\`'s section Two entries says."
 
-fresh
-printf '%s\n' "As \`/dev:implement-story\`'s step Clean up says." >> "$scratch/$orch"
-sec=18 expect "a bare step name after 'step' fails section 18" 1 "present: a bare cite after a possessive and step or section of /dev:implement-story in $scratch/$orch"
+cite_case 1 $orch "a bare step name after 'step' fails section 18" "present: a bare cite after a possessive and step or section of /dev:implement-story in $scratch/$orch" "As \`/dev:implement-story\`'s step Clean up says."
 
 # a name that is both a step and a heading in one skill has no wrong marking: quotes and bold pass,
 # only the bare forms fail (dev-mnz6 review 3)
@@ -1823,24 +1823,14 @@ zed_step() { printf '%s\n' "## Zed gate" "" "**Zed gate.** A step." >> "$scratch
 cite_seeds() {
   local file=$1 msg=$2 what=$3 form
   shift 3
-  for form in "$@"; do
-    fresh
-    [ -z "${prep:-}" ] || "$prep"
-    printf '%s\n' "$form" >> "$scratch/$file"
-    sec=18 expect "$what ($form) fails section 18" 1 "$msg"
-  done
+  for form in "$@"; do cite_case 1 "$file" "$what ($form) fails section 18" "$msg" "$form"; done
 }
 # cite_passes <file> <what> <form>...: each form, appended to the file in a fresh tree, passes
 # section 18 (the passing twin of cite_seeds; $prep too)
 cite_passes() {
   local file=$1 what=$2 form
   shift 2
-  for form in "$@"; do
-    fresh
-    [ -z "${prep:-}" ] || "$prep"
-    printf '%s\n' "$form" >> "$scratch/$file"
-    sec=18 expect "$what ($form) passes section 18" 0
-  done
+  for form in "$@"; do cite_case 0 "$file" "$what ($form) passes section 18" "" "$form"; done
 }
 # a name of kind both in backticks fails, the skill bare or not (the backtick check has no kind
 # filter; the marks beside a bare skill are seeded further down)
@@ -1891,18 +1881,12 @@ printf '%s\n' "As \`/dev:implement-story\`'s **Deep gate** says." >> "$scratch/$
 sec=18 expect "a #### heading cited in bold fails section 18" 1 "present: a heading cited in bold of /dev:implement-story in $scratch/$orch"
 
 # crossed step/section words are read in both checks
-fresh
-printf '%s\n' "As \`/dev:implement-story\`'s section \"Story gate\" says." >> "$scratch/$orch"
-sec=18 expect "a step name in quotes after 'section' fails section 18" 1 "present: a step name cited in quotes of /dev:implement-story in $scratch/$orch"
+cite_case 1 $orch "a step name in quotes after 'section' fails section 18" "present: a step name cited in quotes of /dev:implement-story in $scratch/$orch" "As \`/dev:implement-story\`'s section \"Story gate\" says."
 
 # the stated limits pass: a gap of three words, 'of the skill'
-fresh
-printf '%s\n' "As the Story gate one more thing step of \`/dev:implement-story\` says." >> "$scratch/$orch"
-expect "a gap longer than two words passes section 18" 0
+cite_case 0 $orch "a gap longer than two words passes section 18" "" "As the Story gate one more thing step of \`/dev:implement-story\` says."
 
-fresh
-printf '%s\n' "As the Story gate of the \`/dev:implement-story\` skill says." >> "$scratch/$orch"
-expect "a bare cite of 'the /dev:x skill' passes section 18" 0
+cite_case 0 $orch "a bare cite of 'the /dev:x skill' passes section 18" "" "As the Story gate of the \`/dev:implement-story\` skill says."
 
 # a bare skill beside a name in the right marking, in all three orders; the loop asserts that a
 # present: line fails, and the cases after it assert which check
@@ -1919,12 +1903,8 @@ cite_seeds $orch "present: " "a bare skill beside a name" \
   "As $SK's story gate says." \
   "As the \"Story gate\" step of $SK says." \
   "As the **Story gate** step in $SK says."
-fresh
-printf '%s\n' "As /dev:task-orchestrator's \"Two entries\" says." >> "$scratch/$orch"
-sec=18 expect "a skill cited without backticks after a possessive fails section 18" 1 "$bare_msg /dev:task-orchestrator in $scratch/$orch"
-fresh
-printf '%s\n' "As /dev:task-orchestrator \"Two entries\" and /dev:task-orchestrator's \"Two entries\" say." >> "$scratch/$orch"
-sec=18 expect "a heading in quotes beside a bare skill fails section 18" 1 "$bare_msg /dev:task-orchestrator in $scratch/$orch"
+cite_case 1 $orch "a skill cited without backticks after a possessive fails section 18" "$bare_msg /dev:task-orchestrator in $scratch/$orch" "As /dev:task-orchestrator's \"Two entries\" says."
+cite_case 1 $orch "a heading in quotes beside a bare skill fails section 18" "$bare_msg /dev:task-orchestrator in $scratch/$orch" "As /dev:task-orchestrator \"Two entries\" and /dev:task-orchestrator's \"Two entries\" say."
 
 # prose with a bare skill that cites no known name passes: the lint reads known names only
 cite_passes $orch "a bare skill citing no known name" "Run $SK and see its plumbing." "The word \"foo\" in $SK is prose." "The story reads $SK's Jira key from the bead." "The **foo** of $SK is prose." "As $SK's own step says."
@@ -1944,15 +1924,9 @@ cite_seeds $orch "$bt_msg /dev:implement-story in $scratch/$orch" "a step name i
   "As the \`Story gate,\` step of \`/dev:implement-story\` says." \
   "As \`/dev:implement-story\`: \`Story gate\` says." \
   "As \`/dev:implement-story\`'s \`story gate\` says."
-fresh
-printf '%s\n' "As \`/dev:task-orchestrator\`'s \`Two entries\` says." >> "$scratch/$orch"
-sec=18 expect "a heading cited in backticks fails section 18" 1 "$bt_msg /dev:task-orchestrator in $scratch/$orch"
-fresh
-printf '%s\n' "As the \`Two entries\` heading of \`/dev:task-orchestrator\` says." >> "$scratch/$orch"
-sec=18 expect "a heading in backticks in the word order fails section 18" 1 "$bt_msg /dev:task-orchestrator in $scratch/$orch"
-fresh
-printf '%s\n' "As \`/dev:task-orchestrator\` \`Two entries\` says." >> "$scratch/$orch"
-sec=18 expect "a heading in backticks skill-first fails section 18" 1 "$bt_msg /dev:task-orchestrator in $scratch/$orch"
+cite_case 1 $orch "a heading cited in backticks fails section 18" "$bt_msg /dev:task-orchestrator in $scratch/$orch" "As \`/dev:task-orchestrator\`'s \`Two entries\` says."
+cite_case 1 $orch "a heading in backticks in the word order fails section 18" "$bt_msg /dev:task-orchestrator in $scratch/$orch" "As the \`Two entries\` heading of \`/dev:task-orchestrator\` says."
+cite_case 1 $orch "a heading in backticks skill-first fails section 18" "$bt_msg /dev:task-orchestrator in $scratch/$orch" "As \`/dev:task-orchestrator\` \`Two entries\` says."
 
 # backticks around a name that is also in bold or quotes, or around the mark itself, fail in all
 # three orders with the skill backticked or bare
@@ -2063,9 +2037,7 @@ cite_seeds $orch "present: a bare skill-first cite of" "a backtick after a bare 
 
 # a stray backtick after a bare name in the of/in order is read only with a space after it, or
 # after one period, comma, colon or semicolon that follows it
-fresh
-printf '%s\n' "As the Story gate\`.step of $SK says." >> "$scratch/$orch"
-expect "a backtick after a bare name with no space after it passes section 18" 0
+cite_case 0 $orch "a backtick after a bare name with no space after it passes section 18" "" "As the Story gate\`.step of $SK says."
 # that closing backtick is unread only in the of/in order: after the possessive or the skill it
 # still sits beside a space and the name is unread
 cite_passes $orch "a backticked name with a space inside the backticks after a skill" \
@@ -2180,12 +2152,8 @@ cite_seeds $orch "present: " "a wrong-marked name before a backticked skill with
   "As the \"Story gate\" step of \`$SK/x\` says."
 
 # bare skill beside a bare or quoted name in the of/in order, and a bare skill with a bare capital
-fresh
-printf '%s\n' "As the \"Two entries\" heading of /dev:task-orchestrator says." >> "$scratch/$orch"
-sec=18 expect "a heading in quotes before 'of' a bare skill fails section 18" 1 "$bare_msg /dev:task-orchestrator in $scratch/$orch"
-fresh
-printf '%s\n' "As /dev:task-orchestrator's Two entries says." >> "$scratch/$orch"
-sec=18 expect "a bare capital heading after a bare possessive fails section 18" 1 "present: a bare cite after a possessive and step or section of /dev:task-orchestrator in $scratch/$orch"
+cite_case 1 $orch "a heading in quotes before 'of' a bare skill fails section 18" "$bare_msg /dev:task-orchestrator in $scratch/$orch" "As the \"Two entries\" heading of /dev:task-orchestrator says."
+cite_case 1 $orch "a bare capital heading after a bare possessive fails section 18" "present: a bare cite after a possessive and step or section of /dev:task-orchestrator in $scratch/$orch" "As /dev:task-orchestrator's Two entries says."
 
 # bare-skill prose that spells a known name fails: the reword is the fix
 cite_seeds $orch "present: " "bare-skill prose spelling a known name" \
@@ -2203,11 +2171,7 @@ cite_seeds $orch "present: " "bare-skill prose spelling a known name" \
 edge_seeds() {
   local msg=$1 what=$2 text
   shift 2
-  for text in "$@"; do
-    fresh
-    printf '%s' "$text" > "$scratch/docs/agents/seed.md"
-    sec=18 expect "$what ($text) fails section 18" 1 "$msg"
-  done
+  for text in "$@"; do no_nl=1 cite_case 1 docs/agents/seed.md "$what ($text) fails section 18" "$msg" "$text"; done
 }
 edge_seeds "present: " "a bare skill ending a doc with no final newline" \
   "As the **Clean up** sweep of $SK" \
@@ -2277,9 +2241,7 @@ printf '%s\n' "As the Foo bar step of \`/dev:setup\` says." >> "$scratch/$orch"
 sec=18 expect "a name of /dev:setup cited before 'of' /dev:setup still fails section 18" 1 "present: a bare cite of /dev:setup in $scratch/$orch"
 
 # a backticked word that is no known name passes
-fresh
-printf '%s\n' "Run \`git status\` in \`/dev:implement-story\`, then see \`/dev:implement-story\`'s \`notes\`." >> "$scratch/$orch"
-expect "a backticked word that is no known name passes section 18" 0
+cite_case 0 $orch "a backticked word that is no known name passes section 18" "" "Run \`git status\` in \`/dev:implement-story\`, then see \`/dev:implement-story\`'s \`notes\`."
 
 # the [A-Z] branch for a skill with a bare capital after a backticked possessive, and the quote
 # form after a bare possessive in a SKILL.md of another skill
@@ -2292,68 +2254,42 @@ sec=18 expect "a bare skill in a SKILL.md fails section 18" 1 "$bare_msg /dev:ta
 
 # skill-first and case-changed wrong cites (dev-wh65): the skill directly before a step name in
 # quotes or a heading in bold (a marked name whose case changed is seeded in a doc of its own below)
-fresh
-printf '%s\n' "As \`/dev:implement-story\` \"Story gate\" says." >> "$scratch/$orch"
-sec=18 expect "a skill-first step name in quotes fails section 18" 1 "present: a step name cited in quotes of /dev:implement-story in $scratch/$orch"
+cite_case 1 $orch "a skill-first step name in quotes fails section 18" "present: a step name cited in quotes of /dev:implement-story in $scratch/$orch" "As \`/dev:implement-story\` \"Story gate\" says."
 
-fresh
-printf '%s\n' "As \`/dev:task-orchestrator\`, **Two entries** says." >> "$scratch/$orch"
-sec=18 expect "a skill-first heading in bold fails section 18" 1 "present: a heading cited in bold of /dev:task-orchestrator in $scratch/$orch"
+cite_case 1 $orch "a skill-first heading in bold fails section 18" "present: a heading cited in bold of /dev:task-orchestrator in $scratch/$orch" "As \`/dev:task-orchestrator\`, **Two entries** says."
 
-fresh
-printf '%s\n' "As \`/dev:implement-story\` **Story gate** and \`/dev:task-orchestrator\` \"Two entries\" say." >> "$scratch/$orch"
-expect "the right marking skill-first passes section 18" 0
+cite_case 0 $orch "the right marking skill-first passes section 18" "" "As \`/dev:implement-story\` **Story gate** and \`/dev:task-orchestrator\` \"Two entries\" say."
 
 # review 1 of dev-wh65: a case-changed cite fails in a doc lacking the name's first word in its
 # original case (the prefilter reads the file case-insensitively)
-fresh
-printf '%s\n' "As \`/dev:implement-story\`'s \"story gate\" says." > "$scratch/docs/agents/seed.md"
-sec=18 expect "a case-changed step name in quotes fails in a doc without the original-case word" 1 "present: a step name cited in quotes of /dev:implement-story in $scratch/docs/agents/seed.md"
+cite_case 1 docs/agents/seed.md "a case-changed step name in quotes fails in a doc without the original-case word" "present: a step name cited in quotes of /dev:implement-story in $scratch/docs/agents/seed.md" "As \`/dev:implement-story\`'s \"story gate\" says."
 
-fresh
-printf '%s\n' "As the **two entries** section of \`/dev:task-orchestrator\` says." > "$scratch/docs/agents/seed.md"
-sec=18 expect "a case-changed heading in bold fails in a doc without the original-case word" 1 "present: a heading cited in bold of /dev:task-orchestrator in $scratch/docs/agents/seed.md"
+cite_case 1 docs/agents/seed.md "a case-changed heading in bold fails in a doc without the original-case word" "present: a heading cited in bold of /dev:task-orchestrator in $scratch/docs/agents/seed.md" "As the **two entries** section of \`/dev:task-orchestrator\` says."
 
 # a bare name in another case, in every order
-fresh
-printf '%s\n' "As \`/dev:implement-story\`'s story gate says." > "$scratch/docs/agents/seed.md"
-sec=18 expect "a lower-case bare name after the possessive fails section 18" 1 "present: a bare cite after a possessive and step or section of /dev:implement-story in $scratch/docs/agents/seed.md"
+cite_case 1 docs/agents/seed.md "a lower-case bare name after the possessive fails section 18" "present: a bare cite after a possessive and step or section of /dev:implement-story in $scratch/docs/agents/seed.md" "As \`/dev:implement-story\`'s story gate says."
 
-fresh
-printf '%s\n' "As the check gate of \`/dev:implement-story\` says, and the story gate of \`/dev:implement-story\`." > "$scratch/docs/agents/seed.md"
-sec=18 expect "a lower-case bare name before 'of' fails section 18" 1 "present: a bare cite of /dev:implement-story in $scratch/docs/agents/seed.md"
+cite_case 1 docs/agents/seed.md "a lower-case bare name before 'of' fails section 18" "present: a bare cite of /dev:implement-story in $scratch/docs/agents/seed.md" "As the check gate of \`/dev:implement-story\` says, and the story gate of \`/dev:implement-story\`."
 
-fresh
-printf '%s\n' "As \`/dev:implement-story\` Story gate says." > "$scratch/docs/agents/seed.md"
-sec=18 expect "a bare skill-first step name fails section 18" 1 "present: a bare skill-first cite of /dev:implement-story in $scratch/docs/agents/seed.md"
+cite_case 1 docs/agents/seed.md "a bare skill-first step name fails section 18" "present: a bare skill-first cite of /dev:implement-story in $scratch/docs/agents/seed.md" "As \`/dev:implement-story\` Story gate says."
 
-fresh
-printf '%s\n' "As \`/dev:task-orchestrator\`, Two entries says." > "$scratch/docs/agents/seed.md"
-sec=18 expect "a bare skill-first heading after a comma fails section 18" 1 "present: a bare skill-first cite of /dev:task-orchestrator in $scratch/docs/agents/seed.md"
+cite_case 1 docs/agents/seed.md "a bare skill-first heading after a comma fails section 18" "present: a bare skill-first cite of /dev:task-orchestrator in $scratch/docs/agents/seed.md" "As \`/dev:task-orchestrator\`, Two entries says."
 
 # a lower-case word straight after a skill reads as prose (the real "`/dev:story-to-tasks` re-cut adds"),
 # so a bare skill-first cite is caught in the name's own case only
-fresh
-printf '%s\n' "As \`/dev:task-orchestrator\` two entries says." > "$scratch/docs/agents/seed.md"
-sec=18 expect "a lower-case bare skill-first heading passes section 18" 0
+cite_case 0 docs/agents/seed.md "a lower-case bare skill-first heading passes section 18" "" "As \`/dev:task-orchestrator\` two entries says."
 
 # a skill-first marked cite with another separator or a link word
 for form in "\`/dev:implement-story\`: \"Story gate\"" "\`/dev:implement-story\` step \"Story gate\"" "\`/dev:implement-story\` the \"Story gate\" step" "\`/dev:implement-story\`; \"Story gate\"" "\`/dev:implement-story\` - \"Story gate\"" "\`/dev:implement-story\` \"story gate\""; do
-  fresh
-  printf '%s\n' "As $form says." > "$scratch/docs/agents/seed.md"
-  sec=18 expect "a skill-first step in quotes ($form) fails section 18" 1 "present: a step name cited in quotes of /dev:implement-story in $scratch/docs/agents/seed.md"
+  cite_case 1 docs/agents/seed.md "a skill-first step in quotes ($form) fails section 18" "present: a step name cited in quotes of /dev:implement-story in $scratch/docs/agents/seed.md" "As $form says."
 done
 for form in "\`/dev:task-orchestrator\` section **Two entries**" "\`/dev:task-orchestrator\` — **Two entries**" "\`/dev:task-orchestrator\`: **Two entries**" "\`/dev:task-orchestrator\`; **Two entries**" "\`/dev:task-orchestrator\` - **Two entries**" "\`/dev:task-orchestrator\` **two entries**"; do
-  fresh
-  printf '%s\n' "As $form says." > "$scratch/docs/agents/seed.md"
-  sec=18 expect "a skill-first heading in bold ($form) fails section 18" 1 "present: a heading cited in bold of /dev:task-orchestrator in $scratch/docs/agents/seed.md"
+  cite_case 1 docs/agents/seed.md "a skill-first heading in bold ($form) fails section 18" "present: a heading cited in bold of /dev:task-orchestrator in $scratch/docs/agents/seed.md" "As $form says."
 done
 
 # a bare skill-first name after a colon, "the", "step", a semicolon or a hyphen
 for form in "\`/dev:implement-story\`: Story gate" "\`/dev:implement-story\` the Story gate" "\`/dev:implement-story\` step Story gate" "\`/dev:implement-story\`; Story gate" "\`/dev:implement-story\` - Story gate"; do
-  fresh
-  printf '%s\n' "As $form says." > "$scratch/docs/agents/seed.md"
-  sec=18 expect "a bare skill-first step name ($form) fails section 18" 1 "present: a bare skill-first cite of /dev:implement-story in $scratch/docs/agents/seed.md"
+  cite_case 1 docs/agents/seed.md "a bare skill-first step name ($form) fails section 18" "present: a bare skill-first cite of /dev:implement-story in $scratch/docs/agents/seed.md" "As $form says."
 done
 
 # a step and a heading differing only in case are one name of kind both: the right markings pass
@@ -2369,16 +2305,12 @@ printf '%s\n' "## sweep" >> "$scratch/skills/implement-story/SKILL.md"
 sec=18 expect "a skill gaining a heading re-reads an unchanged rules doc in section 18" 1 "present: a bare cite of /dev:implement-story in $scratch/$orch"
 
 # a bold label opening a list item (- **Owner** in /dev:triage) names no step, so it is no cite target
-fresh
-printf '%s\n' "The Owner of \`/dev:triage\` and the Alone of \`/dev:story-to-tasks\` are words." >> "$scratch/$orch"
-expect "a list label or a bare bold label is no step name in section 18" 0
+cite_case 0 $orch "a list label or a bare bold label is no step name in section 18" "" "The Owner of \`/dev:triage\` and the Alone of \`/dev:story-to-tasks\` are words."
 
 # a bold lead-in with no period is a label, not a step name (dev-bjkt): the rule says so, so a
 # lead-in that carries a rule is marked with a period inside the bold (**The set to cut.**) and
 # a cite of it in quotes is the wrong form
-fresh
-printf '%s\n' "As \`/dev:spec-to-tasks\`'s \"The set to cut\" says." >> "$scratch/$orch"
-sec=18 expect "a rule-carrying lead-in cited in quotes fails section 18" 1 "present: a step name cited in quotes of /dev:spec-to-tasks in $scratch/$orch"
+cite_case 1 $orch "a rule-carrying lead-in cited in quotes fails section 18" "present: a step name cited in quotes of /dev:spec-to-tasks in $scratch/$orch" "As \`/dev:spec-to-tasks\`'s \"The set to cut\" says."
 
 fresh
 printf '%s\n' "**Zed label** is a label with no period." >> "$scratch/skills/implement-story/SKILL.md"
@@ -2414,6 +2346,39 @@ expect "a bare heading cite in the coding standards passes section 18" 0
 fresh
 printf '%s\n' "The wrong forms: \`/dev:close-story\`'s **The forge shows MERGED**, \`/dev:implement-story\`'s \"Merge guard\" and the Landing section of \`/dev:implement-story\`." >> "$scratch/docs/agents/coding-standards.md"
 expect "the other wrong forms in the coding standards pass section 18" 0
+
+# every section 18 case kept above runs here
+cite_flush
+fx_check "the cite cases share their lint runs (under one run per ten cases)" \
+  test "$(( (ncbatches + ncretried) * 10 ))" -lt "$cite_n"
+# judge_cites alone, on a made-up spec and lint output: what it cannot vouch for goes to the retry
+# file and never to an ok line
+judge_cites_gives() { # <expected ok lines, |-joined> <expected retried descriptions, |-joined> <lint rc>
+  local oks retried
+  rm -f "$jobs/judged.retry"
+  oks=$(BATCH_RETRY=$jobs/judged.retry BATCH_DIR=/d BATCH_SCRATCH=/s judge_cites "$jobs/judged.cites" "$(cat "$jobs/judged.lint")$nl$3" | sed 's/^ok   //' | paste -sd '|' -)
+  retried=$(cut -f5 "$jobs/judged.retry" 2>/dev/null | paste -sd '|' -)
+  [ "$oks" = "$1" ] && [ "$retried" = "$2" ]
+}
+printf '%s\t%s\t%s\t%s\t%s\t%s\n' \
+  1 1 plain a.md 'fires' 'present: x in /s/a.md' \
+  1 2 plain a.md 'silent' 'present: x in /s/a.md' \
+  1 3 plain a.md 'fires another check' 'present: x in /s/a.md' \
+  0 4 plain a.md 'passes' '' \
+  0 11 plain a.md 'named' '' > "$jobs/judged.cites"
+printf '%s\n' '== 5. retired phrases' '== 18. cross-skill cites: /d/docs/agents/coding-standards.md' \
+  'FAIL: present: x in /d/docs/agents/cite-1.md (p)' '1:text' \
+  'FAIL: present: y in /d/docs/agents/cite-3.md (p)' 'FAIL: present: y in /d/docs/agents/cite-11.md (p)' > "$jobs/judged.lint"
+fx_check "a cite batch vouches for a doc's own message and a quiet doc, and retries the rest" \
+  judge_cites_gives 'fires|passes' 'silent|fires another check|named' 1
+fx_check "a cite batch whose lint timed out vouches for nothing" \
+  judge_cites_gives '' 'fires|silent|fires another check|passes|named' 124
+printf '%s\n' 'FAIL: present: z in /d/docs/agents/orchestration.md (p)' >> "$jobs/judged.lint"
+fx_check "a cite batch with a FAIL off its docs vouches for nothing" \
+  judge_cites_gives '' 'fires|silent|fires another check|passes|named' 1
+printf '%s\n' '== 5. retired phrases' 'FAIL: present: z in /d/docs/agents/cite-1.md (p)' '== 18. x' > "$jobs/judged.lint"
+fx_check "a cite batch with a FAIL outside section 18 vouches for nothing" \
+  judge_cites_gives '' 'fires|silent|fires another check|passes|named' 1
 
 # the task row's budget regaining the conflict resolutions the landing took to the story row
 fresh
@@ -2649,19 +2614,26 @@ phase "hand-written cases after the derived ones"
 # path that is no repo, so the checkout the test runs in never decides them; these cases let the
 # lint derive the merge-base itself (diff_base=derive) in a throwaway repo.
 # make_bump_repo <branch>: in the current scratch, a repo on main with a manifest at 0.1.0,
-# origin/main tracking that commit, <branch> checked out from it; fails, committing nothing, when the repo cannot be made
+# origin/main tracking that commit, <branch> checked out from it; fails, committing nothing, when the repo cannot be made.
+# The first repo is built and kept in $jobs/bump.seed and each later one is a copy of it: a build is
+# a dozen git calls in this shell, one after another, and every case starts from the same repo
 make_bump_repo() {
   bump_repo_dir=$scratch/bump
-  mkdir -p "$bump_repo_dir/.claude-plugin" "$bump_repo_dir/docs" "$bump_repo_dir/scripts"
-  # fx_git_repo refuses a dir that is not the new repo's top level, so a failed init cannot
-  # commit into the enclosing checkout
-  fx_git_repo "$bump_repo_dir" "$scratch/bump.gd" || return 1
-  # a relative link to the git dir, so the repo still opens once expect moves the tree
-  echo 'gitdir: ../bump.gd' > "$bump_repo_dir/.git"
-  echo '{"name":"dev","version":"0.1.0"}' > "$bump_repo_dir/.claude-plugin/plugin.json"
-  echo one > "$bump_repo_dir/docs/a.md"; echo one > "$bump_repo_dir/scripts/a.sh"
-  git -C "$bump_repo_dir" add -A && git -C "$bump_repo_dir" commit -q -m base || return 1
-  git -C "$bump_repo_dir" update-ref refs/remotes/origin/main main
+  if [ -d "$jobs/bump.seed" ]; then
+    cp -R "$jobs/bump.seed/." "$scratch/" || return 1
+  else
+    mkdir -p "$bump_repo_dir/.claude-plugin" "$bump_repo_dir/docs" "$bump_repo_dir/scripts"
+    # fx_git_repo refuses a dir that is not the new repo's top level, so a failed init cannot
+    # commit into the enclosing checkout
+    fx_git_repo "$bump_repo_dir" "$scratch/bump.gd" || return 1
+    # a relative link to the git dir, so the repo still opens once expect moves the tree
+    echo 'gitdir: ../bump.gd' > "$bump_repo_dir/.git"
+    echo '{"name":"dev","version":"0.1.0"}' > "$bump_repo_dir/.claude-plugin/plugin.json"
+    echo one > "$bump_repo_dir/docs/a.md"; echo one > "$bump_repo_dir/scripts/a.sh"
+    git -C "$bump_repo_dir" add -A && git -C "$bump_repo_dir" commit -q -m base || return 1
+    git -C "$bump_repo_dir" update-ref refs/remotes/origin/main main
+    mkdir "$jobs/bump.seed" && cp -R "$bump_repo_dir" "$scratch/bump.gd" "$jobs/bump.seed/" || return 1
+  fi
   [ "$1" = main ] || git -C "$bump_repo_dir" checkout -q -b "$1"
 }
 bump_repo() { fresh; make_bump_repo "$1" || { echo "FAIL make the throwaway repo"; exit 1; }; }
@@ -2733,6 +2705,15 @@ export LINT_PIN_LIST=$jobs/pins.listed
 unchanged_list=$jobs/unchanged lint_scratch > /dev/null
 unset LINT_PIN_LIST
 fx_check "a pin list run with every file and table listed writes the whole list" cmp -s "$jobs/pins.list" "$jobs/pins.listed"
+# a pin list run lists its checks and runs none of them: the listing is what the test reads, and
+# section 18's thousands of checks, unfiltered there, would be most of the test's serial time
+fresh
+echo "cut one" >> "$scratch/skills/sample/SKILL.md"
+export LINT_PIN_LIST=$jobs/pins.seeded
+: > "$LINT_PIN_LIST"
+pin_run=$(lint_scratch)
+unset LINT_PIN_LIST
+fx_check "a pin list run on a seeded tree runs none of its queued checks" bash -c '! grep -q "retired phrase in" <<<"$1"' _ "$pin_run"
 # an empty list skips nothing, the sweeps over many files included
 fresh
 printf '```mermaid\nA->>B: one; two\n```\n' >> "$scratch/docs/agents/sample.md"
@@ -2759,7 +2740,8 @@ fresh
 enclosing_head=$(git -C "$repo_root" rev-parse HEAD)
 touch "$scratch/bump.gd"   # a file where the git dir goes: init fails
 fx_check "fx_git_repo refuses a dir whose git dir path is an existing file" eval '! fx_git_repo "$scratch/bump" "$scratch/bump.gd"'
-fx_check "a throwaway repo whose init fails is refused" eval '! (make_bump_repo main)'
+# jobs points at no bump.seed, in the subshell alone: a seed would be copied in and no init would run
+fx_check "a throwaway repo whose init fails is refused" eval '! (jobs=$scratch/no-seed; make_bump_repo main)'
 fx_check "a failed throwaway init commits nothing into the enclosing checkout" fx_eq "$(git -C "$repo_root" rev-parse HEAD)" "$enclosing_head"
 mkdir -p "$scratch/plain"
 fx_check "a dir inside the enclosing checkout is no throwaway repo's top level" eval '! fx_is_repo_top "$scratch/plain"'

@@ -217,8 +217,8 @@
 # GLOSSARY_MD overrides the root glossary (default: GLOSSARY.md under the repo root).
 # LINT_PINS_DIR overrides the directory of the pin tables (default: scripts under the repo root); a
 # missing directory or table fails, as a missing doc does.
-# LINT_PIN_LIST names a file every queued check is appended to first, for the regression test
-# to derive its drop cases from.
+# LINT_PIN_LIST names a file every check goes to in place of the queue, so none of them runs, for
+# the regression test to derive its drop cases from.
 # PLUGIN_SKILLS overrides the plugin skills directory (default: newest installed mattpocock-skills).
 # The last section is the version-bump rule (INFRA-30): a change to what the plugin ships
 # needs a changed version in .claude-plugin/plugin.json. VERSION_BUMP_REPO overrides the repo it
@@ -273,12 +273,12 @@ drop_unchanged() {
   else cat; fi
 }
 # enqueue <check line>: queues it unless $f is a file LINT_UNCHANGED lists
-# LINT_PIN_LIST names a file every queued check is appended to first, one per line as
+# LINT_PIN_LIST names a file every check is appended to instead, one per line as
 # <type> <file> <description> <phrase> [<anchor>] (the queue's own line), for the regression test
-# to derive its drop cases from; the list holds every queued check, though enqueue still skips
-# queueing the checks of an unchanged file
+# to derive its drop cases from; such a run lists its checks and runs none of them, since section
+# 18 alone lists thousands and the test's baseline case runs them, with the names each file holds
 enqueue() {
-  [ -z "${LINT_PIN_LIST:-}" ] || printf '%s\n' "$1" >> "$LINT_PIN_LIST"
+  if [ -n "${LINT_PIN_LIST:-}" ]; then printf '%s\n' "$1" >> "$LINT_PIN_LIST"; return; fi
   unchanged_file || queue+="$1"$'\n'
 }
 has() { enqueue "i	$f	$1	$2"; }
@@ -2566,36 +2566,66 @@ if [ -f "$standards" ]; then
   # pair of backticks (bare, or a backtick at one end only, or one that swallows the
   # possessive): the right marking beside it is wrong (dev-hcn9). In the "bare" of/in order a
   # backtick before the skill leaves it read as backticked, whatever follows it, so only a bare
-  # skill, or one with a stray closing backtick, is read
+  # skill, or one with a stray closing backtick, is read. The gap's two words are spelled out, as
+  # macOS awk fails a {0,2} that follows a long pattern
   cite_toks() {
     # pre: what may stand before a bare skill (the check matches in any case, so a-z is A-Z too)
     local pre='(^|[^`/a-z:-])' sk="/dev:$skill" skill_alone
     if [ "$1" = bare ]; then
       poss="($pre$sk\`?'s\`?|\`$sk's\`?)"
       skill_alone="($pre$sk\`?|\`$sk)"
-      gap="( [a-z]+){0,2} (of|in) $sk([^A-Za-z-]|\$)"
+      gap="( [a-z]+)?( [a-z]+)? (of|in) $sk([^A-Za-z-]|\$)"
     else
       poss="$sk\`?'s\`?"
       skill_alone="$sk\`?"
-      gap="( [a-z]+){0,2} (of|in) \`?$sk([^A-Za-z-]|\$)"
+      gap="( [a-z]+)?( [a-z]+)? (of|in) \`?$sk([^A-Za-z-]|\$)"
     fi
     skfirst="$skill_alone[,:;]?( (—|-))?( (the|step|section))*"
   }
-  # three_orders <x>: the pattern for x in the three word orders, from the poss, skfirst and gap
-  # that cite_toks set, so the orders of one cite cannot drift between checks
-  three_orders() { printf '%s' "$poss( (step|section))? $1|$skfirst $1|$1$gap"; }
-  # cite_marked <wants> <what> <mark> <skill form>: queues a check that a name of one of the kinds
-  # <wants> (a |-list; never one of kind both unless listed) is not cited in the mark ('"' or
-  # '\*\*'), in any case, in any of three word orders: after the possessive and an optional step
-  # or section, straight after the skill (skill-first), or ahead of the gap. The skill form is
-  # "any" (a wrong marking) or "bare" (the right marking beside a skill not in backticks); reads
-  # skill, kind, name and the file in f
+  # three_orders <x>: sets orders to the pattern for x in the three word orders, from the poss,
+  # skfirst and gap that cite_toks set, so the orders of one cite cannot drift between checks. A
+  # variable, not a $(...): this runs several times per skill and file, and a pin-list run reads
+  # every one of them
+  three_orders() { orders="$poss( (step|section))? $1|$skfirst $1|$1$gap"; }
+  # cite_marked <names> <what> <mark> <skill form>: queues a check that none of <names> (a |-list,
+  # opening with a |; empty, no check) is cited in the mark ('"' or '\*\*'), in any case, in any of
+  # three word orders: after the possessive and an optional step or section, straight after the
+  # skill (skill-first), or ahead of the gap. The skill form is "any" (a wrong marking) or "bare"
+  # (the right marking beside a skill not in backticks); reads skill and the file in f
   cite_marked() {
-    case "|$1|" in *"|$kind|"*) ;; *) return 0 ;; esac   # kind both is checked only where <wants> lists it (dev-mnz6)
-    local poss gap skfirst
+    [ -n "$1" ] || return 0
+    local poss gap skfirst orders
     cite_toks "$4"
-    lacksw "$2 of /dev:$skill in $f" "$(three_orders "$3$name[.,;:]?$3[.,;:]?")"
+    three_orders "$3(${1#|})[.,;:]?$3[.,;:]?"
+    lacksw "$2 of /dev:$skill in $f" "$orders"
   }
+  # cite_checks <skill>: queues the skill's checks in the file in f, one pattern over its names in
+  # the file, from names_all and its lists by kind, kind both checked only where a check lists it
+  # (dev-mnz6). One pattern a skill, not one a name: the regexes are the run's cost
+  cite_checks() {
+    [ -n "$names_all" ] || return 0
+    local skill=$1 name="(${names_all#|})"
+    # the skill is matched backticked or bare, so a bare skill beside a name fails too (dev-hcn9)
+    cite_toks any
+    # a backtick after the name (and a punctuation mark after it) leaves the name bare too
+    lacksw "a bare cite of /dev:$skill in $f" "(^|[^*\"A-Za-z])$name(\`[.,;:]?)?$gap"
+    lacksw "a bare cite after a possessive and step or section of /dev:$skill in $f" "$poss( (step|section))? $name([^A-Za-z]|$)"
+    # case-sensitive: a lower-case word straight after a skill reads as prose ("`/dev:x` re-cut adds")
+    lackswc "a bare skill-first cite of /dev:$skill in $f" "$skfirst $name([^A-Za-z]|$)"
+    # a name is never set in backticks, step or heading, in any of the three orders: the name
+    # inside a pair of backticks, with a bold or quote mark inside or outside the pair too
+    # (dev-hcn9). A backtick that is part of the name (**`git` rule**) is not a pair around it
+    in_ticks="[*\"]*\`[*\"]*$name[*\".,;:]*\`[*\".,;:]*"
+    three_orders "$in_ticks"
+    lacksw "a name cited in backticks of /dev:$skill in $f" "$orders"
+    cite_marked "$names_step" "a step name cited in quotes" '"' any
+    cite_marked "$names_heading" "a heading cited in bold" '\*\*' any
+    # a skill is named in backticks: the right marking beside a bare skill fails (dev-hcn9)
+    cite_marked "$names_step$names_both" "a skill not in backticks beside a cited name" '\*\*' bare
+    cite_marked "$names_heading$names_both" "a skill not in backticks beside a cited name" '"' bare
+    names_all= names_step= names_heading= names_both=
+  }
+  names_all= names_step= names_heading= names_both=
   # every skill's SKILL.md is read too (dev-xyrl), the skills' own docs binding like a rules doc
   for f in "$agents"/*.md "$skills"/*/SKILL.md; do
     [ "$f" = "$standards" ] && continue   # it shows the wrong forms as examples
@@ -2621,28 +2651,20 @@ if [ -f "$standards" ]; then
         w = tolower($3); sub(/ .*/, "", w)
         if (index(w, "\\") || index(text, w)) print
       }' "$f" - <<<"$cite_names")
+    last=
     while IFS=$'\t' read -r skill kind name; do
       [ -n "$name" ] || continue
       # a skill's own steps and headings are no cross-skill cite
       [ "$skill" = "$own" ] && continue
-      # the skill is matched backticked or bare, so a bare skill beside a name fails too (dev-hcn9)
-      cite_toks any
-      # a backtick after the name (and a punctuation mark after it) leaves the name bare too
-      lacksw "a bare cite of /dev:$skill in $f" "(^|[^*\"A-Za-z])$name(\`[.,;:]?)?$gap"
-      lacksw "a bare cite after a possessive and step or section of /dev:$skill in $f" "$poss( (step|section))? $name([^A-Za-z]|$)"
-      # case-sensitive: a lower-case word straight after a skill reads as prose ("`/dev:x` re-cut adds")
-      lackswc "a bare skill-first cite of /dev:$skill in $f" "$skfirst $name([^A-Za-z]|$)"
-      # a name is never set in backticks, step or heading, in any of the three orders: the name
-      # inside a pair of backticks, with a bold or quote mark inside or outside the pair too
-      # (dev-hcn9). A backtick that is part of the name (**`git` rule**) is not a pair around it
-      in_ticks="[*\"]*\`[*\"]*$name[*\".,;:]*\`[*\".,;:]*"
-      lacksw "a name cited in backticks of /dev:$skill in $f" "$(three_orders "$in_ticks")"
-      cite_marked step "a step name cited in quotes" '"' any
-      cite_marked heading "a heading cited in bold" '\*\*' any
-      # a skill is named in backticks: the right marking beside a bare skill fails (dev-hcn9)
-      cite_marked "step|both" "a skill not in backticks beside a cited name" '\*\*' bare
-      cite_marked "heading|both" "a skill not in backticks beside a cited name" '"' bare
+      [ "$skill" = "$last" ] || { cite_checks "$last"; last=$skill; }
+      names_all+="|$name"
+      case $kind in
+        step) names_step+="|$name" ;;
+        heading) names_heading+="|$name" ;;
+        both) names_both+="|$name" ;;
+      esac
     done <<< "$names_here"
+    cite_checks "$last"
   done
   unchanged=$saved_unchanged unchanged_f=/
 fi

@@ -11,11 +11,24 @@ out=$scratch/workspace
 # 1. build twice: identical listings
 fx_traced_build "with flag" --stage-boundary "$out"
 l1=$(fx_snapshot lib); c1=$(fx_snapshot consumer); r1=$(fx_snapshot .)
+# what a real bd init leaves in each repo, for the rebuild's seeded init to match below
+init_state() { # <dir>: the init commit, the local git config and the tree's status
+  git -C "$1" log -1 --format='%an %s' --name-only
+  git -C "$1" config --local --list
+  git -C "$1" status --porcelain
+}
+ids1=$(cat "$out"/{lib/,consumer/,}.beads/metadata.json)
+s1=$(init_state "$out/lib"; init_state "$out/consumer"; init_state "$out")
 fx_traced_build "rebuild with flag" --stage-boundary "$out"
 l2=$(fx_snapshot lib); c2=$(fx_snapshot consumer); r2=$(fx_snapshot .)
 fx_check "rerun: lib listing identical" fx_eq "$l1" "$l2"
 fx_check "rerun: consumer listing identical" fx_eq "$c1" "$c2"
 fx_check "rerun: root listing identical (id prefix normalised)" fx_eq "$r1" "$r2"
+# a rebuild takes each database from the first build's bd init, the most of a build's cost, so
+# only a first build pays for it; each bd init draws a new project id, so the same ids show it
+fx_check "rerun: every database comes from the first build's bd init" fx_eq "$ids1" "$(cat "$out"/{lib/,consumer/,}.beads/metadata.json)"
+fx_check "rerun: a seeded init leaves each repo as a real one does" fx_eq "$s1" \
+  "$(init_state "$out/lib"; init_state "$out/consumer"; init_state "$out")"
 fx_check "lib has exactly 1 bead (its story)" fx_eq "$(jq length <<<"$l2")" 1
 fx_check "consumer has exactly 1 bead (its story)" fx_eq "$(jq length <<<"$c2")" 1
 fx_check "root has exactly 1 bead (the epic)" fx_eq "$(jq length <<<"$r2")" 1
