@@ -1834,7 +1834,7 @@ cite_passes() {
 }
 # a name of kind both in backticks fails, the skill bare or not (the backtick check has no kind
 # filter; the marks beside a bare skill are seeded further down)
-prep=zed_step cite_seeds $orch "present: a" "a name of kind both in backticks" \
+prep=zed_step cite_seeds $orch "present: a name cited in backticks of" "a name of kind both in backticks" \
   "As /dev:implement-story's \`Zed gate\` says." \
   "As \`/dev:implement-story\`'s \`Zed gate\` says."
 
@@ -1888,21 +1888,27 @@ cite_case 0 $orch "a gap longer than two words passes section 18" "" "As the Sto
 
 cite_case 0 $orch "a bare cite of 'the /dev:x skill' passes section 18" "" "As the Story gate of the \`/dev:implement-story\` skill says."
 
-# a bare skill beside a name in the right marking, in all three orders; the loop asserts that a
-# present: line fails, and the cases after it assert which check
-cite_seeds $orch "present: " "a bare skill beside a name" \
-  "As $SK's \"Story gate\" says." \
-  "As the **Clean up** sweep of $SK says." \
-  "As $SK \"Story gate\" says." \
-  "As $SK, \"Story gate\" says." \
-  "As $SK **Story gate** says." \
-  "As $SK: **Story gate** says." \
-  "As $SK's **Story gate** says." \
-  "As $SK's \"Story gate.\" says." \
-  "As the Story gate step of $SK says." \
-  "As $SK's story gate says." \
-  "As the \"Story gate\" step of $SK says." \
-  "As the **Story gate** step in $SK says."
+# a bare skill beside a name: the right mark fails as a bare skill, any other form fails on the check
+# its seed reads as. cite_pairs <file> <what> (<message> <form>)...: each form fails with its message
+cite_pairs() {
+  local file=$1 what=$2
+  shift 2
+  while [ $# -ge 2 ]; do cite_case 1 "$file" "$what ($2) fails section 18" "$1" "$2"; shift 2; done
+}
+q_msg="present: a step name cited in quotes of"
+cite_pairs $orch "a bare skill beside a name" \
+  "$q_msg" "As $SK's \"Story gate\" says." \
+  "$bare_msg" "As the **Clean up** sweep of $SK says." \
+  "$q_msg" "As $SK \"Story gate\" says." \
+  "$q_msg" "As $SK, \"Story gate\" says." \
+  "$bare_msg" "As $SK **Story gate** says." \
+  "$bare_msg" "As $SK: **Story gate** says." \
+  "$bare_msg" "As $SK's **Story gate** says." \
+  "$q_msg" "As $SK's \"Story gate.\" says." \
+  "present: a bare cite of" "As the Story gate step of $SK says." \
+  "present: a bare cite after a possessive and step or section of" "As $SK's story gate says." \
+  "$q_msg" "As the \"Story gate\" step of $SK says." \
+  "$bare_msg" "As the **Story gate** step in $SK says."
 cite_case 1 $orch "a skill cited without backticks after a possessive fails section 18" "$bare_msg /dev:task-orchestrator in $scratch/$orch" "As /dev:task-orchestrator's \"Two entries\" says."
 cite_case 1 $orch "a heading in quotes beside a bare skill fails section 18" "$bare_msg /dev:task-orchestrator in $scratch/$orch" "As /dev:task-orchestrator \"Two entries\" and /dev:task-orchestrator's \"Two entries\" say."
 
@@ -1942,7 +1948,7 @@ cite_seeds $orch "$bt_msg" "a marked name in backticks" \
   "As \`/dev:close-story\`'s \"\`The forge shows MERGED\`\" says." \
   "As \`/dev:close-story\`'s \`\"The forge shows MERGED\"\` says." \
   "As \`/dev:implement-story\`'s **\`Story gate.\`** says."
-cite_seeds $orch "present: " "a marked name in backticks beside a bare skill" \
+cite_seeds $orch "$bt_msg" "a marked name in backticks beside a bare skill" \
   "As $SK's **\`Story gate\`** says." \
   "As the **\`Story gate\`** step of $SK says." \
   "As $SK **\`Story gate\`** says." \
@@ -1993,7 +1999,7 @@ cite_seeds $orch "present: a bare cite" "a semicolon after the closing backtick 
 
 # a bare skill beside a known name fails when only the prefilter could pass it: a doc that names the
 # skill bare, never in backticks
-cite_seeds docs/agents/sample.md "present: " "a doc naming a skill only bare" \
+cite_seeds docs/agents/sample.md "$bare_msg" "a doc naming a skill only bare" \
   "As $SK's \"Story gate\" and /dev:task-orchestrator's \"Two entries\" say."
 
 # a name of kind both beside a bare skill fails in each right mark
@@ -2021,7 +2027,7 @@ cite_seeds $orch "present: a bare skill-first cite of" "a mark closing a name ne
 
 # a parenthesis around the whole cite is read; one between the skill and the name, or before the
 # skill in the of/in order, is outside what the lint reads
-cite_seeds $orch "present: " "a skill in parentheses around the whole cite" \
+cite_seeds $orch "$bare_msg" "a skill in parentheses around the whole cite" \
   "As ($SK's **Story gate**) says."
 cite_passes $orch "a parenthesis inside a cite" "As the **Story gate** step of ($SK) says." "As the Story gate step of ($SK) says." "As the \"Story gate\" step of ($SK) says." "As the \"Two entries\" heading of (/dev:task-orchestrator) says." "As ($SK) **Story gate** says." "As ($SK) \"Story gate\" says." "As ($SK) Story gate says." "As ($SK)'s **Story gate** says." "As ($SK)'s \"Story gate\" says."
 
