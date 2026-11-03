@@ -1105,6 +1105,9 @@ while IFS= read -r f; do
   # one route per unit (INFRA-37): a standalone task goes to /dev:implement-task, an epic bead
   # with a non-story child is refused as malformed, and the upstream skills are not named
   lacksw "a retired route (flat epic or shape, small-bug path, upstream skill or chore name) in $f" "$retired_route"
+  # the check record's name is the rules doc's Check record script (dev-3c97): a skill that says
+  # "Check record call", the compound command's name the script replaced, fails here
+  lacksw "the retired Check record call name in $f" 'Check record call'
 done <<<"$swept"
 # the root glossary lists the retired vocabulary under _Avoid_ (and docs/adr/ keeps its
 # historical sense through .glossary-allow), so only the two-gate wording is swept there
@@ -1245,7 +1248,7 @@ para_has "$head_landing_a_task" "the fourth conflict fails the task" 'the fourth
 para_has "$head_landing_a_task" "the story row lands" "$pin_story_row_lands"
 para_has "$head_landing_a_task" "the task orchestrator never touches the owner checkout" 'never touches the owner checkout'
 para_has "$head_landing_a_task" "landings are serial with no lock" 'Landings are serial, one per report, so no lock is'
-para_has "$head_landing_a_task" "the resolved tree is checked with the Check record call" 'checks the resolved tree'
+para_has "$head_landing_a_task" "the resolved tree is checked with the Check record script" 'checks the resolved tree'
 para_has "$head_landing_a_task" "a red on a resolved tree fails the landing" "\`$pin_failed_red_after_conflict\`"
 para_has "$head_landing_a_task" "the retry enters at the gate on the resolved branch" "$pin_retry_at_gate_on_resolved_branch"
 para_has "$head_landing_a_task" "a landing closes the task" "$pin_landing_closes_task"
@@ -1277,14 +1280,14 @@ para_has "$head_check_record" "keyed by the tree SHA" 'keyed by the tree SHA'
 para_has "$head_check_record" "only an orchestrator writes a record" 'Only an orchestrator writes a check record'
 para_has "$head_check_record" "the delivered tip's record is the Evidence" "the record of the delivered tip's tree"
 # the call that writes a record is the shipped script, stated once here, and no compound command is left
-hasc "the Check record call is the shipped script" '`<plugin root>/scripts/check.sh <worktree path> <owner>`, one foreground Bash call with `timeout: 600000`'
+hasc "the Check record script is the shipped script" '`<plugin root>/scripts/check.sh <worktree path> <owner>`, one foreground Bash call with `timeout: 600000`'
 hasc "a red is read from the tail the script prints" 'a red is read from the tail the script prints, never a whole log'
 lacks "the compound record command in the rules doc" 'mkdir -p <owner>/.tmp/checks'
 # the implementer brief rule, stated once: a worktree brief says seam run, with the touched-modules fallback, and never the check command or the script
 para_has "$head_check_command" "the brief names the seam run" 'A worktree brief at every row names the seam run (the Seam run term in `GLOSSARY.md`)'
 para_has "$head_check_command" "the seam run fallback is the touched modules' tests" "the touched modules' tests for a standalone task that names no seams."
 para_has "$head_check_command" "the brief never says the check command or the script" 'It never says the check command or the script; only an orchestrator checks a tree.'
-# every other passage that cites the Check record call names the script
+# every other passage that cites the Check record script names the script
 para_has "$head_landing_a_task" "a resolved tree is checked through the Check record script" 'new tree, with the Check record script, then fast-forwards'
 para_has "$head_check_scope" "a check is one run of the check command through the Check record script" 'one run of the check command through the Check record script'
 para_has "$head_check_gate" "each pass runs the Check record script" 'Each pass runs the Check record script on the tip'
@@ -1689,7 +1692,7 @@ sec_has "## Landing" "the landing merges the task branch" '`git -C <owner> merge
 sec_has "## Landing" "a conflicted merge is aborted, never resolved by the orchestrator" '`git -C <owner> merge --abort`'
 sec_has "## Landing" "a conflict goes to an implementer in the task's worktree" "A conflict goes to an implementer in the task's worktree"
 sec_has "## Landing" "the conflict implementer merges the integration tip into the task branch" "it is briefed to merge \`<branch>\`'s tip into the task branch"
-sec_has "## Landing" "the resolved tree is checked with the rules doc's call" "run the rules doc's Check record call, \`<plugin root>/scripts/check.sh <worktree path> <owner>\`, with the task's worktree as its \`<worktree path>\`, in one foreground Bash call with \`timeout: 600000\`, \`<plugin root>\` spelled as the path this session resolved; the script runs nothing on a tree with a green record"
+sec_has "## Landing" "the resolved tree is checked with the rules doc's call" "run the rules doc's Check record script, \`<plugin root>/scripts/check.sh <worktree path> <owner>\`, with the task's worktree as its \`<worktree path>\`, in one foreground Bash call with \`timeout: 600000\`, \`<plugin root>\` spelled as the path this session resolved; the script runs nothing on a tree with a green record"
 line_lacks '^3\. A conflict goes to an implementer' "the landing reading the resolved tree's record itself" 'run nothing on a green record'
 sec_has "## Landing" "no reviewer runs on the resolution" 'No reviewer runs: the story row'"'"'s standards axis sees the resolution'
 sec_has "## Landing" "the landing then fast-forwards" "\`$pin_ff_only_merge\`"
@@ -1893,7 +1896,7 @@ line_has "$G7" "the story gate checks a red's fix-up that commits nothing again"
 line_has "$G7" "the story gate exits on a green tip its review: note still names" 'a green on a tip the `review:` note still names exits'
 # the check-record call is defined once, in the rules doc's Check record, and step 7
 # names it with <owner> for the worktree path (dev-9k5.1.9 review 1)
-line_has "$G7" "the story gate runs the script with <owner> as its worktree path" "the rules doc's Check record call, \`<plugin root>/scripts/check.sh <owner> <owner>\`, with \`<owner>\` as its \`<worktree path>\`, in one foreground Bash call with \`timeout: 600000\`"
+line_has "$G7" "the story gate runs the script with <owner> as its worktree path" "the rules doc's Check record script, \`<plugin root>/scripts/check.sh <owner> <owner>\`, with \`<owner>\` as its \`<worktree path>\`, in one foreground Bash call with \`timeout: 600000\`"
 line_lacks "$G7" "a second copy of the check-record call" "$rec_call"
 line_has "$G7" "the story keeps the reviewed tip in its notes" "The story keeps the reviewed tip in its notes: its \`review:\` note names the tip the gate exits on after a clean review, so a rerun reviews only a tip that has moved past it"
 # the story review round is numbered on from the notes, not from 1 per run, and its note names
@@ -2180,7 +2183,7 @@ hasc "delivery by the rules doc's Delivery section" "as the rules doc's Delivery
 hasc "the PR opened ready, not draft" 'opened **ready**, not draft'
 # a tree with no green record is checked by the shipped script run on the owner checkout, a red
 # ending on the failed: check make check line, and the check records stay after a delivery (dev-9x6c.1.7)
-hasc "the delivery runs the Check record call on the owner checkout" 'Run the rules doc'"'"'s Check record call, `<plugin root>/scripts/check.sh <owner> <owner>`, with `<owner>` as its `<worktree path>`, in one foreground Bash call with `timeout: 600000`, `<plugin root>` spelled as the path this session resolved'
+hasc "the delivery runs the Check record script on the owner checkout" 'Run the rules doc'"'"'s Check record script, `<plugin root>/scripts/check.sh <owner> <owner>`, with `<owner>` as its `<worktree path>`, in one foreground Bash call with `timeout: 600000`, `<plugin root>` spelled as the path this session resolved'
 hasc "the delivery leaves the green-record read to the script" 'The script reads the tip'"'"'s tree record itself: on a green record it runs nothing, and a red or missing record is checked; a red ends the run with `failed: check make check`'
 lacks "the delivery reading the green record itself" 'with no green record there (`exit=0` in `<owner>/.tmp/checks/<tree>/record`)'
 lacks "the clean-up removing the check records" 'rm -rf <owner>/.tmp/checks'
