@@ -2669,7 +2669,8 @@ if [ -f "$standards" ]; then
   }
   # cite_checks <skill>: queues the skill's checks in the file in f, one pattern over its names in
   # the file, from names_all and its lists by kind and mark (q_*: a quote before the name's first
-  # word, b_*: bold), kind both checked only where a check lists it (dev-mnz6). One pattern a skill, not one a name: the regexes are the run's cost
+  # word, b_*: bold), kind both checked only where a check lists it (dev-mnz6). One pattern a
+  # skill, not one a name: the regexes are the run's cost
   cite_checks() {
     [ -n "$names_all" ] || return 0
     local skill=$1 name="(${names_all#|})"
