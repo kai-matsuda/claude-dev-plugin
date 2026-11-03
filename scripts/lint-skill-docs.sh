@@ -2686,14 +2686,14 @@ if [ -f "$standards" ]; then
     in_ticks="[*\"]*\`[*\"]*$name[*\".,;:]*\`[*\".,;:]*"
     three_orders "$in_ticks"
     lacksw "a name cited in backticks of /dev:$skill in $f" "$orders"
-    cite_marked "$names_step" "a step name cited in quotes" '"' any
-    cite_marked "$names_heading" "a heading cited in bold" '\*\*' any
+    cite_marked "$q_step" "a step name cited in quotes" '"' any
+    cite_marked "$b_heading" "a heading cited in bold" '\*\*' any
     # a skill is named in backticks: the right marking beside a bare skill fails (dev-hcn9)
-    cite_marked "$names_step$names_both" "a skill not in backticks beside a cited name" '\*\*' bare
-    cite_marked "$names_heading$names_both" "a skill not in backticks beside a cited name" '"' bare
-    names_all= names_step= names_heading= names_both=
+    cite_marked "$b_step$b_both" "a skill not in backticks beside a cited name" '\*\*' bare
+    cite_marked "$q_heading$q_both" "a skill not in backticks beside a cited name" '"' bare
+    names_all= q_step= b_step= q_heading= b_heading= q_both= b_both=
   }
-  names_all= names_step= names_heading= names_both=
+  names_all= q_step= b_step= q_heading= b_heading= q_both= b_both=
   # every skill's SKILL.md is read too (dev-xyrl), the skills' own docs binding like a rules doc
   for f in "$agents"/*.md "$skills"/*/SKILL.md; do
     [ "$f" = "$standards" ] && continue   # it shows the wrong forms as examples
@@ -2717,19 +2717,32 @@ if [ -f "$standards" ]; then
       NR == FNR { text = text tolower($0) "\n"; next }
       $3 != "" && $1 != own && index(text, "/dev:" $1) {
         w = tolower($3); sub(/ .*/, "", w)
-        if (index(w, "\\") || index(text, w)) print
+        if (index(w, "\\")) print $0 "\tqb"
+        else if (index(text, w)) {
+          # the marked checks read the name straight after its mark, so a name with no mark
+          # before its first word in the file is left out of them (dev-dso4)
+          print $0 "\t" (index(text, "\"" w) ? "q" : "-") (index(text, "**" w) ? "b" : "-")
+        }
       }' "$f" - <<<"$cite_names")
     last=
-    while IFS=$'\t' read -r skill kind name; do
+    while IFS=$'\t' read -r skill kind name marks; do
       [ -n "$name" ] || continue
       # a skill's own steps and headings are no cross-skill cite
       [ "$skill" = "$own" ] && continue
       [ "$skill" = "$last" ] || { cite_checks "$last"; last=$skill; }
       names_all+="|$name"
+      # a pin-list run has no marks column and keeps every name in every check
+      [ -n "$marks" ] || marks=qb
       case $kind in
-        step) names_step+="|$name" ;;
-        heading) names_heading+="|$name" ;;
-        both) names_both+="|$name" ;;
+        step)
+          case $marks in q?) q_step+="|$name" ;; esac
+          case $marks in ?b) b_step+="|$name" ;; esac ;;
+        heading)
+          case $marks in q?) q_heading+="|$name" ;; esac
+          case $marks in ?b) b_heading+="|$name" ;; esac ;;
+        both)
+          case $marks in q?) q_both+="|$name" ;; esac
+          case $marks in ?b) b_both+="|$name" ;; esac ;;
       esac
     done <<< "$names_here"
     cite_checks "$last"
