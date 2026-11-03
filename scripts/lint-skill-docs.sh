@@ -2668,8 +2668,8 @@ if [ -f "$standards" ]; then
     lacksw "$2 of /dev:$skill in $f" "$orders"
   }
   # cite_checks <skill>: queues the skill's checks in the file in f, one pattern over its names in
-  # the file, from names_all and its lists by kind, kind both checked only where a check lists it
-  # (dev-mnz6). One pattern a skill, not one a name: the regexes are the run's cost
+  # the file, from names_all and its lists by kind and mark (q_*: a quote before the name's first
+  # word, b_*: bold), kind both checked only where a check lists it (dev-mnz6). One pattern a skill, not one a name: the regexes are the run's cost
   cite_checks() {
     [ -n "$names_all" ] || return 0
     local skill=$1 name="(${names_all#|})"
@@ -2709,9 +2709,10 @@ if [ -f "$standards" ]; then
     # every pattern below holds /dev:<skill> (backticked or bare; the test is on the bare text) and
     # the name's first word, tokens no line break splits, so a file lacking either can match none
     # of them: most files name few skills, and the regexes are the run's cost, in gawk above all.
-    # Both tests are fixed-string, the word's in lower case against the file lowered (the checks
-    # match in any case), so they know no skill name's alphabet; a first word with a regex escape
-    # in it goes unfiltered. The pin list takes every check
+    # All four tests are fixed-string (/dev:<skill>, the first word, and the quote and bold marks
+    # before the word, which pick the marked checks a name joins), the word's in lower case against
+    # the file lowered (the checks match in any case), so they know no skill name's alphabet; a
+    # first word with a regex escape in it goes unfiltered. The pin list takes every check
     names_here=$cite_names
     [ -n "${LINT_PIN_LIST:-}" ] || names_here=$(awk -F '\t' -v own="$own" '
       NR == FNR { text = text tolower($0) "\n"; next }
