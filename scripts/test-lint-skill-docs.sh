@@ -1308,39 +1308,37 @@ pins_dir=$scratch/no-such-pins
 sec="0 1 6" expect "a missing pins directory fails" 1 "no such directory: $scratch/no-such-pins"
 unset pins_dir
 
-# a row another check reads by its description (row_phrase, row_sweep) and then finds renamed fails the
-# lint naming it, rather than turning that check off; the descriptions come from the lint's own calls.
-# Every such row is renamed in one copy of the table and the lint run once: each rename draws its own
-# message, so one run must name every row (a row's rename touches no other row's message)
-for table in $pin_tables; do
-  rows=$(grep -oE "$table \"[^\"]+\"" "$lint" | sed -e 's/^[^ ]* "//' -e 's/"$//' | sort -u)
-  nrows=0 msgs=
+# pin_row_case <rename|reword> <table>: the one case of a pin table's rows that the lint reads by
+# their description (rename: a row the lint's own calls name, renamed so the lint must name it) or
+# that carry a sweep field (reword: a row whose phrase is reworded to hold none of its sweep, which
+# the lint must still name). Every such row is changed in one copy and the lint run once, since each
+# change draws its own message: one run must name every row (dev-yqpz, dev-4wal)
+pin_row_case() {
+  local mode=$1 table=$2 rows row count=0 msgs= guard_msg desc
+  if [ "$mode" = rename ]; then
+    rows=$(grep -oE "$table \"[^\"]+\"" "$lint" | sed -e 's/^[^ ]* "//' -e 's/"$//' | sort -u)
+    guard_msg="the lint reads no row of $table.tsv by its description"
+  else
+    rows=$(awk -F '\t' '$1 !~ /^#/ && NF >= 4 && $4 != "" { print $2 }' "$repo_root/scripts/$table.tsv")
+    guard_msg="$table.tsv holds no row with a sweep field"
+  fi
   while IFS= read -r row; do
     [ -n "$row" ] || continue
-    nrows=$((nrows+1)) msgs+="${msgs:+$nl}no row '$row' in $table.tsv"
+    count=$((count+1))
+    if [ "$mode" = rename ]; then msgs+="${msgs:+$nl}no row '$row' in $table.tsv"
+    else msgs+="${msgs:+$nl}$table.tsv: the sweep of '$row' is not inside its phrase"; fi
   done <<<"$rows"
-  [ "$nrows" -gt 0 ] || { echo "FAIL the lint reads no row of $table.tsv by its description"; fails=$((fails+1)); }
+  [ "$count" -gt 0 ] || { echo "FAIL $guard_msg"; fails=$((fails+1)); }
+  if [ "$mode" = rename ]; then desc="$table.tsv with each row the lint reads by its description renamed fails naming all $count"
+  else desc="$table.tsv with the phrase of each row with a sweep reworded and its sweep left fails naming all $count"; fi
   pins_copy
-  edit_rows rename "$table"
-  sec= expect "$table.tsv with each row the lint reads by its description renamed fails naming all $nrows" 1 "$msgs"
+  edit_rows "$mode" "$table"
+  sec= expect "$desc" 1 "$msgs"
   unset pins_dir
-done
-
-# a row whose sweep field (the part of the phrase a skill must not restate) is no longer inside its
-# phrase fails the lint, rather than leaving the sweep guarding the old wording (dev-yqpz); every such
-# row is reworded in one copy and the lint run once, for the same reason as the renames above
-for table in $pin_tables; do
-  rows=$(awk -F '\t' '$1 !~ /^#/ && NF >= 4 && $4 != "" { print $2 }' "$repo_root/scripts/$table.tsv")
-  nsweeps=0 msgs=
-  while IFS= read -r row; do
-    [ -n "$row" ] || continue
-    nsweeps=$((nsweeps+1)) msgs+="${msgs:+$nl}$table.tsv: the sweep of '$row' is not inside its phrase"
-  done <<<"$rows"
-  [ "$nsweeps" -gt 0 ] || { echo "FAIL $table.tsv holds no row with a sweep field"; fails=$((fails+1)); }
-  pins_copy
-  edit_rows reword "$table"
-  sec= expect "$table.tsv with the phrase of each row with a sweep reworded and its sweep left fails naming all $nsweeps" 1 "$msgs"
-  unset pins_dir
+}
+# the renames first, then the rewords, each over every pin table
+for mode in rename reword; do
+  for table in $pin_tables; do pin_row_case "$mode" "$table"; done
 done
 
 # a doc that keeps the no-check-target setup line but loses the clause after it fails: the clause is
