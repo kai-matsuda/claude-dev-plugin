@@ -1407,7 +1407,7 @@ sec=5 expect "implement-spec naming the old epic role fails" 1 "the retired driv
 # task is a human gate task (story review 1)
 fresh_spec
 echo "A resumed run starts the stories the closed human task released." >> "$spec"
-expect "implement-spec saying 'human task' fails" 1 "" "$spec" "$scratch/docs/WORKFLOW.md"
+expect "implement-spec saying 'human task' fails" 1 "present: glossary's avoided term human task" "$spec" "$scratch/docs/WORKFLOW.md"
 
 fresh_spec
 echo "every open ready-for-human task is listed" >> "$spec"
@@ -1432,11 +1432,29 @@ expect "implement-spec with a PR merge command fails" 1 "" "$spec" "$scratch/doc
 # the runbook no longer lists a chain among the task cut's refusals (chezmoi-9v4.1.9)
 fresh
 echo 'Among its refusals: a dependency chain (A depends on B depends on C).' >> "$scratch/docs/WORKFLOW.md"
-expect "runbook copy with the chain refusal fails" 1
+expect "runbook copy with the chain refusal fails" 1 "present: chain refusal in the runbook"
 
 fresh
 echo 'The task cut refuses a dependency chain of three stories.' >> "$scratch/docs/WORKFLOW.md"
-expect "runbook copy with the chain refusal in a sentence fails" 1
+expect "runbook copy with the chain refusal in a sentence fails" 1 "present: chain refusal in the runbook"
+
+# the pins of regex only that no derived case seeds: the commit recipe's --trailer, a forced worktree
+# removal, the delivery re-reading the green record, /pr in stage 5 (a case names its pin's description)
+fresh
+echo 'Commit it with `git commit --trailer "Bead: x"`.' >> "$scratch/skills/implement-story/SKILL.md"
+expect "implement-story with a --trailer commit fails" 1 "present: a --trailer commit"
+
+fresh
+echo 'Then run git worktree remove --force <path> on the entry.' >> "$scratch/skills/implement-story/SKILL.md"
+expect "implement-story forcing a worktree removal fails" 1 "present: a locked or unmerged worktree forced"
+
+fresh
+echo 'Deliver with no green record there `exit=0` in `<owner>/.tmp/checks/<tree>/record`.' >>"$scratch/skills/implement-task/SKILL.md"
+expect "implement-task reading the green record itself fails" 1 "present: the delivery reading the green record itself"
+
+fresh
+echo '| 5 | review | /mattpocock-skills:pr opens the PR |' >> "$scratch/docs/WORKFLOW.md"
+expect "the runbook naming /mattpocock-skills:pr in stage 5 fails" 1 "present: /mattpocock-skills:pr in stage 5"
 
 fresh
 echo 'The closure chain goes through a dependency chain of stories, merged in order.' >> "$scratch/docs/WORKFLOW.md"
@@ -2910,6 +2928,42 @@ expect "with no local main the merge-base uses origin/main" 0
 unset bump_repo_dir sec
 
 phase "version-bump cases"
+
+# uncovered_pins <pin list> <test source>: the description of every absent-phrase pin that derives no
+# case (alts finds no plain text in its pattern) and that no hand-written case names, one per line.
+# A case names a pin by its description (pin_phrase, or the message it expects) on a line of the test
+# source that is no comment; the description is read without its " in <file>" tail and without a
+# skill name (" /dev:x"), so one case of a check that runs once per file or skill covers them all
+uncovered_pins() {
+  absent_types=$absent_types awk -F '\t' "$alts_fn"'
+    NR == FNR { if ($0 !~ /^[ \t]*#/) src = src $0 "\n"; next }
+    index(ENVIRON["absent_types"], " " $1 " ") && $3 != "" && $4 != "" {
+      d = $3; sub(/ in \/.*$/, "", d); gsub(/ \/dev:[a-z0-9-]+/, "", d)
+      if (alts($1, $4) > 0) derived[d]; else bare[d] }
+    END { for (d in bare) if (!(d in derived) && !index(src, d)) print d }' "$2" "$1" | sort
+}
+uncovered=$(uncovered_pins "$jobs/pins.list" "$repo_root/scripts/test-lint-skill-docs.sh")
+if [ -z "$uncovered" ]; then
+  echo "ok   every absent-phrase pin derives a case or is named by a hand-written one"
+else
+  while IFS= read -r pdesc; do
+    echo "FAIL absent-phrase pin '$pdesc' derives no case and no hand-written case names it"; fails=$((fails+1))
+  done <<<"$uncovered"
+fi
+# the guard alone, on a made-up list and source: a regex-only pin no case names is reported by its
+# description, one a case names, one with a plain alternative and a positive check are not
+printf '%s\t%s\t%s\t%s\n' \
+  w a.md 'regex only, unnamed' 'foo[0-9]+|ba[rz]' \
+  w a.md 'regex only, named in /x/a.md' 'x[0-9]' \
+  w a.md 'plain and regex' 'plain|y[0-9]' \
+  c a.md 'positive check' 'z[0-9]' > "$jobs/guard.list"
+printf '%s\n' 'expect 1 "regex only, named in $scratch"' '# regex only, unnamed' > "$jobs/guard.src"
+fx_check "an absent-phrase pin of regex only that no case names is reported by its description" \
+  test "$(uncovered_pins "$jobs/guard.list" "$jobs/guard.src")" = 'regex only, unnamed'
+printf '%s\n' 'pin_phrase "regex only, unnamed"' > "$jobs/guard.src"
+fx_check "a pin a hand-written case names is not reported, a comment naming it does not count" \
+  test "$(uncovered_pins "$jobs/guard.list" "$jobs/guard.src")" = 'regex only, named'
+
 fx_check "a phase prints its wall seconds, its CPU seconds and the slots" \
   grep -Eq '^timing: a phase: [0-9]+s wall, [0-9]+s cpu on [0-9]+ slots$' <<<"$(phase_cpu=0; phase "a phase")"
 fx_report_fails
