@@ -1105,12 +1105,12 @@ absent_types=$absent_types pre=$scratch/ awk -F '\t' -v OFS='\t' -v pristine="$p
   }' "$jobs/pins.list" > "$jobs/pins.derive"
 last_pin= round=0
 while IFS=$'\t' read -r -u 4 ptype pfile pdesc pphrase alt panchor; do
+  prel=${pfile#"$scratch"/}
+  if [ "$prel" = "$pfile" ] || [ ! -f "$pristine/$prel" ] || [ -z "$pdesc" ] || [ -z "$pphrase" ]; then
+    echo "FAIL pin list: '$pdesc' ($pphrase) names no file under the scratch tree: $pfile"
+    fails=$((fails+1)); continue
+  fi
   if [[ $absent_types == *" $ptype "* ]]; then
-    prel=${pfile#"$scratch"/}
-    if [ "$prel" = "$pfile" ] || [ ! -f "$pristine/$prel" ] || [ -z "$pdesc" ] || [ -z "$pphrase" ]; then
-      echo "FAIL pin list: '$pdesc' ($pphrase) names no file under the scratch tree: $pfile"
-      fails=$((fails+1)); continue
-    fi
     nabsent=$((nabsent+1))
     desc="absent $nabsent: $prel with '$alt' seeded fails '$pdesc'"
     # line_lacks prints no hits to tell whose seed fired it, so its cases each take a tree
@@ -1128,11 +1128,6 @@ while IFS=$'\t' read -r -u 4 ptype pfile pdesc pphrase alt panchor; do
   case $pos_types$seed_types in *" $ptype "*) ;;
     *) echo "FAIL pin list: '$pdesc' is a check of kind '$ptype', which this test has no drop case for"; fails=$((fails+1)); continue ;;
   esac
-  prel=${pfile#"$scratch"/}
-  if [ "$prel" = "$pfile" ] || [ ! -f "$pristine/$prel" ] || [ -z "$pdesc" ] || [ -z "$pphrase" ]; then
-    echo "FAIL pin list: '$pdesc' ($pphrase) names no file under the scratch tree: $pfile"
-    fails=$((fails+1)); continue
-  fi
   npins=$((npins+1))
   if [[ $seed_types == *" $ptype "* ]]; then   # a lacksf: the phrase seeded into the doc fails it
     pin_case seed 0 "$ptype" "$prel" "$pphrase" "pin $npins: $prel with '$pdesc' seeded fails" "present: $pdesc ($pphrase)"
