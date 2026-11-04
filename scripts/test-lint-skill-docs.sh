@@ -372,7 +372,7 @@ append_to_matching() {
 # alts(<type>, <pattern>): sets A[1..n], returns n: the texts an absent-phrase check's pattern bans: the
 # plain alternatives at the top level of a pattern (a \. is a dot), the whole phrase of a fixed-string check
 # (line_lacks); an alternative that holds a regex construct, or sits inside a group, is left to the
-# hand-written cases. An awk function, since the pin list runs through it ten thousand times
+# hand-written cases (uncovered_pins fails a pin with none). An awk function, since the pin list runs through it ten thousand times
 alts_fn='function alts(t, pat,   n, alt, c, i, depth) {
     if (t == "X") { A[1] = pat; return 1 }
     gsub(/\\\./, ".", pat)
@@ -1066,7 +1066,7 @@ expect "spec-to-stories re-cutting a story whose PR closed unmerged fails" 1
 phase "hand-written cases ahead of the derived ones"
 # every kind of check the lint queues is named here: a positive one gets a drop case, a lacksf one
 # its phrase seeded, an absent-phrase one (x y w W X) each plain text it bans seeded; a kind named
-# nowhere fails, so a new one cannot go without a case
+# nowhere fails, so a new one cannot go without a case; uncovered_pins reads absent_types too
 pos_types=" i c e a A p S o "
 seed_types=" f "
 absent_types=" x y w W X "
@@ -2929,11 +2929,18 @@ unset bump_repo_dir sec
 
 phase "version-bump cases"
 
+fx_check "a phase prints its wall seconds, its CPU seconds and the slots" \
+  grep -Eq '^timing: a phase: [0-9]+s wall, [0-9]+s cpu on [0-9]+ slots$' <<<"$(phase_cpu=0; phase "a phase")"
+
+phase "pin coverage guard"
+
 # uncovered_pins <pin list> <test source>: the description of every absent-phrase pin that derives no
 # case (alts finds no plain text in its pattern) and that no hand-written case names, one per line.
-# A case names a pin by its description (pin_phrase, or the message it expects) on a line of the test
-# source that is no comment; the description is read without its " in <file>" tail and without a
-# skill name (" /dev:x"), so one case of a check that runs once per file or skill covers them all
+# Reads the global absent_types (the kinds of check that are absent-phrase pins). A case names a pin
+# when its description (pin_phrase, or the message it expects) appears as a substring of any line of
+# the test source that is no comment: looser than a case that is about the pin, but a new pin with no
+# mention at all fails. The description is read without its " in <file>" tail and without a skill
+# name (" /dev:x"), so one case of a check that runs once per file or skill covers them all
 uncovered_pins() {
   absent_types=$absent_types awk -F '\t' "$alts_fn"'
     NR == FNR { if ($0 !~ /^[ \t]*#/) src = src $0 "\n"; next }
@@ -2942,28 +2949,36 @@ uncovered_pins() {
       if (alts($1, $4) > 0) derived[d]; else bare[d] }
     END { for (d in bare) if (!(d in derived) && !index(src, d)) print d }' "$2" "$1" | sort
 }
-uncovered=$(uncovered_pins "$jobs/pins.list" "$repo_root/scripts/test-lint-skill-docs.sh")
+# uncovered_report <pin list> <test source>: one FAIL line per uncovered pin, nothing when all are covered
+uncovered_report() {
+  while IFS= read -r pdesc; do
+    [ -n "$pdesc" ] && echo "FAIL absent-phrase pin '$pdesc' derives no case and no hand-written case names it"
+  done <<<"$(uncovered_pins "$1" "$2")"
+}
+uncovered=$(uncovered_report "$jobs/pins.list" "$repo_root/scripts/test-lint-skill-docs.sh")
 if [ -z "$uncovered" ]; then
   echo "ok   every absent-phrase pin derives a case or is named by a hand-written one"
 else
-  while IFS= read -r pdesc; do
-    echo "FAIL absent-phrase pin '$pdesc' derives no case and no hand-written case names it"; fails=$((fails+1))
-  done <<<"$uncovered"
+  echo "$uncovered"; fails=$((fails + $(wc -l <<<"$uncovered")))
 fi
-# the guard alone, on a made-up list and source: a regex-only pin no case names is reported by its
-# description, one a case names, one with a plain alternative and a positive check are not
+# the guard alone, on a made-up list and source
 printf '%s\t%s\t%s\t%s\n' \
   w a.md 'regex only, unnamed' 'foo[0-9]+|ba[rz]' \
   w a.md 'regex only, named in /x/a.md' 'x[0-9]' \
   w a.md 'plain and regex' 'plain|y[0-9]' \
   c a.md 'positive check' 'z[0-9]' > "$jobs/guard.list"
 printf '%s\n' 'expect 1 "regex only, named in $scratch"' '# regex only, unnamed' > "$jobs/guard.src"
-fx_check "an absent-phrase pin of regex only that no case names is reported by its description" \
+fx_check "a regex-only pin that no case names is reported, a comment naming it does not count" \
   test "$(uncovered_pins "$jobs/guard.list" "$jobs/guard.src")" = 'regex only, unnamed'
-printf '%s\n' 'pin_phrase "regex only, unnamed"' > "$jobs/guard.src"
-fx_check "a pin a hand-written case names is not reported, a comment naming it does not count" \
-  test "$(uncovered_pins "$jobs/guard.list" "$jobs/guard.src")" = 'regex only, named'
+printf '%s\n' 'expect 1 "regex only, named"' 'pin_phrase "regex only, unnamed"' > "$jobs/guard.src"
+fx_check "a pin a hand-written case names is not reported" \
+  test -z "$(uncovered_pins "$jobs/guard.list" "$jobs/guard.src")"
+printf '%s\t%s\t%s\t%s\n' w a.md 'regex only /dev:foo in /x/a.md' 'x[0-9]' > "$jobs/guard.list"
+printf '%s\n' 'expect 1 "regex only"' > "$jobs/guard.src"
+fx_check "a pin's skill name and file tail are not needed to name it" \
+  test -z "$(uncovered_pins "$jobs/guard.list" "$jobs/guard.src")"
+printf '%s\n' 'expect 1 "other"' > "$jobs/guard.src"
+fx_check "an uncovered pin makes a FAIL line that names it" \
+  test "$(uncovered_report "$jobs/guard.list" "$jobs/guard.src")" = "FAIL absent-phrase pin 'regex only' derives no case and no hand-written case names it"
 
-fx_check "a phase prints its wall seconds, its CPU seconds and the slots" \
-  grep -Eq '^timing: a phase: [0-9]+s wall, [0-9]+s cpu on [0-9]+ slots$' <<<"$(phase_cpu=0; phase "a phase")"
 fx_report_fails
