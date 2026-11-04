@@ -1816,6 +1816,11 @@ sec=18 expect "a name both a step and a heading cited bare fails section 18" 1 "
 # a skill is always named in backticks, and a name is never set in them (dev-hcn9)
 bare_msg="present: a skill not in backticks beside a cited name of"
 bt_msg="present: a name cited in backticks of"
+q_msg="present: a step name cited in quotes of"
+pos_msg="present: a bare cite after a possessive and step or section of"
+cite_msg="present: a bare cite of"
+bold_msg="present: a heading cited in bold of"
+first_msg="present: a bare skill-first cite of"
 SK=/dev:implement-story
 # zed_step: a step and a heading both named Zed gate in /dev:implement-story, so a name of kind both
 zed_step() { printf '%s\n' "## Zed gate" "" "**Zed gate.** A step." >> "$scratch/skills/implement-story/SKILL.md"; }
@@ -1899,7 +1904,6 @@ cite_case 0 $orch "a gap longer than two words passes section 18" "" "As the Sto
 cite_case 0 $orch "a bare cite of 'the /dev:x skill' passes section 18" "" "As the Story gate of the \`/dev:implement-story\` skill says."
 
 # a bare skill beside a name: the right mark fails as a bare skill, any other form fails on its own check
-q_msg="present: a step name cited in quotes of"
 cite_pairs $orch "a bare skill beside a name" \
   "$q_msg" "As $SK's \"Story gate\" says." \
   "$bare_msg" "As the **Clean up** sweep of $SK says." \
@@ -1909,8 +1913,8 @@ cite_pairs $orch "a bare skill beside a name" \
   "$bare_msg" "As $SK: **Story gate** says." \
   "$bare_msg" "As $SK's **Story gate** says." \
   "$q_msg" "As $SK's \"Story gate.\" says." \
-  "present: a bare cite of" "As the Story gate step of $SK says." \
-  "present: a bare cite after a possessive and step or section of" "As $SK's story gate says." \
+  "$cite_msg" "As the Story gate step of $SK says." \
+  "$pos_msg" "As $SK's story gate says." \
   "$q_msg" "As the \"Story gate\" step of $SK says." \
   "$bare_msg" "As the **Story gate** step in $SK says."
 cite_case 1 $orch "a skill cited without backticks after a possessive fails section 18" "$bare_msg /dev:task-orchestrator in $scratch/$orch" "As /dev:task-orchestrator's \"Two entries\" says."
@@ -1996,7 +2000,7 @@ cite_seeds $orch "$bt_msg" "a colon or semicolon among the marks of a name in ba
   "As the **\`Story gate\`:** step of \`$SK\` says." \
   "As the \`Story gate\`**;** step of \`$SK\` says." \
   "As the \`Story gate\`**:** step of \`$SK\` says."
-cite_seeds $orch "present: a bare cite of" "a semicolon after the closing backtick of a bare name" \
+cite_seeds $orch "$cite_msg" "a semicolon after the closing backtick of a bare name" \
   "As the Story gate\`; step of \`$SK\` says." \
   "As the Story gate\`; step of $SK says."
 
@@ -2023,9 +2027,9 @@ cite_passes $orch "an open shape" "As $SK's \`Story gate says." "As ${SK}—**St
 
 # a mark that closes a name never opened is read after the possessive and skill-first, where the
 # name reads bare; in the of/in order it passes (the open shape above)
-cite_seeds $orch "present: a bare cite after a possessive and step or section of" \
+cite_seeds $orch "$pos_msg" \
   "a mark closing a name never opened after the possessive" "As $SK's Story gate** says."
-cite_seeds $orch "present: a bare skill-first cite of" "a mark closing a name never opened skill-first" \
+cite_seeds $orch "$first_msg" "a mark closing a name never opened skill-first" \
   "As $SK Story gate** says."
 
 # a parenthesis around the whole cite is read; one between the skill and the name, or before the
@@ -2037,11 +2041,11 @@ cite_passes $orch "a parenthesis inside a cite" "As the **Story gate** step of (
 # a backtick straight before a name that follows the skill or its possessive (after an optional
 # step or section) is outside what the lint reads; the same backtick after the name is read
 cite_passes $orch "a backtick before a name" "As $SK's step \`Story gate says." "As $SK's section \`Story gate says." "As /dev:task-orchestrator's section \`Two entries says." "As $SK the \`Story gate says."
-cite_pairs $orch "a backtick after a name" \
-  "present: a bare cite after a possessive and step or section of" "As $SK's step Story gate\` says." \
-  "present: a bare cite after a possessive and step or section of" "As /dev:task-orchestrator's section Two entries\` says."
+cite_seeds $orch "$pos_msg" "a backtick after a name" \
+  "As $SK's step Story gate\` says." \
+  "As /dev:task-orchestrator's section Two entries\` says."
 # the skill-first order reads a backtick after a bare name too, with a space after it
-cite_seeds $orch "present: a bare skill-first cite of" "a backtick after a bare name, skill-first" \
+cite_seeds $orch "$first_msg" "a backtick after a bare name, skill-first" \
   "As $SK Story gate\` says."
 
 # a stray backtick after a bare name in the of/in order is read only with a space after it, or
@@ -2055,22 +2059,22 @@ cite_passes $orch "a backticked name with a space inside the backticks after a s
 
 # a space before a name in backticks is read in the of/in order, where the closing backtick after the
 # name leaves it bare; after the possessive and skill-first it is unread (the cases above)
-cite_seeds $orch "present: a bare cite of" "a space before a name in backticks in the of/in order" \
+cite_seeds $orch "$cite_msg" "a space before a name in backticks in the of/in order" \
   "As the \` Story gate\` step of $SK says."
 
 # a lower-case phrase that spells a name before in/of the skill is read too
-cite_seeds $orch "present: a bare cite of" "a name spelled in lower case in prose" \
+cite_seeds $orch "$cite_msg" "a name spelled in lower case in prose" \
   "Run bd story gate in $SK first."
 
 # a backtick around the possessive: the skill form of the any-form branch
 cite_pairs $orch "a backtick around a possessive" \
-  "present: a bare cite after a possessive and step or section of" "As \`/dev:task-orchestrator's\` Two entries says." \
+  "$pos_msg" "As \`/dev:task-orchestrator's\` Two entries says." \
   "$q_msg" "As \`$SK's\` \"Story gate\" says." \
-  "present: a bare cite after a possessive and step or section of" "As \`$SK's\` Story gate says."
+  "$pos_msg" "As \`$SK's\` Story gate says."
 
 # a backtick straight after a bare name in the of/in order leaves it bare, with a gap of 0 to 2
 # words and the skill in any form
-cite_seeds $orch "present: a bare cite of" "a backtick after a bare name" \
+cite_seeds $orch "$cite_msg" "a backtick after a bare name" \
   "As the Story gate\` step of $SK says." \
   "As the Story gate\` step of \`$SK\` says." \
   "As the Two entries\` heading of /dev:task-orchestrator says." \
@@ -2086,9 +2090,9 @@ cite_pairs $orch "punctuation after the marks" \
   "$bare_msg" "As the \"Two entries\"; heading of /dev:task-orchestrator says." \
   "$q_msg" "As the \"Story gate\", step of \`$SK\` says." \
   "$q_msg" "As the \"Story gate\": step of \`$SK\` says." \
-  "present: a heading cited in bold of" "As the **Two entries**: heading of \`/dev:task-orchestrator\` says." \
-  "present: a bare cite of" "As the Story gate\`, step of \`$SK\` says." \
-  "present: a bare cite of" "As the Story gate\`: step of \`$SK\` says."
+  "$bold_msg" "As the **Two entries**: heading of \`/dev:task-orchestrator\` says." \
+  "$cite_msg" "As the Story gate\`, step of \`$SK\` says." \
+  "$cite_msg" "As the Story gate\`: step of \`$SK\` says."
 
 # a backtick that is part of a name stays in the name: **`git` rule.** is cited in bold
 cite_passes $orch "a name holding backticks cited in bold" "As \`/dev:task-orchestrator\`'s **\`git\` rule** says." "As the **\`git\` rule** of \`/dev:task-orchestrator\` says." "As \`/dev:task-orchestrator\` **\`git\` rule** says."
@@ -2152,12 +2156,12 @@ cite_passes $orch "a backticked skill with an argument" \
 # a bare, quoted, bold or backticked name before 'of' a backticked skill with an argument or a
 # suffix is read in the of/in order and fails, whatever follows the skill inside the pair
 cite_pairs $orch "a wrong-marked name before a backticked skill with an argument" \
-  "present: a bare cite of" "Run the Story gate step of \`$SK <id>\` first." \
+  "$cite_msg" "Run the Story gate step of \`$SK <id>\` first." \
   "$q_msg" "As the \"Story gate\" step of \`$SK <id>\` says." \
-  "present: a heading cited in bold of" "As the **Two entries** heading of \`/dev:task-orchestrator <id>\` says." \
-  "present: a bare cite of" "As the Two entries heading of \`/dev:task-orchestrator <id>\` says." \
+  "$bold_msg" "As the **Two entries** heading of \`/dev:task-orchestrator <id>\` says." \
+  "$cite_msg" "As the Two entries heading of \`/dev:task-orchestrator <id>\` says." \
   "$bt_msg" "As the \`Story gate\` step of \`$SK <id>\` says." \
-  "present: a bare cite of" "Run the Story gate step of \`$SK/x\` first." \
+  "$cite_msg" "Run the Story gate step of \`$SK/x\` first." \
   "$q_msg" "As the \"Story gate\" step of \`$SK/x\` says."
 
 # bare skill beside a bare or quoted name in the of/in order, and a bare skill with a bare capital
@@ -2166,27 +2170,20 @@ cite_case 1 $orch "a bare capital heading after a bare possessive fails section 
 
 # bare-skill prose that spells a known name fails: the reword is the fix
 cite_pairs $orch "bare-skill prose spelling a known name" \
-  "present: a bare cite of" "Read the steps of $SK first." \
-  "present: a bare cite of" "The landing in $SK is serial." \
-  "present: a bare cite of" "The report of /dev:task-orchestrator goes up." \
-  "present: a bare cite after a possessive and step or section of" "/dev:task-orchestrator's report is one line." \
-  "present: a bare skill-first cite of" "Use /dev:triage, Report the items."
+  "$cite_msg" "Read the steps of $SK first." \
+  "$cite_msg" "The landing in $SK is serial." \
+  "$cite_msg" "The report of /dev:task-orchestrator goes up." \
+  "$pos_msg" "/dev:task-orchestrator's report is one line." \
+  "$first_msg" "Use /dev:triage, Report the items."
 
 # the file edges of the bare skill's regexes: a cite ending the file with no final newline (the
 # of/in order's end-of-line alternative), and one opening the file (the skill's start-of-line
 # alternative), each alone in a new doc
-# edge_pairs <what> (<message> <text>)...: each text, written with no final newline to a new rules
-# doc, fails section 18 with the message beside it
-edge_pairs() {
-  local what=$1
-  shift
-  [ $(($# % 2)) -eq 0 ] || { echo "edge_pairs: odd argument count for '$what'" >&2; exit 2; }
-  while [ $# -ge 2 ]; do no_nl=1 cite_case 1 docs/agents/seed.md "$what ($2) fails section 18" "$1" "$2"; shift 2; done
-}
-edge_pairs "a bare skill ending a doc with no final newline" \
+# each text, written with no final newline to a new rules doc, fails section 18 with the message beside it
+no_nl=1 cite_pairs docs/agents/seed.md "a bare skill ending a doc with no final newline" \
   "$bare_msg" "As the **Clean up** sweep of $SK" \
   "$bare_msg" "As the **Story gate** step of $SK" \
-  "present: a bare cite of" "As the Story gate step of $SK" \
+  "$cite_msg" "As the Story gate step of $SK" \
   "$q_msg" "As the \"Story gate\" step of $SK"
 cite_seeds docs/agents/seed.md "$bare_msg" "a bare skill opening a doc" \
   "$SK's **Story gate** says." \
@@ -2212,10 +2209,10 @@ cite_passes $orch "a skill name inside a path or a prefix" \
 # still fails: those checks read the skill anywhere
 cite_pairs $orch "a wrong mark or bare name beside a prefixed skill" \
   "$q_msg" "See foo$SK's \"Story gate\" says." \
-  "present: a bare cite after a possessive and step or section of" "See foo$SK's Story gate says." \
+  "$pos_msg" "See foo$SK's Story gate says." \
   "$q_msg" "See foo$SK \"Story gate\" says." \
-  "present: a bare skill-first cite of" "See foo$SK Story gate says." \
-  "present: a heading cited in bold of" "See foo/dev:task-orchestrator's **Two entries** says."
+  "$first_msg" "See foo$SK Story gate says." \
+  "$bold_msg" "See foo/dev:task-orchestrator's **Two entries** says."
 # in the of/in order a skill with any character but a space or a backtick straight before it (a
 # letter, slash, colon or hyphen among them) is not read at all, so even a wrong mark or a bare
 # name passes
