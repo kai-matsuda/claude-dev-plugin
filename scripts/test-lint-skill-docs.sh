@@ -1835,10 +1835,12 @@ cite_pairs() {
 }
 # cite_seeds <want: 1 fails, 0 passes> <file> <message> <what> <form>...: each form, appended to
 # the file in a fresh tree ($prep first, when set), fails section 18 with the message (want 1) or
-# passes it (want 0, the message ""); the one helper for a seed of either verdict
+# passes it (want 0, the message ""); the helper for a list of seeds that share one verdict and
+# one message
 cite_seeds() {
   local want=$1 file=$2 msg=$3 what=$4 form verdict=passes
   shift 4
+  [ "$want" = 1 ] || [ -z "$msg" ] || { echo "cite_seeds: a passing seed takes no message" >&2; exit 2; }
   [ "$want" = 1 ] && verdict=fails
   for form in "$@"; do cite_case "$want" "$file" "$what ($form) $verdict section 18" "$msg" "$form"; done
 }
