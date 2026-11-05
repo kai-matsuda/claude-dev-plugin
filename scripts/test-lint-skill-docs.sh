@@ -1415,6 +1415,31 @@ for loop in step dotfiles ns brief mermaid cite; do
     test "$dropped" = "FAIL the $loop loop does not read $drop_file"
 done
 
+# the section-6 database-gate loop (dev-lfh0): the lint checks each gate skill's cite of the tracker
+# doc's "Has a database" rule in a loop over a hand-picked list, so a skill dropped from that list
+# passes unseen. The expected set is stated here, not read back from the lint. Every skill in it
+# is seeded with the cite removed, in one tree, so one lint run reports each one that is unchecked.
+db_gate_skills="spec-to-stories spec-to-tasks story-to-tasks close-epic retro"
+# db_gaps: one line for each skill of db_gate_skills whose missing-cite message the lint does not print
+db_gaps() {
+  local g out
+  fresh
+  for g in $db_gate_skills; do
+    drop_phrase "skills/$g/SKILL.md" '"Has a database" rule'
+  done
+  out=$(lint_scratch)
+  for g in $db_gate_skills; do
+    grep -qF "/$g cites the tracker doc's \"Has a database\" rule" <<<"$out" \
+      || echo "FAIL the section-6 loop does not read $g"
+  done
+}
+db_gaps_out=$(db_gaps)
+fx_check "every skill of the section-6 database-gate list is checked" test -z "$db_gaps_out"
+with_dropped_lint "the section-6 database gates" skills/retro/SKILL.md \
+  '/^for g in spec-to-stories /' 's/ retro; do$/; do/' db_gaps
+fx_check "a skill dropped from the section-6 database-gate loop in a copy of the lint is reported" \
+  test "$dropped" = "FAIL the section-6 loop does not read retro"
+
 # the section-18 skill names (dev-5wpr): the lint reads every skill for its cite-target pass and for
 # the skill-name list, and a skill dropped from either only shows when a seed happens to name it. The
 # cite key it leaves beside the pin list is checked against the tree instead.
