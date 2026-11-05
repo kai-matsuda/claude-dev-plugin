@@ -404,7 +404,19 @@ checks_run() {
   [ -n "$queue" ] || return 0
   out=$(printf '%s' "$queue" | LC_ALL=C awk -F '\t' '
     BEGIN { meta = "^$.[]()*+?{}\\" }
-    { k[NR] = $1; f[NR] = $2; d[NR] = $3; p[NR] = $4; lp[NR] = tolower($4); a[NR] = $5
+    { k[NR] = $1; f[NR] = $2; d[NR] = $3; p[NR] = $4; lp[NR] = tolower($4)
+      # a lacksw/lackswc check carries a names list in field 5, every other kind its anchor
+      if ($1 == "w" || $1 == "W") {
+        # split the |-list at its unescaped bars: nameRe is a name as a pattern, nameShown as text
+        nnames[NR] = 0; cur = ""; shown_cur = ""
+        for (c = 1; c <= length($5); c++) {
+          ch = substr($5, c, 1)
+          if (ch == "\\") { cur = cur ch substr($5, c + 1, 1); shown_cur = shown_cur substr($5, c + 1, 1); c++ }
+          else if (ch == "|") { if (cur != "") { nnames[NR]++; nameRe[NR, nnames[NR]] = cur; nameShown[NR, nnames[NR]] = shown_cur }; cur = ""; shown_cur = "" }
+          else { cur = cur ch; shown_cur = shown_cur ch }
+        }
+        if (cur != "") { nnames[NR]++; nameRe[NR, nnames[NR]] = cur; nameShown[NR, nnames[NR]] = shown_cur }
+      } else a[NR] = $5
       if (!($2 in nat)) files[++nf] = $2
       at[$2, ++nat[$2]] = NR
       # a lacks (-iE) pattern of plain words, or of alternatives of them, is matched with index
@@ -454,28 +466,17 @@ checks_run() {
           while (match(substr(J[fn, t], pos), (t == "W" ? p[i] : lp[i]))) {
             at0 = pos + RSTART - 1
             while (ln < n && JO[fn, ln + 1] <= at0) ln++
-            if (a[i] != "") {
+            if (nnames[i] > 0) {
               # a check with a names list (section 18) shows each name that matched, up to three
               # hits a name, and scans on to the end of the file for the rest
-              mt = substr(J[fn, t], at0, RLENGTH)
-              if (!(i in NM)) {
-                ps = a[i]; bn = 0; pcur = ""
-                for (pc = 1; pc <= length(ps); pc++) {
-                  pch = substr(ps, pc, 1)
-                  if (pch == "\\") { pcur = pcur pch substr(ps, pc + 1, 1); pc++ }
-                  else if (pch == "|") { if (pcur != "") NMS[i, ++bn] = pcur; pcur = "" }
-                  else pcur = pcur pch
-                }
-                if (pcur != "") NMS[i, ++bn] = pcur
-                NM[i] = bn
+              matched = substr(J[fn, t], at0, RLENGTH)
+              best = 0; shown_name = matched   # a match no name explains is shown as the text matched
+              for (nj = 1; nj <= nnames[i]; nj++) {
+                name_re = nameRe[i, nj]; if (t == "w") name_re = tolower(name_re)
+                if (match(matched, name_re) && RLENGTH > best) { best = RLENGTH; shown_name = nameShown[i, nj] }
               }
-              best = 0; bname = ""
-              for (bj = 1; bj <= NM[i]; bj++) {
-                pn = NMS[i, bj]; if (t == "w") pn = tolower(pn)
-                if (match(mt, pn) && RLENGTH > best) { best = RLENGTH; bname = NMS[i, bj] }
-              }
-              if (!((i, bname) in CNT)) ORD[i, ++NORD[i]] = bname
-              if (++CNT[i, bname] <= 3) SH[i, bname] = SH[i, bname] ln ":" L[fn, ln] "\n"
+              if (!((i, shown_name) in nhits)) nameOrder[i, ++nnamed[i]] = shown_name
+              if (++nhits[i, shown_name] <= 3) nameLines[i, shown_name] = nameLines[i, shown_name] ln ":" L[fn, ln] "\n"
               hit[i] = 1
               if (ln == n) break
             } else {
@@ -520,10 +521,10 @@ checks_run() {
       }
       for (i = 1; i <= NR; i++) {
         t = k[i]
-        if ((t == "w" || t == "W") && a[i] != "") {
-          for (bj = 1; bj <= NORD[i]; bj++) {
-            bname = ORD[i, bj]; disp = (bname == "" ? p[i] : bname); if (bname != "") gsub(/\\/, "", disp)
-            printf "FAIL: present: %s (%s)\n%s", d[i], disp, SH[i, bname]
+        if ((t == "w" || t == "W") && nnames[i] > 0) {
+          for (nj = 1; nj <= nnamed[i]; nj++) {
+            shown_name = nameOrder[i, nj]
+            printf "FAIL: present: %s (%s)\n%s", d[i], shown_name, nameLines[i, shown_name]
           }
         }
         else if (t == "x" || t == "f" || t == "y" || t == "w" || t == "W") { if (hit[i]) printf "FAIL: present: %s (%s)\n%s", d[i], p[i], shown[i] }

@@ -198,6 +198,12 @@ judge() {
     if [ "$sec" = one ]; then [ "$(wc -w <<<"$got")" -eq 1 ]; else [ "$got" = "$sec" ]; fi \
       || why="failed sections: ${got:-none}, want ${sec}"
   fi
+  # with $absent set (lines, one per line), a case must print none of them
+  if [ -z "$why" ] && [ -n "${absent:-}" ]; then
+    while IFS= read -r got; do
+      [ -z "$got" ] || [[ $4 != *"$got"* ]] || { why="printed '$got', which it must not"; break; }
+    done <<<"$absent"
+  fi
   if [ -z "$why" ]; then echo "ok   $1"; return; fi
   echo "FAIL $1 ($why)"
   grep '^FAIL' <<<"$4" | head -5 | sed 's/^/       /'
@@ -1904,7 +1910,18 @@ present: a bare cite of /dev:implement-story in $scratch/docs/agents/orchestrati
 present: a bare cite of /dev:implement-story in $scratch/docs/agents/orchestration.md (Story gate)
 present: a bare cite of /dev:implement-story in $scratch/docs/agents/orchestration.md (Re-evaluate the frontier)
 As the Landing section of \`/dev:implement-story\` says.
-As the Clean up sweep of \`/dev:implement-story\` says."
+As the Clean up sweep of \`/dev:implement-story\` says.
+As the Story gate step of \`/dev:implement-story\` says.
+As the Re-evaluate the frontier step of \`/dev:implement-story\` says."
+
+# one name with four wrong cites shows its first three hits and not the fourth
+fresh
+printf '%s\n' "First Landing section of \`/dev:implement-story\` says." "Second Landing section of \`/dev:implement-story\` says." \
+  "Third Landing section of \`/dev:implement-story\` says." "Fourth Landing section of \`/dev:implement-story\` says." >> "$scratch/docs/agents/orchestration.md"
+absent="Fourth Landing section of" sec=18 expect "a name with four wrong cites shows three hits and not the fourth" 1 "(Landing)
+First Landing section of
+Second Landing section of
+Third Landing section of"
 
 # the other wrong forms the rule names (dev-mnz6): a step name in quotes, a heading in bold and a
 # bare cite in the "of /dev:x" word order, each failing in a rules doc but the coding standards
