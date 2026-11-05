@@ -274,7 +274,8 @@ drop_unchanged() {
 }
 # enqueue <check line>: queues it unless $f is a file LINT_UNCHANGED lists
 # LINT_PIN_LIST names a file every check is appended to instead, one per line as
-# <type> <file> <description> <phrase> [<anchor>] (the queue's own line), for the regression test
+# <type> <file> <description> <phrase> [<field 5>] (the queue's own line; field 5 is an anchor, or a
+# names list on a w or W line), for the regression test
 # to derive its drop cases from; such a run lists its checks and runs none of them, since section
 # 18 alone lists thousands and the test's baseline case runs them, with the names each file holds
 enqueue() {
@@ -287,8 +288,8 @@ hase() { enqueue "e	$f	$1	$2"; }
 lacks() { [ -f "$f" ] || return 0; enqueue "x	$f	$1	$2"; }
 lacksf() { [ -f "$f" ] || return 0; enqueue "f	$f	$1	$2"; }
 lackse() { [ -f "$f" ] || return 0; enqueue "y	$f	$1	$2"; }
-lacksw() { [ -f "$f" ] || return 0; enqueue "w	$f	$1	$2"; }
-lackswc() { [ -f "$f" ] || return 0; enqueue "W	$f	$1	$2"; }   # lacksw, case-sensitive (-E)
+lacksw() { [ -f "$f" ] || return 0; enqueue "w	$f	$1	$2	${3:-}"; }   # [<names>]: a |-list the FAIL line names the match by, three hits a name (section 18)
+lackswc() { [ -f "$f" ] || return 0; enqueue "W	$f	$1	$2	${3:-}"; }   # lacksw, case-sensitive (-E)
 line_has() { enqueue "a	$f	$2	$3	$1"; }   # <anchor> <description> <phrase>
 line_hase() { enqueue "A	$f	$2	$3	$1"; }   # <anchor> <description> <pattern>
 line_lacks() { [ -f "$f" ] || return 0; enqueue "X	$f	$2	$3	$1"; }   # <anchor> <description> <phrase>
@@ -396,13 +397,27 @@ epic_fourth_failure_lines() {
 }
 # run the queued checks: a missing pattern or a present lacks one is a FAIL line; a lacks, lacksf,
 # lackse or lacksw one is followed by its first three matching lines, numbered as grep -n numbers them,
-# an anchored one names its anchor, a paragraph or opening one the scope it searched
+# an anchored one names its anchor, a paragraph or opening one the scope it searched; a lacksw or
+# lackswc one with a names list gets one FAIL line a matched name, that name its phrase, each with
+# its first three hits
 checks_run() {
   local out
   [ -n "$queue" ] || return 0
   out=$(printf '%s' "$queue" | LC_ALL=C awk -F '\t' '
     BEGIN { meta = "^$.[]()*+?{}\\" }
-    { k[NR] = $1; f[NR] = $2; d[NR] = $3; p[NR] = $4; lp[NR] = tolower($4); a[NR] = $5
+    { k[NR] = $1; f[NR] = $2; d[NR] = $3; p[NR] = $4; lp[NR] = tolower($4)
+      # a lacksw/lackswc check carries a names list in field 5, every other kind its anchor
+      if ($1 == "w" || $1 == "W") {
+        # split the |-list at its unescaped bars: nameRe is a name as a pattern, nameShown as text
+        nnames[NR] = 0; cur = ""; shown_cur = ""
+        # c runs one past the end so the last name is pushed by the same branch as the rest
+        for (c = 1; c <= length($5) + 1; c++) {
+          ch = substr($5, c, 1)
+          if (c > length($5) || ch == "|") { if (cur != "") { nnames[NR]++; nameRe[NR, nnames[NR]] = cur; nameShown[NR, nnames[NR]] = shown_cur }; cur = ""; shown_cur = "" }
+          else if (ch == "\\") { cur = cur ch substr($5, c + 1, 1); shown_cur = shown_cur substr($5, c + 1, 1); c++ }
+          else { cur = cur ch; shown_cur = shown_cur ch }
+        }
+      } else a[NR] = $5
       if (!($2 in nat)) files[++nf] = $2
       at[$2, ++nat[$2]] = NR
       # a lacks (-iE) pattern of plain words, or of alternatives of them, is matched with index
@@ -415,7 +430,7 @@ checks_run() {
           for (q = 1; q <= nw[NR]; q++) { gsub(/\\\./, ".", w[q]); W[NR, q] = w[q] }
         }
       }
-      # the checks sharing a kind, pattern and anchor run back to back (below)
+      # the checks sharing a kind, pattern and field 5 (an anchor, or a names list) run back to back (below)
       g = $1 SUBSEP $4 SUBSEP $5
       if (!(g in gn)) gs[++ng] = g
       G[g, ++gn[g]] = NR }
@@ -452,8 +467,24 @@ checks_run() {
           while (match(substr(J[fn, t], pos), (t == "W" ? p[i] : lp[i]))) {
             at0 = pos + RSTART - 1
             while (ln < n && JO[fn, ln + 1] <= at0) ln++
-            shown[i] = shown[i] ln ":" L[fn, ln] "\n"
-            if (++hit[i] == 3 || ln == n) break
+            if (nnames[i] > 0) {
+              # a check with a names list (section 18) shows each name that matched, up to three
+              # hits a name, and scans on to the end of the file for the rest
+              matched = substr(J[fn, t], at0, RLENGTH)
+              best = 0; shown_name = matched   # a match no name explains is shown as the text matched
+              for (nj = 1; nj <= nnames[i]; nj++) {
+                name_re = nameRe[i, nj]; if (t == "w") name_re = tolower(name_re)
+                # a name counts only where the cite puts it, at the start of the match or one boundary character in
+                if (match(matched, name_re) && RSTART <= 2 && RLENGTH > best) { best = RLENGTH; shown_name = nameShown[i, nj] }
+              }
+              if (!((i, shown_name) in nhits)) nameOrder[i, ++nnamed[i]] = shown_name
+              if (++nhits[i, shown_name] <= 3) nameLines[i, shown_name] = nameLines[i, shown_name] ln ":" L[fn, ln] "\n"
+              hit[i] = 1
+              if (ln == n) break
+            } else {
+              shown[i] = shown[i] ln ":" L[fn, ln] "\n"
+              if (++hit[i] == 3 || ln == n) break
+            }
             ln++; pos = JO[fn, ln]
           }
           continue
@@ -492,7 +523,13 @@ checks_run() {
       }
       for (i = 1; i <= NR; i++) {
         t = k[i]
-        if (t == "x" || t == "f" || t == "y" || t == "w" || t == "W") { if (hit[i]) printf "FAIL: present: %s (%s)\n%s", d[i], p[i], shown[i] }
+        if ((t == "w" || t == "W") && nnames[i] > 0) {
+          for (nj = 1; nj <= nnamed[i]; nj++) {
+            shown_name = nameOrder[i, nj]
+            printf "FAIL: present: %s (%s)\n%s", d[i], shown_name, nameLines[i, shown_name]
+          }
+        }
+        else if (t == "x" || t == "f" || t == "y" || t == "w" || t == "W") { if (hit[i]) printf "FAIL: present: %s (%s)\n%s", d[i], p[i], shown[i] }
         else if (t == "X") { if (hit[i]) printf "FAIL: present: %s (%s on a line matching %s)\n", d[i], p[i], a[i] }
         else if (hit[i]) continue
         else if (t == "a" || t == "A") printf "FAIL: missing: %s (%s on a line matching %s)\n", d[i], p[i], a[i]
@@ -2666,7 +2703,7 @@ if [ -f "$standards" ]; then
     local poss gap skfirst orders
     cite_toks "$4"
     three_orders "$3(${1#|})[.,;:]?$3[.,;:]?"
-    lacksw "$2 of /dev:$skill in $f" "$orders"
+    lacksw "$2 of /dev:$skill in $f" "$orders" "${1#|}"
   }
   # cite_checks <skill>: queues the skill's checks in the file in f, one pattern over its names in
   # the file, from names_all and its lists by kind and mark (q_*: a quote before the name's first
@@ -2678,16 +2715,16 @@ if [ -f "$standards" ]; then
     # the skill is matched backticked or bare, so a bare skill beside a name fails too (dev-hcn9)
     cite_toks any
     # a backtick after the name (and a punctuation mark after it) leaves the name bare too
-    lacksw "a bare cite of /dev:$skill in $f" "(^|[^*\"A-Za-z])$name(\`[.,;:]?)?$gap"
-    lacksw "a bare cite after a possessive and step or section of /dev:$skill in $f" "$poss( (step|section))? $name([^A-Za-z]|$)"
+    lacksw "a bare cite of /dev:$skill in $f" "(^|[^*\"A-Za-z])$name(\`[.,;:]?)?$gap" "${names_all#|}"
+    lacksw "a bare cite after a possessive and step or section of /dev:$skill in $f" "$poss( (step|section))? $name([^A-Za-z]|$)" "${names_all#|}"
     # case-sensitive: a lower-case word straight after a skill reads as prose ("`/dev:x` re-cut adds")
-    lackswc "a bare skill-first cite of /dev:$skill in $f" "$skfirst $name([^A-Za-z]|$)"
+    lackswc "a bare skill-first cite of /dev:$skill in $f" "$skfirst $name([^A-Za-z]|$)" "${names_all#|}"
     # a name is never set in backticks, step or heading, in any of the three orders: the name
     # inside a pair of backticks, with a bold or quote mark inside or outside the pair too
     # (dev-hcn9). A backtick that is part of the name (**`git` rule**) is not a pair around it
     in_ticks="[*\"]*\`[*\"]*$name[*\".,;:]*\`[*\".,;:]*"
     three_orders "$in_ticks"
-    lacksw "a name cited in backticks of /dev:$skill in $f" "$orders"
+    lacksw "a name cited in backticks of /dev:$skill in $f" "$orders" "${names_all#|}"
     cite_marked "$q_step" "a step name cited in quotes" '"' any
     cite_marked "$b_heading" "a heading cited in bold" '\*\*' any
     # a skill is named in backticks: the right marking beside a bare skill fails (dev-hcn9)

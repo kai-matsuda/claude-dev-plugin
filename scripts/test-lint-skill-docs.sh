@@ -186,7 +186,8 @@ failed_sections() {
 }
 # judge <description> <exit code> <message> <lint output>: one ok or FAIL line, the lint's own
 # FAIL lines indented under a FAIL. With $sec set, a failing case must fail in exactly the
-# sections it names ("6 10"), or in exactly one section when it says "one".
+# sections it names ("6 10"), or in exactly one section when it says "one". With $must_not_print
+# set (lines, one per line), the output must hold none of them.
 judge() {
   local why= got missing
   if ! result_is "$2" "$3" "$4"; then
@@ -197,6 +198,12 @@ judge() {
     got=$(failed_sections <<<"$4")
     if [ "$sec" = one ]; then [ "$(wc -w <<<"$got")" -eq 1 ]; else [ "$got" = "$sec" ]; fi \
       || why="failed sections: ${got:-none}, want ${sec}"
+  fi
+  # with $must_not_print set (lines, one per line), a case must print none of them
+  if [ -z "$why" ] && [ -n "${must_not_print:-}" ]; then
+    while IFS= read -r got; do
+      [ -z "$got" ] || [[ $4 != *"$got"* ]] || { why="printed '$got', which it must not"; break; }
+    done <<<"$must_not_print"
   fi
   if [ -z "$why" ]; then echo "ok   $1"; return; fi
   echo "FAIL $1 ($why)"
@@ -1893,6 +1900,29 @@ expect "a possessive followed by a lowercase word on the next line passes sectio
 fresh
 printf '%s\n' "As \`/dev:task-orchestrator\`'s \"Two entries\" says, and \`/dev:implement-story\`'s **Story gate**." >> "$scratch/docs/agents/orchestration.md"
 expect "a quoted heading cite and a bold step cite pass section 18" 0
+
+# a section 18 FAIL line names the skill name that matched, not the skill's whole list of names,
+# and shows hits a name, so wrong cites of four names of one skill show four FAIL lines (dev-j9i5)
+fresh
+printf '%s\n' "As the Landing section of \`/dev:implement-story\` says." "As the Clean up sweep of \`/dev:implement-story\` says." \
+  "As the Story gate step of \`/dev:implement-story\` says." "As the Re-evaluate the frontier step of \`/dev:implement-story\` says." >> "$scratch/docs/agents/orchestration.md"
+sec=18 expect "wrong cites of four names of one skill each get a FAIL line naming the name" 1 "present: a bare cite of /dev:implement-story in $scratch/docs/agents/orchestration.md (Landing)
+present: a bare cite of /dev:implement-story in $scratch/docs/agents/orchestration.md (Clean up)
+present: a bare cite of /dev:implement-story in $scratch/docs/agents/orchestration.md (Story gate)
+present: a bare cite of /dev:implement-story in $scratch/docs/agents/orchestration.md (Re-evaluate the frontier)
+As the Landing section of \`/dev:implement-story\` says.
+As the Clean up sweep of \`/dev:implement-story\` says.
+As the Story gate step of \`/dev:implement-story\` says.
+As the Re-evaluate the frontier step of \`/dev:implement-story\` says."
+
+# one name with four wrong cites shows its first three hits and not the fourth
+fresh
+printf '%s\n' "First Landing section of \`/dev:implement-story\` says." "Second Landing section of \`/dev:implement-story\` says." \
+  "Third Landing section of \`/dev:implement-story\` says." "Fourth Landing section of \`/dev:implement-story\` says." >> "$scratch/docs/agents/orchestration.md"
+must_not_print="Fourth Landing section of" sec=18 expect "a name with four wrong cites shows three hits and not the fourth" 1 "(Landing)
+First Landing section of
+Second Landing section of
+Third Landing section of"
 
 # the other wrong forms the rule names (dev-mnz6): a step name in quotes, a heading in bold and a
 # bare cite in the "of /dev:x" word order, each failing in a rules doc but the coding standards
