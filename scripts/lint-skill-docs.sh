@@ -2746,20 +2746,6 @@ if [ -f "$standards" ]; then
     case $f in "$skills"/*/SKILL.md) own=${f%/SKILL.md}; own=${own##*/} ;; esac
     # one pattern over the other skills (skill_names, built in section 5), the file's own left out
     others=${skill_names//|$own|/|}; others=${others#|}; others=${others%|}
-    # a skill with no directory is missing from skill_names, so its names are read from the file and
-    # join the pattern (dev-ouzn): the names the file puts before a backticked possessive and a
-    # capital, one awk over the file read as one line, less the skills that have a directory
-    while IFS= read -r gone; do
-      [ -n "$gone" ] || continue
-      others+="|$gone"
-    done < <(awk -v known="$skill_names" -v tail="$poss_cap" -v RS='\001' '
-      { gsub(/\n/, " ")
-        while (match($0, "`/dev:[a-z][a-z0-9-]*" tail)) {
-          n = substr($0, RSTART + 6, RLENGTH - 6); sub(/`.*/, "", n)
-          if (!(n in seen) && index(known, "|" n "|") == 0) { seen[n] = 1; print n }
-          $0 = substr($0, RSTART + RLENGTH) } }' "$f")
-    others=${others#|}
-    [ -z "$others" ] || lackswc "an unquoted heading cite of a skill in $f" "\`/dev:($others)$poss_cap"
     # every pattern below holds /dev:<skill> (backticked or bare; the test is on the bare text) and
     # the name's first word, tokens no line break splits, so a file lacking either can match none
     # of them: most files name few skills, and the regexes are the run's cost, in gawk above all.
@@ -2767,9 +2753,24 @@ if [ -f "$standards" ]; then
     # before the word, which pick the marked checks a name joins), the word's in lower case against
     # the file lowered (the checks match in any case), so they know no skill name's alphabet; a
     # first word with a regex escape in it goes unfiltered. The pin list takes every check
-    names_here=$cite_names
-    [ -n "${LINT_PIN_LIST:-}" ] || names_here=$(awk -F '\t' -v own="$own" '
-      NR == FNR { text = text tolower($0) "\n"; next }
+    # The same pass reads the file's no-directory names (dev-ouzn): a skill with no directory is
+    # missing from skill_names, so the names the file puts before a backticked possessive and a
+    # capital (the file read as one line), less the skills that have a directory, come back as
+    # "@gone" rows and join the pattern. The pin list takes every cite name unfiltered
+    names_here=
+    while IFS=$'\t' read -r skill kind name marks; do
+      if [ "$skill" = "@gone" ]; then others+="|$kind"; continue; fi
+      names_here+="$skill	$kind	$name	$marks"$'\n'
+    done < <(awk -F '\t' -v own="$own" -v pin="${LINT_PIN_LIST:-}" -v known="$skill_names" -v tail="$poss_cap" '
+      NR == FNR { text = text tolower($0) "\n"; raw = raw $0 " "; next }
+      !gone_done {
+        gone_done = 1
+        while (match(raw, "`/dev:[a-z][a-z0-9-]*" tail)) {
+          n = substr(raw, RSTART + 6, RLENGTH - 6); sub(/`.*/, "", n)
+          if (!(n in seen) && index(known, "|" n "|") == 0) { seen[n] = 1; print "@gone\t" n }
+          raw = substr(raw, RSTART + RLENGTH) }
+      }
+      pin != "" { print $0 "\t"; next }
       $3 != "" && $1 != own && index(text, "/dev:" $1) {
         w = tolower($3); sub(/ .*/, "", w)
         if (index(w, "\\")) print $0 "\tqb"
@@ -2779,6 +2780,8 @@ if [ -f "$standards" ]; then
           print $0 "\t" (index(text, "\"" w) ? "q" : "-") (index(text, "**" w) ? "b" : "-")
         }
       }' "$f" - <<<"$cite_names")
+    others=${others#|}
+    [ -z "$others" ] || lackswc "an unquoted heading cite of a skill in $f" "\`/dev:($others)$poss_cap"
     last=
     while IFS=$'\t' read -r skill kind name marks; do
       [ -n "$name" ] || continue
