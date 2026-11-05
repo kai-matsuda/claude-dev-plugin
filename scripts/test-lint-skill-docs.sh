@@ -1282,9 +1282,10 @@ sweeps=$(sweeps_gaps "$jobs/pins.list")
 fx_check "every sweep names every file under the agent docs and the skills, CLAUDE.md, the runbook and the sequence diagrams" test -z "$sweeps"
 # with_dropped_lint <name> <file> <sed address> <sed substitution> <command...>: runs the command in
 # this shell with $lint a copy of the lint whose sed edit (the address and substitution that drop
-# <file> from the loop <name> in the lint) has been applied, and puts $lint back; the case "the copy
-# drops <file> from <name>" fails when the edit leaves the copy as the lint (the lint's own list
-# cannot vouch for the files it was built from, so each drop is a lint copy)
+# <file> from the loop <name> in the lint) has been applied, and puts $lint back, with what the
+# command prints in $dropped; the case "the copy drops <file> from <name>" fails when the edit leaves
+# the copy as the lint (the lint's own list cannot vouch for the files it was built from, so each
+# drop is a lint copy)
 with_dropped_lint() {
   local name=$1 file=$2 addr=$3 sub=$4 saved=$lint copy
   shift 4
@@ -1294,22 +1295,14 @@ with_dropped_lint() {
   chmod +x "$copy"
   fx_check "the copy drops $file from $name" bash -c '! cmp -s "$1" "$2"' _ "$lint" "$copy"
   lint=$copy
-  "$@"
+  dropped=$("$@")
   lint=$saved
-}
-# pin_list_dropped_run <pin list name> <gaps function> <suffix>: runs the lint in $lint with a pin
-# list written to $jobs/<pin list name> on a fresh tree, and sets dropped to what the gaps function
-# prints for $jobs/<pin list name><suffix> (the pin list itself, or a file the run leaves beside it)
-pin_list_dropped_run() {
-  fresh
-  pin_list_run "$jobs/$1" > /dev/null
-  dropped=$("$2" "$jobs/$1$3")
 }
 # a copy of the lint with one file dropped from the section-5 sweep: its list lacks that file, so
 # the check above must report it
 with_dropped_lint "one sweep" skills/retro/SKILL.md '/SEQUENCES.md" "${1:-}"/' \
   's#| sort -u | drop_unchanged)$#| grep -v "/retro/SKILL.md" | sort -u | drop_unchanged)#' \
-  pin_list_dropped_run pins.dropped sweeps_gaps ""
+  eval 'fresh; pin_list_run "$jobs/pins.dropped" > /dev/null; sweeps_gaps "$jobs/pins.dropped"'
 fx_check "a file dropped from a sweep in a copy of the lint is reported" \
   bash -c '[ -n "$1" ] && ! grep -v "does not name skills/retro/SKILL\.md\$" <<<"$1" | grep -q .' _ "$dropped"
 
@@ -1398,12 +1391,11 @@ loop_gaps() {
     [[ $out == *"${f#*$'\t'}"* ]] || echo "FAIL the $1 loop does not read ${f%%$'\t'*}"
   done
 }
-loop_dropped_run() { dropped=$(loop_gaps "$1"); }
 for loop in step dotfiles ns brief mermaid cite; do
   gaps=$(loop_gaps "$loop")
   fx_check "every file the $loop loop is documented to read is read" test -z "$gaps"
   loop_facts "$loop"
-  with_dropped_lint "the $loop loop" "$drop_file" "$loop_sed_addr" "$loop_sed_sub" loop_dropped_run "$loop"
+  with_dropped_lint "the $loop loop" "$drop_file" "$loop_sed_addr" "$loop_sed_sub" loop_gaps "$loop"
   fx_check "a file dropped from the $loop loop in a copy of the lint is reported" \
     test "$dropped" = "FAIL the $loop loop does not read $drop_file"
 done
@@ -1425,11 +1417,11 @@ names=$(names_gaps "$jobs/pins.list.cites")
 fx_check "the cite key holds every skill's name and headings" test -z "$names"
 with_dropped_lint "the cite-target pass" skills/retro/SKILL.md '/END { for (x in k)/' \
   's#'"'"' "$skills"/\*/SKILL.md |#'"'"' $(printf "%s\\n" "$skills"/*/SKILL.md | grep -v /retro/) |#' \
-  pin_list_dropped_run pins.names names_gaps .cites
+  eval 'fresh; pin_list_run "$jobs/pins.names" > /dev/null; names_gaps "$jobs/pins.names.cites"'
 fx_check "a skill dropped from the cite-target pass in a copy of the lint is reported" \
   test "$dropped" = "FAIL the cite key lacks the headings of retro"
 with_dropped_lint "the skill-name list" skills/retro/SKILL.md '/^  given=\${given%\/}$/' \
-  's@$@; [ "${given##*/}" != retro ] || continue@' pin_list_dropped_run pins.names names_gaps .cites
+  's@$@; [ "${given##*/}" != retro ] || continue@' eval 'fresh; pin_list_run "$jobs/pins.names" > /dev/null; names_gaps "$jobs/pins.names.cites"'
 fx_check "a skill dropped from the skill-name list in a copy of the lint is reported" \
   test "$dropped" = "FAIL the cite key lacks retro from its skill names"
 
@@ -1442,29 +1434,35 @@ list_unchanged() {
   unchanged_files "$scratch" > "$jobs/unchanged"
   [ $# -eq 0 ] || printf '%s\n' "$@" >> "$jobs/unchanged"
 }
-# cache_gaps: one line for each skill of the pristine tree whose SKILL.md, gaining a heading, does
-# not make the lint run in $lint read the listed doc holding a stale cite
+# cache_gaps: one line for each skill of the pristine tree that the cite-key loop of the lint in
+# $lint does not visit. One run on a tree whose every file is unchanged lets that loop walk all the
+# skills (a changed one would end it; LINT_CITE_BASE is emptied so the loop runs), and a DEBUG trap
+# sourced through BASH_ENV logs $f each time the loop's line calls unchanged_file; a skill the
+# loop drops never reaches that call
 cache_gaps() {
-  local d skill out
+  local d skill
+  printf '%s\n' 'set -T' \
+    'trap '"'"'[[ $BASH_COMMAND == unchanged_file && $LINENO == $CACHE_LOOP_LINE ]] && echo "$f" >> "$CACHE_VISITED" || :'"'"' DEBUG' \
+    > "$jobs/cache.env"
+  : > "$jobs/cache.visited"
+  fresh
+  list_unchanged
+  unchanged_tables >> "$jobs/unchanged"
+  LINT_CITE_BASE= BASH_ENV=$jobs/cache.env CACHE_VISITED=$jobs/cache.visited \
+    CACHE_LOOP_LINE=$(grep -n 'unchanged_file || { unchanged=' "$lint" | cut -d: -f1) \
+    unchanged_list=$jobs/unchanged lint_scratch > /dev/null
   for d in "$pristine"/skills/*/; do
     skill=${d%/}; skill=${skill##*/}
-    fresh
-    printf '\n## A heading no skill has\n' >> "$scratch/skills/$skill/SKILL.md"
-    printf '%s\n' "See \`/dev:close-story\`'s Some rule." >> "$scratch/docs/agents/orchestration.md"
-    list_unchanged "$scratch/docs/agents/orchestration.md"
-    unchanged_tables >> "$jobs/unchanged"
-    out=$(unchanged_list=$jobs/unchanged lint_scratch)
-    [[ $out == *"an unquoted heading cite of a skill in $scratch/docs/agents/orchestration.md"* ]] \
+    grep -qxF "$scratch/skills/$skill/SKILL.md" "$jobs/cache.visited" \
       || echo "FAIL the cache loop does not read skills/$skill/SKILL.md"
   done
 }
-cache_dropped_run() { dropped=$(cache_gaps); }
 cache=$(cache_gaps)
-fx_check "a heading added to any skill's SKILL.md makes the cite loop read a listed doc" test -z "$cache"
+fx_check "the cite loop visits every skill's SKILL.md" test -z "$cache"
 cache_sed_sub='s#"$skills"/\*/SKILL.md; do unchanged_file#"$skills"/*/SKILL.md; do [ "${f%/@DROPPED@}" = "$f" ] || continue; unchanged_file#'
 cache_sed_sub=${cache_sed_sub//@DROPPED@/${drop_file#skills/}}
 with_dropped_lint "the cache-invalidation loop" "$drop_file" '/unchanged_file || { unchanged=/' \
-  "$cache_sed_sub" cache_dropped_run
+  "$cache_sed_sub" cache_gaps
 fx_check "a skill dropped from the cache-invalidation loop in a copy of the lint is reported" \
   test "$dropped" = "FAIL the cache loop does not read $drop_file"
 
