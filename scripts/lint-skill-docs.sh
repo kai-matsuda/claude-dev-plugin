@@ -2526,7 +2526,9 @@ fi
 # spells a name in those places fails too ("the steps of /dev:implement-story",
 # "/dev:task-orchestrator's report", "run bd story gate in /dev:implement-story", a lower-case
 # spelling included). A capital word after a backticked possessive fails whether it is a name
-# or not (`/dev:implement-story`'s Jira key).
+# or not (`/dev:implement-story`'s Jira key). A backticked possessive with a bare heading of a
+# skill with no directory (`/dev:nope`'s Name) fails like one of an existing skill (dev-ouzn);
+# section 11 fails the skill as well.
 #
 # Every other shape is outside what the lint reads, among them: curly quotes and apostrophes,
 # en dashes and an em dash with no space around it, a separator with no space, single quotes,
@@ -2570,8 +2572,7 @@ fi
 # cite in a list passes for every one but the first.
 # The heading extractor reads ## to #### lines inside code fences and tags too, so
 # story-to-tasks's template (in an <issue-template> tag) gives Parent, What to build and
-# Acceptance criteria. A bare possessive cite of a skill with no directory ("`/dev:nope`'s Name")
-# fails like one of an existing skill (dev-ouzn); section 11 fails the skill as well.
+# Acceptance criteria.
 standards=$agents/coding-standards.md
 # each file is read as one line (lacksw and lackswc, as section 5 does, dev-86j), so a cite
 # split across a line break fails too
@@ -2695,6 +2696,8 @@ if [ -f "$standards" ]; then
     names_all= q_step= b_step= q_heading= b_heading= q_both= b_both=
   }
   names_all= q_step= b_step= q_heading= b_heading= q_both= b_both=
+  # the tail of a bare possessive cite: a backticked possessive and a capital
+  poss_cap="\`'s [A-Z]"
   # every skill's SKILL.md is read too (dev-xyrl), the skills' own docs binding like a rules doc
   for f in "$agents"/*.md "$skills"/*/SKILL.md; do
     [ "$f" = "$standards" ] && continue   # it shows the wrong forms as examples
@@ -2706,16 +2709,20 @@ if [ -f "$standards" ]; then
     case $f in "$skills"/*/SKILL.md) own=${f%/SKILL.md}; own=${own##*/} ;; esac
     # one pattern over the other skills (skill_names, section 17's list), the file's own left out
     others=${skill_names//|$own|/|}; others=${others#|}; others=${others%|}
-    # a skill with no directory is no skill of the file's own, so its bare possessive cite fails too
-    # (dev-ouzn): the names the file puts before a backticked possessive and a capital, less the
-    # skills that have a directory, join the pattern
+    # a skill with no directory is missing from skill_names, so its names are read from the file and
+    # join the pattern (dev-ouzn): the names the file puts before a backticked possessive and a
+    # capital, one awk over the file read as one line, less the skills that have a directory
     while IFS= read -r gone; do
       [ -n "$gone" ] || continue
-      case $skill_names in *"|$gone|"*) continue ;; esac
       others+="|$gone"
-    done < <(tr '\n' ' ' < "$f" | command grep -oE "\`/dev:[a-z][a-z0-9-]*\`'s [A-Z]" | sed -e 's/^`\/dev://' -e "s/\`'s .*//" | LC_ALL=C sort -u)
+    done < <(awk -v known="$skill_names" -v tail="$poss_cap" -v RS='\001' '
+      { gsub(/\n/, " ")
+        while (match($0, "`/dev:[a-z][a-z0-9-]*" tail)) {
+          n = substr($0, RSTART + 6, RLENGTH - 6); sub(/`.*/, "", n)
+          if (!(n in seen) && index(known, "|" n "|") == 0) { seen[n] = 1; print n }
+          $0 = substr($0, RSTART + RLENGTH) } }' "$f")
     others=${others#|}
-    [ -z "$others" ] || lackswc "an unquoted heading cite of a skill in $f" "\`/dev:($others)\`'s [A-Z]"
+    [ -z "$others" ] || lackswc "an unquoted heading cite of a skill in $f" "\`/dev:($others)$poss_cap"
     # every pattern below holds /dev:<skill> (backticked or bare; the test is on the bare text) and
     # the name's first word, tokens no line break splits, so a file lacking either can match none
     # of them: most files name few skills, and the regexes are the run's cost, in gawk above all.

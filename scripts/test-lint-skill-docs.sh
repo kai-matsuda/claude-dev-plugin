@@ -2071,12 +2071,14 @@ prep=zed_step cite_seeds 1 $orch "$bare_msg" "a name of kind both beside a bare 
 # a capital word after a backticked possessive is a heading cite, known name or not
 cite_seeds 1 $orch "present: an unquoted heading cite of a skill in $scratch/$orch" "a capital after a backticked possessive" \
   "As \`$SK\`'s Jira key says."
-# the same for a skill with no directory, and a skill's own bare cite still passes (dev-ouzn)
+# the same for a skill with no directory (a backticked possessive, a bare heading), and a skill's own
+# bare cite still passes (dev-ouzn)
 fresh
 printf '%s\n' "As \`/dev:gone\`'s Two entries says." >> "$scratch/$orch"
-sec="11 18" expect "a bare heading cite of a skill with no directory fails section 18" 1 "present: an unquoted heading cite of a skill in $scratch/$orch"
+sec="11 18" expect "a backticked possessive and bare heading of a skill with no directory fails sections 11 and 18" 1 "present: an unquoted heading cite of a skill in $scratch/$orch"
 fresh
 printf '%s\n' "As \`/dev:implement-task\`'s Two entries says." >> "$scratch/skills/implement-task/SKILL.md"
+# guards the new no-directory loop against re-adding the file's own skill to the pattern
 expect "a skill's own bare cite in its SKILL.md passes section 18" 0
 
 # the shapes the rule leaves open pass: a backtick on one side of a name alone, and the one
