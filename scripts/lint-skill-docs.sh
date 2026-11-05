@@ -2752,23 +2752,21 @@ if [ -f "$standards" ]; then
     # All four tests are fixed-string (/dev:<skill>, the first word, and the quote and bold marks
     # before the word, which pick the marked checks a name joins), the word's in lower case against
     # the file lowered (the checks match in any case), so they know no skill name's alphabet; a
-    # first word with a regex escape in it goes unfiltered. The pin list takes every check
-    # The same pass reads the file's no-directory names (dev-ouzn): a skill with no directory is
+    # first word with a regex escape in it goes unfiltered. The pin list takes every check.
+    # The same awk reads the file's no-directory names (dev-ouzn): a skill with no directory is
     # missing from skill_names, so the names the file puts before a backticked possessive and a
-    # capital (the file read as one line), less the skills that have a directory, come back as
-    # "@gone" rows and join the pattern. The pin list takes every cite name unfiltered
-    names_here=
-    while IFS=$'\t' read -r skill kind name marks; do
-      if [ "$skill" = "@gone" ]; then others+="|$kind"; continue; fi
-      names_here+="$skill	$kind	$name	$marks"$'\n'
-    done < <(awk -F '\t' -v own="$own" -v pin="${LINT_PIN_LIST:-}" -v known="$skill_names" -v tail="$poss_cap" '
-      NR == FNR { text = text tolower($0) "\n"; raw = raw $0 " "; next }
-      !gone_done {
-        gone_done = 1
+    # capital (the file read as one line), less the skills that have a directory, come back in
+    # the first row, "@gone" and a tab, then "|name" for each, which joins the pattern. The BEGIN
+    # block reads the file itself, so that row comes whatever cite_names holds.
+    out=$(awk -F '\t' -v f="$f" -v own="$own" -v pin="${LINT_PIN_LIST:-}" -v known="$skill_names" -v tail="$poss_cap" '
+      BEGIN {
+        while ((getline line < f) > 0) { text = text tolower(line) "\n"; raw = raw line " " }
+        gone = ""
         while (match(raw, "`/dev:[a-z][a-z0-9-]*" tail)) {
           n = substr(raw, RSTART + 6, RLENGTH - 6); sub(/`.*/, "", n)
-          if (!(n in seen) && index(known, "|" n "|") == 0) { seen[n] = 1; print "@gone\t" n }
+          if (!(n in seen) && index(known, "|" n "|") == 0) { seen[n] = 1; gone = gone "|" n }
           raw = substr(raw, RSTART + RLENGTH) }
+        print "@gone\t" gone
       }
       pin != "" { print $0 "\t"; next }
       $3 != "" && $1 != own && index(text, "/dev:" $1) {
@@ -2779,7 +2777,10 @@ if [ -f "$standards" ]; then
           # before its first word in the file is left out of them (dev-dso4)
           print $0 "\t" (index(text, "\"" w) ? "q" : "-") (index(text, "**" w) ? "b" : "-")
         }
-      }' "$f" - <<<"$cite_names")
+      }' - <<<"$cite_names")
+    gone=${out%%$'\n'*}; others+=${gone#@gone	}
+    names_here=
+    [[ $out != *$'\n'* ]] || names_here=${out#*$'\n'}
     others=${others#|}
     [ -z "$others" ] || lackswc "an unquoted heading cite of a skill in $f" "\`/dev:($others)$poss_cap"
     last=
@@ -2789,7 +2790,7 @@ if [ -f "$standards" ]; then
       [ "$skill" = "$own" ] && continue
       [ "$skill" = "$last" ] || { cite_checks "$last"; last=$skill; }
       names_all+="|$name"
-      # a pin-list run has no marks column and keeps every name in every check
+      # a pin-list row has an empty marks column and keeps every name in every check
       [ -n "$marks" ] || marks=qb
       case $kind in
         step)
