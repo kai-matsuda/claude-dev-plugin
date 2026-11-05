@@ -1323,8 +1323,10 @@ fx_check "a file dropped from a sweep in a copy of the lint is reported" \
 # down by the cite key they leave. The section-10 two-file loop is hand-picked and needs no guard
 # here: a file dropped from it loses the section-10 pins its cases already seed. loop_facts holds
 # each loop's facts in one table.
-# drop_file is the file every loop below is dropped of in a copy of the lint, and @DROPPED@ in a sed
-# substitution below is its path from the skills dir
+# drop_file is the file the loop cases below (the six loops and the cache-invalidation loop) drop in
+# a copy of the lint, and @DROPPED@ in a sed substitution is its path from the skills dir. The
+# cite-target and skill-name cases drop skills/retro/SKILL.md instead, a second skill so the two
+# kinds of drop are not both of close-story
 drop_file=skills/close-story/SKILL.md
 # loop_facts <step|dotfiles|ns|brief|mermaid|cite>: sets, for that loop, loop_files (the files it is
 # documented to read, from the pristine tree), loop_seed (the seed appended to each, @OTHER_SKILL@ a
@@ -1371,10 +1373,12 @@ loop_facts() {
   esac
   loop_sed_sub=${loop_sed_sub//@DROPPED@/${drop_file#skills/}}
 }
-# loop_other <file>: sets other and heading, a skill that is not the file's own and a heading of it
+# loop_other <file>: prints a skill that is not the file's own and a heading of it, tab-separated
 loop_other() {
-  other=close-story heading='The forge shows MERGED'
-  case $1 in skills/close-story/*) other=implement-story heading=Landing ;; esac
+  case $1 in
+    skills/close-story/*) printf '%s\t%s\n' implement-story Landing ;;
+    *) printf '%s\t%s\n' close-story 'The forge shows MERGED' ;;
+  esac
 }
 # loop_gaps <loop>: one line for each file of that loop's expected set that the lint run in $lint
 # does not report its seed in, from a tree that seeds each file of the set
@@ -1383,7 +1387,7 @@ loop_gaps() {
   loop_facts "$1"
   fresh
   while IFS= read -r f; do
-    loop_other "$f"
+    IFS=$'\t' read -r other heading <<<"$(loop_other "$f")"
     text=${loop_seed//@OTHER_SKILL@/$other}
     printf '\n%s\n' "${text//@HEADING@/$heading}" >> "$scratch/$f"
     msg=${loop_message//@FILE@/$f}
@@ -1432,6 +1436,12 @@ fx_check "a skill dropped from the skill-name list in a copy of the lint is repo
 # the section-18 cache-invalidation loop (dev-5wpr): a changed SKILL.md that moves the cite key has
 # every listed file read again, and the loop that finds it walks the skills; one dropped from it
 # leaves that skill's heading edit unseen, a stale cite in a listed doc unreported
+# list_unchanged <path...>: $jobs/unchanged lists what the scratch tree holds unchanged and the
+# paths given, so a run here costs what a case's does and names only the files the check is about
+list_unchanged() {
+  unchanged_files "$scratch" > "$jobs/unchanged"
+  [ $# -eq 0 ] || printf '%s\n' "$@" >> "$jobs/unchanged"
+}
 # cache_gaps: one line for each skill of the pristine tree whose SKILL.md, gaining a heading, does
 # not make the lint run in $lint read the listed doc holding a stale cite
 cache_gaps() {
@@ -1441,8 +1451,8 @@ cache_gaps() {
     fresh
     printf '\n## A heading no skill has\n' >> "$scratch/skills/$skill/SKILL.md"
     printf '%s\n' "See \`/dev:close-story\`'s Some rule." >> "$scratch/docs/agents/orchestration.md"
-    # the list of list_unchanged (defined further down), the edited doc listed too
-    { unchanged_files "$scratch"; printf '%s\n' "$scratch/docs/agents/orchestration.md"; unchanged_tables; } > "$jobs/unchanged"
+    list_unchanged "$scratch/docs/agents/orchestration.md"
+    unchanged_tables >> "$jobs/unchanged"
     out=$(unchanged_list=$jobs/unchanged lint_scratch)
     [[ $out == *"an unquoted heading cite of a skill in $scratch/docs/agents/orchestration.md"* ]] \
       || echo "FAIL the cache loop does not read skills/$skill/SKILL.md"
@@ -1451,8 +1461,10 @@ cache_gaps() {
 cache_dropped_run() { dropped=$(cache_gaps); }
 cache=$(cache_gaps)
 fx_check "a heading added to any skill's SKILL.md makes the cite loop read a listed doc" test -z "$cache"
+cache_sed_sub='s#"$skills"/\*/SKILL.md; do unchanged_file#"$skills"/*/SKILL.md; do [ "${f%/@DROPPED@}" = "$f" ] || continue; unchanged_file#'
+cache_sed_sub=${cache_sed_sub//@DROPPED@/${drop_file#skills/}}
 with_dropped_lint "the cache-invalidation loop" "$drop_file" '/unchanged_file || { unchanged=/' \
-  's#"$skills"/\*/SKILL.md; do unchanged_file#"$skills"/*/SKILL.md; do [ "${f%/'"${drop_file#skills/}"'}" = "$f" ] || continue; unchanged_file#' cache_dropped_run
+  "$cache_sed_sub" cache_dropped_run
 fx_check "a skill dropped from the cache-invalidation loop in a copy of the lint is reported" \
   test "$dropped" = "FAIL the cache loop does not read $drop_file"
 
@@ -2910,12 +2922,7 @@ expect_keep() {
 
 # LINT_UNCHANGED, which every case but the baseline lints with: a seeded failure in a file it
 # lists is skipped, while the same seed unlisted fails, as the retired-phrase cases show
-# list_unchanged <path...>: $jobs/unchanged lists what the scratch tree holds unchanged and the
-# paths given, so a run here costs what a case's does and names only the files the check is about
-list_unchanged() {
-  unchanged_files "$scratch" > "$jobs/unchanged"
-  [ $# -eq 0 ] || printf '%s\n' "$@" >> "$jobs/unchanged"
-}
+# (list_unchanged, which the cases use, is defined above the cache-invalidation cases)
 expect_flush all
 fresh
 echo "cut one" >> "$scratch/skills/sample/SKILL.md"
