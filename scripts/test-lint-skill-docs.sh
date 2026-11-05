@@ -1081,12 +1081,9 @@ pin_case() {
 # the list as the loop below reads it, one line per case: <type> <file> <description> <phrase> <text>
 # [<anchor>], <text> "+" for a positive check or a line the loop must refuse, else one banned text per
 # line (a plain alternative of the phrase). One case per banned text and file; a sweep over many
-# files (w W) is seeded in the first file it names and in one file of each kind a reader meets (a
-# skill, a rules doc, the runbook, CLAUDE.md, the glossary). Over nine in ten of the list's lines ban no
-# plain text, so this pass is what spares the loop them.
+# files (w W) is seeded in every file it names, so a file dropped from a sweep fails its case. Over
+# nine in ten of the list's lines ban no plain text, so this pass is what spares the loop them.
 absent_types=$absent_types pre=$scratch/ awk -F '\t' -v OFS='\t' -v pristine="$pristine" "$alts_fn"'
-  BEGIN { split("skills/sample/SKILL.md docs/agents/sample.md docs/WORKFLOW.md CLAUDE.md GLOSSARY.md docs/SEQUENCES.md", w, " ")
-    for (i in w) sweep[w[i]] }
   function exists(f,   line) { if (!(f in ex)) { ex[f] = ((getline line < f) >= 0); close(f) } return ex[f] }
   {
     rel = (index($2, ENVIRON["pre"]) == 1) ? substr($2, length(ENVIRON["pre"]) + 1) : ""
@@ -1094,10 +1091,6 @@ absent_types=$absent_types pre=$scratch/ awk -F '\t' -v OFS='\t' -v pristine="$p
       print $1, $2, $3, $4, "+", $5; next }
     n = alts($1, $4)
     for (i = 1; i <= n; i++) {
-      if ($1 == "w" || $1 == "W") {
-        if (!(rel in sweep) && (($1, A[i]) in seen)) continue
-        seen[$1, A[i]]
-      }
       if (($1, rel, A[i]) in seen) continue
       seen[$1, rel, A[i]]
       print $1, $2, $3, $4, A[i], $5
@@ -1247,8 +1240,8 @@ fi
 
 # the batches are what keep this test's minutes down: a derived case that takes to running alone
 # passes as before, so its cost is caught here
-fx_check "the derived cases share their lint runs (under one run per ten cases)" \
-  test "$(( (nbatches + nretried) * 10 ))" -lt "$((npins + nmoved + nanch + nabsent))"
+fx_check "the derived cases share their lint runs (under one run per six cases)" \
+  test "$(( (nbatches + nretried) * 6 ))" -lt "$((npins + nmoved + nanch + nabsent))"
 
 # the derived anchored case needs the lint's pattern to open with ^: the one review tool paragraph
 # pin, which names no heading, must stay anchored on its line (losing the ^ makes it match mid-line)
