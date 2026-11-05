@@ -1894,6 +1894,18 @@ fresh
 printf '%s\n' "As \`/dev:task-orchestrator\`'s \"Two entries\" says, and \`/dev:implement-story\`'s **Story gate**." >> "$scratch/docs/agents/orchestration.md"
 expect "a quoted heading cite and a bold step cite pass section 18" 0
 
+# a section 18 FAIL line names the skill name that matched, not the skill's whole list of names,
+# and shows hits a name, so wrong cites of four names of one skill show four FAIL lines (dev-j9i5)
+fresh
+printf '%s\n' "As the Landing section of \`/dev:implement-story\` says." "As the Clean up sweep of \`/dev:implement-story\` says." \
+  "As the Story gate step of \`/dev:implement-story\` says." "As the Re-evaluate the frontier step of \`/dev:implement-story\` says." >> "$scratch/docs/agents/orchestration.md"
+sec=18 expect "wrong cites of four names of one skill each get a FAIL line naming the name" 1 "present: a bare cite of /dev:implement-story in $scratch/docs/agents/orchestration.md (Landing)
+present: a bare cite of /dev:implement-story in $scratch/docs/agents/orchestration.md (Clean up)
+present: a bare cite of /dev:implement-story in $scratch/docs/agents/orchestration.md (Story gate)
+present: a bare cite of /dev:implement-story in $scratch/docs/agents/orchestration.md (Re-evaluate the frontier)
+As the Landing section of \`/dev:implement-story\` says.
+As the Clean up sweep of \`/dev:implement-story\` says."
+
 # the other wrong forms the rule names (dev-mnz6): a step name in quotes, a heading in bold and a
 # bare cite in the "of /dev:x" word order, each failing in a rules doc but the coding standards
 orch=docs/agents/orchestration.md

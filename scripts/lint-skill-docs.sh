@@ -287,8 +287,8 @@ hase() { enqueue "e	$f	$1	$2"; }
 lacks() { [ -f "$f" ] || return 0; enqueue "x	$f	$1	$2"; }
 lacksf() { [ -f "$f" ] || return 0; enqueue "f	$f	$1	$2"; }
 lackse() { [ -f "$f" ] || return 0; enqueue "y	$f	$1	$2"; }
-lacksw() { [ -f "$f" ] || return 0; enqueue "w	$f	$1	$2"; }
-lackswc() { [ -f "$f" ] || return 0; enqueue "W	$f	$1	$2"; }   # lacksw, case-sensitive (-E)
+lacksw() { [ -f "$f" ] || return 0; enqueue "w	$f	$1	$2	${3:-}"; }   # [<names>]: a |-list the FAIL line names the match by, three hits a name (section 18)
+lackswc() { [ -f "$f" ] || return 0; enqueue "W	$f	$1	$2	${3:-}"; }   # lacksw, case-sensitive (-E)
 line_has() { enqueue "a	$f	$2	$3	$1"; }   # <anchor> <description> <phrase>
 line_hase() { enqueue "A	$f	$2	$3	$1"; }   # <anchor> <description> <pattern>
 line_lacks() { [ -f "$f" ] || return 0; enqueue "X	$f	$2	$3	$1"; }   # <anchor> <description> <phrase>
@@ -396,7 +396,9 @@ epic_fourth_failure_lines() {
 }
 # run the queued checks: a missing pattern or a present lacks one is a FAIL line; a lacks, lacksf,
 # lackse or lacksw one is followed by its first three matching lines, numbered as grep -n numbers them,
-# an anchored one names its anchor, a paragraph or opening one the scope it searched
+# an anchored one names its anchor, a paragraph or opening one the scope it searched; a lacksw or
+# lackswc one with a names list gets one FAIL line a matched name, that name its phrase, each with
+# its first three hits
 checks_run() {
   local out
   [ -n "$queue" ] || return 0
@@ -452,8 +454,34 @@ checks_run() {
           while (match(substr(J[fn, t], pos), (t == "W" ? p[i] : lp[i]))) {
             at0 = pos + RSTART - 1
             while (ln < n && JO[fn, ln + 1] <= at0) ln++
-            shown[i] = shown[i] ln ":" L[fn, ln] "\n"
-            if (++hit[i] == 3 || ln == n) break
+            if (a[i] != "") {
+              # a check with a names list (section 18) shows each name that matched, up to three
+              # hits a name, and scans on to the end of the file for the rest
+              mt = substr(J[fn, t], at0, RLENGTH)
+              if (!(i in NM)) {
+                ps = a[i]; bn = 0; pcur = ""
+                for (pc = 1; pc <= length(ps); pc++) {
+                  pch = substr(ps, pc, 1)
+                  if (pch == "\\") { pcur = pcur pch substr(ps, pc + 1, 1); pc++ }
+                  else if (pch == "|") { if (pcur != "") NMS[i, ++bn] = pcur; pcur = "" }
+                  else pcur = pcur pch
+                }
+                if (pcur != "") NMS[i, ++bn] = pcur
+                NM[i] = bn
+              }
+              best = 0; bname = ""
+              for (bj = 1; bj <= NM[i]; bj++) {
+                pn = NMS[i, bj]; if (t == "w") pn = tolower(pn)
+                if (match(mt, pn) && RLENGTH > best) { best = RLENGTH; bname = NMS[i, bj] }
+              }
+              if (!((i, bname) in CNT)) ORD[i, ++NORD[i]] = bname
+              if (++CNT[i, bname] <= 3) SH[i, bname] = SH[i, bname] ln ":" L[fn, ln] "\n"
+              hit[i] = 1
+              if (ln == n) break
+            } else {
+              shown[i] = shown[i] ln ":" L[fn, ln] "\n"
+              if (++hit[i] == 3 || ln == n) break
+            }
             ln++; pos = JO[fn, ln]
           }
           continue
@@ -492,7 +520,13 @@ checks_run() {
       }
       for (i = 1; i <= NR; i++) {
         t = k[i]
-        if (t == "x" || t == "f" || t == "y" || t == "w" || t == "W") { if (hit[i]) printf "FAIL: present: %s (%s)\n%s", d[i], p[i], shown[i] }
+        if ((t == "w" || t == "W") && a[i] != "") {
+          for (bj = 1; bj <= NORD[i]; bj++) {
+            bname = ORD[i, bj]; disp = (bname == "" ? p[i] : bname); if (bname != "") gsub(/\\/, "", disp)
+            printf "FAIL: present: %s (%s)\n%s", d[i], disp, SH[i, bname]
+          }
+        }
+        else if (t == "x" || t == "f" || t == "y" || t == "w" || t == "W") { if (hit[i]) printf "FAIL: present: %s (%s)\n%s", d[i], p[i], shown[i] }
         else if (t == "X") { if (hit[i]) printf "FAIL: present: %s (%s on a line matching %s)\n", d[i], p[i], a[i] }
         else if (hit[i]) continue
         else if (t == "a" || t == "A") printf "FAIL: missing: %s (%s on a line matching %s)\n", d[i], p[i], a[i]
@@ -2666,7 +2700,7 @@ if [ -f "$standards" ]; then
     local poss gap skfirst orders
     cite_toks "$4"
     three_orders "$3(${1#|})[.,;:]?$3[.,;:]?"
-    lacksw "$2 of /dev:$skill in $f" "$orders"
+    lacksw "$2 of /dev:$skill in $f" "$orders" "${1#|}"
   }
   # cite_checks <skill>: queues the skill's checks in the file in f, one pattern over its names in
   # the file, from names_all and its lists by kind and mark (q_*: a quote before the name's first
@@ -2678,16 +2712,16 @@ if [ -f "$standards" ]; then
     # the skill is matched backticked or bare, so a bare skill beside a name fails too (dev-hcn9)
     cite_toks any
     # a backtick after the name (and a punctuation mark after it) leaves the name bare too
-    lacksw "a bare cite of /dev:$skill in $f" "(^|[^*\"A-Za-z])$name(\`[.,;:]?)?$gap"
-    lacksw "a bare cite after a possessive and step or section of /dev:$skill in $f" "$poss( (step|section))? $name([^A-Za-z]|$)"
+    lacksw "a bare cite of /dev:$skill in $f" "(^|[^*\"A-Za-z])$name(\`[.,;:]?)?$gap" "${names_all#|}"
+    lacksw "a bare cite after a possessive and step or section of /dev:$skill in $f" "$poss( (step|section))? $name([^A-Za-z]|$)" "${names_all#|}"
     # case-sensitive: a lower-case word straight after a skill reads as prose ("`/dev:x` re-cut adds")
-    lackswc "a bare skill-first cite of /dev:$skill in $f" "$skfirst $name([^A-Za-z]|$)"
+    lackswc "a bare skill-first cite of /dev:$skill in $f" "$skfirst $name([^A-Za-z]|$)" "${names_all#|}"
     # a name is never set in backticks, step or heading, in any of the three orders: the name
     # inside a pair of backticks, with a bold or quote mark inside or outside the pair too
     # (dev-hcn9). A backtick that is part of the name (**`git` rule**) is not a pair around it
     in_ticks="[*\"]*\`[*\"]*$name[*\".,;:]*\`[*\".,;:]*"
     three_orders "$in_ticks"
-    lacksw "a name cited in backticks of /dev:$skill in $f" "$orders"
+    lacksw "a name cited in backticks of /dev:$skill in $f" "$orders" "${names_all#|}"
     cite_marked "$q_step" "a step name cited in quotes" '"' any
     cite_marked "$b_heading" "a heading cited in bold" '\*\*' any
     # a skill is named in backticks: the right marking beside a bare skill fails (dev-hcn9)
