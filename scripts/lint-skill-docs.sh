@@ -2707,7 +2707,7 @@ if [ -f "$standards" ]; then
     # the file's own skill, when it is a SKILL.md, is no cross-skill cite
     own=
     case $f in "$skills"/*/SKILL.md) own=${f%/SKILL.md}; own=${own##*/} ;; esac
-    # one pattern over the other skills (skill_names, section 17's list), the file's own left out
+    # one pattern over the other skills (skill_names, built in section 5), the file's own left out
     others=${skill_names//|$own|/|}; others=${others#|}; others=${others%|}
     # a skill with no directory is missing from skill_names, so its names are read from the file and
     # join the pattern (dev-ouzn): the names the file puts before a backticked possessive and a
