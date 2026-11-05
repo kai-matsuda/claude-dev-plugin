@@ -340,11 +340,18 @@ full=1 expect "baseline copy passes" 0
 # positive check (has, hasc, hase, line_has, line_hase, para_has, sec_has, opening_has) and every
 # lacksf gets its cases from it below, and a case that needs a pinned phrase or anchor reads it
 # with pin_phrase or pin_anchor, so a whole pin phrase is written once, in the lint or a table row (dev-yqpz).
+# pin_list_run <list file>: runs the lint on the scratch tree with its list of checks written to the
+# file (emptied first), printing the run's output
+pin_list_run() {
+  export LINT_PIN_LIST=$1
+  : > "$LINT_PIN_LIST"
+  lint_scratch
+  local rc=$?
+  unset LINT_PIN_LIST
+  return $rc
+}
 fresh
-export LINT_PIN_LIST=$jobs/pins.list
-: > "$LINT_PIN_LIST"
-lint_scratch > /dev/null
-unset LINT_PIN_LIST
+pin_list_run "$jobs/pins.list" > /dev/null
 # the same run left the pristine tree's cite names beside the list, for section 18 (LINT_UNCHANGED)
 export LINT_CITE_BASE=$jobs/pins.list.cites
 phase "baseline and pin list"
@@ -1254,7 +1261,9 @@ fx_check "no derived case takes to running alone (under one in a hundred)" \
 # the sweeps are documented to read (section 5: every file under the agent docs and the skills,
 # CLAUDE.md, the runbook and the sequence diagrams, GLOSSARY.md also for the two-gate pins). A
 # w/W description that names one of the three top-level files is a sweep, and sweeps_gaps prints
-# one line for each file of the expected set it lacks, or that it reads beyond it
+# one line for each file of the expected set it lacks, or that it reads beyond it. It sees only the
+# sweeps the list shows in one of those three top-level files: a sweep seeded in none of them (the
+# step-number sweeps) is not checked
 # sweeps_gaps <pin list>
 sweeps_gaps() {
   { (cd "$pristine" && find docs/agents skills -type f; printf '%s\n' CLAUDE.md docs/WORKFLOW.md docs/SEQUENCES.md) | sed 's/^/E\t/'
@@ -1279,14 +1288,11 @@ chmod +x "$jobs/lintcopy/lint-skill-docs.sh"
 fx_check "the copy drops skills/retro/SKILL.md from one sweep" bash -c '! cmp -s "$1" "$2"' _ "$lint" "$jobs/lintcopy/lint-skill-docs.sh"
 fresh
 lint_saved=$lint lint=$jobs/lintcopy/lint-skill-docs.sh
-export LINT_PIN_LIST=$jobs/pins.dropped
-: > "$LINT_PIN_LIST"
-lint_scratch > /dev/null
-unset LINT_PIN_LIST
+pin_list_run "$jobs/pins.dropped" > /dev/null
 lint=$lint_saved
 dropped=$(sweeps_gaps "$jobs/pins.dropped")
-fx_check "a file dropped from a sweep in a copy of the lint is reported, for every sweep of the section" \
-  bash -c '[ -n "$1" ] && ! grep -v "does not name skills/retro/SKILL.md\"\?\$" <<<"$1" | grep -q .' _ "$dropped"
+fx_check "a file dropped from a sweep in a copy of the lint is reported" \
+  bash -c '[ -n "$1" ] && ! grep -v "does not name skills/retro/SKILL\.md\$" <<<"$1" | grep -q .' _ "$dropped"
 
 # the derived anchored case needs the lint's pattern to open with ^: the one review tool paragraph
 # pin, which names no heading, must stay anchored on its line (losing the ^ makes it match mid-line)
@@ -2782,19 +2788,13 @@ done
 fresh
 list_unchanged
 unchanged_tables >> "$jobs/unchanged"
-export LINT_PIN_LIST=$jobs/pins.listed
-: > "$LINT_PIN_LIST"
-unchanged_list=$jobs/unchanged lint_scratch > /dev/null
-unset LINT_PIN_LIST
+unchanged_list=$jobs/unchanged pin_list_run "$jobs/pins.listed" > /dev/null
 fx_check "a pin list run with every file and table listed writes the whole list" cmp -s "$jobs/pins.list" "$jobs/pins.listed"
 # a pin list run lists its checks and runs none of them: the listing is what the test reads, and
 # section 18's thousands of checks, unfiltered there, would be most of the test's serial time
 fresh
 echo "cut one" >> "$scratch/skills/sample/SKILL.md"
-export LINT_PIN_LIST=$jobs/pins.seeded
-: > "$LINT_PIN_LIST"
-pin_run=$(lint_scratch)
-unset LINT_PIN_LIST
+pin_run=$(pin_list_run "$jobs/pins.seeded")
 fx_check "a pin list run on a seeded tree runs none of its queued checks" bash -c '! grep -q "retired phrase in" <<<"$1"' _ "$pin_run"
 # an empty list skips nothing, the sweeps over many files included
 fresh
