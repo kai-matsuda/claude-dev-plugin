@@ -1263,7 +1263,7 @@ fx_check "no derived case takes to running alone (under one in a hundred)" \
 # w/W description that names one of the three top-level files is a sweep, and sweeps_gaps prints
 # one line for each file of the expected set it lacks, or that it reads beyond it. It sees only the
 # sweeps the list shows in one of those three top-level files: a sweep seeded in none of them (the
-# step-number sweeps) is not checked
+# step-number sweeps) is checked by loop_gaps below
 # sweeps_gaps <pin list>
 sweeps_gaps() {
   { (cd "$pristine" && find docs/agents skills -type f; printf '%s\n' CLAUDE.md docs/WORKFLOW.md docs/SEQUENCES.md) | sed 's/^/E\t/'
@@ -1293,6 +1293,64 @@ lint=$lint_saved
 dropped=$(sweeps_gaps "$jobs/pins.dropped")
 fx_check "a file dropped from a sweep in a copy of the lint is reported" \
   bash -c '[ -n "$1" ] && ! grep -v "does not name skills/retro/SKILL\.md\$" <<<"$1" | grep -q .' _ "$dropped"
+
+# the other loops over several files: the section-5 step-number sweep (every file under the skills
+# and the agent docs), the dotfiles-deployment lacks loop (every .md under docs, every file under
+# the skills and the agent docs, CLAUDE.md) and the section-15 mermaid list (every .md under docs
+# and the skills, CLAUDE.md, GLOSSARY.md). Each loop's files are expected here from the tree, and
+# a seed in each file is linted once: a file the lint's loop misses leaves its seed unreported
+# loop_files <step|dotfiles|mermaid>: the files that loop is documented to read, from the pristine tree
+loop_files() {
+  { (cd "$pristine" || exit
+     case $1 in
+       step) find docs/agents skills -type f ;;
+       dotfiles) find docs -type f -name '*.md'; find docs/agents skills -type f; echo CLAUDE.md ;;
+       mermaid) find docs skills -type f -name '*.md'; echo CLAUDE.md; echo GLOSSARY.md ;;
+     esac); } | sort -u
+}
+# loop_gaps <step|dotfiles|mermaid>: one line for each file of that loop's expected set that the
+# lint run in $lint does not report its seed in, from a tree that seeds each file of the set
+loop_gaps() {
+  local f own other text msg out
+  fresh
+  while IFS= read -r f; do
+    case $1 in
+      step) own=${f#skills/}; own=${own%%/*}
+        other=close-story; [ "$own" != close-story ] || other=retro
+        text="See /dev:$other step 3." ;;
+      dotfiles) text='Install to ~/.claude/docs.' ;;
+      mermaid) text=$'```mermaid\nsequenceDiagram\nA->>B: one; two\n```' ;;
+    esac
+    printf '\n%s\n' "$text" >> "$scratch/$f"
+  done < <(loop_files "$1")
+  out=$(lint_scratch)
+  while IFS= read -r f; do
+    case $1 in
+      step) msg="another skill's step number cited in $scratch/$f" ;;
+      dotfiles) msg="dotfiles deployment path in $scratch/$f" ;;
+      mermaid) msg="a semicolon in a mermaid block in $scratch/$f" ;;
+    esac
+    [[ $out == *"$msg"* ]] || echo "FAIL the $1 loop does not read $f"
+  done < <(loop_files "$1")
+}
+for loop in step dotfiles mermaid; do
+  gaps=$(loop_gaps "$loop")
+  fx_check "every file the $loop loop is documented to read is read" test -z "$gaps"
+  # a copy of the lint with skills/close-story/SKILL.md dropped from that loop's file list
+  case $loop in
+    step) line='/SEQUENCES.md" "${1:-}"/' ;;
+    dotfiles) line='/echo "$runbook"; } | grep/' ;;
+    mermaid) line='/echo "$glossary_md"; } | sort/' ;;
+  esac
+  sed "${line} s#| sort -u | drop_unchanged)\$#| grep -v \"/close-story/SKILL.md\" | sort -u | drop_unchanged)#" "$lint" > "$jobs/lintcopy/lint-$loop.sh"
+  chmod +x "$jobs/lintcopy/lint-$loop.sh"
+  fx_check "the copy drops skills/close-story/SKILL.md from the $loop loop" bash -c '! cmp -s "$1" "$2"' _ "$lint" "$jobs/lintcopy/lint-$loop.sh"
+  lint_saved=$lint lint=$jobs/lintcopy/lint-$loop.sh
+  dropped=$(loop_gaps "$loop")
+  lint=$lint_saved
+  fx_check "a file dropped from the $loop loop in a copy of the lint is reported" \
+    test "$dropped" = "FAIL the $loop loop does not read skills/close-story/SKILL.md"
+done
 
 # the derived anchored case needs the lint's pattern to open with ^: the one review tool paragraph
 # pin, which names no heading, must stay anchored on its line (losing the ^ makes it match mid-line)
