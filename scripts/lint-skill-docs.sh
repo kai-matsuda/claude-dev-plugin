@@ -2570,8 +2570,8 @@ fi
 # cite in a list passes for every one but the first.
 # The heading extractor reads ## to #### lines inside code fences and tags too, so
 # story-to-tasks's template (in an <issue-template> tag) gives Parent, What to build and
-# Acceptance criteria. A possessive cite of a skill with no directory ("`/dev:nope`'s Name")
-# passes here, as only the existing skills are matched; section 11 fails it.
+# Acceptance criteria. A bare possessive cite of a skill with no directory ("`/dev:nope`'s Name")
+# fails like one of an existing skill (dev-ouzn); section 11 fails the skill as well.
 standards=$agents/coding-standards.md
 # each file is read as one line (lacksw and lackswc, as section 5 does, dev-86j), so a cite
 # split across a line break fails too
@@ -2706,6 +2706,15 @@ if [ -f "$standards" ]; then
     case $f in "$skills"/*/SKILL.md) own=${f%/SKILL.md}; own=${own##*/} ;; esac
     # one pattern over the other skills (skill_names, section 17's list), the file's own left out
     others=${skill_names//|$own|/|}; others=${others#|}; others=${others%|}
+    # a skill with no directory is no skill of the file's own, so its bare possessive cite fails too
+    # (dev-ouzn): the names the file puts before a backticked possessive and a capital, less the
+    # skills that have a directory, join the pattern
+    while IFS= read -r gone; do
+      [ -n "$gone" ] || continue
+      case $skill_names in *"|$gone|"*) continue ;; esac
+      others+="|$gone"
+    done < <(tr '\n' ' ' < "$f" | command grep -oE "\`/dev:[a-z][a-z0-9-]*\`'s [A-Z]" | sed -e 's/^`\/dev://' -e "s/\`'s .*//" | LC_ALL=C sort -u)
+    others=${others#|}
     [ -z "$others" ] || lackswc "an unquoted heading cite of a skill in $f" "\`/dev:($others)\`'s [A-Z]"
     # every pattern below holds /dev:<skill> (backticked or bare; the test is on the bare text) and
     # the name's first word, tokens no line break splits, so a file lacking either can match none
