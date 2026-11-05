@@ -59,11 +59,12 @@ check_plan=$(plan check) fixtures_plan=$(plan fixtures)
 no_ci_target() { ! make -C "$repo_root" -pRrq : 2>/dev/null | grep -Eq '^ci::?([^=:]|$)'; }
 fx_check "the Makefile has no ci target, asked of make" no_ci_target
 fx_check "make -n ci fails" bash -c '! make -n --no-print-directory -C "$1" ci >/dev/null 2>&1' _ "$repo_root"
+fx_check "the Makefile names no ci_steps list, the check's steps are check_steps" bash -c '! grep -Eq "ci_steps" "$1"' _ "$mk"
 fx_check "the check target runs the workflow test" grep -Fq scripts/test-ci-workflow.sh <<<"$check_plan"
 fx_check "the fixtures target runs a fixture test" grep -Fq scripts/test-fixture-dag.sh <<<"$fixtures_plan"
 fx_check "the check target runs every step of the fixtures" bash -c '
   for s in $(grep -oE "[a-z/-]+\.sh" <<<"$1" | sort -u); do grep -Fq "$s" <<<"$2" || { echo "check lacks $s" >&2; exit 1; }; done' _ "$fixtures_plan" "$check_plan"
-# one pool: a step run apart from it (one of the Makefile's ci_steps, say) would hold its seconds ahead of or behind it
+# one pool: a step run apart from it (one of the Makefile's check_steps, say) would hold its seconds ahead of or behind it
 fx_check "the check target runs its steps in one side-by-side run, no sub-make" bash -c '
   [ "$(grep -c "wait \$p" <<<"$1")" = 1 ] && ! grep -Eq "make (ci|fixtures)|MAKE" <<<"$1"' _ "$check_plan"
 # Help text that enumerates scripts goes stale when one joins or leaves a target, so no help
