@@ -28,6 +28,12 @@ expect 2 'cd'
 expect 2 '  cd /tmp && ls'
 expect 2 $'cd /tmp\nls'
 expect 2 $'\ncd /tmp'
+# variable assignments before cd still run cd
+expect 2 'FOO=1 cd x'
+expect 2 'A=1 B=2 cd x'
+# a quoted cd still runs cd
+expect 2 '"cd" x'
+expect 2 "'cd' x"
 # a subshell or brace group opens with cd
 expect 2 '(cd /tmp && ls)'
 expect 2 '( cd /tmp && ls)'
@@ -43,6 +49,10 @@ expect 0 'cdrecord dev=1'
 expect 0 'cd-hit -i x'
 expect 0 'make -C /tmp check'
 expect 0 'ls'
+expect 0 'FOO=1 git -C /tmp status'
+expect 0 'FOO=1 echo cd'
+expect 0 'A=1 ls && cd /tmp'
+expect 0 '"echo" cd'
 
 # allowed: other tools and input the hook cannot read
 expect 0 '(ls /tmp)'

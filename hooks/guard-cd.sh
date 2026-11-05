@@ -20,7 +20,19 @@ while [[ $trimmed == [\(\{]* ]]; do
   trimmed=${trimmed#"${trimmed%%[![:space:]]*}"}
 done
 first=${trimmed%%[[:space:];&|]*}
-if [ "$first" = cd ]; then
+# skip leading NAME=value words: FOO=1 cd x still runs cd
+while [[ $first =~ ^[A-Za-z_][A-Za-z0-9_]*= ]]; do
+  trimmed=${trimmed#"$first"}
+  trimmed=${trimmed#"${trimmed%%[![:space:]]*}"}
+  first=${trimmed%%[[:space:];&|]*}
+done
+# strip one pair of quotes around the word: "cd" x and 'cd' x still run cd
+word=$first
+case $word in
+  \"*\") word=${word#\"}; word=${word%\"} ;;
+  \'*\') word=${word#\'}; word=${word%\'} ;;
+esac
+if [ "$word" = cd ]; then
   echo 'guard-cd: a command may not start with cd; use the command'"'"'s own directory flag (git -C <dir>, bd -C <dir>, make -C <dir>), an absolute path, or the Edit tool for a file edit' >&2
   exit 2
 fi
