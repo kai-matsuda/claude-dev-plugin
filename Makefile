@@ -18,7 +18,7 @@ help: ## Show this help
 	@grep -E '^[a-z]+:.*##' $(MAKEFILE_LIST) | awk -F ':.*## ' '{printf "  %-8s %s\n", $$1, $$2}'
 
 # the steps of the check and of the fixtures, one list each; a step is one script, run by its path
-ci_steps = scripts/lint-skill-docs.sh skills/glossary-lint/glossary-lint.sh \
+check_steps = scripts/lint-skill-docs.sh skills/glossary-lint/glossary-lint.sh \
   scripts/check-test-git-init.sh scripts/test-lint-skill-docs.sh scripts/test-guard-rm.sh \
   scripts/test-guard-cd.sh \
   scripts/test-phases.sh scripts/test-glossary-lint.sh scripts/test-setup-skill.sh \
@@ -35,7 +35,7 @@ fixture_steps = scripts/test-fixture-stage-boundary.sh scripts/test-fixture-stor
 # and the longest one starts at once (ordering only: they still share the runner's cores); red
 # when any is
 check: ## Lint and run every script and fixture test at once (needs bd and cargo); CI calls this target
-	$(call side_by_side,$(ci_steps) $(fixture_steps))
+	$(call side_by_side,$(check_steps) $(fixture_steps))
 
 lint: check ## Deprecated alias of check, kept for one release
 
