@@ -1299,10 +1299,9 @@ with_dropped_lint() {
 }
 # a copy of the lint with one file dropped from the section-5 sweep: its list lacks that file, so
 # the check above must report it
-sweep_dropped_run() { fresh; pin_list_run "$jobs/pins.dropped" > /dev/null; }
+sweep_dropped_run() { fresh; pin_list_run "$jobs/pins.dropped" > /dev/null; dropped=$(sweeps_gaps "$jobs/pins.dropped"); }
 with_dropped_lint "one sweep" skills/retro/SKILL.md '/SEQUENCES.md" "${1:-}"/' \
   's#| sort -u | drop_unchanged)$#| grep -v "/retro/SKILL.md" | sort -u | drop_unchanged)#' sweep_dropped_run
-dropped=$(sweeps_gaps "$jobs/pins.dropped")
 fx_check "a file dropped from a sweep in a copy of the lint is reported" \
   bash -c '[ -n "$1" ] && ! grep -v "does not name skills/retro/SKILL\.md\$" <<<"$1" | grep -q .' _ "$dropped"
 
@@ -1310,51 +1309,55 @@ fx_check "a file dropped from a sweep in a copy of the lint is reported" \
 # not read back from the lint, and a seed in each file is linted once, so a file the lint's loop
 # misses leaves its seed unreported. The loops: the section-5 step-number sweep, the dotfiles-
 # deployment lacks loop, the section-11 namespace rule, the section-13 brief rule, the section-15
-# mermaid list and the section-18 cite loop. loop_facts holds each loop's facts in one table
+# mermaid list and the section-18 cite loop; the section-18 name-source pass and the section-
+# 17 skill-name list read no file's text, so they are checked further down by the cite key they
+# leave. loop_facts holds each loop's facts in one table.
+# drop_file is the file every loop below is dropped of in a copy of the lint, and @D@ in a sed
+# substitution below is its path from the skills dir
+drop_file=skills/close-story/SKILL.md
 # loop_facts <step|dotfiles|ns|brief|mermaid|cite>: sets, for that loop, l_files (the files it is
 # documented to read, from the pristine tree), l_text (the seed appended to each, @O@ a skill other
 # than the file's own and @H@ a heading of it), l_msg (the lint's message for the seed in file @F@)
-# and l_addr and l_sub (the sed edit that drops skills/close-story/SKILL.md from the loop in a copy)
+# and l_addr and l_sub (the sed edit that drops $drop_file from the loop in a copy)
 loop_facts() {
+  l_sub='s#| sort -u | drop_unchanged)$#| grep -v "/@D@" | sort -u | drop_unchanged)#'
   case $1 in
     step)
       l_files=$(cd "$pristine" && find docs/agents skills -type f | sort -u)
       l_text='See /dev:@O@ step 3.'
       l_msg="another skill's step number cited in $scratch/@F@"
-      l_addr='/SEQUENCES.md" "${1:-}"/'
-      l_sub='s#| sort -u | drop_unchanged)$#| grep -v "/close-story/SKILL.md" | sort -u | drop_unchanged)#' ;;
+      l_addr='/SEQUENCES.md" "${1:-}"/' ;;
     dotfiles)
       l_files=$(cd "$pristine" && { find docs -type f -name '*.md'; find docs/agents skills -type f; echo CLAUDE.md; } | sort -u)
       l_text='Install to ~/.claude/docs.'
       l_msg="dotfiles deployment path in $scratch/@F@"
-      l_addr='/echo "$runbook"; } | grep/'
-      l_sub='s#| sort -u | drop_unchanged)$#| grep -v "/close-story/SKILL.md" | sort -u | drop_unchanged)#' ;;
+      l_addr='/echo "$runbook"; } | grep/' ;;
     ns)
       l_files=$(cd "$pristine" && { find docs skills -type f -name '*.md'; echo CLAUDE.md; echo GLOSSARY.md; } | sort -u)
       l_text='Run /story-to-tasks.'
       l_msg="bare or unknown skill namespace in $scratch/@F@"
       l_addr='/echo "$runbook"; echo "$user_claude_md"/'
-      l_sub='s#| grep \. | sort -u \\$#| grep . | grep -v "/close-story/SKILL.md" | sort -u \\#' ;;
+      l_sub='s#| grep \. | sort -u \\$#| grep . | grep -v "/@D@" | sort -u \\#' ;;
     brief)
       l_files=$(cd "$pristine" && find skills -type f -name '*.md' | sort -u)
       l_text='> read ${CLAUDE_PLUGIN_ROOT}/docs/agents/orchestration.md'
       l_msg="plugin-root variable in a brief in $scratch/@F@:"
       l_addr='/unchanged_file || brief_files+=/'
-      l_sub='s#unchanged_file || brief_files+=("$f")#unchanged_file || [ "${f%/close-story/SKILL.md}" != "$f" ] || brief_files+=("$f")#' ;;
+      l_sub='s#unchanged_file || brief_files+=("$f")#unchanged_file || [ "${f%/@D@}" != "$f" ] || brief_files+=("$f")#' ;;
     mermaid)
       l_files=$(cd "$pristine" && { find docs skills -type f -name '*.md'; echo CLAUDE.md; echo GLOSSARY.md; } | sort -u)
       l_text=$'```mermaid\nsequenceDiagram\nA->>B: one; two\n```'
       l_msg="a semicolon in a mermaid block in $scratch/@F@"
-      l_addr='/echo "$glossary_md"; } | sort/'
-      l_sub='s#| sort -u | drop_unchanged)$#| grep -v "/close-story/SKILL.md" | sort -u | drop_unchanged)#' ;;
+      l_addr='/echo "$glossary_md"; } | sort/' ;;
     cite)
       l_files=$(cd "$pristine" && { find docs/agents -maxdepth 1 -type f -name '*.md'; find skills -mindepth 2 -maxdepth 2 -name SKILL.md; } \
         | grep -v '^docs/agents/coding-standards\.md$' | sort -u)
       l_text='As the @H@ step of `/dev:@O@` says.'
       l_msg="a bare cite of /dev:@O@ in $scratch/@F@"
       l_addr='\#for f in "$agents"/\*.md#'
-      l_sub='s#"$skills"/\*/SKILL.md; do$#"$skills"/*/SKILL.md; do [ "${f%/close-story/SKILL.md}" = "$f" ] || continue#' ;;
+      l_sub='s#"$skills"/\*/SKILL.md; do$#"$skills"/*/SKILL.md; do [ "${f%/@D@}" = "$f" ] || continue#' ;;
   esac
+  l_sub=${l_sub//@D@/${drop_file#skills/}}
 }
 # loop_other <file>: sets other and head, a skill that is not the file's own and a heading of it
 loop_other() {
@@ -1364,30 +1367,55 @@ loop_other() {
 # loop_gaps <loop>: one line for each file of that loop's expected set that the lint run in $lint
 # does not report its seed in, from a tree that seeds each file of the set
 loop_gaps() {
-  local f text msg out other head
+  local f text msg out other head expect=()
   loop_facts "$1"
   fresh
   while IFS= read -r f; do
     loop_other "$f"
     text=${l_text//@O@/$other}
     printf '\n%s\n' "${text//@H@/$head}" >> "$scratch/$f"
+    msg=${l_msg//@F@/$f}
+    expect+=("$f"$'\t'"${msg//@O@/$other}")
   done <<<"$l_files"
   out=$(lint_scratch)
-  while IFS= read -r f; do
-    loop_other "$f"
-    msg=${l_msg//@F@/$f}
-    [[ $out == *"${msg//@O@/$other}"* ]] || echo "FAIL the $1 loop does not read $f"
-  done <<<"$l_files"
+  for f in "${expect[@]}"; do
+    [[ $out == *"${f#*$'\t'}"* ]] || echo "FAIL the $1 loop does not read ${f%%$'\t'*}"
+  done
 }
 loop_dropped_run() { dropped=$(loop_gaps "$1"); }
 for loop in step dotfiles ns brief mermaid cite; do
   gaps=$(loop_gaps "$loop")
   fx_check "every file the $loop loop is documented to read is read" test -z "$gaps"
   loop_facts "$loop"
-  with_dropped_lint "the $loop loop" skills/close-story/SKILL.md "$l_addr" "$l_sub" loop_dropped_run "$loop"
+  with_dropped_lint "the $loop loop" "$drop_file" "$l_addr" "$l_sub" loop_dropped_run "$loop"
   fx_check "a file dropped from the $loop loop in a copy of the lint is reported" \
-    test "$dropped" = "FAIL the $loop loop does not read skills/close-story/SKILL.md"
+    test "$dropped" = "FAIL the $loop loop does not read $drop_file"
 done
+
+# the section-18 skill names (dev-5wpr): the lint reads every skill for its cite targets and for the
+# skill-name list, and a skill dropped from either only shows when a seed happens to name it. The
+# cite key it leaves beside the pin list is checked against the tree instead.
+# names_gaps <cite key>: one line for each skill dir of the pristine tree that the key lacks from its
+# skill-name line, or whose headings it lacks from its cite targets
+names_gaps() {
+  local d s
+  for d in "$pristine"/skills/*/; do
+    s=${d%/}; s=${s##*/}
+    sed -n 1p "$1" | grep -q "|$s|" || echo "FAIL the cite key lacks $s from its skill names"
+    ! grep -qE '^(##|###|####) ' "$d/SKILL.md" || sed 1d "$1" | grep -q "^$s	" || echo "FAIL the cite key lacks the headings of $s"
+  done
+}
+names=$(names_gaps "$jobs/pins.list.cites")
+fx_check "the cite key holds every skill's name and headings" test -z "$names"
+names_dropped_run() { fresh; pin_list_run "$jobs/pins.names" > /dev/null; dropped=$(names_gaps "$jobs/pins.names.cites"); }
+with_dropped_lint "the cite-target pass" skills/retro/SKILL.md '/END { for (x in k)/' \
+  's#'"'"' "$skills"/\*/SKILL.md |#'"'"' $(printf "%s\\n" "$skills"/*/SKILL.md | grep -v /retro/) |#' names_dropped_run
+fx_check "a skill dropped from the cite-target pass in a copy of the lint is reported" \
+  test "$dropped" = "FAIL the cite key lacks the headings of retro"
+with_dropped_lint "the skill-name list" skills/retro/SKILL.md '/^  given=\${given%\/}$/' \
+  's@$@; [ "${given##*/}" != retro ] || continue@' names_dropped_run
+fx_check "a skill dropped from the skill-name list in a copy of the lint is reported" \
+  test "$dropped" = "FAIL the cite key lacks retro from its skill names"
 
 # the derived anchored case needs the lint's pattern to open with ^: the one review tool paragraph
 # pin, which names no heading, must stay anchored on its line (losing the ^ makes it match mid-line)
