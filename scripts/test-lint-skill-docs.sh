@@ -340,11 +340,18 @@ full=1 expect "baseline copy passes" 0
 # positive check (has, hasc, hase, line_has, line_hase, para_has, sec_has, opening_has) and every
 # lacksf gets its cases from it below, and a case that needs a pinned phrase or anchor reads it
 # with pin_phrase or pin_anchor, so a whole pin phrase is written once, in the lint or a table row (dev-yqpz).
+# pin_list_run <list file>: runs the lint on the scratch tree with its list of checks written to the
+# file (emptied first), printing the run's output
+pin_list_run() {
+  export LINT_PIN_LIST=$1
+  : > "$LINT_PIN_LIST"
+  lint_scratch
+  local rc=$?
+  unset LINT_PIN_LIST
+  return $rc
+}
 fresh
-export LINT_PIN_LIST=$jobs/pins.list
-: > "$LINT_PIN_LIST"
-lint_scratch > /dev/null
-unset LINT_PIN_LIST
+pin_list_run "$jobs/pins.list" > /dev/null
 # the same run left the pristine tree's cite names beside the list, for section 18 (LINT_UNCHANGED)
 export LINT_CITE_BASE=$jobs/pins.list.cites
 phase "baseline and pin list"
@@ -1081,12 +1088,10 @@ pin_case() {
 # the list as the loop below reads it, one line per case: <type> <file> <description> <phrase> <text>
 # [<anchor>], <text> "+" for a positive check or a line the loop must refuse, else one banned text per
 # line (a plain alternative of the phrase). One case per banned text and file; a sweep over many
-# files (w W) is seeded in the first file it names and in one file of each kind a reader meets (a
-# skill, a rules doc, the runbook, CLAUDE.md, the glossary). Over nine in ten of the list's lines ban no
-# plain text, so this pass is what spares the loop them.
+# files (w W) is seeded in every file it names; a file dropped from a sweep leaves the list a case
+# short, which sweeps_gaps below catches from the tree. Most of the list's lines ban no plain text,
+# so this pass is what spares the loop them.
 absent_types=$absent_types pre=$scratch/ awk -F '\t' -v OFS='\t' -v pristine="$pristine" "$alts_fn"'
-  BEGIN { split("skills/sample/SKILL.md docs/agents/sample.md docs/WORKFLOW.md CLAUDE.md GLOSSARY.md docs/SEQUENCES.md", w, " ")
-    for (i in w) sweep[w[i]] }
   function exists(f,   line) { if (!(f in ex)) { ex[f] = ((getline line < f) >= 0); close(f) } return ex[f] }
   {
     rel = (index($2, ENVIRON["pre"]) == 1) ? substr($2, length(ENVIRON["pre"]) + 1) : ""
@@ -1094,10 +1099,6 @@ absent_types=$absent_types pre=$scratch/ awk -F '\t' -v OFS='\t' -v pristine="$p
       print $1, $2, $3, $4, "+", $5; next }
     n = alts($1, $4)
     for (i = 1; i <= n; i++) {
-      if ($1 == "w" || $1 == "W") {
-        if (!(rel in sweep) && (($1, A[i]) in seen)) continue
-        seen[$1, A[i]]
-      }
       if (($1, rel, A[i]) in seen) continue
       seen[$1, rel, A[i]]
       print $1, $2, $3, $4, A[i], $5
@@ -1247,8 +1248,51 @@ fi
 
 # the batches are what keep this test's minutes down: a derived case that takes to running alone
 # passes as before, so its cost is caught here
-fx_check "the derived cases share their lint runs (under one run per ten cases)" \
-  test "$(( (nbatches + nretried) * 10 ))" -lt "$((npins + nmoved + nanch + nabsent))"
+# measured on this tree: 2671 cases in 360 runs, 7.4 a run and none alone (a run per ten cases, the
+# old bound, no longer holds since every sweep ban is seeded in every file it names); the bound is
+# six, and a case run alone is the cost to catch first, so those get a bound of their own
+fx_check "the derived cases share their lint runs (under one run per six cases)" \
+  test "$(( (nbatches + nretried) * 6 ))" -lt "$((npins + nmoved + nanch + nabsent))"
+fx_check "no derived case takes to running alone (under one in a hundred)" \
+  test "$(( nretried * 100 ))" -lt "$((npins + nmoved + nanch + nabsent))"
+
+# the sweeps' files, expected by this test and not read back from the lint: a pin list that
+# lacks a file from a sweep would derive no case for it, so the list is checked against the files
+# the sweeps are documented to read (section 5: every file under the agent docs and the skills,
+# CLAUDE.md, the runbook and the sequence diagrams, GLOSSARY.md also for the two-gate pins). A
+# w/W description that names one of the three top-level files is a sweep, and sweeps_gaps prints
+# one line for each file of the expected set it lacks, or that it reads beyond it. It sees only the
+# sweeps the list shows in one of those three top-level files: a sweep seeded in none of them (the
+# step-number sweeps) is not checked
+# sweeps_gaps <pin list>
+sweeps_gaps() {
+  { (cd "$pristine" && find docs/agents skills -type f; printf '%s\n' CLAUDE.md docs/WORKFLOW.md docs/SEQUENCES.md) | sed 's/^/E\t/'
+    awk -F '\t' -v pre="$scratch/" '$1 == "w" || $1 == "W" {
+      f = substr($2, length(pre) + 1); d = $3; s = " in " $2
+      if (substr(d, length(d) - length(s) + 1) == s) d = substr(d, 1, length(d) - length(s))
+      print "G\t" f "\t" d }' "$1"; } | awk -F '\t' '
+    $1 == "E" { want[$2]; next }
+    { got[$3, $2]; desc[$3]
+      if ($2 ~ /^(CLAUDE\.md|docs\/WORKFLOW\.md|docs\/SEQUENCES\.md)$/) sweep[$3] }
+    END { for (d in sweep) {
+      for (f in want) if (!((d, f) in got)) print "FAIL sweep \"" d "\" does not name " f
+      for (k in got) { split(k, p, SUBSEP); if (p[1] == d && !(p[2] in want) && p[2] != "GLOSSARY.md") print "FAIL sweep \"" d "\" names " p[2] } } }'
+}
+sweeps=$(sweeps_gaps "$jobs/pins.list")
+fx_check "every sweep names every file under the agent docs and the skills, CLAUDE.md, the runbook and the sequence diagrams" test -z "$sweeps"
+# a copy of the lint with one file dropped from the section-5 sweep: its list lacks that file, so
+# the check above must report it (the lint's own list cannot vouch for the files it was built from)
+mkdir -p "$jobs/lintcopy"
+sed '/SEQUENCES.md" "${1:-}"/ s#| sort -u | drop_unchanged)$#| grep -v "/retro/SKILL.md" | sort -u | drop_unchanged)#' "$lint" > "$jobs/lintcopy/lint-skill-docs.sh"
+chmod +x "$jobs/lintcopy/lint-skill-docs.sh"
+fx_check "the copy drops skills/retro/SKILL.md from one sweep" bash -c '! cmp -s "$1" "$2"' _ "$lint" "$jobs/lintcopy/lint-skill-docs.sh"
+fresh
+lint_saved=$lint lint=$jobs/lintcopy/lint-skill-docs.sh
+pin_list_run "$jobs/pins.dropped" > /dev/null
+lint=$lint_saved
+dropped=$(sweeps_gaps "$jobs/pins.dropped")
+fx_check "a file dropped from a sweep in a copy of the lint is reported" \
+  bash -c '[ -n "$1" ] && ! grep -v "does not name skills/retro/SKILL\.md\$" <<<"$1" | grep -q .' _ "$dropped"
 
 # the derived anchored case needs the lint's pattern to open with ^: the one review tool paragraph
 # pin, which names no heading, must stay anchored on its line (losing the ^ makes it match mid-line)
@@ -2744,19 +2788,13 @@ done
 fresh
 list_unchanged
 unchanged_tables >> "$jobs/unchanged"
-export LINT_PIN_LIST=$jobs/pins.listed
-: > "$LINT_PIN_LIST"
-unchanged_list=$jobs/unchanged lint_scratch > /dev/null
-unset LINT_PIN_LIST
+unchanged_list=$jobs/unchanged pin_list_run "$jobs/pins.listed" > /dev/null
 fx_check "a pin list run with every file and table listed writes the whole list" cmp -s "$jobs/pins.list" "$jobs/pins.listed"
 # a pin list run lists its checks and runs none of them: the listing is what the test reads, and
 # section 18's thousands of checks, unfiltered there, would be most of the test's serial time
 fresh
 echo "cut one" >> "$scratch/skills/sample/SKILL.md"
-export LINT_PIN_LIST=$jobs/pins.seeded
-: > "$LINT_PIN_LIST"
-pin_run=$(lint_scratch)
-unset LINT_PIN_LIST
+pin_run=$(pin_list_run "$jobs/pins.seeded")
 fx_check "a pin list run on a seeded tree runs none of its queued checks" bash -c '! grep -q "retired phrase in" <<<"$1"' _ "$pin_run"
 # an empty list skips nothing, the sweeps over many files included
 fresh
