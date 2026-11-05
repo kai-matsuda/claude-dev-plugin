@@ -186,7 +186,8 @@ failed_sections() {
 }
 # judge <description> <exit code> <message> <lint output>: one ok or FAIL line, the lint's own
 # FAIL lines indented under a FAIL. With $sec set, a failing case must fail in exactly the
-# sections it names ("6 10"), or in exactly one section when it says "one".
+# sections it names ("6 10"), or in exactly one section when it says "one". With $must_not_print
+# set (lines, one per line), the output must hold none of them.
 judge() {
   local why= got missing
   if ! result_is "$2" "$3" "$4"; then
@@ -198,11 +199,11 @@ judge() {
     if [ "$sec" = one ]; then [ "$(wc -w <<<"$got")" -eq 1 ]; else [ "$got" = "$sec" ]; fi \
       || why="failed sections: ${got:-none}, want ${sec}"
   fi
-  # with $absent set (lines, one per line), a case must print none of them
-  if [ -z "$why" ] && [ -n "${absent:-}" ]; then
+  # with $must_not_print set (lines, one per line), a case must print none of them
+  if [ -z "$why" ] && [ -n "${must_not_print:-}" ]; then
     while IFS= read -r got; do
       [ -z "$got" ] || [[ $4 != *"$got"* ]] || { why="printed '$got', which it must not"; break; }
-    done <<<"$absent"
+    done <<<"$must_not_print"
   fi
   if [ -z "$why" ]; then echo "ok   $1"; return; fi
   echo "FAIL $1 ($why)"
@@ -1918,7 +1919,7 @@ As the Re-evaluate the frontier step of \`/dev:implement-story\` says."
 fresh
 printf '%s\n' "First Landing section of \`/dev:implement-story\` says." "Second Landing section of \`/dev:implement-story\` says." \
   "Third Landing section of \`/dev:implement-story\` says." "Fourth Landing section of \`/dev:implement-story\` says." >> "$scratch/docs/agents/orchestration.md"
-absent="Fourth Landing section of" sec=18 expect "a name with four wrong cites shows three hits and not the fourth" 1 "(Landing)
+must_not_print="Fourth Landing section of" sec=18 expect "a name with four wrong cites shows three hits and not the fourth" 1 "(Landing)
 First Landing section of
 Second Landing section of
 Third Landing section of"

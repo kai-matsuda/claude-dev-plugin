@@ -274,7 +274,8 @@ drop_unchanged() {
 }
 # enqueue <check line>: queues it unless $f is a file LINT_UNCHANGED lists
 # LINT_PIN_LIST names a file every check is appended to instead, one per line as
-# <type> <file> <description> <phrase> [<anchor>] (the queue's own line), for the regression test
+# <type> <file> <description> <phrase> [<field 5>] (the queue's own line; field 5 is an anchor, or a
+# names list on a w or W line), for the regression test
 # to derive its drop cases from; such a run lists its checks and runs none of them, since section
 # 18 alone lists thousands and the test's baseline case runs them, with the names each file holds
 enqueue() {
@@ -409,13 +410,13 @@ checks_run() {
       if ($1 == "w" || $1 == "W") {
         # split the |-list at its unescaped bars: nameRe is a name as a pattern, nameShown as text
         nnames[NR] = 0; cur = ""; shown_cur = ""
-        for (c = 1; c <= length($5); c++) {
+        # c runs one past the end so the last name is pushed by the same branch as the rest
+        for (c = 1; c <= length($5) + 1; c++) {
           ch = substr($5, c, 1)
-          if (ch == "\\") { cur = cur ch substr($5, c + 1, 1); shown_cur = shown_cur substr($5, c + 1, 1); c++ }
-          else if (ch == "|") { if (cur != "") { nnames[NR]++; nameRe[NR, nnames[NR]] = cur; nameShown[NR, nnames[NR]] = shown_cur }; cur = ""; shown_cur = "" }
+          if (c > length($5) || ch == "|") { if (cur != "") { nnames[NR]++; nameRe[NR, nnames[NR]] = cur; nameShown[NR, nnames[NR]] = shown_cur }; cur = ""; shown_cur = "" }
+          else if (ch == "\\") { cur = cur ch substr($5, c + 1, 1); shown_cur = shown_cur substr($5, c + 1, 1); c++ }
           else { cur = cur ch; shown_cur = shown_cur ch }
         }
-        if (cur != "") { nnames[NR]++; nameRe[NR, nnames[NR]] = cur; nameShown[NR, nnames[NR]] = shown_cur }
       } else a[NR] = $5
       if (!($2 in nat)) files[++nf] = $2
       at[$2, ++nat[$2]] = NR
@@ -429,7 +430,7 @@ checks_run() {
           for (q = 1; q <= nw[NR]; q++) { gsub(/\\\./, ".", w[q]); W[NR, q] = w[q] }
         }
       }
-      # the checks sharing a kind, pattern and anchor run back to back (below)
+      # the checks sharing a kind, pattern and field 5 (an anchor, or a names list) run back to back (below)
       g = $1 SUBSEP $4 SUBSEP $5
       if (!(g in gn)) gs[++ng] = g
       G[g, ++gn[g]] = NR }
@@ -473,7 +474,8 @@ checks_run() {
               best = 0; shown_name = matched   # a match no name explains is shown as the text matched
               for (nj = 1; nj <= nnames[i]; nj++) {
                 name_re = nameRe[i, nj]; if (t == "w") name_re = tolower(name_re)
-                if (match(matched, name_re) && RLENGTH > best) { best = RLENGTH; shown_name = nameShown[i, nj] }
+                # a name counts only where the cite puts it, at the start of the match or one boundary character in
+                if (match(matched, name_re) && RSTART <= 2 && RLENGTH > best) { best = RLENGTH; shown_name = nameShown[i, nj] }
               }
               if (!((i, shown_name) in nhits)) nameOrder[i, ++nnamed[i]] = shown_name
               if (++nhits[i, shown_name] <= 3) nameLines[i, shown_name] = nameLines[i, shown_name] ln ":" L[fn, ln] "\n"
