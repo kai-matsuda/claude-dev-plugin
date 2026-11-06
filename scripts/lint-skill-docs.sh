@@ -601,17 +601,14 @@ head_tmpdir="**$rule_tmpdir.**"
 head_waiting="**$rule_waiting.**"
 head_landing_a_task='**Landing a task.**'
 head_plugin_root='**Plugin root.**'
+head_repo_plumbing='## Repo plumbing and Cut-off probe'
 head_review_scope='**Review scope.**'
 head_review_verdict='**Review verdict.**'
+head_standalone_task='**The standalone task.**'
 head_start_work_on_a_task='## When a skill says "start work on a task" (`/dev:implement-story`, `/dev:implement-task`)'
-# line anchors several checks share
-anchor_adr_status_accepted='^status: accepted$'
-anchor_first_failure_report='^   - `<id> failed: <reason>`'
-anchor_git_follows_bullet='^- `git` follows'
-anchor_runbook_row_4a='^[|] 4a [|] `/dev:implement-spec`'
-anchor_story_step_4_frontier='^4\. \*\*Work the frontier\.\*\*'
-anchor_task_step_2_implementer='^2\. Spawn the \*\*implementer\*\*'
-# phrases pinned in more than one doc or on more than one line
+head_task_orchestrator_brief='## Task orchestrator brief'
+head_branch_from_remote_ref='**Branches from a remote ref.**'
+# phrases pinned by one or more checks, each typed once here so a reword is one edit
 pin_120_second_default='120-second default'
 pin_avoided_term_human_task='(^|[^-])human task'
 pin_call_task_orchestrator_skill='Call the Skill tool with `dev:task-orchestrator`'
@@ -653,14 +650,7 @@ pin_run_close_story='run `/dev:close-story <story-id>`'
 cmd_implement_story='/dev:implement-story <story-id>'
 pin_child_not_a_story='<child-id> is not a story'
 pin_code_review_name='mattpocock-skills:code-review'
-# phrases built from another pin, so each is still written once
-pin_code_review_tool="\`$pin_code_review_name\`"
-pin_conflict_resolutions_per_landing="three $pin_conflict_resolutions per landing"
-anchor_task_orchestrator_header="^You are the ${pin_task_orchestrator_bold//\*/\\*}"
-pin_refused_not_a_story="refused: $pin_child_not_a_story"
-pin_carries_needs_triage="carries $pin_needs_triage_wontfix"
-pin_malformed_epic_refusal_line="<epic-id> $pin_refused_not_a_story"
-# the plain phrases, each typed here once
+# the plain phrases, each typed here once: the brief, gate and record phrases, and the cites, after the pins above
 pin_not_ready_for_human_alone='other than `ready-for-human` ones|non-`ready-for-human`'
 pin_refused_pr_closed_unmerged='refused: PR <url> is closed unmerged'
 pin_refused_pr_already_merged='refused: PR <url> already merged'
@@ -680,7 +670,6 @@ pin_story_row_lands='The story row lands'
 pin_retry_at_gate_on_resolved_branch='entering at the gate on the resolved branch'
 pin_landing_closes_task='A landing closes the task'
 pin_checks_skipped_no_forge='checks: skipped: no forge'
-head_repo_plumbing='## Repo plumbing and Cut-off probe'
 pin_inbox_as_deferrals='the inbox as deferrals'
 pin_spawn_two_reviewers='spawn two **reviewers**'
 pin_chains_out_of_scope='chains are out of scope'
@@ -696,24 +685,14 @@ pin_with_fresh_budget='with a fresh budget'
 pin_one_topological_pass='one topological pass'
 pin_pr_command_re='/mattpocock-skills:pr([^a-z-]|$)'
 cite_delivery_authority="the rules doc's Delivery authority"
-# the phrases every worktree brief carries and the order checks over them, each written once
-# (dev-yqpz); the _re forms read a backtick as any character, to sit in a pattern
+# the phrases every worktree brief carries, each written once (dev-yqpz)
 tmpdir_line='TMPDIR line'
 plain_command='plain-command line, one plain `git` or `bd` command per Bash call, every path spelled out'
-plain_re=${plain_command//\`/.}
 pwd_step='first Bash call is `pwd` alone'
-pwd_re=${pwd_step//\`/.}
 spelled='spelled literally in every later `export`'
-spelled_re=${spelled//\`/.}
-tmpdir_then_plain="$tmpdir_line.*$plain_re"   # a brief's TMPDIR line, then its plain-command line
-tmpdir_pwd_spelled="$pwd_re.*$spelled_re"   # the bare pwd step, then the path spelled literally
 # the story gate's two phrases whose order the step 7 awk check reads (below) beside their pins
 gate_first='Each pass runs the checks first'
 gate_same='the same SHA exits the gate'
-head_standalone_task='**The standalone task.**'
-head_task_orchestrator_brief='## Task orchestrator brief'
-head_branch_from_remote_ref='**Branches from a remote ref.**'
-anchor_step_3_draft_pr='^   With a forge, open a \*\*draft PR\*\*'
 failing_script_clause="each failing test script read off the log's FAIL lines (it runs that script green as its seam run before it reports; with no test-script FAIL line, the failing step's name and the touched modules' tests as its seam run)"
 gate_entry='`gate entry: <task branch> <worktree path> <tip SHA>`'
 rec_green='a tree with a green record (`exit=0`) is checked: run nothing'
@@ -722,13 +701,37 @@ rec_any='a tree with a record is checked: read its exit and run nothing'
 rec_fixup='After a red, a fix-up that commits nothing leaves the tree red-recorded, so the next pass checks it again'
 rec_call='check > <owner>/.tmp/checks/<tree>/log'
 tmpdir_export='mkdir -p <worktree>/.tmp && export TMPDIR=<worktree>/.tmp'
-merge_then_close="merge its PR, then $pin_run_close_story"
 dep_line='one `Dependency:` line per publish blocker'
 plumbing_cite="the rules doc's Repo plumbing and Cut-off probe"
-merge_guard_cite="$plumbing_cite, its Merge guard"
-apply_probe="Apply $plumbing_cite"
 probe_cite="the rules doc's Cut-off probe"
 verdict_cite="the rules doc's Review verdict"
+# phrases built from another pin, so each is still written once: each reads the pin or phrase it extends,
+# and the _re forms read a backtick as any character, to sit in a pattern
+pin_code_review_tool="\`$pin_code_review_name\`"
+pin_conflict_resolutions_per_landing="three $pin_conflict_resolutions per landing"
+pin_refused_not_a_story="refused: $pin_child_not_a_story"
+pin_carries_needs_triage="carries $pin_needs_triage_wontfix"
+pin_malformed_epic_refusal_line="<epic-id> $pin_refused_not_a_story"
+merge_then_close="merge its PR, then $pin_run_close_story"
+merge_guard_cite="$plumbing_cite, its Merge guard"
+apply_probe="Apply $plumbing_cite"
+plain_re=${plain_command//\`/.}
+pwd_re=${pwd_step//\`/.}
+spelled_re=${spelled//\`/.}
+tmpdir_then_plain="$tmpdir_line.*$plain_re"   # a brief's TMPDIR line, then its plain-command line
+tmpdir_pwd_spelled="$pwd_re.*$spelled_re"   # the bare pwd step, then the path spelled literally
+# line anchors several checks share, each the regex a check's line must match; the last two are built
+# from the phrases above
+anchor_adr_status_accepted='^status: accepted$'
+anchor_conflict_implementer='^3\. A conflict goes to an implementer'
+anchor_first_failure_report='^   - `<id> failed: <reason>`'
+anchor_git_follows_bullet='^- `git` follows'
+anchor_runbook_row_4a='^[|] 4a [|] `/dev:implement-spec`'
+anchor_step_3_draft_pr='^   With a forge, open a \*\*draft PR\*\*'
+anchor_story_step_4_frontier='^4\. \*\*Work the frontier\.\*\*'
+anchor_task_step_2_implementer='^2\. Spawn the \*\*implementer\*\*'
+anchor_owner_repo_bullet="starts with the \\*\\*$tmpdir_line\\*\\*"
+anchor_task_orchestrator_header="^You are the ${pin_task_orchestrator_bold//\*/\\*}"
 # the dirs and the docs no section owns must exist, a default as much as an override; the
 # driver ($1) and the runbook ($2) are their sections' documents
 section "0. paths"
@@ -1748,11 +1751,10 @@ sec_has "## Landing" "a landing closes the task" "$pin_landing_closes_task: \`$p
 sec_has "## Landing" "the fast-forward guards the resolved tip" "confirm \`git -C <owner> rev-parse <task branch>\` prints the resolved tip, $pin_rev_parse_head"
 sec_has "## Landing" "a story fix-up's tip is read from its worktree" "its \`<tip SHA>\` is $pin_rev_parse_head"
 lacksf "the reviewed-tip guard repeated after a conflict resolution" "repeat 1's guards"
-K='^3\. A conflict goes to an implementer'
-line_has "$K" "the conflict implementer's brief starts with the TMPDIR line" "$tmpdir_line"
-line_has "$K" "the conflict implementer's brief carries the plain-command line" "$plain_command"
-line_hase "$K" "the conflict implementer's brief puts the TMPDIR line ahead of the plain-command line" "$tmpdir_then_plain"
-line_has "$K" "the conflict implementer's seam run timeout" 'with `timeout: 600000` on every seam run, never the check command or the script'
+line_has "$anchor_conflict_implementer" "the conflict implementer's brief starts with the TMPDIR line" "$tmpdir_line"
+line_has "$anchor_conflict_implementer" "the conflict implementer's brief carries the plain-command line" "$plain_command"
+line_hase "$anchor_conflict_implementer" "the conflict implementer's brief puts the TMPDIR line ahead of the plain-command line" "$tmpdir_then_plain"
+line_has "$anchor_conflict_implementer" "the conflict implementer's seam run timeout" 'with `timeout: 600000` on every seam run, never the check command or the script'
 line_has "$anchor_first_failure_report" "a first failure after a red on a resolved tree retries at the gate" 'that one enters at the gate on the resolved branch'
 # any other first failure probes for the commits its attempt left, as implement-task's retry does (dev-a3c0)
 line_has "$anchor_first_failure_report" "a first failure's retry runs the Cut-off probe" "step 4's Cut-off probe deciding its entry"
@@ -1872,17 +1874,16 @@ line_has '^7\. ' "the story review's fix-up brief starts with the TMPDIR line" "
 # only cited the harness doc's Literal paths drew 14 guard refusals in INFRA-33's run (dev-ask);
 # step 3 names it for both of its fix-up briefs
 hasc "plain-command line stated in the skill" "$plain_command"
-O="starts with the \\*\\*$tmpdir_line\\*\\*"
-line_has "$O" "the Owner repo bullet states the plain-command line" "$plain_command"
-line_hase "$O" "the Owner repo bullet puts the TMPDIR line ahead of the plain-command line" "$tmpdir_then_plain"
+line_has "$anchor_owner_repo_bullet" "the Owner repo bullet states the plain-command line" "$plain_command"
+line_hase "$anchor_owner_repo_bullet" "the Owner repo bullet puts the TMPDIR line ahead of the plain-command line" "$tmpdir_then_plain"
 line_has '^7\. ' "the story review's fix-up brief carries the plain-command line" "$plain_command"
 line_hase '^7\. ' "the story review's fix-up brief puts the TMPDIR line ahead of the plain-command line" "$tmpdir_then_plain"
 # on the harness route the TMPDIR line is two steps: a bare pwd as the first Bash call, then the
 # path it printed spelled literally in every later export, since agents left to fill in the path
 # wrote $PWD and the guard refused it in INFRA-35's run (dev-r1p)
-line_has "$O" "the Owner repo bullet states the bare pwd step" "$pwd_step"
-line_has "$O" "the Owner repo bullet spells the path literally in later exports" "$spelled"
-line_hase "$O" "the Owner repo bullet puts the bare pwd step ahead of the path spelled literally" "$tmpdir_pwd_spelled"
+line_has "$anchor_owner_repo_bullet" "the Owner repo bullet states the bare pwd step" "$pwd_step"
+line_has "$anchor_owner_repo_bullet" "the Owner repo bullet spells the path literally in later exports" "$spelled"
+line_hase "$anchor_owner_repo_bullet" "the Owner repo bullet puts the bare pwd step ahead of the path spelled literally" "$tmpdir_pwd_spelled"
 lacks "the retired fill-in-the-pwd-path wording" 'fills in the path `pwd` prints'
 lacks "Gitignore step counts three entries" "the rule's three entries"
 line_has '^7\. ' "the story review (step 7) points at the rules doc's Review verdict" "$verdict_cite"
