@@ -96,12 +96,12 @@ that opens no numbered item (`**Owner**`, `**Alone**:`) is a label, and a bold t
 a sentence (the **story orchestrator**) is neither; a cite of a label or such a term is
 outside this rule, so a lead-in that another skill or a rules doc cites takes the period
 inside the bold and is cited in bold. A heading cited bare (`/dev:task-orchestrator`'s
-Two entries) or a step name cited in quotes is a cite in the wrong form. A cite of the
+Two entries), a heading cited in bold, or a step name cited in quotes is a cite in the wrong form. A cite of the
 rules doc's own sections, or of a skill's own steps and headings, is not a cross-skill
 cite and is outside this rule.
 
 A cite names the skill in backticks (`/dev:close-story`), never bare (/dev:close-story's
-"The forge shows MERGED"), and never in bold or quotes; a backtick at one end of the skill
+"The forge shows MERGED"); a backtick at one end of the skill
 only, or one that swallows its possessive (`/dev:close-story's`), leaves it bare. A cited
 step or heading is marked only by bold or quotes, one of the two and not both: a name inside
 a pair of backticks is a cite in the wrong form, whether the pair stands inside the mark
