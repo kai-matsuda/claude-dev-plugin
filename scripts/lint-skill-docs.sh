@@ -1304,7 +1304,10 @@ hasc "the trust rules are a closed list" 'The list is closed: a rule that wants 
 # orchestrator, the delivered tip's record the PR's Evidence
 hasc "Check command rule" "$head_check_command"
 para_has "$head_check_command" "make check is the one check command" 'One command per owner repo, `make check`'
-row_phrase repo-plumbing-pins "the check command is make check" && row_text=${row_text#*since } && para_has "$head_check_command" "every owner repo has a check target" "${row_text%% target*}"
+# the pin of the make check row, named here so a reader sees it: the row's `check` target (its own row
+# check holds the rules doc to the row, so a reword of the row fails there)
+pin_check_target='every owner repo has a `check`'
+para_has "$head_check_command" "every owner repo has a check target" "$pin_check_target"
 para_has "$head_check_command" "a story run with no check target fails" 'with `failed: no check target`'
 # the ci extension rule (ADR 0015's amendment), stated once: the gate, the extension's shape, never
 # a subset, and setup-repo writes none
@@ -1822,7 +1825,9 @@ hasc "the sweep is keyed on the branch being merged into the integration branch"
 # level: a linked-worktree owner's list shows every checkout's worktrees, and git prints both
 # paths with symlinks followed (dev-114)
 line_has '^9\. ' "step 9 sweeps only worktrees inside the owner checkout" 'lies inside `<top>`'
-row_phrase repo-plumbing-pins "the cut-off probe compares an entry against the owner's top level" && row_text=${row_text#*what } && line_has '^9\. ' "step 9 resolves the owner's top level" "${row_text% prints}"
+# the pin of the owner's top level, named here so a reader sees it: the command that `<top>` is what it prints
+pin_owner_top='`git -C <owner> rev-parse --show-toplevel`'
+line_has '^9\. ' "step 9 resolves the owner's top level" "$pin_owner_top"
 # an entry inside another listed worktree that itself lies inside <top> belongs to a linked
 # worktree nested in the owner, and that worktree's own sweep is the one to remove it (dev-f61)
 line_has '^9\. ' "step 9 skips worktrees of a checkout nested in the owner" 'inside another listed worktree'
