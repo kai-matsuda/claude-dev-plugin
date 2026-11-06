@@ -1247,6 +1247,11 @@ for table in $pin_tables; do
     echo "FAIL pin list holds $found of the $want rows of $table.tsv"; fails=$((fails+1)); guard=0
   fi
 done
+# the two pins the lint names in shared variables (dev-0xhd) must be queued too, so each gets a drop
+# case: a phrase in field 4 of the list, whatever its check
+for pin in 'every owner repo has a `check`' '`git -C <owner> rev-parse --show-toplevel`'; do
+  awk -F '\t' -v p="$pin" '$4 == p { n++ } END { exit n ? 0 : 1 }' "$jobs/pins.list" || { echo "FAIL pin list lacks the named pin '$pin'"; fails=$((fails+1)); guard=0; }
+done
 if [ "$npins" -gt 0 ] && [ "$nmoved" -gt 0 ] && [ "$nanch" -gt 0 ] && [ "$nabsent" -gt 0 ] && [ "$guard" = 1 ]; then
   echo "ok   $npins pin cases derived from the lint's list ($nmoved also moved out of their scope, $nanch also off the start of their line), $nabsent more seeding a banned text, in $nbatches lint runs and $nretried alone"
 else
