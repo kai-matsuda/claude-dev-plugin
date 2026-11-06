@@ -1954,6 +1954,12 @@ First Landing section of
 Second Landing section of
 Third Landing section of"
 
+# an unquoted heading cite of one skill, its FAIL line names that skill and not the alternation of
+# every skill's name (dev-pwbz, the retro of dev-j9i5)
+fresh
+printf '%s\n' "As \`/dev:task-orchestrator\`'s Two entries says." >> "$scratch/docs/agents/orchestration.md"
+must_not_print='/dev:(' sec=18 expect "an unquoted heading cite of one skill names that skill in its FAIL line, not the alternation" 1 "present: an unquoted heading cite of a skill in $scratch/docs/agents/orchestration.md (/dev:task-orchestrator)"
+
 # the other wrong forms the rule names (dev-mnz6): a step name in quotes, a heading in bold and a
 # bare cite in the "of /dev:x" word order, each failing in a rules doc but the coding standards
 orch=docs/agents/orchestration.md
