@@ -2787,7 +2787,10 @@ if [ -f "$standards" ]; then
     names_here=
     [[ $out != *$'\n'* ]] || names_here=${out#*$'\n'}
     others=${others#|}
-    [ -z "$others" ] || lackswc "an unquoted heading cite of a skill in $f" "\`/dev:($others)$poss_cap"
+    # the names list is each skill as "/dev:<skill>" (the cite's match opens on its backtick, so a bare
+    # name sits past the second character, where a names list does not count it): the FAIL line names
+    # the skill that matched (dev-pwbz)
+    [ -z "$others" ] || lackswc "an unquoted heading cite of a skill in $f" "\`/dev:($others)$poss_cap" "/dev:${others//|/|/dev:}"
     last=
     while IFS=$'\t' read -r skill kind name marks; do
       [ -n "$name" ] || continue
