@@ -2,7 +2,7 @@
 # The landing (glossary: Landing) as one call, touching git only. Confirms the owner checkout is
 # on <branch> and clean (untracked files counted) and that <task branch> is at <tip>, runs the
 # stray-commit script on <branch>..<tip>, then makes one merge attempt of <tip> (fast-forward
-# only under --ff-only); past the guard it names the verified <tip>, never the branch.
+# only under --ff-only); past the guard it merges the verified <tip>, never the branch ref.
 # One line, one exit status:
 #   landed <sha>                      exit 0; <sha> is <branch>'s tip. A tip already in <branch> merges
 #                                     nothing and reports the same line.

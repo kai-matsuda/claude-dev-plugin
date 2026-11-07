@@ -229,8 +229,43 @@ commit m.txt m "feat: main moved" "" "Bead: x-3"
 mainbefore=$(sha main)
 moved_run
 fx_check "branch moves mid-landing, plain merge: exits 0" fx_eq "$rc" 0
+fx_check "branch moves mid-landing, plain merge: landed line" fx_eq "$out" "landed $(sha main)"
 fx_check "branch moves mid-landing, plain merge: main is a merge of base and the tip" fx_eq "$(sha main^1) $(sha main^2)" "$mainbefore $tip"
 fx_check "branch moves mid-landing, plain merge: the message names the task branch" fx_eq "$(git -C "$r" log -1 --format=%s main)" "Merge branch 'task'"
+
+# the task branch moves to a foreign-author commit right after the guard's rev-parse --verify
+# (before the stray-commit check): the stray range is <branch>..<tip>, so the landing still succeeds
+shim2=$scratch/move-shim2; mkdir -p "$shim2"
+cat > "$shim2/git" <<EOF
+#!/bin/sh
+case " \$* " in
+  *" rev-parse "*"--verify"*)
+    o=\$("$realgit" "\$@"); c=\$?
+    if [ ! -e "$scratch/moved" ]; then
+      : > "$scratch/moved"
+      "$realgit" -C "$r" update-ref refs/heads/task "\$(cat "$scratch/extra")"
+    fi
+    printf '%s\n' "\$o"; exit \$c ;;
+esac
+exec "$realgit" "\$@"
+EOF
+chmod +x "$shim2/git"
+reset
+git -C "$r" checkout -q -b extra "$tip" && commit x.txt x "feat: unchecked" other@example.invalid
+sha HEAD > "$scratch/extra"; git -C "$r" checkout -q main; git -C "$r" branch -q -D extra
+rm -f "$scratch/moved"
+out=$(PATH=$shim2:$PATH "$script" "$r" main task "$tip" --ff-only 2>&1); rc=$?
+git -C "$r" update-ref refs/heads/task "$tip"
+fx_check "branch moves after the guard: exits 0" fx_eq "$rc" 0
+fx_check "branch moves after the guard: stray range is the tip's" fx_eq "$out" "landed $tip"
+
+# a landing onto a non-default branch keeps the plain message
+reset
+git -C "$r" checkout -q -b feat/story main && commit m.txt m "feat: story moved" "" "Bead: x-3"
+run feat/story task "$tip"
+fx_check "non-main branch: exits 0" fx_eq "$rc" 0
+fx_check "non-main branch: the message names the task branch" fx_eq "$(git -C "$r" log -1 --format=%s feat/story)" "Merge branch 'task'"
+git -C "$r" checkout -q main; git -C "$r" branch -q -D feat/story
 
 # a non-repo owner
 nogit=$scratch/not-a-repo; mkdir -p "$nogit"
