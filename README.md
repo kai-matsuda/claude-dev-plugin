@@ -14,7 +14,7 @@ Two forms. Pick one.
 **Marketplace install**, from inside Claude Code:
 
 ```
-/plugin marketplace add vangogh500/claude-dev-plugin
+/plugin marketplace add kai-matsuda/claude-dev-plugin
 /plugin install dev@claude-dev-plugin
 ```
 
@@ -24,7 +24,7 @@ registration below is an example only, merge it with your own entries):
 ```json
 {
   "extraKnownMarketplaces": {
-    "claude-dev-plugin": { "source": { "source": "github", "repo": "vangogh500/claude-dev-plugin" } }
+    "claude-dev-plugin": { "source": { "source": "github", "repo": "kai-matsuda/claude-dev-plugin" } }
   },
   "enabledPlugins": { "dev@claude-dev-plugin": true }
 }
