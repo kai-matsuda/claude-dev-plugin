@@ -687,7 +687,8 @@ cite_delivery_authority="the rules doc's Delivery authority"
 # the phrases every worktree brief carries, each written once (dev-yqpz)
 tmpdir_line='TMPDIR line'
 plain_command='plain-command line, one plain `git` or `bd` command per Bash call, every path spelled out'
-shell_section='the Shell commands section of `<plugin root>/docs/agents/harness.md`'   # where a reviewer or fix-up brief points for quoting a glob passed as a flag (dev-elkb)
+# where a reviewer or fix-up brief points for quoting a glob passed as a flag (dev-elkb)
+shell_section='the Shell commands section of `<plugin root>/docs/agents/harness.md`'
 pwd_step='first Bash call is `pwd` alone'
 spelled='spelled literally in every later `export`'
 # the story gate's two phrases whose order the step 7 awk check reads (below) beside their pins
@@ -782,7 +783,7 @@ has "malformed epic refusal" "$pin_cite_malformed_epic_refusal"
 lacks "implement-spec restating the malformed-epic refusal" "$pin_malformed_epic_refusal_line"
 has "add-dir refusal" "$pin_add_dir_remedy"
 # the epic reviewer's brief points at the harness doc's Shell commands section (dev-elkb)
-line_has '^   > Review story' "the epic reviewer brief points at the harness doc's Shell commands section" 'harness.md`; read its Shell commands section before you run a command'
+line_has '^   > Review story' "the epic reviewer brief points at the harness doc's Shell commands section" "Your Bash calls follow $shell_section; read it before you run a command"
 hasc "Human stop" '**Human stop.**'
 hasc "Stall" '**Stall.**'
 hasc "Done" '**Done.**'
@@ -1914,8 +1915,8 @@ lacks "Gitignore step counts three entries" "the rule's three entries"
 line_has '^7\. ' "the story review (step 7) points at the rules doc's Review verdict" "$verdict_cite"
 # the story reviewers' briefs and the fix-up briefs point at the harness doc's Shell commands section (dev-elkb)
 line_has '^7\. ' "the story review's sub-agent briefs point at the harness doc's Shell commands section" "each sub-agent's brief points at $shell_section"
-line_has '^7\. ' "the story review's fix-up brief points at the harness doc's Shell commands section" "in one line and points at $shell_section"
-line_has "$anchor_conflict_implementer" "the conflict implementer's brief points at the harness doc's Shell commands section" 'naming its Commits rule and pointing at its Shell commands section'
+line_has '^7\. ' "the story review's fix-up brief points at the harness doc's Shell commands section" "it points at $shell_section and cites that doc for its Commits rule"
+line_has "$anchor_conflict_implementer" "the conflict implementer's brief points at the harness doc's Shell commands section" "for its Commits rule and pointing at $shell_section"
 lacks "the zero-findings bar" "$pin_retired_zero_findings_bar"
 # the check target probe, its refusal and the once-per-run resolution are the rules doc's Story
 # plumbing, pinned in section 6 (dev-yykg, dev-de4, dev-b3p, ADR 0015); scripts/test-check-target.sh
