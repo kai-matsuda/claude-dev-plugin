@@ -1987,9 +1987,11 @@ unchanged_file || awk -v g="$gate_first" -v m="$gate_same" -v r="$pin_code_revie
 line_has '^8\. ' "the deliver step leaves the PR a draft" "$pin_pr_stays_a_draft"
 # step 3 runs the Delivery section's stray-commit check and cites the Delivery authority, never step 8
 line_has "$anchor_step_3_draft_pr" "step 3 runs the Delivery section's stray-commit check" "first run the rules doc's Delivery section's **stray-commit check**"
-line_has "$anchor_step_3_draft_pr" "step 3 cites the stray-commit script by name" 'through its **stray-commit script**, `<plugin root>/scripts/stray-commit.sh <owner> <default branch>..<branch>`'
+# step 3 and step 8 cite the stray-commit script by name (dev-skn5.1.6)
+line_has "$anchor_step_3_draft_pr" "step 3 cites the stray-commit script by name" '(run through the rules doc'"'"'s **stray-commit script**, `<plugin root>/scripts/stray-commit.sh <owner> <default branch>..<branch>`, in one foreground Bash call, `<plugin root>` spelled as the path this session resolved; a hit ends the run there, as that section says)'
 line_has "$anchor_step_3_draft_pr" "step 3 pushes on the Delivery authority" "($cite_delivery_authority)"
 line_lacks "$anchor_step_3_draft_pr" "step 3 pointing at step 8's stray-commit check" "step 8's **stray-commit check**"
+# step 8 reuses step 3's citation by name (dev-skn5.1.6)
 line_has '^8\. ' "step 8 cites the stray-commit script by name" 'run through the rules doc'"'"'s **stray-commit script** as step 3 does'
 line_has '^8\. ' "step 8 opens the draft itself" 'open the draft after the push if step 3 could not'
 line_has '^8\. ' "step 8 appends the sibling line" 'append the sibling line (rebuilt as in step 3)'
@@ -2230,7 +2232,7 @@ hasc "the brief's gate entry" "$gate_entry"
 # (dev-jv82, dev-skn5.1.4)
 hasc "the landing calls the Land script with --ff-only" 'land it through the rules doc'"'"'s **Land script**, `<plugin root>/scripts/land.sh <owner> <branch> <task branch> <tip SHA> --ff-only`, in one foreground Bash call, `<plugin root>` spelled as the path this session resolved'
 # the delivery's stray-commit check runs through the rules doc's stray-commit script, cited by name (dev-skn5.1.6)
-hasc "the delivery cites the stray-commit script by name" 'its stray-commit check before any push (run through the rules doc'"'"'s **stray-commit script**, `<plugin root>/scripts/stray-commit.sh <owner> <default branch>..<branch>`, `<plugin root>` spelled as the path this session resolved)'
+hasc "the delivery cites the stray-commit script by name" 'its stray-commit check before any push (run through the rules doc'"'"'s **stray-commit script**, `<plugin root>/scripts/stray-commit.sh <owner> <default branch>..<branch>`, in one foreground Bash call, `<plugin root>` spelled as the path this session resolved)'
 hasc "a refusal is wrapped in the failed: line shape" 'A `refused: <reason>` ends the run with `failed: <task-id> <reason>`, the refusal'"'"'s reason wrapped in the `failed:` line shape'
 hasc "a diverged refusal names both branches" 'a `diverged` is ended as `failed: <task-id> <branch> diverged from <task branch>`'
 hasc "a moved-past refusal names the reviewed tip" 'a `moved past <tip>` names the reviewed `<tip SHA>`'
