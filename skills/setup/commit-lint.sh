@@ -15,6 +15,11 @@
 # "Refs:" line that `git interpret-trailers --parse` does not return: it sits
 # in a paragraph before the last, or the last paragraph also holds prose, and
 # either way git drops it from the trailers.
+# Repairs, before those checks, a Bead:/Refs: paragraph followed by a separate
+# Co-Authored-By:/Claude-Session: paragraph by joining them in the message file.
+# The repair applies only when both are whole paragraphs (every line an exact-case key),
+# the attribution one is the last paragraph not counting trailing "#" comment lines, and
+# the message is not a `git commit -v` one (scissors line); otherwise the file is untouched.
 # Warns: no "Bead:" trailer in a repo with .beads/ (hand-made commits have
 # none); "#" lines in a merge message, which `git merge --no-edit` keeps.
 # Git's own subjects (Merge, Revert, fixup!, squash!, amend!) skip the subject
@@ -29,6 +34,27 @@ beads=0
 [ -d "$top/.beads" ] && beads=1
 # Provenance lines git itself reads as trailers; awk compares this with the lines present.
 provenance='^(Bead|Refs): '
+# Repairs one shape in place (dev-qgww): a paragraph of only Bead:/Refs: lines, a blank line,
+# then a last paragraph of only Co-Authored-By:/Claude-Session: lines (what the harness's
+# attribution guidance produces) becomes one trailer paragraph. Anything else is left alone.
+joined=$(awk -v provenance="$provenance" '
+{ line[++n] = $0 }
+END {
+  last = n
+  while (last > 0 && (line[last] ~ /^[[:space:]]*$/ || line[last] ~ /^#/)) last--
+  attr_first = last
+  while (attr_first > 0 && line[attr_first] ~ /^(Co-Authored-By|Claude-Session): /) attr_first--
+  if (attr_first == last || attr_first == 0 || line[attr_first] !~ /^[[:space:]]*$/) fix = 0
+  else {
+    prov_last = attr_first
+    while (prov_last > 0 && line[prov_last] ~ /^[[:space:]]*$/) prov_last--
+    prov_first = prov_last
+    while (prov_first > 0 && line[prov_first] ~ provenance) prov_first--
+    fix = (prov_first < prov_last && prov_first > 0 && line[prov_first] ~ /^[[:space:]]*$/)
+  }
+  for (i = 1; i <= n; i++) if (!(fix && i > prov_last && i <= attr_first)) print line[i]
+  exit fix ? 0 : 3
+}' "$msg") && printf '%s\n' "$joined" >"$msg" || :
 parsed=$(git interpret-trailers --parse "$msg" | grep -cE "$provenance" || :)
 
 exec awk -v merging="$merging" -v beads="$beads" -v provenance="$provenance" -v parsed="$parsed" '

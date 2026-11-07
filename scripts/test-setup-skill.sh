@@ -193,6 +193,29 @@ lint_msg "feat: $(printf 'x%.0s' $(seq 70))"
 fx_check "commit-lint blocks a subject over 72 characters" bash -c '[ "$1" = 1 ] && grep -q "the limit is 72" <<<"$2"' _ "$lrc" "$lout"
 lint_msg $'fix: thing\n\nBead: dev-clo\n\nMore prose after the trailer.'
 fx_check "commit-lint blocks a Bead: line outside the last paragraph" bash -c '[ "$1" = 1 ] && grep -q "trailer block" <<<"$2"' _ "$lrc" "$lout"
+# the harness's attribution guidance splits the trailers into two paragraphs: the hook joins them
+lint_msg $'fix: thing\n\nBody.\n\nBead: dev-qgww\nRefs: INFRA-42\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nClaude-Session: https://example.test/s'
+fx_check "commit-lint passes trailers split from the attribution lines" test "$lrc" = 0
+fx_check "commit-lint joins the split trailers into one paragraph" bash -c \
+  '[ "$(grep -c "^$" "$1")" = 2 ]' _ "$lintw/msg"
+fx_check "commit-lint: the joined message commits" git -C "$lintw/repo" commit -q --allow-empty -F "$lintw/msg"
+fx_check "commit-lint: git parses the committed Bead trailer" bash -c \
+  '[ "$(git -C "$1" log -1 --format="%(trailers:key=Bead,valueonly)" | tr -d "\n")" = dev-qgww ]' _ "$lintw/repo"
+lint_msg $'fix: thing\n\nBead: dev-qgww\n\nProse after the trailers.\nCo-Authored-By: Claude <noreply@anthropic.com>'
+fx_check "commit-lint blocks trailers followed by a prose paragraph" bash -c '[ "$1" = 1 ] && grep -q "trailer block" <<<"$2"' _ "$lrc" "$lout"
+lint_msg $'fix: thing\n\nBead: dev-qgww\n\nProse after the trailers.\n\nCo-Authored-By: Claude <noreply@anthropic.com>'
+fx_check "commit-lint blocks a mid-body Bead: before prose and attribution" bash -c '[ "$1" = 1 ] && grep -q "trailer block" <<<"$2"' _ "$lrc" "$lout"
+lint_msg $'fix: thing\n\nProse line.\nBead: dev-qgww\n\nCo-Authored-By: Claude <noreply@anthropic.com>'
+fx_check "commit-lint blocks a Bead: inside a prose paragraph before attribution" bash -c '[ "$1" = 1 ] && grep -q "trailer block" <<<"$2"' _ "$lrc" "$lout"
+fx_check "commit-lint leaves a rejected message file unrewritten" bash -c \
+  '[ "$(cat "$1")" = "$2" ]' _ "$lintw/msg" $'fix: thing\n\nProse line.\nBead: dev-qgww\n\nCo-Authored-By: Claude <noreply@anthropic.com>'
+# trailing "#" comment lines (git commit -v style) do not stop the join
+lint_msg $'fix: thing\n\nBead: dev-qgww\n\nCo-Authored-By: Claude <noreply@anthropic.com>\n# Please enter the commit message\n#'
+fx_check "commit-lint joins split trailers that are followed by # comment lines" bash -c \
+  '[ "$1" = 0 ] && [ "$(grep -c "^$" "$2")" = 1 ]' _ "$lrc" "$lintw/msg"
+# a CRLF message file
+lint_msg $'fix: thing\r\n\r\nBead: dev-qgww\r\n\r\nCo-Authored-By: Claude <noreply@anthropic.com>\r'
+fx_check "commit-lint passes split trailers in a CRLF message" test "$lrc" = 0
 lint_msg $'fix: thing\nbody right under the subject'
 fx_check "commit-lint blocks a body with no blank line after the subject" bash -c '[ "$1" = 1 ] && grep -q "no blank line" <<<"$2"' _ "$lrc" "$lout"
 lint_msg $'Merge branch \'x\''
