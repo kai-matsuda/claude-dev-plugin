@@ -23,7 +23,7 @@ and the two skills' failure lines drifted apart.
   commands**; what the script does is proven by its test.
 
 Examples: `scripts/check.sh`, the Check record script (881626a), and `scripts/land.sh`, the
-Land script, with `scripts/stray-commits.sh`, the stray-commit check that the landing and
+Land script, with `scripts/stray-commit.sh`, the stray-commit check that the landing and
 Delivery share.
 
 ## Considered options

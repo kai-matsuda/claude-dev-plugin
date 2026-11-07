@@ -326,12 +326,15 @@ the orchestrator on the owner checkout: guards on the owner checkout and on the 
 branch's reviewed tip, the stray-commit check, then one merge. A conflict goes to an
 implementer in the task's worktree and the landing is tried again; a standalone task's
 landing fast-forwards only, so it never conflicts. A story's landing closes the task.
+The Land script, `scripts/land.sh <owner> <branch> <task branch> <tip> [--ff-only]`, is the
+guards and the merge as one call.
 _Avoid_: land step, task merge
 
 **Stray-commit check**:
 The read of every commit a push or a merge would carry but merges, before it runs: one whose
-author is not the run's `user.email`, or that has no `Bead:` trailer, came from outside the
+author is not the repo's `user.email`, or that has no `Bead:` trailer, came from outside the
 run (a test whose throwaway repo failed to init commits into the enclosing checkout).
+The stray-commit script, `scripts/stray-commit.sh <repo> <range>`, is that read as one call.
 The story orchestrator runs it before every merge and every push (a trust rule): before
 each landing of a reviewed branch onto the integration branch, and before each push of it;
 a hit stops the merge or push with `failed: stray commit <sha> <subject>`.

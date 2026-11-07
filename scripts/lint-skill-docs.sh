@@ -190,7 +190,7 @@
 #  17. /implement-task (dev-b8d.1.6): the non-task, story-task and not-ready refusals, the story
 #      row's plumbing (the make probe and its refusal, the forge decided once, the gitignore rule,
 #      task/<id> with a branch: note), one task orchestrator with the short brief, the landing by
-#      a fast-forward, the rules doc's Delivery with the PR opened ready and never a draft,
+#      the Land script with --ff-only, the rules doc's Delivery with the PR opened ready and never a draft,
 #      delivered: before pr: and the close at delivery, no forge's pushed branch and skipped-checks
 #      line, the merge guard and the gate re-entry on a rerun, and the report minus the story lines
 #      ending on resume:. Section 6 pins the rules doc's one paragraph on it (the table keeps three
@@ -676,7 +676,6 @@ pin_chains_out_of_scope='chains are out of scope'
 pin_implement_task_id='`/dev:implement-task <id>`'
 pin_implement_task_task_id='`/dev:implement-task <task-id>`'
 pin_never_through_c='never through `-C`'
-pin_ff_only_merge='git -C <owner> merge --ff-only <task branch>'
 pin_bd_close='bd -C <owner> close'
 pin_rev_parse_head='`git -C <worktree path> rev-parse HEAD`'
 pin_not_a_task_worktree='not a task worktree'
@@ -1117,6 +1116,16 @@ while IFS= read -r f; do
       all=${skill_names#|}; all=${all%|}
       [ -z "$all" ] || lacksw "another skill's step number cited in $f (name the rule by its section or bold name)" "dev:($all)([^a-z -][^ ]*)? steps? [0-9]" ;;
   esac
+  # the Land script and the stray-commit script own the landing's merge of a task branch and the
+  # stray-commit git log (ADR 0017), so no skill doc types either inline; a code span only (the
+  # pattern opens on a backtick), "<task branch>" spelled with a space or a hyphen, and
+  # "merge-base" or "merge --abort" is no landing merge. Only a file under the skills dir is
+  # swept, the task banning the commands from skill docs alone (dev-skn5.1.5)
+  case $f in
+    "$skills"/*)
+      lacksw "an inline landing merge in $f" '`git( -C [^ `]+)? merge [^`]*<task[ -]branch>'
+      lacksw "the inline stray-commit git log in $f" '`git( -C [^ `]+)? log [^`]*<branch>\.\.<task[ -]branch>' ;;
+  esac
   lacksw "retired phrase in $f" "$retired"
   # no foreground spawn instruction: an Agent call returns at once whatever run_in_background
   # says, so skills and agent docs point at the waiting rule instead (chezmoi-p4q)
@@ -1331,7 +1340,18 @@ para_has "$head_check_command" "the brief names the seam run" 'A worktree brief 
 para_has "$head_check_command" "the seam run fallback is the touched modules' tests" "the touched modules' tests for a standalone task that names no seams."
 para_has "$head_check_command" "the brief never says the check command or the script" 'It never says the check command or the script; only an orchestrator checks a tree.'
 # every other passage that cites the Check record script names the script
-para_has "$head_landing_a_task" "a resolved tree is checked through the Check record script" 'new tree, with the Check record script, then fast-forwards'
+para_has "$head_landing_a_task" "a resolved tree is checked through the Check record script" 'new tree, with the Check record script, then lands the resolved tip through the Land script with `--ff-only` (a plain retry without it on `diverged`)'
+# the Land script, introduced once under Landing a task with its usage line and outcomes
+para_has "$head_landing_a_task" "the Land script is the shipped script" '`<plugin root>/scripts/land.sh <owner> <branch> <task branch> <tip> [--ff-only]`, one foreground Bash call'
+para_has "$head_landing_a_task" "the Land script touches git only" 'touches git only, never `bd`'
+para_has "$head_landing_a_task" "the Land script's landed outcome" '`landed <sha>` with exit 0'
+para_has "$head_landing_a_task" "the Land script's conflict outcome" '`conflict` with exit 1, after the script'"'"'s own `merge --abort` left the owner checkout clean'
+para_has "$head_landing_a_task" "the Land script's refusal outcome" '`refused: <reason>` with exit 2 and nothing merged (bar the dirty-merge reason below)'
+para_has "$head_landing_a_task" "the Land script's refusal reasons" '`not on <branch>`, `owner checkout dirty: <files>`, `<task branch> moved past <tip>`, `stray commit <sha> <subject>`, or `diverged` (only under `--ff-only`)'
+para_has "$head_landing_a_task" "a missing task branch is the moved past refusal" 'A `<task branch>` that does not exist is not at `<tip>`, so it is the `moved past` refusal'
+para_has "$head_landing_a_task" "a merge that failed and left the checkout dirty is the one refusal that may change it" 'A merge that failed and left the owner checkout dirty after its `merge --abort` is the one refusal that may leave that checkout changed'
+para_has "$head_landing_a_task" "a merge that failed without a conflict is a refusal" 'a merge that failed without a conflict (`merge failed`)'
+para_has "$head_landing_a_task" "re-landing a landed tip merges nothing" 'Landing a tip already in `<branch>` runs the guards and reports `landed <sha>` with nothing merged'
 para_has "$head_check_scope" "a check is one run of the check command through the Check record script" 'one run of the check command through the Check record script'
 para_has "$head_check_gate" "each pass runs the Check record script" 'Each pass runs the Check record script on the tip'
 sec_has "## Delivery" "the delivered tip's record is the one the Check record script wrote" 'which the Check record script wrote'
@@ -1342,6 +1362,7 @@ hase "Delivery section" '^## Delivery$'
 sec_has "## Delivery" "Delivery is parametrised by the unit" 'parametrised by the unit it delivers: a **story**'
 sec_has "## Delivery" "Delivery names the standalone task" 'or a **standalone task** (delivered by its own skill)'
 sec_has "## Delivery" "Delivery's stray-commit check precedes the push" '1. **Stray-commit check**, before any push'
+sec_has "## Delivery" "Delivery's stray-commit check runs the stray-commit script" 'run the **stray-commit script**, `<plugin root>/scripts/stray-commit.sh <owner> <default branch>..<branch>`'
 sec_has "## Delivery" "Delivery's stray-commit failed: line" 'failed: stray commit <sha> <subject>'
 sec_has "## Delivery" "Delivery's push command" 'git -C <owner> push -u origin <branch>'
 sec_has "## Delivery" "Delivery's refused push is a failed: line" 'failed: push <command>: <error>'
@@ -1684,9 +1705,6 @@ hasc "malformed epic refusal" "$pin_cite_malformed_epic_refusal"
 lacks "implement-story restating the malformed-epic refusal" "$pin_malformed_epic_refusal_line"
 hasc "delivery rule pointer" "$cite_delivery_authority"
 hasc "step 8 delivers as the Delivery section says with the story as its unit" "8. **Deliver**, as the rules doc's Delivery section says, with the story as its unit"
-# a commit from outside the run (21f770c: a test whose throwaway init failed committed into the
-# enclosing checkout) is refused before the push and before a merger's merge (dev-y1p)
-hasc "the story orchestrator's landing runs the stray-commit check" 'the **stray-commit check** on what the merge brings in'
 # the delivery records its tip and check record, which /dev:implement-spec's review set reads (dev-47z)
 hasc "finished story backfills a missing delivered: note" 'a finished story with no `delivered:` line'
 lacks "profile-gated push" "$pin_profile_gated_push|ask the user to run that exact command|give the user that exact command"
@@ -1721,40 +1739,41 @@ lacks "a lock wait sleeping and re-checking the lock by hand" 'waits [0-9]+ seco
 hasc "frontier spawn ends the turn" 'then end your turn: each task orchestrator'
 hasc "the skill names the harness doc's Idle rule" "the $cite_harness_idle_rule"
 # the story row lands each reviewed task branch itself (dev-b8d.1.4): in the turn the reviewed:
-# report resumes it, serially and with no lock; the stray-commit check, then the merge; a conflict
+# report resumes it, serially and with no lock; the landing is the Land script's call; a conflict
 # to an implementer in the task's worktree, the resolved tree checked with the rules doc's call,
-# then a fast-forward; three resolutions per landing, the fourth failed with the merge aborted; a
+# then the Land script again with --ff-only; three resolutions per landing, the fourth failed; a
 # red on a resolved tree a failed landing whose one retry enters at the gate; a landing closes
 # the task; the story gate's fix-ups land by the same procedure (section 5 sweeps the lock wait)
 hase "the Landing section" '^## Landing$'
 line_has '^   - `<id> reviewed: <task branch> <worktree path> <tip SHA>`' "a reviewed: report is landed in the turn it resumes" 'land it now, in the turn this report resumes you'
 sec_has "## Landing" "landings are serial" 'Landings are **serial**: one runs at a time, one per report'
 sec_has "## Landing" "a landing waits on no lock" 'So there is no lock to wait on'
-sec_has "## Landing" "the landing confirms the reviewed tip" 'confirm `git -C <owner> rev-parse <task branch>` prints `<tip SHA>`'
-sec_has "## Landing" "the landing merges the task branch" '`git -C <owner> merge <task branch>`'
-sec_has "## Landing" "a conflicted merge is aborted, never resolved by the orchestrator" '`git -C <owner> merge --abort`'
+sec_has "## Landing" "the landing calls the Land script" 'the rules doc'"'"'s **Land script**, `<plugin root>/scripts/land.sh <owner> <branch> <task branch> <tip SHA>`, in one foreground Bash call, `<plugin root>` spelled as the path this session resolved'
+sec_has "## Landing" "a refusal is wrapped in the failed: line shape" 'A `refused: <reason>` ends the landing unmerged with `<task-id> failed: <reason>`, the refusal'"'"'s reason wrapped in the `failed:` line shape'
+sec_has "## Landing" "a conflict reported by the Land script goes to the conflict implementer" '`conflict` goes to 3'
 sec_has "## Landing" "a conflict goes to an implementer in the task's worktree" "A conflict goes to an implementer in the task's worktree"
 sec_has "## Landing" "the conflict implementer merges the integration tip into the task branch" "it is briefed to merge \`<branch>\`'s tip into the task branch"
 sec_has "## Landing" "the resolved tree is checked with the rules doc's call" "run the rules doc's Check record script, \`<plugin root>/scripts/check.sh <worktree path> <owner>\`, with the task's worktree as its \`<worktree path>\`, in one foreground Bash call with \`timeout: 600000\`, \`<plugin root>\` spelled as the path this session resolved; the script runs nothing on a tree with a green record"
 line_lacks '^3\. A conflict goes to an implementer' "the landing reading the resolved tree's record itself" 'run nothing on a green record'
 sec_has "## Landing" "no reviewer runs on the resolution" 'No reviewer runs: the story row'"'"'s standards axis sees the resolution'
-sec_has "## Landing" "the landing then fast-forwards" "\`$pin_ff_only_merge\`"
+# a resolution always moves the task branch past the reviewed tip, so the Land script is called with
+# the resolved tip, the tree just checked, never the reviewed one, and a refusal names that tip
+sec_has "## Landing" "a moved-past refusal names the tip passed, reviewed or resolved" 'a `moved past <tip>` names the `<tip SHA>` you passed: the reviewed tip on a first call, the resolved tip after a resolution'
+sec_has "## Landing" "the resolved tip is landed through the Land script with --ff-only" 'call the Land script again with the resolved tip, `git -C <worktree path> rev-parse HEAD`, the commit whose tree was just checked, as its `<tip SHA>` (the resolution moved `<task branch>` past the reviewed tip), and `--ff-only`'
+sec_has "## Landing" "a refused fast-forward calls the Land script again without --ff-only" '`refused: diverged` calls the script again without `--ff-only`'
 sec_has "## Landing" "a red on a resolved tree fails the landing" "\`<task-id> $pin_failed_red_after_conflict\`"
 sec_has "## Landing" "the retry enters at the gate on the resolved branch" "its one retry is a fresh task orchestrator $pin_retry_at_gate_on_resolved_branch"
 sec_has "## Landing" "the story orchestrator never gates a task" 'so you never gate a task yourself'
 sec_has "## Landing" "a landing takes at most three conflict resolutions" "A landing takes at most **three $pin_conflict_resolutions**"
 sec_has "## Landing" "the fourth conflict fails the task" '`<task-id> failed: conflict <task branch> after three resolutions`'
 sec_has "## Landing" "a landing closes the task" "$pin_landing_closes_task: \`$pin_bd_close <task-id>\`"
-# a resolution always moves the task branch past the reviewed tip, so the fast-forward guards the
-# resolved tip, the tree just checked, never the reviewed one; a story fix-up reports no tip SHA,
-# so its tip is read from its worktree (dev-b8d.1.4 review 1)
-sec_has "## Landing" "the fast-forward guards the resolved tip" "confirm \`git -C <owner> rev-parse <task branch>\` prints the resolved tip, $pin_rev_parse_head"
+# a story fix-up reports no tip SHA, so its tip is read from its worktree (dev-b8d.1.4 review 1)
 sec_has "## Landing" "a story fix-up's tip is read from its worktree" "its \`<tip SHA>\` is $pin_rev_parse_head"
 lacksf "the reviewed-tip guard repeated after a conflict resolution" "repeat 1's guards"
 line_has "$anchor_conflict_implementer" "the conflict implementer's brief starts with the TMPDIR line" "$tmpdir_line"
 line_has "$anchor_conflict_implementer" "the conflict implementer's brief carries the plain-command line" "$plain_command"
 line_hase "$anchor_conflict_implementer" "the conflict implementer's brief puts the TMPDIR line ahead of the plain-command line" "$tmpdir_then_plain"
-line_has "$anchor_conflict_implementer" "the conflict implementer's seam run timeout" 'with `timeout: 600000` on every seam run, never the check command or the script'
+line_has "$anchor_conflict_implementer" "the conflict implementer's seam run timeout" 'with `timeout: 600000` on every seam run, never the check command or `<plugin root>/scripts/check.sh`'
 line_has "$anchor_first_failure_report" "a first failure after a red on a resolved tree retries at the gate" 'that one enters at the gate on the resolved branch'
 # any other first failure probes for the commits its attempt left, as implement-task's retry does (dev-a3c0)
 line_has "$anchor_first_failure_report" "a first failure's retry runs the Cut-off probe" "step 4's Cut-off probe deciding its entry"
@@ -1924,12 +1943,6 @@ line_has "$G7" "the story gate confirms the owner checkout is on the integration
 line_has "$G7" "the story gate's off-branch failed line" '`failed: <story-id> not on <branch>`'
 line_has "$G7" "the story gate's clean-checkout guard says why untracked files count" 'untracked files count, since the check runs on the working tree while the record keys on the committed tree'
 line_has "$G7" "the dirty-checkout failed line names the files" '`failed: <story-id> owner checkout dirty: <files>`, `<files>` the paths that status call printed, classified as step 6 says'
-# the landing guard (dev-xbql): the owner checkout's clean-tree check counts untracked files, as
-# the story gate's does, and says why; a dirty checkout ends the landing on the failed line naming
-# the files, as implement-task's landing guard does (43264dc)
-hasc "the story landing guard counts untracked files" '`git -C <owner> status --porcelain` prints nothing (untracked files count, since the check runs on the working tree while the record keys on the committed tree)'
-hasc "the story landing guard's dirty-checkout failed line names the files" '`<task-id> failed: owner checkout dirty: <files>`, `<files>` the paths that status call printed'
-lacks "the story landing guard that hides untracked files" 'status --porcelain --untracked-files=no`'
 line_has "$G7" "the story gate leaves the green-record read to the script" 'resolved. The script reads the tip'"'"'s tree record itself: on a green record it runs nothing, whichever orchestrator wrote it'
 line_has "$G7" "the story gate has the script check a red-recorded tree again" 'a red record is no check, so the script checks the tree again'
 line_lacks "$G7" "the story gate reading the green record itself" "$rec_green"
@@ -1974,8 +1987,12 @@ unchanged_file || awk -v g="$gate_first" -v m="$gate_same" -v r="$pin_code_revie
 line_has '^8\. ' "the deliver step leaves the PR a draft" "$pin_pr_stays_a_draft"
 # step 3 runs the Delivery section's stray-commit check and cites the Delivery authority, never step 8
 line_has "$anchor_step_3_draft_pr" "step 3 runs the Delivery section's stray-commit check" "first run the rules doc's Delivery section's **stray-commit check**"
+# step 3 and step 8 cite the stray-commit script by name (dev-skn5.1.6)
+line_has "$anchor_step_3_draft_pr" "step 3 cites the stray-commit script by name" 'stray-commit check** through its **stray-commit script**, `<plugin root>/scripts/stray-commit.sh <owner> <default branch>..<branch>`, in one foreground Bash call, `<plugin root>` spelled as the path this session resolved (a hit ends the run there, as that section says)'
 line_has "$anchor_step_3_draft_pr" "step 3 pushes on the Delivery authority" "($cite_delivery_authority)"
 line_lacks "$anchor_step_3_draft_pr" "step 3 pointing at step 8's stray-commit check" "step 8's **stray-commit check**"
+# step 8 reuses step 3's citation by name (dev-skn5.1.6)
+line_has '^8\. ' "step 8 cites the stray-commit script by name" 'run through the rules doc'"'"'s **stray-commit script** as step 3 does'
 line_has '^8\. ' "step 8 opens the draft itself" 'open the draft after the push if step 3 could not'
 line_has '^8\. ' "step 8 appends the sibling line" 'append the sibling line (rebuilt as in step 3)'
 line_has '^8\. ' "step 8 runs the sibling refresh" "only then run step 3's sibling refresh"
@@ -2180,9 +2197,9 @@ fi
 # story's task (naming /dev:implement-story <story-id>) and one not ready-for-agent; it reuses the
 # story orchestrator's plumbing (the make probe and its refusal, the forge decision, the gitignore
 # rule, task/<id> off the default branch with a branch: note), spawns one task orchestrator with
-# the short brief, lands its reviewed branch by a fast-forward, and delivers by the rules doc's
-# Delivery section: the PR opened ready, delivered: before pr:, then the close; with no forge the
-# pushed branch and checks: skipped: no forge. A rerun applies the merge guard on the pr: note and
+# the short brief, lands its reviewed branch through the Land script with --ff-only, and delivers
+# by the rules doc's Delivery section: the PR opened ready, delivered: before pr:, then the close;
+# with no forge the pushed branch and checks: skipped: no forge. A rerun applies the merge guard on the pr: note and
 # re-enters at the gate on a failed run's commits with a fresh budget; the report ends on resume:.
 if doc 17 "/implement-task" "$skills/implement-task/SKILL.md"; then
 opening_has "the frontmatter names a standalone task" 'Implement one standalone task bead'
@@ -2209,17 +2226,20 @@ hasc "the branch: note" 'bd -C <owner> note <task-id> "branch: feat/<task-id>"'
 hasc "one task orchestrator through the skill" "$pin_call_task_orchestrator_skill"
 hasc "the task orchestrator at opus" "$pin_spawn_at_opus"
 hasc "the brief's gate entry" "$gate_entry"
-# a review: note's resume path runs the owner-checkout guard before step 5's check, untracked files
-# counted, as step 4's landing does, so a green record never keys a tree the checkout lacks (dev-jv82)
-hasc "the resume path runs the owner-checkout guard before step 5" 'it first runs the owner-checkout guard of step 4 (on `<branch>`, `git -C <owner> status --porcelain` prints nothing, untracked files counted'
+# the landing is the rules doc's Land script with --ff-only, its refusal wrapped in the failed:
+# line shape; a review: note's resume path re-lands the noted tip through the same call, which
+# reports landed with nothing merged, so a green record never keys a tree the checkout lacks
+# (dev-jv82, dev-skn5.1.4)
+hasc "the landing calls the Land script with --ff-only" 'land it through the rules doc'"'"'s **Land script**, `<plugin root>/scripts/land.sh <owner> <branch> <task branch> <tip SHA> --ff-only`, in one foreground Bash call, `<plugin root>` spelled as the path this session resolved'
+# the delivery's stray-commit check runs through the rules doc's stray-commit script, cited by name (dev-skn5.1.6)
+hasc "the delivery cites the stray-commit script by name" 'its stray-commit check before any push (run through the rules doc'"'"'s **stray-commit script**, `<plugin root>/scripts/stray-commit.sh <owner> <default branch>..<branch>`, in one foreground Bash call, `<plugin root>` spelled as the path this session resolved)'
+hasc "a refusal is wrapped in the failed: line shape" 'A `refused: <reason>` ends the run with `failed: <task-id> <reason>`, the refusal'"'"'s reason wrapped in the `failed:` line shape'
+hasc "a diverged refusal names both branches" 'a `diverged` is ended as `failed: <task-id> <branch> diverged from <task branch>`'
+hasc "a moved-past refusal names the reviewed tip" 'a `moved past <tip>` names the reviewed `<tip SHA>`'
+hasc "the resume path re-lands the noted tip through the Land script" 'it first calls the Land script as step 4 does, with `<branch>` as `<task branch>`, the note'"'"'s tip as `<tip SHA>` and `--ff-only`: that tip is already in `<branch>`, so the script runs its guards, merges nothing and reports `landed <sha>`'
+hasc "the resume path's refusal is the failed: line" 'a `refused: <reason>` ends the run with `failed: <task-id> <reason>`; it then goes straight to step 5'
 lacks "the resume path that goes straight to step 5" 'failed at delivery: go straight to step 5'
-# the landing is a fast-forward after the stray-commit check, and a review: note marks it
-hasc "the landing is a fast-forward" "$pin_ff_only_merge"
-# the owner-checkout guard counts untracked files, as the story gate's does, and says why; a dirty
-# checkout ends on the failed line naming the files (dev-yaiu)
-hasc "the landing guard counts untracked files" '`git -C <owner> status --porcelain` prints nothing (untracked files count, since the check runs on the working tree while the record keys on the committed tree)'
-hasc "the landing guard's dirty-checkout failed line names the files" '`failed: <task-id> owner checkout dirty: <files>`, `<files>` the paths that status call printed'
-lacks "the landing guard that hides untracked files" 'status --porcelain --untracked-files=no`'
+hasc "a conflict landing is the failed: line" 'so it is a script fault: end the run with `failed: <task-id> conflict landing <task branch>`'
 hasc "the landed tip is noted" 'bd -C <owner> note <task-id> "review: <tip SHA>"'
 # delivery: the rules doc's Delivery section, the PR opened ready, the notes in order, the close
 hasc "delivery by the rules doc's Delivery section" "as the rules doc's Delivery section says, with the standalone task as its unit"
