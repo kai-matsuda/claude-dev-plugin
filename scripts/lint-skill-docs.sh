@@ -1696,8 +1696,6 @@ hasc "malformed epic refusal" "$pin_cite_malformed_epic_refusal"
 lacks "implement-story restating the malformed-epic refusal" "$pin_malformed_epic_refusal_line"
 hasc "delivery rule pointer" "$cite_delivery_authority"
 hasc "step 8 delivers as the Delivery section says with the story as its unit" "8. **Deliver**, as the rules doc's Delivery section says, with the story as its unit"
-# a commit from outside the run (21f770c: a test whose throwaway init failed committed into the
-# enclosing checkout) is refused before the push and before a merger's merge (dev-y1p)
 # the delivery records its tip and check record, which /dev:implement-spec's review set reads (dev-47z)
 hasc "finished story backfills a missing delivered: note" 'a finished story with no `delivered:` line'
 lacks "profile-gated push" "$pin_profile_gated_push|ask the user to run that exact command|give the user that exact command"
@@ -1732,9 +1730,9 @@ lacks "a lock wait sleeping and re-checking the lock by hand" 'waits [0-9]+ seco
 hasc "frontier spawn ends the turn" 'then end your turn: each task orchestrator'
 hasc "the skill names the harness doc's Idle rule" "the $cite_harness_idle_rule"
 # the story row lands each reviewed task branch itself (dev-b8d.1.4): in the turn the reviewed:
-# report resumes it, serially and with no lock; the stray-commit check, then the merge; a conflict
+# report resumes it, serially and with no lock; the landing is the Land script's call; a conflict
 # to an implementer in the task's worktree, the resolved tree checked with the rules doc's call,
-# then a fast-forward; three resolutions per landing, the fourth failed with the merge aborted; a
+# then the Land script again with --ff-only; three resolutions per landing, the fourth failed; a
 # red on a resolved tree a failed landing whose one retry enters at the gate; a landing closes
 # the task; the story gate's fix-ups land by the same procedure (section 5 sweeps the lock wait)
 hase "the Landing section" '^## Landing$'
@@ -1749,6 +1747,9 @@ sec_has "## Landing" "the conflict implementer merges the integration tip into t
 sec_has "## Landing" "the resolved tree is checked with the rules doc's call" "run the rules doc's Check record script, \`<plugin root>/scripts/check.sh <worktree path> <owner>\`, with the task's worktree as its \`<worktree path>\`, in one foreground Bash call with \`timeout: 600000\`, \`<plugin root>\` spelled as the path this session resolved; the script runs nothing on a tree with a green record"
 line_lacks '^3\. A conflict goes to an implementer' "the landing reading the resolved tree's record itself" 'run nothing on a green record'
 sec_has "## Landing" "no reviewer runs on the resolution" 'No reviewer runs: the story row'"'"'s standards axis sees the resolution'
+# a resolution always moves the task branch past the reviewed tip, so the Land script is called with
+# the resolved tip, the tree just checked, never the reviewed one, and a refusal names that tip
+sec_has "## Landing" "a moved-past refusal names the tip passed, reviewed or resolved" 'a `moved past <tip>` names the `<tip SHA>` you passed: the reviewed tip on a first call, the resolved tip after a resolution'
 sec_has "## Landing" "the resolved tip is landed through the Land script with --ff-only" 'call the Land script again with the resolved tip, `git -C <worktree path> rev-parse HEAD`, the commit whose tree was just checked, as its `<tip SHA>` (the resolution moved `<task branch>` past the reviewed tip), and `--ff-only`'
 sec_has "## Landing" "a refused fast-forward calls the Land script again without --ff-only" '`refused: diverged` calls the script again without `--ff-only`'
 sec_has "## Landing" "a red on a resolved tree fails the landing" "\`<task-id> $pin_failed_red_after_conflict\`"
@@ -1757,15 +1758,13 @@ sec_has "## Landing" "the story orchestrator never gates a task" 'so you never g
 sec_has "## Landing" "a landing takes at most three conflict resolutions" "A landing takes at most **three $pin_conflict_resolutions**"
 sec_has "## Landing" "the fourth conflict fails the task" '`<task-id> failed: conflict <task branch> after three resolutions`'
 sec_has "## Landing" "a landing closes the task" "$pin_landing_closes_task: \`$pin_bd_close <task-id>\`"
-# a resolution always moves the task branch past the reviewed tip, so the fast-forward guards the
-# resolved tip, the tree just checked, never the reviewed one; a story fix-up reports no tip SHA,
-# so its tip is read from its worktree (dev-b8d.1.4 review 1)
+# a story fix-up reports no tip SHA, so its tip is read from its worktree (dev-b8d.1.4 review 1)
 sec_has "## Landing" "a story fix-up's tip is read from its worktree" "its \`<tip SHA>\` is $pin_rev_parse_head"
 lacksf "the reviewed-tip guard repeated after a conflict resolution" "repeat 1's guards"
 line_has "$anchor_conflict_implementer" "the conflict implementer's brief starts with the TMPDIR line" "$tmpdir_line"
 line_has "$anchor_conflict_implementer" "the conflict implementer's brief carries the plain-command line" "$plain_command"
 line_hase "$anchor_conflict_implementer" "the conflict implementer's brief puts the TMPDIR line ahead of the plain-command line" "$tmpdir_then_plain"
-line_has "$anchor_conflict_implementer" "the conflict implementer's seam run timeout" 'with `timeout: 600000` on every seam run, never the check command or the script'
+line_has "$anchor_conflict_implementer" "the conflict implementer's seam run timeout" 'with `timeout: 600000` on every seam run, never the check command or `<plugin root>/scripts/check.sh`'
 line_has "$anchor_first_failure_report" "a first failure after a red on a resolved tree retries at the gate" 'that one enters at the gate on the resolved branch'
 # any other first failure probes for the commits its attempt left, as implement-task's retry does (dev-a3c0)
 line_has "$anchor_first_failure_report" "a first failure's retry runs the Cut-off probe" "step 4's Cut-off probe deciding its entry"

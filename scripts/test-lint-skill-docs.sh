@@ -861,6 +861,7 @@ section_case 10 docs/agents/issue-tracker.md "$ban_only_lines" "a tracker doc wh
 section_case 11 skills/sample/SKILL.md 'run /story-to-tasks next' "a bare /<skill>"
 section_case 12 skills/retro/SKILL.md "$ban_bare_grep" "/retro with the bare grep instruction"
 section_case 13 skills/sample/SKILL.md "> read \${$plugin_root_var}/docs/agents/orchestration.md" "the plugin-root variable in a brief"
+# the inline landing merge, now banned from task-orchestrator; also seeds the @merge@ derivation below
 landing_merge='`git -C <owner> merge <task branch>`'
 section_case 16 skills/task-orchestrator/SKILL.md "then merge it with $landing_merge" "/task-orchestrator merging onto the owner checkout"
 ban_alt ban_draft_pr "a draft PR for a standalone task"
