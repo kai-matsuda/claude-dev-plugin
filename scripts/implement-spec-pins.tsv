@@ -100,12 +100,16 @@ has	epic reviewer brief: one report whose verdict covers the whole review, never
 has	outside finding on a delivered tip	from outside the story's epic reviewer
 has	outside finding test: wrong behaviour is blocking	names wrong behaviour
 has	outside finding never held or dropped	never held in context or dropped
-has	outside finding: blocking is filed in the round	is filed as a fix-up task with that round's other tasks
+has	outside finding: a blocking one is filed at once, wherever the story stands	is filed at once, wherever the story stands: its task under the story
 has	outside finding: minor goes to the inbox	a minor goes to the inbox with the review's minors
-has	outside finding after the round is cut goes to the next round	is filed in the story's next round
-has	outside finding's fix-up note says blocking	its `epic fix-up` note says `blocking`
+has	outside finding: only the add-mode spawn waits	Only the add-mode spawn waits
+has	outside finding of a story that left the review set takes no task	A story that has left the review set for good (closed, landed, or its tip moved) takes no task: the finding goes to the inbox as a deferral
+has	outside finding's fix-up note says blocking	its `epic fix-up <k>: <tip SHA> blocking` note
 has	clean verdict with an open blocking outside finding is not ready	is not marked ready until that fix-up has run
 has	outside finding's fourth-round failure line	even when the review itself was clean
-has	a fix-up note after a clean review sends the story back to the fix-up path	follows its clean `epic review` note on the same tip
-has	mark ready defers to an open blocking outside finding	unless a blocking outside finding is open
-has	the skip rule sends a story with an open outside fix-up back to Fix-up	it is then not re-polled, and goes back to Fix-up
+has	a fix-up note after a ready: or clean review note sends the story back to the fix-up path	unless an `epic fix-up` note follows its `ready:` or clean `epic review` note on the same tip
+has	mark ready defers to the skip rule's epic fix-up note	Green, and no `epic fix-up` note follows (the skip rule above)
+has	the skip rule sends a story with an epic fix-up note back to Fix-up	it is then not re-polled or skipped, and goes back to Fix-up
+has	a story sent back to Fix-up files nothing and spends nothing	the tasks and note are already filed, so the pass only re-runs the story orchestrator in add mode, filing nothing and spending nothing
+has	Fix-up writes the epic fix-up note before the tasks	so a cut-off before the tasks leaves the note a later pass acts on
+has	step 7 Done gives way to an epic fix-up note	and no `epic fix-up` note after it

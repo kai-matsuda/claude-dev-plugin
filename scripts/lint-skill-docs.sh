@@ -1456,7 +1456,7 @@ para_has "$head_epic_row" "the epic row's minors take no last fix-up" 'minors ta
 # a finding from outside the story's epic reviewer is one of the epic review's findings (dev-4pm2)
 row_phrase implement-spec-pins "outside finding on a delivered tip" && para_has "$head_epic_row" "the epic row: outside finding on a delivered tip" "$row_text"
 row_phrase implement-spec-pins "outside finding test: wrong behaviour is blocking" && para_has "$head_epic_row" "the epic row: outside finding test: wrong behaviour is blocking" "$row_text"
-row_phrase implement-spec-pins "outside finding after the round is cut goes to the next round" && para_has "$head_epic_row" "the epic row: outside finding after the round is cut goes to the next round" "$row_text"
+row_phrase implement-spec-pins "outside finding: a blocking one is filed at once, wherever the story stands" && para_has "$head_epic_row" "the epic row: outside finding is filed at once, wherever the story stands" "$row_text"
 row_phrase implement-spec-pins "clean verdict with an open blocking outside finding is not ready" && para_has "$head_epic_row" "the epic row: clean verdict with an open blocking outside finding is not ready" "$row_text"
 para_has "$head_epic_row" "every epic review's minors go to the inbox, blocking or clean" "verdict, an epic review's minors take no last fix-up"
 para_has "$head_epic_row" "the epic row's minors go to the inbox" "$pin_inbox_as_deferrals"

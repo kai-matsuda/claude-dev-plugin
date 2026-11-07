@@ -72,9 +72,9 @@ implements nothing and its one fix-up is a task under the story, where no minor 
 (Review verdict): they go to the inbox as deferrals at once, the tracker doc's "capture a retro item", and on a clean
 verdict the PR is marked ready once its checks are green.
 A finding from outside the story's epic reviewer, about a story's delivered tip, is one of
-the epic review's findings: blocking when it names wrong behaviour, filed and budgeted like a
-blocking verdict's (it is filed in the story's next round when it comes after this round's
-tasks are cut), else a minor for the inbox. A clean verdict with a blocking one open
+the epic review's findings: blocking when it names wrong behaviour, and then it spends a
+blocking verdict's budget and is filed at once, wherever the story stands: its task under the story
+and its `epic fix-up` note, else a minor for the inbox. A clean verdict with a blocking one open
 is not marked ready until that fix-up has run.
 
 ## Orchestrator role
