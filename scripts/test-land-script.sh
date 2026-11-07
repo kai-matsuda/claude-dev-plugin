@@ -196,6 +196,42 @@ fx_check "merge failed, no conflict: the line" fx_eq "$out" "refused: merge fail
 fx_check "merge failed, no conflict: main unmoved" fx_eq "$(sha main)" "$mainbefore"
 fx_check "merge failed, no conflict: clean checkout" fx_eq "$(status)" ""
 
+# the task branch moves to an unchecked commit between the guard and the merge (a PATH git shim
+# runs update-ref on the first merge-base --is-ancestor call): the merge lands the verified tip
+realgit=$(command -v git)
+shimdir=$scratch/move-shim; mkdir -p "$shimdir"
+cat > "$shimdir/git" <<EOF
+#!/bin/sh
+case " \$* " in
+  *" merge-base "*"--is-ancestor"*)
+    if [ ! -e "$scratch/moved" ]; then
+      : > "$scratch/moved"
+      "$realgit" -C "$r" update-ref refs/heads/task "\$(cat "$scratch/extra")"
+    fi ;;
+esac
+exec "$realgit" "\$@"
+EOF
+chmod +x "$shimdir/git"
+moved_run() {   # moved_run [--ff-only]: an unchecked commit one past the tip, then land under the shim
+  git -C "$r" checkout -q -b extra "$tip" && commit x.txt x "feat: unchecked" other@example.invalid
+  sha HEAD > "$scratch/extra"; git -C "$r" checkout -q main; git -C "$r" branch -q -D extra
+  rm -f "$scratch/moved"
+  out=$(PATH=$shimdir:$PATH "$script" "$r" main task "$tip" "$@" 2>&1); rc=$?
+  git -C "$r" update-ref refs/heads/task "$tip"
+}
+reset
+moved_run --ff-only
+fx_check "branch moves mid-landing, ff-only: exits 0" fx_eq "$rc" 0
+fx_check "branch moves mid-landing, ff-only: landed the tip" fx_eq "$out" "landed $tip"
+fx_check "branch moves mid-landing, ff-only: main is the tip" fx_eq "$(sha main)" "$tip"
+reset
+commit m.txt m "feat: main moved" "" "Bead: x-3"
+mainbefore=$(sha main)
+moved_run
+fx_check "branch moves mid-landing, plain merge: exits 0" fx_eq "$rc" 0
+fx_check "branch moves mid-landing, plain merge: main is a merge of base and the tip" fx_eq "$(sha main^1) $(sha main^2)" "$mainbefore $tip"
+fx_check "branch moves mid-landing, plain merge: the message names the task branch" fx_eq "$(git -C "$r" log -1 --format=%s main)" "Merge branch 'task'"
+
 # a non-repo owner
 nogit=$scratch/not-a-repo; mkdir -p "$nogit"
 out=$("$script" "$nogit" main task "$tip" 2>&1); rc=$?
