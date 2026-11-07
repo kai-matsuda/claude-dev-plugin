@@ -1332,6 +1332,14 @@ para_has "$head_check_command" "the seam run fallback is the touched modules' te
 para_has "$head_check_command" "the brief never says the check command or the script" 'It never says the check command or the script; only an orchestrator checks a tree.'
 # every other passage that cites the Check record script names the script
 para_has "$head_landing_a_task" "a resolved tree is checked through the Check record script" 'new tree, with the Check record script, then fast-forwards'
+# the Land script, introduced once under Landing a task with its usage line and outcomes
+para_has "$head_landing_a_task" "the Land script is the shipped script" '`<plugin root>/scripts/land.sh <owner> <branch> <task branch> <tip> [--ff-only]`, one foreground Bash call'
+para_has "$head_landing_a_task" "the Land script touches git only" 'touches git only, never `bd`'
+para_has "$head_landing_a_task" "the Land script's landed outcome" '`landed <sha>` with exit 0'
+para_has "$head_landing_a_task" "the Land script's conflict outcome" '`conflict` with exit 1, after the script'"'"'s own `merge --abort` left the owner checkout clean'
+para_has "$head_landing_a_task" "the Land script's refusal outcome" '`refused: <reason>` with exit 2 and nothing merged'
+para_has "$head_landing_a_task" "the Land script's refusal reasons" '`not on <branch>`, `owner checkout dirty: <files>`, `task moved past <tip>`, `stray commit <sha> <subject>`, or `diverged` (only under `--ff-only`)'
+para_has "$head_landing_a_task" "re-landing a landed tip merges nothing" 'Landing a tip already in `<branch>` runs the guards and reports `landed <sha>` with nothing merged'
 para_has "$head_check_scope" "a check is one run of the check command through the Check record script" 'one run of the check command through the Check record script'
 para_has "$head_check_gate" "each pass runs the Check record script" 'Each pass runs the Check record script on the tip'
 sec_has "## Delivery" "the delivered tip's record is the one the Check record script wrote" 'which the Check record script wrote'

@@ -55,6 +55,7 @@ resolved tree ends the landing `failed: red after conflict resolution`: the stor
 orchestrator never gates a task itself, so the task's one retry is a fresh task
 orchestrator entering at the gate on the resolved branch, whose fix-up spends the task's
 budget, and the budget bounds the landings and the cap the resolutions in each (dev-6qi).
+The **Land script** makes one landing attempt: `<plugin root>/scripts/land.sh <owner> <branch> <task branch> <tip> [--ff-only]`, one foreground Bash call, with `<branch>` the integration branch (or the standalone task's base) and `<tip>` the task branch's reported tip. It confirms the owner checkout is on `<branch>` and clean, untracked files counted, and that `<task branch>` is at `<tip>`, runs the stray-commit script on `<branch>..<task branch>`, then makes one merge attempt, a fast-forward only under `--ff-only`, and touches git only, never `bd`. It prints one line: `landed <sha>` with exit 0, `<sha>` being `<branch>`'s tip; `conflict` with exit 1, after the script's own `merge --abort` left the owner checkout clean; or `refused: <reason>` with exit 2 and nothing merged, the reason being `not on <branch>`, `owner checkout dirty: <files>`, `task moved past <tip>`, `stray commit <sha> <subject>`, or `diverged` (only under `--ff-only`). Landing a tip already in `<branch>` runs the guards and reports `landed <sha>` with nothing merged.
 
 **The epic row.** The epic orchestrator runs its review once every story reports
 delivered, one PR at a time in its owner repo: the diff from the default branch to the
