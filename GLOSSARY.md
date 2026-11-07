@@ -51,6 +51,18 @@ A task with no story: a triaged retro item or a small bug. It is
 the task row's unit all the same.
 _Avoid_: loose bead, orphan task
 
+**Integration branch**:
+The branch a story's tasks land on and its PR is opened from, one per story in the
+story's owner repo; a standalone task has its own, `feat/<task-id>`. The owner checkout
+stays on it while the run lasts.
+_Avoid_: feature branch (a feature across repos has one per story), story branch
+
+**Task branch**:
+The branch one task is built on, in its own worktree, cut from the integration branch's
+tip. The task orchestrator's agents are the only ones that write to it; it reports the
+tip its review called clean, and the story row lands that tip.
+_Avoid_: implementer branch
+
 **Test seam**:
 The highest public boundary of a repo through which a feature can be tested, one of the
 few a story names under its `## Test seams`: the story's testing boundary, not a check.
@@ -307,6 +319,14 @@ finding by pointer brief, or resolves a merge conflict, always fresh and in the 
 worktree. A fix-up or a conflict resolution is an implementer given a different brief,
 not a role of its own (ADR 0014).
 _Avoid_: fix-up implementer, fixer
+
+**Landing**:
+The story row's move of one reviewed task branch onto the integration branch, made by
+the orchestrator on the owner checkout: guards on the owner checkout and on the task
+branch's reviewed tip, the stray-commit check, then one merge. A conflict goes to an
+implementer in the task's worktree and the landing is tried again; a standalone task's
+landing fast-forwards only, so it never conflicts. A story's landing closes the task.
+_Avoid_: land step, task merge
 
 **Stray-commit check**:
 The read of every commit a push or a merge would carry but merges, before it runs: one whose
