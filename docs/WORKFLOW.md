@@ -7,7 +7,7 @@ own. `/dev:implement-story` and `/dev:close-story` are also invoked by
 The agent-side rules these commands rely on live in the dev plugin's `docs/agents/`. Bold
 terms (epic, story and task orchestrator, text blocker, human stop, finished story) are
 defined in the plugin's `GLOSSARY.md`, and the ADRs this runbook cites for the why are the
-plugin's `docs/adr/`. Both live in the plugin repo (`vangogh500/claude-dev-plugin`):
+plugin's `docs/adr/`. Both live in the plugin repo (`kai-matsuda/claude-dev-plugin`):
 `GLOSSARY.md` at its root, `docs/adr/` beside this file; a feature's own glossary and ADRs
 live in its repo.
 
@@ -228,7 +228,7 @@ The tier table above sets *subagent* models; this sets what your own session run
 | Exploration notes | `<repo>/.spec-notes/<epic-id>/` |
 | A worktree agent's temp files | `<worktree>/.tmp/`, where the TMPDIR line points `TMPDIR` (gitignored as `/.tmp/`) |
 | Human status and discussion | the Jira epic |
-| Agent-side rules | `docs/agents/*.md` in the dev plugin repo (`vangogh500/claude-dev-plugin`; the installed copy serves every repo), repo `CLAUDE.md` (overrides) |
+| Agent-side rules | `docs/agents/*.md` in the dev plugin repo (`kai-matsuda/claude-dev-plugin`; the installed copy serves every repo), repo `CLAUDE.md` (overrides) |
 | Which repo owns a file or crate | `repos.yaml` at the workspace root (the repo manifest) |
 | Decisions that span repos | `docs/adr/` at the workspace root |
 | Retro inbox | the home's beads, label `needs-triage`; closed ones record where each item went |

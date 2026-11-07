@@ -543,7 +543,7 @@ itself owns it (`repos.yaml`, workspace ADRs), and `target:unknown` when none ma
 a repo session it is `target:<home name>` when that file is inside `<home>`, else
 `retro:foreign`, with the intended location in the body. A file under the plugin root
 (`<plugin root>`, the Plugin root rule in `orchestration.md`) counts as the plugin repo's
-(`vangogh500/claude-dev-plugin`) under the rules above, wherever the plugin is installed,
+(`kai-matsuda/claude-dev-plugin`) under the rules above, wherever the plugin is installed,
 and the body names its path relative to that root. A deployed file (one under
 `~/.claude`, say) counts by its source when `chezmoi source-path <file>` maps it back:
 the body names the source path, not the deployed one. When that command fails for any
