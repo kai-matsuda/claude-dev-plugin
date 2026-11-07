@@ -687,6 +687,8 @@ cite_delivery_authority="the rules doc's Delivery authority"
 # the phrases every worktree brief carries, each written once (dev-yqpz)
 tmpdir_line='TMPDIR line'
 plain_command='plain-command line, one plain `git` or `bd` command per Bash call, every path spelled out'
+# where a reviewer or fix-up brief points for quoting a glob passed as a flag (dev-elkb)
+shell_section='the Shell commands section of `<plugin root>/docs/agents/harness.md`'
 pwd_step='first Bash call is `pwd` alone'
 spelled='spelled literally in every later `export`'
 # the story gate's two phrases whose order the step 7 awk check reads (below) beside their pins
@@ -780,6 +782,8 @@ has "frontmatter" "$pin_frontmatter_disable_model_invocation"
 has "malformed epic refusal" "$pin_cite_malformed_epic_refusal"
 lacks "implement-spec restating the malformed-epic refusal" "$pin_malformed_epic_refusal_line"
 has "add-dir refusal" "$pin_add_dir_remedy"
+# the epic reviewer's brief points at the harness doc's Shell commands section (dev-elkb)
+line_has '^   > Review story' "the epic reviewer brief points at the harness doc's Shell commands section" "Your Bash calls follow $shell_section; read it before you run a command"
 hasc "Human stop" '**Human stop.**'
 hasc "Stall" '**Stall.**'
 hasc "Done" '**Done.**'
@@ -1541,6 +1545,9 @@ hasc "commit example: the Claude-Session trailer line" "$pin_trailer_claude_sess
 lacksw "no blank line between the commit example's trailers" "  (${pin_trailer_refs%%:*}|${pin_trailer_co_authored_by%%:*}|${pin_trailer_claude_session%%:*}):"
 # the shell-commands discipline and the pointer back at the preflight kept in the rules doc
 hasc "the -C discipline" 'This section binds every session and subagent'
+# a glob passed as a flag is quoted, since zsh fails the call with no matches found (dev-elkb)
+sec_has "## Shell commands" "a glob passed as a flag is quoted" "**Quote a glob passed as a flag.** Write \`--include='*.md'\`"
+sec_has "## Shell commands" "the quoting rule names the zsh error it prevents" 'zsh: no matches found'
 hasc "the preflight stays in the rules doc" 'The working-directory preflight stays in `orchestration.md`'
 # a branch from a remote ref is created with --no-track, since the sandbox denies the
 # .git/config write upstream tracking needs (dev-rlr)
@@ -1906,6 +1913,10 @@ line_hase "$anchor_owner_repo_bullet" "the Owner repo bullet puts the bare pwd s
 lacks "the retired fill-in-the-pwd-path wording" 'fills in the path `pwd` prints'
 lacks "Gitignore step counts three entries" "the rule's three entries"
 line_has '^7\. ' "the story review (step 7) points at the rules doc's Review verdict" "$verdict_cite"
+# the story reviewers' briefs and the fix-up briefs point at the harness doc's Shell commands section (dev-elkb)
+line_has '^7\. ' "the story review's sub-agent briefs point at the harness doc's Shell commands section" "each sub-agent's brief points at $shell_section"
+line_has '^7\. ' "the story review's fix-up brief points at the harness doc's Shell commands section" "it points at $shell_section and cites that doc for its Commits rule"
+line_has "$anchor_conflict_implementer" "the conflict implementer's brief points at the harness doc's Shell commands section" "for its Commits rule and pointing at $shell_section"
 lacks "the zero-findings bar" "$pin_retired_zero_findings_bar"
 # the check target probe, its refusal and the once-per-run resolution are the rules doc's Story
 # plumbing, pinned in section 6 (dev-yykg, dev-de4, dev-b3p, ADR 0015); scripts/test-check-target.sh
@@ -2107,6 +2118,10 @@ for phrase in "$pin_verdict_clean" "$pin_verdict_blocking" "$pin_blocking_or_min
   line_has '^3\. ' "task orchestrator step 3's reviewer brief" "$phrase"
 done
 line_has '^3\. ' "task orchestrator step 3 points at the rules doc's Review verdict" "$verdict_cite"
+# the reviewer briefs and both fix-up briefs point at the harness doc's Shell commands section (dev-elkb)
+line_has '^3\. ' "the task reviewer briefs point at the harness doc's Shell commands section" "Both reviewer briefs point at $shell_section"
+line_has '^3\. ' "the red fix-up brief points at the harness doc's Shell commands section" "as every worktree brief; it points at $shell_section"
+line_has '^3\. ' "the blocking fix-up brief points at the harness doc's Shell commands section" "every path spelled out, and it points at $shell_section"
 lacks "the zero-findings bar" "$pin_retired_zero_findings_bar"
 # the skill states its row of the rules doc's table, the run's check command from its brief, and
 # cites the harness doc in one line (dev-9k5.1.7); its row reports a reviewed branch (dev-b8d.1.4)
