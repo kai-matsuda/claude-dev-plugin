@@ -34,6 +34,11 @@ case $word in
 esac
 if [ "$word" = cd ]; then
   echo 'guard-cd: a command may not start with cd; use the command'"'"'s own directory flag (git -C <dir>, bd -C <dir>, make -C <dir>), an absolute path, or the Edit tool for a file edit' >&2
+  # cd <dir> && git|bd|make <args>: name the rewrite with the command's own flag
+  re='^cd[[:space:]]+([^[:space:];&|]+)[[:space:]]*&&[[:space:]]*(git|bd|make)([[:space:]]+(.*))?$'
+  if [[ $trimmed =~ $re ]]; then
+    echo "Suggestion: ${BASH_REMATCH[2]} -C ${BASH_REMATCH[1]} ${BASH_REMATCH[4]}" >&2
+  fi
   exit 2
 fi
 exit 0

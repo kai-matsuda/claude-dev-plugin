@@ -213,6 +213,10 @@ every repo and subagent that has `jq`, so a brief carries no ban of its own (che
 
 For context around a match, or any `{m,n}` repeat, use `command grep`, not `grep`.
 
+**Quote a glob passed as a flag.** Write `--include='*.md'`, never `--include=*.md`: the Bash
+tool runs zsh, which expands an unquoted glob before the command starts and fails the whole
+call with `zsh: no matches found: --include=*.md` when nothing matches.
+
 **No leading `cd`.** The plugin's PreToolUse hook `<plugin root>/hooks/guard-cd.sh` refuses a
 Bash command whose first word is `cd`, so use the command's own directory flag or an
 absolute path.

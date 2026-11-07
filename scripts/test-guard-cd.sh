@@ -67,6 +67,14 @@ for alt in 'git -C' 'bd -C' 'make -C' 'absolute path' 'Edit'; do
   fx_check "the refusal names $alt" grep -qF "$alt" <<<"$msg"
 done
 
+# a cd <dir> && git/bd/make command is answered with the rewrite using the command's own flag
+suggest=$("$hook" <<<"$(jq -cn '{tool_name: "Bash", tool_input: {command: "cd /x && git status"}}')" 2>&1 >/dev/null)
+fx_check "the refusal of cd /x && git status suggests git -C /x status" grep -qF 'git -C /x status' <<<"$suggest"
+suggest=$("$hook" <<<"$(jq -cn '{tool_name: "Bash", tool_input: {command: "cd /y && make check"}}')" 2>&1 >/dev/null)
+fx_check "the refusal of cd /y && make check suggests make -C /y check" grep -qF 'make -C /y check' <<<"$suggest"
+suggest=$("$hook" <<<"$(jq -cn '{tool_name: "Bash", tool_input: {command: "cd /z && ls"}}')" 2>&1 >/dev/null)
+fx_check "a cd before a command with no directory flag suggests no rewrite" fx_eq "$(grep -cF 'Suggestion' <<<"$suggest")" 0
+
 hooks_json=$repo_root/hooks/hooks.json
 fx_check "hooks.json runs guard-cd on Bash before tool use, through the plugin root" jq -e '
   .hooks.PreToolUse | any(.matcher == "Bash" and any(.hooks[]; .command == "\"${CLAUDE_PLUGIN_ROOT}/hooks/guard-cd.sh\""))' "$hooks_json"
