@@ -6,17 +6,17 @@
 # range is one refusal line and exit 2.
 # Usage: scripts/stray-commit.sh <repo> <range>
 set -uo pipefail
-[ "$#" = 2 ] || { echo "stray-commit.sh refused: usage: stray-commit.sh <repo> <range>"; exit 2; }
+[ "$#" = 2 ] || { echo "refused: usage: stray-commit.sh <repo> <range>"; exit 2; }
 repo=$1 range=$2
 
 top=$(git -C "$repo" rev-parse --show-toplevel 2>/dev/null) \
   && [ "$top" = "$(cd "$repo" && pwd -P)" ] \
-  || { echo "stray-commit.sh refused: $repo is not a git checkout"; exit 2; }
+  || { echo "refused: $repo is not a git checkout"; exit 2; }
 email=$(git -C "$repo" config user.email 2>/dev/null) \
-  || { echo "stray-commit.sh refused: $repo has no user.email"; exit 2; }
+  || { echo "refused: $repo has no user.email"; exit 2; }
 log=$(git -C "$repo" log --no-merges --reverse \
   --format='%H%x1f%ae%x1f%(trailers:key=Bead,valueonly,separator=%x2C)%x1f%s' "$range" -- 2>/dev/null) \
-  || { echo "stray-commit.sh refused: cannot read $range in $repo"; exit 2; }
+  || { echo "refused: cannot read $range in $repo"; exit 2; }
 
 [ -n "$log" ] || exit 0
 sep=$(printf '\037')

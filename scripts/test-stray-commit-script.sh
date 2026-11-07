@@ -86,6 +86,7 @@ mkdir -p "$scratch/plain"
 out=$("$script" "$scratch/plain" "HEAD..HEAD" 2>&1); rc=$?
 fx_check "non-repo: exits 2" fx_eq "$rc" 2
 fx_check "non-repo: one refusal line" fx_eq "$(wc -l <<<"$out" | tr -d ' ')" 1
+fx_check "non-repo: the line is refused: <reason>" fx_eq "$out" "refused: $scratch/plain is not a git checkout"
 
 # a repo with no user.email (no global or system config to fall back on): refused
 n=$scratch/noemail
@@ -94,5 +95,6 @@ git -C "$n" config --unset user.email
 out=$(GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 "$script" "$n" "HEAD..HEAD" 2>&1); rc=$?
 fx_check "no user.email: exits 2" fx_eq "$rc" 2
 fx_check "no user.email: one refusal line" fx_eq "$(wc -l <<<"$out" | tr -d ' ')" 1
+fx_check "no user.email: the line is refused: <reason>" fx_eq "$out" "refused: $n has no user.email"
 
 fx_report_fails

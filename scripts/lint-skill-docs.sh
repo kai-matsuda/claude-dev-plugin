@@ -1340,7 +1340,7 @@ para_has "$head_check_command" "the brief names the seam run" 'A worktree brief 
 para_has "$head_check_command" "the seam run fallback is the touched modules' tests" "the touched modules' tests for a standalone task that names no seams."
 para_has "$head_check_command" "the brief never says the check command or the script" 'It never says the check command or the script; only an orchestrator checks a tree.'
 # every other passage that cites the Check record script names the script
-para_has "$head_landing_a_task" "a resolved tree is checked through the Check record script" 'new tree, with the Check record script, then fast-forwards'
+para_has "$head_landing_a_task" "a resolved tree is checked through the Check record script" 'new tree, with the Check record script, then lands the resolved tip through the Land script with `--ff-only` (a plain retry without it on `diverged`)'
 # the Land script, introduced once under Landing a task with its usage line and outcomes
 para_has "$head_landing_a_task" "the Land script is the shipped script" '`<plugin root>/scripts/land.sh <owner> <branch> <task branch> <tip> [--ff-only]`, one foreground Bash call'
 para_has "$head_landing_a_task" "the Land script touches git only" 'touches git only, never `bd`'
@@ -1362,7 +1362,7 @@ hase "Delivery section" '^## Delivery$'
 sec_has "## Delivery" "Delivery is parametrised by the unit" 'parametrised by the unit it delivers: a **story**'
 sec_has "## Delivery" "Delivery names the standalone task" 'or a **standalone task** (delivered by its own skill)'
 sec_has "## Delivery" "Delivery's stray-commit check precedes the push" '1. **Stray-commit check**, before any push'
-sec_has "## Delivery" "Delivery's stray-commit check runs the stray-commit script" 'run the stray-commit script, `<plugin root>/scripts/stray-commit.sh <owner> <default branch>..<branch>`'
+sec_has "## Delivery" "Delivery's stray-commit check runs the stray-commit script" 'run the **stray-commit script**, `<plugin root>/scripts/stray-commit.sh <owner> <default branch>..<branch>`'
 sec_has "## Delivery" "Delivery's stray-commit failed: line" 'failed: stray commit <sha> <subject>'
 sec_has "## Delivery" "Delivery's push command" 'git -C <owner> push -u origin <branch>'
 sec_has "## Delivery" "Delivery's refused push is a failed: line" 'failed: push <command>: <error>'
@@ -2228,6 +2228,7 @@ hasc "the brief's gate entry" "$gate_entry"
 # (dev-jv82, dev-skn5.1.4)
 hasc "the landing calls the Land script with --ff-only" 'land it through the rules doc'"'"'s **Land script**, `<plugin root>/scripts/land.sh <owner> <branch> <task branch> <tip SHA> --ff-only`, in one foreground Bash call, `<plugin root>` spelled as the path this session resolved'
 hasc "a refusal is wrapped in the failed: line shape" 'A `refused: <reason>` ends the run with `failed: <task-id> <reason>`, the refusal'"'"'s reason wrapped in the `failed:` line shape'
+hasc "a diverged refusal names both branches" 'a `diverged` is ended as `failed: <task-id> <branch> diverged from <task branch>`'
 hasc "a moved-past refusal names the reviewed tip" 'a `moved past <tip>` names the reviewed `<tip SHA>`'
 hasc "the resume path re-lands the noted tip through the Land script" 'it first calls the Land script as step 4 does, with `<branch>` as `<task branch>`, the note'"'"'s tip as `<tip SHA>` and `--ff-only`: that tip is already in `<branch>`, so the script runs its guards, merges nothing and reports `landed <sha>`'
 hasc "the resume path's refusal is the failed: line" 'a `refused: <reason>` ends the run with `failed: <task-id> <reason>`; it then goes straight to step 5'

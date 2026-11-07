@@ -36,8 +36,7 @@ fi
   || refuse "$task moved past $tip"
 
 if ! stray=$("$here/stray-commit.sh" "$owner" "$branch..$task"); then
-  stray=${stray#stray-commit.sh refused: }
-  case $stray in "stray commit "*) refuse "$stray" ;; *) refuse "${stray:-stray-commit.sh failed}" ;; esac
+  case $stray in "refused: "*) echo "$stray"; exit 2 ;; "stray commit "*) refuse "$stray" ;; *) refuse "${stray:-stray-commit.sh failed}" ;; esac
 fi
 
 if git -C "$owner" merge-base --is-ancestor "$tip" "$branch"; then
