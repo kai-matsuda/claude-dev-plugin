@@ -1698,7 +1698,6 @@ hasc "delivery rule pointer" "$cite_delivery_authority"
 hasc "step 8 delivers as the Delivery section says with the story as its unit" "8. **Deliver**, as the rules doc's Delivery section says, with the story as its unit"
 # a commit from outside the run (21f770c: a test whose throwaway init failed committed into the
 # enclosing checkout) is refused before the push and before a merger's merge (dev-y1p)
-hasc "the story orchestrator's landing runs the stray-commit check" 'the **stray-commit check** on what the merge brings in'
 # the delivery records its tip and check record, which /dev:implement-spec's review set reads (dev-47z)
 hasc "finished story backfills a missing delivered: note" 'a finished story with no `delivered:` line'
 lacks "profile-gated push" "$pin_profile_gated_push|ask the user to run that exact command|give the user that exact command"
@@ -1742,15 +1741,16 @@ hase "the Landing section" '^## Landing$'
 line_has '^   - `<id> reviewed: <task branch> <worktree path> <tip SHA>`' "a reviewed: report is landed in the turn it resumes" 'land it now, in the turn this report resumes you'
 sec_has "## Landing" "landings are serial" 'Landings are **serial**: one runs at a time, one per report'
 sec_has "## Landing" "a landing waits on no lock" 'So there is no lock to wait on'
-sec_has "## Landing" "the landing confirms the reviewed tip" 'confirm `git -C <owner> rev-parse <task branch>` prints `<tip SHA>`'
-sec_has "## Landing" "the landing merges the task branch" '`git -C <owner> merge <task branch>`'
-sec_has "## Landing" "a conflicted merge is aborted, never resolved by the orchestrator" '`git -C <owner> merge --abort`'
+sec_has "## Landing" "the landing calls the Land script" 'the rules doc'"'"'s **Land script**, `<plugin root>/scripts/land.sh <owner> <branch> <task branch> <tip SHA>`, in one foreground Bash call, `<plugin root>` spelled as the path this session resolved'
+sec_has "## Landing" "a refusal is wrapped in the failed: line shape" 'A `refused: <reason>` ends the landing unmerged with `<task-id> failed: <reason>`, the refusal'"'"'s reason wrapped in the `failed:` line shape'
+sec_has "## Landing" "a conflict reported by the Land script goes to the conflict implementer" '`conflict` goes to 3'
 sec_has "## Landing" "a conflict goes to an implementer in the task's worktree" "A conflict goes to an implementer in the task's worktree"
 sec_has "## Landing" "the conflict implementer merges the integration tip into the task branch" "it is briefed to merge \`<branch>\`'s tip into the task branch"
 sec_has "## Landing" "the resolved tree is checked with the rules doc's call" "run the rules doc's Check record script, \`<plugin root>/scripts/check.sh <worktree path> <owner>\`, with the task's worktree as its \`<worktree path>\`, in one foreground Bash call with \`timeout: 600000\`, \`<plugin root>\` spelled as the path this session resolved; the script runs nothing on a tree with a green record"
 line_lacks '^3\. A conflict goes to an implementer' "the landing reading the resolved tree's record itself" 'run nothing on a green record'
 sec_has "## Landing" "no reviewer runs on the resolution" 'No reviewer runs: the story row'"'"'s standards axis sees the resolution'
-sec_has "## Landing" "the landing then fast-forwards" "\`$pin_ff_only_merge\`"
+sec_has "## Landing" "the resolved tip is landed through the Land script with --ff-only" 'call the Land script again with the resolved tip, `git -C <worktree path> rev-parse HEAD`, the commit whose tree was just checked, as its `<tip SHA>` (the resolution moved `<task branch>` past the reviewed tip), and `--ff-only`'
+sec_has "## Landing" "a refused fast-forward calls the Land script again without --ff-only" '`refused: diverged` calls the script again without `--ff-only`'
 sec_has "## Landing" "a red on a resolved tree fails the landing" "\`<task-id> $pin_failed_red_after_conflict\`"
 sec_has "## Landing" "the retry enters at the gate on the resolved branch" "its one retry is a fresh task orchestrator $pin_retry_at_gate_on_resolved_branch"
 sec_has "## Landing" "the story orchestrator never gates a task" 'so you never gate a task yourself'
@@ -1760,7 +1760,6 @@ sec_has "## Landing" "a landing closes the task" "$pin_landing_closes_task: \`$p
 # a resolution always moves the task branch past the reviewed tip, so the fast-forward guards the
 # resolved tip, the tree just checked, never the reviewed one; a story fix-up reports no tip SHA,
 # so its tip is read from its worktree (dev-b8d.1.4 review 1)
-sec_has "## Landing" "the fast-forward guards the resolved tip" "confirm \`git -C <owner> rev-parse <task branch>\` prints the resolved tip, $pin_rev_parse_head"
 sec_has "## Landing" "a story fix-up's tip is read from its worktree" "its \`<tip SHA>\` is $pin_rev_parse_head"
 lacksf "the reviewed-tip guard repeated after a conflict resolution" "repeat 1's guards"
 line_has "$anchor_conflict_implementer" "the conflict implementer's brief starts with the TMPDIR line" "$tmpdir_line"
@@ -1936,12 +1935,6 @@ line_has "$G7" "the story gate confirms the owner checkout is on the integration
 line_has "$G7" "the story gate's off-branch failed line" '`failed: <story-id> not on <branch>`'
 line_has "$G7" "the story gate's clean-checkout guard says why untracked files count" 'untracked files count, since the check runs on the working tree while the record keys on the committed tree'
 line_has "$G7" "the dirty-checkout failed line names the files" '`failed: <story-id> owner checkout dirty: <files>`, `<files>` the paths that status call printed, classified as step 6 says'
-# the landing guard (dev-xbql): the owner checkout's clean-tree check counts untracked files, as
-# the story gate's does, and says why; a dirty checkout ends the landing on the failed line naming
-# the files, as implement-task's landing guard does (43264dc)
-hasc "the story landing guard counts untracked files" '`git -C <owner> status --porcelain` prints nothing (untracked files count, since the check runs on the working tree while the record keys on the committed tree)'
-hasc "the story landing guard's dirty-checkout failed line names the files" '`<task-id> failed: owner checkout dirty: <files>`, `<files>` the paths that status call printed'
-lacks "the story landing guard that hides untracked files" 'status --porcelain --untracked-files=no`'
 line_has "$G7" "the story gate leaves the green-record read to the script" 'resolved. The script reads the tip'"'"'s tree record itself: on a green record it runs nothing, whichever orchestrator wrote it'
 line_has "$G7" "the story gate has the script check a red-recorded tree again" 'a red record is no check, so the script checks the tree again'
 line_lacks "$G7" "the story gate reading the green record itself" "$rec_green"

@@ -861,7 +861,7 @@ section_case 10 docs/agents/issue-tracker.md "$ban_only_lines" "a tracker doc wh
 section_case 11 skills/sample/SKILL.md 'run /story-to-tasks next' "a bare /<skill>"
 section_case 12 skills/retro/SKILL.md "$ban_bare_grep" "/retro with the bare grep instruction"
 section_case 13 skills/sample/SKILL.md "> read \${$plugin_root_var}/docs/agents/orchestration.md" "the plugin-root variable in a brief"
-pin_phrase "the landing merges the task branch"; landing_merge=$pinned_phrase
+landing_merge='`git -C <owner> merge <task branch>`'
 section_case 16 skills/task-orchestrator/SKILL.md "then merge it with $landing_merge" "/task-orchestrator merging onto the owner checkout"
 ban_alt ban_draft_pr "a draft PR for a standalone task"
 section_case 17 skills/implement-task/SKILL.md "then run \`$ban_draft_pr\`" "/implement-task opening a draft PR"
@@ -2829,12 +2829,6 @@ fresh
 ban banned_landing_guard "the landing guard that hides untracked files"
 printf '%s\n' "$banned_landing_guard" >> "$scratch/skills/implement-task/SKILL.md"
 sec=17 expect "the landing guard regaining --untracked-files=no fails" 1 "present: the landing guard that hides untracked files"
-# implement-story's landing guard regaining --untracked-files=no fails (an untracked file would
-# pass the guard while the check reads it), in section 8 with its own pins (dev-xbql)
-fresh
-ban banned_story_landing_guard "the story landing guard that hides untracked files"
-printf '%s\n' "$banned_story_landing_guard" >> "$scratch/skills/implement-story/SKILL.md"
-sec=8 expect "implement-story's landing guard regaining --untracked-files=no fails" 1 "present: the story landing guard that hides untracked files"
 # the resume path skipping the owner-checkout guard fails: its pinned phrase is dropped, so the
 # review: note's route runs to step 5 unguarded (dev-jv82)
 fresh
