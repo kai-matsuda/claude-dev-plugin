@@ -9,6 +9,9 @@ set -uo pipefail
 [ "$#" = 2 ] || { echo "stray-commit.sh refused: usage: stray-commit.sh <repo> <range>"; exit 2; }
 repo=$1 range=$2
 
+top=$(git -C "$repo" rev-parse --show-toplevel 2>/dev/null) \
+  && [ "$top" = "$(cd "$repo" && pwd -P)" ] \
+  || { echo "stray-commit.sh refused: $repo is not a git checkout"; exit 2; }
 email=$(git -C "$repo" config user.email 2>/dev/null) \
   || { echo "stray-commit.sh refused: $repo has no user.email"; exit 2; }
 log=$(git -C "$repo" log --no-merges --reverse \

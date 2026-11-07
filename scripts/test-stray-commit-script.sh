@@ -79,5 +79,20 @@ fx_check "usage: exits 2" fx_eq "$rc" 2
 fx_check "usage: one refusal line" fx_eq "$(wc -l <<<"$out" | tr -d ' ')" 1
 run "nosuchref..HEAD"
 fx_check "unreadable range: exits 2" fx_eq "$rc" 2
+fx_check "unreadable range: one refusal line" fx_eq "$(wc -l <<<"$out" | tr -d ' ')" 1
+
+# not a git checkout (a plain directory inside the scratch, under an enclosing checkout): refused
+mkdir -p "$scratch/plain"
+out=$("$script" "$scratch/plain" "HEAD..HEAD" 2>&1); rc=$?
+fx_check "non-repo: exits 2" fx_eq "$rc" 2
+fx_check "non-repo: one refusal line" fx_eq "$(wc -l <<<"$out" | tr -d ' ')" 1
+
+# a repo with no user.email (no global or system config to fall back on): refused
+n=$scratch/noemail
+fx_git_repo "$n" || { echo "FAIL make repo noemail"; exit 1; }
+git -C "$n" config --unset user.email
+out=$(GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 "$script" "$n" "HEAD..HEAD" 2>&1); rc=$?
+fx_check "no user.email: exits 2" fx_eq "$rc" 2
+fx_check "no user.email: one refusal line" fx_eq "$(wc -l <<<"$out" | tr -d ' ')" 1
 
 fx_report_fails

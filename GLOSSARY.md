@@ -330,8 +330,9 @@ _Avoid_: land step, task merge
 
 **Stray-commit check**:
 The read of every commit a push or a merge would carry but merges, before it runs: one whose
-author is not the run's `user.email`, or that has no `Bead:` trailer, came from outside the
+author is not the repo's `user.email`, or that has no `Bead:` trailer, came from outside the
 run (a test whose throwaway repo failed to init commits into the enclosing checkout).
+`scripts/stray-commit.sh <repo> <range>` is that read as one call.
 The story orchestrator runs it before every merge and every push (a trust rule): before
 each landing of a reviewed branch onto the integration branch, and before each push of it;
 a hit stops the merge or push with `failed: stray commit <sha> <subject>`.
