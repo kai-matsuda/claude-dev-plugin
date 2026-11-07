@@ -1988,7 +1988,7 @@ line_has '^8\. ' "the deliver step leaves the PR a draft" "$pin_pr_stays_a_draft
 # step 3 runs the Delivery section's stray-commit check and cites the Delivery authority, never step 8
 line_has "$anchor_step_3_draft_pr" "step 3 runs the Delivery section's stray-commit check" "first run the rules doc's Delivery section's **stray-commit check**"
 # step 3 and step 8 cite the stray-commit script by name (dev-skn5.1.6)
-line_has "$anchor_step_3_draft_pr" "step 3 cites the stray-commit script by name" '(run through the rules doc'"'"'s **stray-commit script**, `<plugin root>/scripts/stray-commit.sh <owner> <default branch>..<branch>`, in one foreground Bash call, `<plugin root>` spelled as the path this session resolved; a hit ends the run there, as that section says)'
+line_has "$anchor_step_3_draft_pr" "step 3 cites the stray-commit script by name" 'stray-commit check** through its **stray-commit script**, `<plugin root>/scripts/stray-commit.sh <owner> <default branch>..<branch>`, in one foreground Bash call, `<plugin root>` spelled as the path this session resolved (a hit ends the run there, as that section says)'
 line_has "$anchor_step_3_draft_pr" "step 3 pushes on the Delivery authority" "($cite_delivery_authority)"
 line_lacks "$anchor_step_3_draft_pr" "step 3 pointing at step 8's stray-commit check" "step 8's **stray-commit check**"
 # step 8 reuses step 3's citation by name (dev-skn5.1.6)

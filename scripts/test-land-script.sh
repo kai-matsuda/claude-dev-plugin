@@ -212,22 +212,23 @@ esac
 exec "$realgit" "\$@"
 EOF
 chmod +x "$shimdir/git"
-moved_run() {   # moved_run [--ff-only]: an unchecked commit one past the tip, then land under the shim
+moved_run() {   # moved_run <shim dir> [--ff-only]: an unchecked commit one past the tip, then land under the shim
+  local shim=$1; shift
   git -C "$r" checkout -q -b extra "$tip" && commit x.txt x "feat: unchecked" other@example.invalid
   sha HEAD > "$scratch/extra"; git -C "$r" checkout -q main; git -C "$r" branch -q -D extra
   rm -f "$scratch/moved"
-  out=$(PATH=$shimdir:$PATH "$script" "$r" main task "$tip" "$@" 2>&1); rc=$?
+  out=$(PATH=$shim:$PATH "$script" "$r" main task "$tip" "$@" 2>&1); rc=$?
   git -C "$r" update-ref refs/heads/task "$tip"
 }
 reset
-moved_run --ff-only
+moved_run "$shimdir" --ff-only
 fx_check "branch moves mid-landing, ff-only: exits 0" fx_eq "$rc" 0
 fx_check "branch moves mid-landing, ff-only: landed the tip" fx_eq "$out" "landed $tip"
 fx_check "branch moves mid-landing, ff-only: main is the tip" fx_eq "$(sha main)" "$tip"
 reset
 commit m.txt m "feat: main moved" "" "Bead: x-3"
 mainbefore=$(sha main)
-moved_run
+moved_run "$shimdir"
 fx_check "branch moves mid-landing, plain merge: exits 0" fx_eq "$rc" 0
 fx_check "branch moves mid-landing, plain merge: landed line" fx_eq "$out" "landed $(sha main)"
 fx_check "branch moves mid-landing, plain merge: main is a merge of base and the tip" fx_eq "$(sha main^1) $(sha main^2)" "$mainbefore $tip"
@@ -251,20 +252,16 @@ exec "$realgit" "\$@"
 EOF
 chmod +x "$shim2/git"
 reset
-git -C "$r" checkout -q -b extra "$tip" && commit x.txt x "feat: unchecked" other@example.invalid
-sha HEAD > "$scratch/extra"; git -C "$r" checkout -q main; git -C "$r" branch -q -D extra
-rm -f "$scratch/moved"
-out=$(PATH=$shim2:$PATH "$script" "$r" main task "$tip" --ff-only 2>&1); rc=$?
-git -C "$r" update-ref refs/heads/task "$tip"
+moved_run "$shim2" --ff-only
 fx_check "branch moves after the guard: exits 0" fx_eq "$rc" 0
 fx_check "branch moves after the guard: stray range is the tip's" fx_eq "$out" "landed $tip"
 
-# a landing onto a non-default branch keeps the plain message
+# a landing onto a non-default branch writes the message git merge would: it keeps " into <branch>"
 reset
 git -C "$r" checkout -q -b feat/story main && commit m.txt m "feat: story moved" "" "Bead: x-3"
 run feat/story task "$tip"
 fx_check "non-main branch: exits 0" fx_eq "$rc" 0
-fx_check "non-main branch: the message names the task branch" fx_eq "$(git -C "$r" log -1 --format=%s feat/story)" "Merge branch 'task'"
+fx_check "non-main branch: the message names the task branch and the integration branch" fx_eq "$(git -C "$r" log -1 --format=%s feat/story)" "Merge branch 'task' into feat/story"
 git -C "$r" checkout -q main; git -C "$r" branch -q -D feat/story
 
 # a non-repo owner

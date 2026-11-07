@@ -2,7 +2,8 @@
 # The landing (glossary: Landing) as one call, touching git only. Confirms the owner checkout is
 # on <branch> and clean (untracked files counted) and that <task branch> is at <tip>, runs the
 # stray-commit script on <branch>..<tip>, then makes one merge attempt of <tip> (fast-forward
-# only under --ff-only); past the guard it merges the verified <tip>, never the branch ref.
+# only under --ff-only, a plain merge's message the one git merge writes: "Merge branch '<task branch>'",
+# plus " into <branch>" unless <branch> is main or master); past the guard it merges the verified <tip>, never the branch ref.
 # One line, one exit status:
 #   landed <sha>                      exit 0; <sha> is <branch>'s tip. A tip already in <branch> merges
 #                                     nothing and reports the same line.
@@ -45,9 +46,11 @@ if git -C "$owner" merge-base --is-ancestor "$tip" "$branch"; then
   exit 0
 fi
 
+into=" into $branch"   # the message git merge writes: it drops " into <branch>" only on main or master
+case $branch in main|master) into= ;; esac
 if [ -n "$ff" ]; then
   git -C "$owner" merge -q --ff-only "$tip" >/dev/null 2>&1 || refuse "diverged"
-elif ! git -C "$owner" merge -q -m "Merge branch '$task'" "$tip" >/dev/null 2>&1; then
+elif ! git -C "$owner" merge -q -m "Merge branch '$task'${into}" "$tip" >/dev/null 2>&1; then
   unmerged=$(git -C "$owner" ls-files --unmerged 2>/dev/null)
   git -C "$owner" merge --abort >/dev/null 2>&1
   [ -z "$(git -C "$owner" status --porcelain --untracked-files=all 2>/dev/null)" ] \
