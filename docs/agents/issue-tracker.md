@@ -530,7 +530,21 @@ The **inbox** is the home's beads database (the one test above): the workspace's
 workspace session, the home repo's in a repo session. `bd` runs plainly, in `<home>`.
 When `<home>` has no database by the "Has a database" rule, stop: no skill initialises
 a database unattended. Every
-surviving candidate becomes one bead there:
+surviving candidate becomes one bead there, unless the inbox already holds it. Search
+the open inbox beads first, by the candidate's title words:
+
+```bash
+bd search "<title words>" --status open -l needs-triage
+```
+
+A hit for the same fix is a repeat: note it, create nothing, so `/dev:triage` sees the
+recurrence and not a duplicate.
+
+```bash
+bd note <id> "seen again: <moment>"
+```
+
+No hit, so create the bead:
 
 ```bash
 bd create "<title>" --type chore -l retro,needs-triage,<target label> \

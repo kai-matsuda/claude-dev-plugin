@@ -93,9 +93,9 @@ watching, straight after an unattended `/dev:implement-spec`.
      `retro:foreign` in a repo session. A deployed file is labelled by its source when
      `chezmoi source-path` maps it, and the body names the source path; when it fails,
      the file counts as it stands. Never rerun it outside the sandbox.
-   - A repeat: `bd search "<title words>" --status open -l needs-triage` turning up an
-     inbox bead for the same fix → `bd note <id> "seen again: <moment>"` instead of
-     filing twice. A second moment is the recurrence evidence `/dev:triage` wants.
+   - A repeat follows the tracker doc's "capture a retro item" search: an open inbox bead
+     for the same fix is noted, not filed twice. A second moment is the recurrence
+     evidence `/dev:triage` wants.
    - External ref: the Jira key of the epic bead the session implemented, when there was
      one. Otherwise none.
    - Body, read from stdin with `--body-file -`:
