@@ -150,7 +150,9 @@ repo already had `core.hooksPath` set, chain the old hook from the new one in
   prose, since git parses only a last paragraph made of trailer lines as trailers. A
   machine may enforce the mechanical parts with a commit-msg hook (the `commit-lint.sh`
   the plugin ships in `skills/setup/`, when machine setup installed it); a commit it
-  rejects is fixed and retried (`harness.md`, Commits).
+  rejects is fixed and retried (`harness.md`, Commits). The hook rewrites the message
+  file in one case: `Bead:`/`Refs:` lines and a following `Co-Authored-By:`/`Claude-Session:`
+  paragraph split by a blank line are joined into one trailer paragraph.
 
 ## When a skill says "publish the spec to the issue tracker" (`/mattpocock-skills:to-spec`)
 

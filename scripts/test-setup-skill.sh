@@ -205,6 +205,17 @@ lint_msg $'fix: thing\n\nBead: dev-qgww\n\nProse after the trailers.\nCo-Authore
 fx_check "commit-lint blocks trailers followed by a prose paragraph" bash -c '[ "$1" = 1 ] && grep -q "trailer block" <<<"$2"' _ "$lrc" "$lout"
 lint_msg $'fix: thing\n\nBead: dev-qgww\n\nProse after the trailers.\n\nCo-Authored-By: Claude <noreply@anthropic.com>'
 fx_check "commit-lint blocks a mid-body Bead: before prose and attribution" bash -c '[ "$1" = 1 ] && grep -q "trailer block" <<<"$2"' _ "$lrc" "$lout"
+lint_msg $'fix: thing\n\nProse line.\nBead: dev-qgww\n\nCo-Authored-By: Claude <noreply@anthropic.com>'
+fx_check "commit-lint blocks a Bead: inside a prose paragraph before attribution" bash -c '[ "$1" = 1 ] && grep -q "trailer block" <<<"$2"' _ "$lrc" "$lout"
+fx_check "commit-lint leaves a rejected message file unrewritten" bash -c \
+  '[ "$(cat "$1")" = "$2" ]' _ "$lintw/msg" $'fix: thing\n\nProse line.\nBead: dev-qgww\n\nCo-Authored-By: Claude <noreply@anthropic.com>'
+# trailing "#" comment lines (git commit -v style) do not stop the join
+lint_msg $'fix: thing\n\nBead: dev-qgww\n\nCo-Authored-By: Claude <noreply@anthropic.com>\n# Please enter the commit message\n#'
+fx_check "commit-lint joins split trailers that are followed by # comment lines" bash -c \
+  '[ "$1" = 0 ] && [ "$(grep -c "^$" "$2")" = 1 ]' _ "$lrc" "$lintw/msg"
+# a CRLF message file
+lint_msg $'fix: thing\r\n\r\nBead: dev-qgww\r\n\r\nCo-Authored-By: Claude <noreply@anthropic.com>\r'
+fx_check "commit-lint passes split trailers in a CRLF message" test "$lrc" = 0
 lint_msg $'fix: thing\nbody right under the subject'
 fx_check "commit-lint blocks a body with no blank line after the subject" bash -c '[ "$1" = 1 ] && grep -q "no blank line" <<<"$2"' _ "$lrc" "$lout"
 lint_msg $'Merge branch \'x\''
