@@ -1631,6 +1631,13 @@ for g in spec-to-stories spec-to-tasks story-to-tasks close-epic retro; do
   [ -f "$f" ] || continue
   hasc "/$g cites the tracker doc's \"Has a database\" rule" "$pin_cite_has_a_database_rule"
 done
+# the capture search lives once, in the tracker doc's "capture a retro item" section (dev-hmjc);
+# a skill cites that section and carries no copy of the search command
+gate_f=$f
+for f in "$skills"/*/SKILL.md; do
+  lacks "no skill carries its own copy of the capture search (${f#"$skills"/})" '--status open -l needs-triage'
+done
+f=$gate_f
 # /triage has no section of its own, so its document is this one's
 if doc 6 "/triage" "$skills/triage/SKILL.md"; then
 hasc "/triage cites the tracker doc's \"Has a database\" rule" "$pin_cite_has_a_database_rule"
