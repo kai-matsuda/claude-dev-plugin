@@ -81,7 +81,7 @@ watching, straight after an unattended `/dev:implement-spec`.
    carries all six.
 
 5. File each survivor in the **inbox**. The tracker doc's (`${CLAUDE_PLUGIN_ROOT}/docs/agents/issue-tracker.md`)
-   "capture a retro item" section has the command; this is the procedure around it.
+   "capture a retro item" section has the commands (the search, then the create); this is the procedure around it.
 
    - The session mode is the tracker doc's one test: the inbox is the home's `.beads/`,
      the session's repo root, and nothing above it is read. No database in `<home>` by
@@ -93,9 +93,9 @@ watching, straight after an unattended `/dev:implement-spec`.
      `retro:foreign` in a repo session. A deployed file is labelled by its source when
      `chezmoi source-path` maps it, and the body names the source path; when it fails,
      the file counts as it stands. Never rerun it outside the sandbox.
-   - A repeat: `bd search "<title words>" --status open -l needs-triage` turning up an
-     inbox bead for the same fix → `bd note <id> "seen again: <moment>"` instead of
-     filing twice. A second moment is the recurrence evidence `/dev:triage` wants.
+   - A repeat follows the tracker doc's "capture a retro item" search: an open inbox bead
+     for the same fix is noted, not filed twice. A second moment is the recurrence
+     evidence `/dev:triage` wants.
    - External ref: the Jira key of the epic bead the session implemented, when there was
      one. Otherwise none.
    - Body, read from stdin with `--body-file -`:

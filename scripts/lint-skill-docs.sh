@@ -1573,6 +1573,10 @@ sec_has "$head_start_work_on_a_task" "the story orchestrator closes the task at 
 # inbox bead stays a chore, a retro item and no task (dev-b8d.1 story review 1)
 sec_has '## When a skill says "route a triaged item" (`/dev:triage`)' "the routed bead is a task" 'create "<title>" --type task -l complexity:<tier>,retro'
 lacks "a routed bead of type chore" '--type chore -l complexity:'
+# the capture rule searches the open needs-triage beads before bd create and notes a repeat, once,
+# here; no skill carries its own copy (dev-hmjc)
+sec_has '## When a skill says "capture a retro item" (`/dev:retro`)' "the capture searches the open needs-triage beads first" 'bd search "<title words>" --status open -l needs-triage'
+sec_has '## When a skill says "capture a retro item" (`/dev:retro`)' "a repeat is noted, not filed again" 'bd note <id> "seen again: <moment>"'
 # the one test of the session mode (ADR 0008), stated once, in the opening before any section
 for need in '`<home>` is the session'"'"'s repo' '`<home>/repos.yaml`' '**workspace session**' '**repo session**' 'the only owner'; do
   opening_has "the tracker doc's one test" "$need"
@@ -1627,6 +1631,13 @@ for g in spec-to-stories spec-to-tasks story-to-tasks close-epic retro; do
   [ -f "$f" ] || continue
   hasc "/$g cites the tracker doc's \"Has a database\" rule" "$pin_cite_has_a_database_rule"
 done
+# the capture search lives once, in the tracker doc's "capture a retro item" section (dev-hmjc);
+# a skill cites that section and carries no copy of the search command
+gate_f=$f
+for f in "$skills"/*/SKILL.md; do
+  lacks "no skill carries its own copy of the capture search (${f#"$skills"/})" '--status open -l needs-triage'
+done
+f=$gate_f
 # /triage has no section of its own, so its document is this one's
 if doc 6 "/triage" "$skills/triage/SKILL.md"; then
 hasc "/triage cites the tracker doc's \"Has a database\" rule" "$pin_cite_has_a_database_rule"
