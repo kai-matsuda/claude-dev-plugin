@@ -159,7 +159,42 @@ git -C "$r" mv base.txt moved.txt
 run main task "$tip"
 fx_check "dirty rename: the line" fx_eq "$out" "refused: owner checkout dirty: moved.txt"
 fx_check "dirty rename: exits 2" fx_eq "$rc" 2
+fx_check "dirty rename: main unmoved" fx_eq "$(sha main)" "$base"
+fx_check "dirty rename: status shows the rename" fx_eq "$(status)" "R  base.txt -> moved.txt"
 git -C "$r" reset -q --hard "$base"
+
+# a task branch that does not exist is not at the tip
+reset
+git -C "$r" branch -q -D task
+run main task "$tip"
+fx_check "missing task branch: exits 2" fx_eq "$rc" 2
+fx_check "missing task branch: the line" fx_eq "$out" "refused: task moved past $tip"
+fx_check "missing task branch: main unmoved" fx_eq "$(sha main)" "$base"
+fx_check "missing task branch: clean checkout" fx_eq "$(status)" ""
+
+# the stray-commit script's own refusal is relayed as one refusal line (an owner with no user.email)
+reset
+git -C "$r" config --unset user.email
+out=$(GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 "$script" "$r" main task "$tip" 2>&1); rc=$?
+git -C "$r" config user.email "$(git -C "$r" log -1 --format=%ae "$base")"
+fx_check "stray-commit refusal: exits 2" fx_eq "$rc" 2
+fx_check "stray-commit refusal: relayed once" fx_eq "$out" "refused: $r has no user.email"
+fx_check "stray-commit refusal: main unmoved" fx_eq "$(sha main)" "$base"
+fx_check "stray-commit refusal: clean checkout" fx_eq "$(status)" ""
+
+# a merge that fails without a conflict (a pre-merge-commit hook rejects it) is a refusal, not a conflict
+reset
+commit m.txt m "feat: main moved" "" "Bead: x-3"
+mainbefore=$(sha main)
+hooks=$scratch/hooks; mkdir -p "$hooks"
+printf '#!/bin/sh\nexit 1\n' > "$hooks/pre-merge-commit"; chmod +x "$hooks/pre-merge-commit"
+git -C "$r" config core.hooksPath "$hooks"
+run main task "$tip"
+git -C "$r" config --unset core.hooksPath
+fx_check "merge failed, no conflict: exits 2" fx_eq "$rc" 2
+fx_check "merge failed, no conflict: the line" fx_eq "$out" "refused: merge failed"
+fx_check "merge failed, no conflict: main unmoved" fx_eq "$(sha main)" "$mainbefore"
+fx_check "merge failed, no conflict: clean checkout" fx_eq "$(status)" ""
 
 # a non-repo owner
 nogit=$scratch/not-a-repo; mkdir -p "$nogit"

@@ -326,8 +326,8 @@ the orchestrator on the owner checkout: guards on the owner checkout and on the 
 branch's reviewed tip, the stray-commit check, then one merge. A conflict goes to an
 implementer in the task's worktree and the landing is tried again; a standalone task's
 landing fast-forwards only, so it never conflicts. A story's landing closes the task.
-`scripts/land.sh <owner> <branch> <task branch> <tip> [--ff-only]` is the guards and the merge
-as one call.
+The Land script, `scripts/land.sh <owner> <branch> <task branch> <tip> [--ff-only]`, is the
+guards and the merge as one call.
 _Avoid_: land step, task merge
 
 **Stray-commit check**:

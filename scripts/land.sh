@@ -10,8 +10,10 @@
 #                                     owner checkout dirty: <files>, <task branch> moved past <tip>,
 #                                     stray commit <sha> <subject>, diverged (only under --ff-only),
 #                                     or a wrong usage, an owner that is not a git checkout, a merge
-#                                     that failed and left the checkout dirty, or a stray-commit
-#                                     script refusal (its reason, relayed)
+#                                     that failed without a conflict (merge failed), a merge that
+#                                     failed and left the checkout dirty (the one refusal that can
+#                                     leave the checkout changed), or a stray-commit script refusal
+#                                     (its reason, relayed)
 # A task branch that does not exist is a "moved past" refusal: it is not at <tip>.
 # Usage: scripts/land.sh <owner> <branch> <task branch> <tip> [--ff-only]
 set -uo pipefail
@@ -46,9 +48,11 @@ fi
 if [ -n "$ff" ]; then
   git -C "$owner" merge -q --ff-only "$task" >/dev/null 2>&1 || refuse "diverged"
 elif ! git -C "$owner" merge -q --no-edit "$task" >/dev/null 2>&1; then
+  unmerged=$(git -C "$owner" ls-files --unmerged 2>/dev/null)
   git -C "$owner" merge --abort >/dev/null 2>&1
   [ -z "$(git -C "$owner" status --porcelain --untracked-files=all 2>/dev/null)" ] \
     || refuse "merge failed and left $owner dirty"
+  [ -n "$unmerged" ] || refuse "merge failed"
   echo "conflict"
   exit 1
 fi
