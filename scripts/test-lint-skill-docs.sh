@@ -2824,18 +2824,6 @@ for case in '   story:   <story-id> <title>|present: a story line in the report'
   printf '%s\n' "${case%%|*}" >> "$scratch/skills/implement-task/SKILL.md"
   sec=17 expect "implement-task regaining '${case%%|*}' fails" 1 "${case#*|}"
 done
-# the landing guard regaining --untracked-files=no fails (an untracked file would pass the guard
-# while the check reads it)
-fresh
-ban banned_landing_guard "the landing guard that hides untracked files"
-printf '%s\n' "$banned_landing_guard" >> "$scratch/skills/implement-task/SKILL.md"
-sec=17 expect "the landing guard regaining --untracked-files=no fails" 1 "present: the landing guard that hides untracked files"
-# the resume path skipping the owner-checkout guard fails: its pinned phrase is dropped, so the
-# review: note's route runs to step 5 unguarded (dev-jv82)
-fresh
-ban banned_resume_guard "the resume path runs the owner-checkout guard before step 5"
-drop_phrase skills/implement-task/SKILL.md "$banned_resume_guard"
-sec=17 expect "a resume path skipping the owner-checkout guard fails" 1 "missing (case-sensitive): the resume path runs the owner-checkout guard before step 5"
 # the skill exists, so /dev:task-orchestrator's refusal and the glossary naming it pass the
 # namespace rule; without its dir they fail there
 fresh

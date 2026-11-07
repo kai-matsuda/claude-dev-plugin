@@ -676,7 +676,6 @@ pin_chains_out_of_scope='chains are out of scope'
 pin_implement_task_id='`/dev:implement-task <id>`'
 pin_implement_task_task_id='`/dev:implement-task <task-id>`'
 pin_never_through_c='never through `-C`'
-pin_ff_only_merge='git -C <owner> merge --ff-only <task branch>'
 pin_bd_close='bd -C <owner> close'
 pin_rev_parse_head='`git -C <worktree path> rev-parse HEAD`'
 pin_not_a_task_worktree='not a task worktree'
@@ -2184,7 +2183,7 @@ fi
 # story's task (naming /dev:implement-story <story-id>) and one not ready-for-agent; it reuses the
 # story orchestrator's plumbing (the make probe and its refusal, the forge decision, the gitignore
 # rule, task/<id> off the default branch with a branch: note), spawns one task orchestrator with
-# the short brief, lands its reviewed branch by a fast-forward, and delivers by the rules doc's
+# the short brief, lands its reviewed branch through the Land script with --ff-only, and delivers by the rules doc's
 # Delivery section: the PR opened ready, delivered: before pr:, then the close; with no forge the
 # pushed branch and checks: skipped: no forge. A rerun applies the merge guard on the pr: note and
 # re-enters at the gate on a failed run's commits with a fresh budget; the report ends on resume:.
@@ -2213,17 +2212,16 @@ hasc "the branch: note" 'bd -C <owner> note <task-id> "branch: feat/<task-id>"'
 hasc "one task orchestrator through the skill" "$pin_call_task_orchestrator_skill"
 hasc "the task orchestrator at opus" "$pin_spawn_at_opus"
 hasc "the brief's gate entry" "$gate_entry"
-# a review: note's resume path runs the owner-checkout guard before step 5's check, untracked files
-# counted, as step 4's landing does, so a green record never keys a tree the checkout lacks (dev-jv82)
-hasc "the resume path runs the owner-checkout guard before step 5" 'it first runs the owner-checkout guard of step 4 (on `<branch>`, `git -C <owner> status --porcelain` prints nothing, untracked files counted'
+# the landing is the rules doc's Land script with --ff-only, its refusal wrapped in the failed:
+# line shape; a review: note's resume path re-lands the noted tip through the same call, which
+# reports landed with nothing merged, so a green record never keys a tree the checkout lacks
+# (dev-jv82, dev-skn5.1.4)
+hasc "the landing calls the Land script with --ff-only" 'land it through the rules doc'"'"'s **Land script**, `<plugin root>/scripts/land.sh <owner> <branch> <task branch> <tip SHA> --ff-only`, in one foreground Bash call, `<plugin root>` spelled as the path this session resolved'
+hasc "a refusal is wrapped in the failed: line shape" 'A `refused: <reason>` ends the run with `failed: <task-id> <reason>`, the refusal'"'"'s reason wrapped in the `failed:` line shape'
+hasc "a moved-past refusal names the reviewed tip" 'a `moved past <tip>` names the reviewed `<tip SHA>`'
+hasc "the resume path re-lands the noted tip through the Land script" 'it first calls the Land script as step 4 does, with `<branch>` as `<task branch>`, the note'"'"'s tip as `<tip SHA>` and `--ff-only`: that tip is already in `<branch>`, so the script runs its guards, merges nothing and reports `landed <sha>`'
+hasc "the resume path's refusal is the failed: line" 'a `refused: <reason>` ends the run with `failed: <task-id> <reason>`; it then goes straight to step 5'
 lacks "the resume path that goes straight to step 5" 'failed at delivery: go straight to step 5'
-# the landing is a fast-forward after the stray-commit check, and a review: note marks it
-hasc "the landing is a fast-forward" "$pin_ff_only_merge"
-# the owner-checkout guard counts untracked files, as the story gate's does, and says why; a dirty
-# checkout ends on the failed line naming the files (dev-yaiu)
-hasc "the landing guard counts untracked files" '`git -C <owner> status --porcelain` prints nothing (untracked files count, since the check runs on the working tree while the record keys on the committed tree)'
-hasc "the landing guard's dirty-checkout failed line names the files" '`failed: <task-id> owner checkout dirty: <files>`, `<files>` the paths that status call printed'
-lacks "the landing guard that hides untracked files" 'status --porcelain --untracked-files=no`'
 hasc "the landed tip is noted" 'bd -C <owner> note <task-id> "review: <tip SHA>"'
 # delivery: the rules doc's Delivery section, the PR opened ready, the notes in order, the close
 hasc "delivery by the rules doc's Delivery section" "as the rules doc's Delivery section says, with the standalone task as its unit"
