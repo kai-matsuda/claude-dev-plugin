@@ -190,7 +190,7 @@
 #  17. /implement-task (dev-b8d.1.6): the non-task, story-task and not-ready refusals, the story
 #      row's plumbing (the make probe and its refusal, the forge decided once, the gitignore rule,
 #      task/<id> with a branch: note), one task orchestrator with the short brief, the landing by
-#      a fast-forward, the rules doc's Delivery with the PR opened ready and never a draft,
+#      the Land script with --ff-only, the rules doc's Delivery with the PR opened ready and never a draft,
 #      delivered: before pr: and the close at delivery, no forge's pushed branch and skipped-checks
 #      line, the merge guard and the gate re-entry on a rerun, and the report minus the story lines
 #      ending on resume:. Section 6 pins the rules doc's one paragraph on it (the table keeps three
@@ -2183,9 +2183,9 @@ fi
 # story's task (naming /dev:implement-story <story-id>) and one not ready-for-agent; it reuses the
 # story orchestrator's plumbing (the make probe and its refusal, the forge decision, the gitignore
 # rule, task/<id> off the default branch with a branch: note), spawns one task orchestrator with
-# the short brief, lands its reviewed branch through the Land script with --ff-only, and delivers by the rules doc's
-# Delivery section: the PR opened ready, delivered: before pr:, then the close; with no forge the
-# pushed branch and checks: skipped: no forge. A rerun applies the merge guard on the pr: note and
+# the short brief, lands its reviewed branch through the Land script with --ff-only, and delivers
+# by the rules doc's Delivery section: the PR opened ready, delivered: before pr:, then the close;
+# with no forge the pushed branch and checks: skipped: no forge. A rerun applies the merge guard on the pr: note and
 # re-enters at the gate on a failed run's commits with a fresh budget; the report ends on resume:.
 if doc 17 "/implement-task" "$skills/implement-task/SKILL.md"; then
 opening_has "the frontmatter names a standalone task" 'Implement one standalone task bead'
@@ -2222,6 +2222,7 @@ hasc "a moved-past refusal names the reviewed tip" 'a `moved past <tip>` names t
 hasc "the resume path re-lands the noted tip through the Land script" 'it first calls the Land script as step 4 does, with `<branch>` as `<task branch>`, the note'"'"'s tip as `<tip SHA>` and `--ff-only`: that tip is already in `<branch>`, so the script runs its guards, merges nothing and reports `landed <sha>`'
 hasc "the resume path's refusal is the failed: line" 'a `refused: <reason>` ends the run with `failed: <task-id> <reason>`; it then goes straight to step 5'
 lacks "the resume path that goes straight to step 5" 'failed at delivery: go straight to step 5'
+hasc "a conflict landing is the failed: line" 'so it is a script fault: end the run with `failed: <task-id> conflict landing <task branch>`'
 hasc "the landed tip is noted" 'bd -C <owner> note <task-id> "review: <tip SHA>"'
 # delivery: the rules doc's Delivery section, the PR opened ready, the notes in order, the close
 hasc "delivery by the rules doc's Delivery section" "as the rules doc's Delivery section says, with the standalone task as its unit"
