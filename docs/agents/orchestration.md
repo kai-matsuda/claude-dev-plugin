@@ -71,6 +71,7 @@ verdict, an epic review's minors take no last fix-up at this row, since the epic
 implements nothing and its one fix-up is a task under the story, where no minor goes
 (Review verdict): they go to the inbox as deferrals at once, the tracker doc's "capture a retro item", and on a clean
 verdict the PR is marked ready once its checks are green.
+A finding from outside its own reviewer, about a story's delivered tip, is one of the epic review's findings: blocking when it names wrong behaviour, filed and budgeted like a blocking verdict's, else a minor.
 
 ## Orchestrator role
 

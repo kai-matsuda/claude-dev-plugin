@@ -96,3 +96,8 @@ has	every epic review's minors go to the inbox	The minors of every epic review, 
 # a reviewer that fans out reports once, after every sub-agent has (dev-f7k8)
 has	epic reviewer brief: wait for every sub-agent, then one whole-review report	end your turn until every one of them has reported
 has	epic reviewer brief: one report whose verdict covers the whole review, never a partial one	then send one report whose verdict covers the whole review; the epic orchestrator never acts on a partial verdict
+# a finding that reaches the epic orchestrator from outside its own reviewer (dev-4pm2)
+has	outside finding on a delivered tip	a finding from outside its own reviewer
+has	outside finding test: wrong behaviour is blocking	names wrong behaviour
+has	outside finding never held or dropped	never held in context or dropped
+has	clean verdict with an open blocking outside finding is not ready	is not marked ready until that fix-up has run

@@ -1453,6 +1453,7 @@ para_has "$head_epic_row" "the red check's task carries its check, command and l
 para_has "$head_epic_row" "a red check spends the epic row's budget" 'three such fix-ups per story per invocation, red or blocking alike'
 para_has "$head_epic_row" "a pending check leaves the PR a draft" "$pin_pr_stays_a_draft and a later invocation reads it again"
 para_has "$head_epic_row" "the epic row's minors take no last fix-up" 'minors take no last fix-up at this row'
+para_has "$head_epic_row" "the epic row files a blocking outside finding like a blocking verdict" 'a finding from outside its own reviewer'
 para_has "$head_epic_row" "every epic review's minors go to the inbox, blocking or clean" "verdict, an epic review's minors take no last fix-up"
 para_has "$head_epic_row" "the epic row's minors go to the inbox" "$pin_inbox_as_deferrals"
 para_has "$head_epic_row" "the epic row's minors go to the inbox at once" "$pin_inbox_as_deferrals at once"
