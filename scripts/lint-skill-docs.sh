@@ -1116,6 +1116,15 @@ while IFS= read -r f; do
       all=${skill_names#|}; all=${all%|}
       [ -z "$all" ] || lacksw "another skill's step number cited in $f (name the rule by its section or bold name)" "dev:($all)([^a-z -][^ ]*)? steps? [0-9]" ;;
   esac
+  # the Land script and the stray-commit script own the landing's merge of a task branch and the
+  # stray-commit git log (ADR 0017), so no skill doc types either inline; a code span only, and
+  # "merge-base" or "merge --abort" is no landing merge. The rules docs name both commands, so
+  # only a file under the skills dir is swept (dev-skn5.1.5)
+  case $f in
+    "$skills"/*)
+      lacksw "an inline landing merge in $f" 'git( -C [^ `]+)? merge [^`]*<task branch>'
+      lacksw "the inline stray-commit git log in $f" 'git( -C [^ `]+)? log [^`]*<branch>\.\.<task branch>' ;;
+  esac
   lacksw "retired phrase in $f" "$retired"
   # no foreground spawn instruction: an Agent call returns at once whatever run_in_background
   # says, so skills and agent docs point at the waiting rule instead (chezmoi-p4q)

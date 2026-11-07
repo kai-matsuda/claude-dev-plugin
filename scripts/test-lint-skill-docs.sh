@@ -861,9 +861,10 @@ section_case 10 docs/agents/issue-tracker.md "$ban_only_lines" "a tracker doc wh
 section_case 11 skills/sample/SKILL.md 'run /story-to-tasks next' "a bare /<skill>"
 section_case 12 skills/retro/SKILL.md "$ban_bare_grep" "/retro with the bare grep instruction"
 section_case 13 skills/sample/SKILL.md "> read \${$plugin_root_var}/docs/agents/orchestration.md" "the plugin-root variable in a brief"
-# the inline landing merge, now banned from task-orchestrator; also seeds the @merge@ derivation below
+# the inline landing merge, banned from task-orchestrator (section 16) and every skill (section 5);
+# also seeds the @merge@ derivation below
 landing_merge='`git -C <owner> merge <task branch>`'
-section_case 16 skills/task-orchestrator/SKILL.md "then merge it with $landing_merge" "/task-orchestrator merging onto the owner checkout"
+section_case "5 16" skills/task-orchestrator/SKILL.md "then merge it with $landing_merge" "/task-orchestrator merging onto the owner checkout"
 ban_alt ban_draft_pr "a draft PR for a standalone task"
 section_case 17 skills/implement-task/SKILL.md "then run \`$ban_draft_pr\`" "/implement-task opening a draft PR"
 section_case 5 skills/sample/SKILL.md 'run it with the sandbox disabled, as `/dev:close-story` step 4 does' "a skill citing another skill's step number"
@@ -971,6 +972,21 @@ fresh
 ban ban_cannot_take_c "the retired bd init -C wording in $scratch/skills/sample/SKILL.md"
 echo "\`bd init\` $ban_cannot_take_c, so give the user the command." >> "$scratch/skills/sample/SKILL.md"
 expect "a skill saying bd init cannot take -C fails" 1 "the retired bd init -C wording"
+
+# the Land script and the stray-commit script own the landing's merge and the stray-commit git log
+# (ADR 0017), so no skill doc types either inline (dev-skn5.1.5); the rules docs may name them
+for typed in '`git -C <owner> merge --no-edit <task branch>`' '`git -C <owner> merge --ff-only <task branch>`' '`git merge <task branch>`'; do
+  fresh
+  echo "Then merge it with $typed." >> "$scratch/skills/sample/SKILL.md"
+  expect "a skill typing $typed fails" 1 "an inline landing merge in $scratch/skills/sample/SKILL.md"
+done
+fresh
+echo "Check \`git -C <owner> log --no-merges --format='%H' <branch>..<task branch>\` for strays." >> "$scratch/skills/sample/SKILL.md"
+expect "a skill typing the stray-commit git log fails" 1 "the inline stray-commit git log in $scratch/skills/sample/SKILL.md"
+fresh
+echo "Done when \`git -C <owner> merge-base --is-ancestor <task branch> <branch>\` exits 0; \`git -C <owner> merge --abort\` first." >> "$scratch/skills/sample/SKILL.md"
+echo 'A `git merge <task branch>` that applies is a command, and `git -C <owner> log <branch>..<task branch>` its check.' >> "$scratch/docs/agents/sample.md"
+expect "merge-base and merge --abort in a skill, and the typed commands in the rules docs, pass" 0
 
 # the two-wave cap is a pattern with an optional word: its instances, as the skill might word them
 for phrase in 'in at most two dependency waves' 'in at most two waves'; do
@@ -2815,7 +2831,8 @@ for case in 'Then merge, @merge@.|present: a write command on the owner checkout
   seed=${seed/@merge@/$landing_merge}
   fresh
   printf '%s\n' "$seed" >> "$scratch/skills/task-orchestrator/SKILL.md"
-  sec=16 expect "task-orchestrator regaining '$seed' fails" 1 "${case#*|}"
+  s=16; case $seed in *merge*) s="5 16";; esac   # a typed landing merge is also section 5's sweep
+  sec=$s expect "task-orchestrator regaining '$seed' fails" 1 "${case#*|}"
 done
 
 for case in '   story:   <story-id> <title>|present: a story line in the report' \
