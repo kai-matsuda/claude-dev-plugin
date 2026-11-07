@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # The landing (glossary: Landing) as one call, touching git only. Confirms the owner checkout is on
 # <branch> and clean (untracked files counted) and that <task branch> is at <tip>, runs the
-# stray-commit script on <branch>..<task branch>, then makes one merge attempt (fast-forward only
-# under --ff-only). One line, one exit status:
+# stray-commit script on <branch>..<tip>, then makes one merge attempt of <tip> (fast-forward only
+# under --ff-only); past the guard it names the verified <tip>, never the branch. One line, one exit status:
 #   landed <sha>                      exit 0; <sha> is <branch>'s tip. A tip already in <branch> merges
 #                                     nothing and reports the same line.
 #   conflict                          exit 1, after the script's own merge --abort left the checkout clean
@@ -35,7 +35,7 @@ fi
 [ "$(git -C "$owner" rev-parse -q --verify "refs/heads/$task" 2>/dev/null)" = "$tip" ] \
   || refuse "$task moved past $tip"
 
-if ! stray=$("$here/stray-commit.sh" "$owner" "$branch..$task"); then
+if ! stray=$("$here/stray-commit.sh" "$owner" "$branch..$tip"); then
   case $stray in "refused: "*) echo "$stray"; exit 2 ;; "stray commit "*) refuse "$stray" ;; *) refuse "${stray:-stray-commit.sh failed}" ;; esac
 fi
 
@@ -45,8 +45,8 @@ if git -C "$owner" merge-base --is-ancestor "$tip" "$branch"; then
 fi
 
 if [ -n "$ff" ]; then
-  git -C "$owner" merge -q --ff-only "$task" >/dev/null 2>&1 || refuse "diverged"
-elif ! git -C "$owner" merge -q --no-edit "$task" >/dev/null 2>&1; then
+  git -C "$owner" merge -q --ff-only "$tip" >/dev/null 2>&1 || refuse "diverged"
+elif ! git -C "$owner" merge -q --no-edit "$tip" >/dev/null 2>&1; then
   unmerged=$(git -C "$owner" ls-files --unmerged 2>/dev/null)
   git -C "$owner" merge --abort >/dev/null 2>&1
   [ -z "$(git -C "$owner" status --porcelain --untracked-files=all 2>/dev/null)" ] \
