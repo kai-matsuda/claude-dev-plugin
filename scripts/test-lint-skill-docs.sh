@@ -836,7 +836,7 @@ seed_pins() {
 section_case() {
   fresh
   printf '%s\n' "$3" >> "$scratch/$2"
-  sec=$1 expect "section $1 fails alone: $4" 1
+  sec=$1 expect "section ${1// / and } fails alone: $4" 1
 }
 ban ban_cross_repo "stale wording"
 ban ban_rerun_hint "rerun hint covering an already cut dependent"
@@ -975,7 +975,7 @@ expect "a skill saying bd init cannot take -C fails" 1 "the retired bd init -C w
 
 # the Land script and the stray-commit script own the landing's merge and the stray-commit git log
 # (ADR 0017), so no skill doc types either inline (dev-skn5.1.5); the rules docs may name them
-for typed in '`git -C <owner> merge --no-edit <task branch>`' '`git -C <owner> merge --ff-only <task branch>`' '`git merge <task branch>`'; do
+for typed in '`git -C <owner> merge --no-edit <task branch>`' '`git -C <owner> merge --ff-only <task branch>`' '`git merge <task branch>`' '`git merge <task-branch>`'; do
   fresh
   echo "Then merge it with $typed." >> "$scratch/skills/sample/SKILL.md"
   expect "a skill typing $typed fails" 1 "an inline landing merge in $scratch/skills/sample/SKILL.md"
@@ -984,6 +984,7 @@ fresh
 echo "Check \`git -C <owner> log --no-merges --format='%H' <branch>..<task branch>\` for strays." >> "$scratch/skills/sample/SKILL.md"
 expect "a skill typing the stray-commit git log fails" 1 "the inline stray-commit git log in $scratch/skills/sample/SKILL.md"
 fresh
+echo "The Land script runs git merge <task branch> for you, and git log <branch>..<task branch> its check." >> "$scratch/skills/sample/SKILL.md"
 echo "Done when \`git -C <owner> merge-base --is-ancestor <task branch> <branch>\` exits 0; \`git -C <owner> merge --abort\` first." >> "$scratch/skills/sample/SKILL.md"
 echo 'A `git merge <task branch>` that applies is a command, and `git -C <owner> log <branch>..<task branch>` its check.' >> "$scratch/docs/agents/sample.md"
 expect "merge-base and merge --abort in a skill, and the typed commands in the rules docs, pass" 0
@@ -2831,7 +2832,7 @@ for case in 'Then merge, @merge@.|present: a write command on the owner checkout
   seed=${seed/@merge@/$landing_merge}
   fresh
   printf '%s\n' "$seed" >> "$scratch/skills/task-orchestrator/SKILL.md"
-  s=16; case $seed in *merge*) s="5 16";; esac   # a typed landing merge is also section 5's sweep
+  s=16; case $seed in *"$landing_merge"*) s="5 16";; esac   # a typed landing merge is also section 5's sweep
   sec=$s expect "task-orchestrator regaining '$seed' fails" 1 "${case#*|}"
 done
 
