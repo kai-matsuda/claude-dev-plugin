@@ -1453,7 +1453,11 @@ para_has "$head_epic_row" "the red check's task carries its check, command and l
 para_has "$head_epic_row" "a red check spends the epic row's budget" 'three such fix-ups per story per invocation, red or blocking alike'
 para_has "$head_epic_row" "a pending check leaves the PR a draft" "$pin_pr_stays_a_draft and a later invocation reads it again"
 para_has "$head_epic_row" "the epic row's minors take no last fix-up" 'minors take no last fix-up at this row'
-para_has "$head_epic_row" "the epic row files a blocking outside finding like a blocking verdict" 'a finding from outside its own reviewer'
+# a finding from outside the story's epic reviewer is one of the epic review's findings (dev-4pm2)
+row_phrase implement-spec-pins "outside finding on a delivered tip" && para_has "$head_epic_row" "the epic row: outside finding on a delivered tip" "$row_text"
+row_phrase implement-spec-pins "outside finding test: wrong behaviour is blocking" && para_has "$head_epic_row" "the epic row: outside finding test: wrong behaviour is blocking" "$row_text"
+row_phrase implement-spec-pins "outside finding after the round is cut goes to the next round" && para_has "$head_epic_row" "the epic row: outside finding after the round is cut goes to the next round" "$row_text"
+row_phrase implement-spec-pins "clean verdict with an open blocking outside finding is not ready" && para_has "$head_epic_row" "the epic row: clean verdict with an open blocking outside finding is not ready" "$row_text"
 para_has "$head_epic_row" "every epic review's minors go to the inbox, blocking or clean" "verdict, an epic review's minors take no last fix-up"
 para_has "$head_epic_row" "the epic row's minors go to the inbox" "$pin_inbox_as_deferrals"
 para_has "$head_epic_row" "the epic row's minors go to the inbox at once" "$pin_inbox_as_deferrals at once"

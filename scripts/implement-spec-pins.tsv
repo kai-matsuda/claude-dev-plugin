@@ -96,8 +96,16 @@ has	every epic review's minors go to the inbox	The minors of every epic review, 
 # a reviewer that fans out reports once, after every sub-agent has (dev-f7k8)
 has	epic reviewer brief: wait for every sub-agent, then one whole-review report	end your turn until every one of them has reported
 has	epic reviewer brief: one report whose verdict covers the whole review, never a partial one	then send one report whose verdict covers the whole review; the epic orchestrator never acts on a partial verdict
-# a finding that reaches the epic orchestrator from outside its own reviewer (dev-4pm2)
-has	outside finding on a delivered tip	a finding from outside its own reviewer
+# a finding that reaches the epic orchestrator from outside the story's epic reviewer (dev-4pm2)
+has	outside finding on a delivered tip	from outside the story's epic reviewer
 has	outside finding test: wrong behaviour is blocking	names wrong behaviour
 has	outside finding never held or dropped	never held in context or dropped
+has	outside finding: blocking is filed in the round	is filed as a fix-up task with that round's other tasks
+has	outside finding: minor goes to the inbox	a minor goes to the inbox with the review's minors
+has	outside finding after the round is cut goes to the next round	is filed in the story's next round
+has	outside finding's fix-up note says blocking	its `epic fix-up` note says `blocking`
 has	clean verdict with an open blocking outside finding is not ready	is not marked ready until that fix-up has run
+has	outside finding's fourth-round failure line	even when the review itself was clean
+has	a fix-up note after a clean review sends the story back to the fix-up path	follows its clean `epic review` note on the same tip
+has	mark ready defers to an open blocking outside finding	unless a blocking outside finding is open
+has	the skip rule sends a story with an open outside fix-up back to Fix-up	it is then not re-polled, and goes back to Fix-up

@@ -503,6 +503,13 @@ child is a task and `bd ready` would list it to the next run
 (`docs/agents/orchestration.md`, "Frontier", Deferrals).
 _Avoid_: deferral task, follow-up task, needs-triage child
 
+**Outside finding**:
+A finding about a story's delivered tip that reaches the epic orchestrator from outside the
+story's epic reviewer, such as a security-review notification or a CI annotation. It counts
+as one of that story's epic review findings: blocking when it names wrong behaviour, else
+minor (`skills/implement-spec/SKILL.md`, step 6).
+_Avoid_: external finding, stray finding
+
 **Provenance cite**:
 The bead id inside parentheses closing the clause of a rules-doc sentence or lint-script
 comment that records why a rule exists, as in "(dev-6qi)"; a bead named as a sentence's
