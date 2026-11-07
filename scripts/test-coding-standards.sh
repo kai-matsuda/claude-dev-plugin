@@ -18,6 +18,6 @@ rule=$(section "$h")
 fx_check "the rule names the name-versus-value gap" grep -q 'name it was resolved from' <<<"$rule"
 fx_check "the rule gives its reason, the INFRA-42 land.sh case" bash -c 'grep -q "INFRA-42" <<<"$1" && grep -q "land.sh" <<<"$1"' _ "$rule"
 fx_check "the rule has a wrong and a right example" bash -c 'grep -q "^- Wrong" <<<"$1" && grep -q "^- Right" <<<"$1"' _ "$rule"
-fx_check "the example guards refs/heads and merges by value" bash -c 'grep -q "refs/heads" <<<"$1" && grep -q "merge" <<<"$1"' _ "$rule"
+fx_check "the example guards refs/heads and merges by value" bash -c 'grep -q "refs/heads" <<<"$1" && grep -q "^- Right.*git merge \"\$tip\"" <<<"$1"' _ "$rule"
 
 fx_report_fails
