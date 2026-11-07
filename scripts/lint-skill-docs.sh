@@ -1338,7 +1338,7 @@ para_has "$head_landing_a_task" "the Land script touches git only" 'touches git 
 para_has "$head_landing_a_task" "the Land script's landed outcome" '`landed <sha>` with exit 0'
 para_has "$head_landing_a_task" "the Land script's conflict outcome" '`conflict` with exit 1, after the script'"'"'s own `merge --abort` left the owner checkout clean'
 para_has "$head_landing_a_task" "the Land script's refusal outcome" '`refused: <reason>` with exit 2 and nothing merged'
-para_has "$head_landing_a_task" "the Land script's refusal reasons" '`not on <branch>`, `owner checkout dirty: <files>`, `task moved past <tip>`, `stray commit <sha> <subject>`, or `diverged` (only under `--ff-only`)'
+para_has "$head_landing_a_task" "the Land script's refusal reasons" '`not on <branch>`, `owner checkout dirty: <files>`, `<task branch> moved past <tip>`, `stray commit <sha> <subject>`, or `diverged` (only under `--ff-only`)'
 para_has "$head_landing_a_task" "re-landing a landed tip merges nothing" 'Landing a tip already in `<branch>` runs the guards and reports `landed <sha>` with nothing merged'
 para_has "$head_check_scope" "a check is one run of the check command through the Check record script" 'one run of the check command through the Check record script'
 para_has "$head_check_gate" "each pass runs the Check record script" 'Each pass runs the Check record script on the tip'

@@ -28,7 +28,7 @@ run() { out=$("$script" "$r" "$@" 2>&1); rc=$?; }
 # reset: main at base, a task branch "task" one clean commit ahead, main checked out
 reset() {
   git -C "$r" checkout -q -f main && git -C "$r" reset -q --hard "$base" && git -C "$r" clean -qfd
-  git -C "$r" branch -q -D task 2>/dev/null
+  git -C "$r" branch -q -D task feat/t-9 2>/dev/null
   git -C "$r" checkout -q -b task && commit t.txt t "feat: task work" "" "Bead: x-2"
   tip=$(sha task)
   git -C "$r" checkout -q main
@@ -37,13 +37,15 @@ reset() {
 commit base.txt base "chore: base" "" "Bead: x-1"
 base=$(sha HEAD)
 
-# plain merge
+# plain merge: main moved on, so the merge is a real merge commit
 reset
+commit m.txt m "feat: main moved" "" "Bead: x-3"
+mainbefore=$(sha main)
 run main task "$tip"
 merged=$(sha main)
 fx_check "plain merge: exits 0" fx_eq "$rc" 0
 fx_check "plain merge: landed line" fx_eq "$out" "landed $merged"
-fx_check "plain merge: main holds the tip" git -C "$r" merge-base --is-ancestor "$tip" main
+fx_check "plain merge: main is a merge of base and the tip" fx_eq "$(sha main^1) $(sha main^2)" "$mainbefore $tip"
 fx_check "plain merge: clean checkout" fx_eq "$(status)" ""
 
 # --ff-only landing
@@ -57,14 +59,18 @@ fx_check "ff-only: clean checkout" fx_eq "$(status)" ""
 # re-land: the tip is already in main, nothing is merged
 before=$(sha main)
 run main task "$tip" --ff-only
-fx_check "re-land: exits 0" fx_eq "$rc" 0
-fx_check "re-land: landed line" fx_eq "$out" "landed $before"
-fx_check "re-land: main unmoved" fx_eq "$(sha main)" "$before"
+fx_check "re-land ff-only: exits 0" fx_eq "$rc" 0
+fx_check "re-land ff-only: landed line" fx_eq "$out" "landed $before"
+fx_check "re-land ff-only: main unmoved" fx_eq "$(sha main)" "$before"
+fx_check "re-land ff-only: clean checkout" fx_eq "$(status)" ""
 reset
 run main task "$tip"
 again=$(sha main)
 run main task "$tip"
-fx_check "re-land after plain merge: landed, main unmoved" fx_eq "$out|$(sha main)" "landed $again|$again"
+fx_check "re-land after plain merge: exits 0" fx_eq "$rc" 0
+fx_check "re-land after plain merge: landed line" fx_eq "$out" "landed $again"
+fx_check "re-land after plain merge: main unmoved" fx_eq "$(sha main)" "$again"
+fx_check "re-land after plain merge: clean checkout" fx_eq "$(status)" ""
 
 # conflict: main edits the same file, the merge is aborted, the checkout is clean
 reset
@@ -116,11 +122,12 @@ fx_check "dirty untracked: status shows the file" fx_eq "$(status)" "?? untracke
 
 # task branch moved past the expected tip
 reset
-git -C "$r" checkout -q task && commit t2.txt t2 "feat: more" "" "Bead: x-2"
+git -C "$r" branch -q -m task feat/t-9
+git -C "$r" checkout -q feat/t-9 && commit t2.txt t2 "feat: more" "" "Bead: x-2"
 git -C "$r" checkout -q main
-run main task "$tip"
+run main feat/t-9 "$tip"
 fx_check "moved past tip: exits 2" fx_eq "$rc" 2
-fx_check "moved past tip: the line" fx_eq "$out" "refused: task moved past $tip"
+fx_check "moved past tip: the line" fx_eq "$out" "refused: feat/t-9 moved past $tip"
 fx_check "moved past tip: main unmoved" fx_eq "$(sha main)" "$base"
 fx_check "moved past tip: clean checkout" fx_eq "$(status)" ""
 
@@ -146,9 +153,25 @@ fx_check "missing trailer: the line" fx_eq "$out" "refused: stray commit $nb fix
 fx_check "missing trailer: main unmoved" fx_eq "$(sha main)" "$base"
 fx_check "missing trailer: clean checkout" fx_eq "$(status)" ""
 
-# usage
-out=$("$script" "$r" main task 2>&1); rc=$?
-fx_check "usage: exits 2" fx_eq "$rc" 2
-fx_check "usage: one refusal line" fx_eq "$(wc -l <<<"$out" | tr -d ' ')" 1
+# renamed tracked file: the dirty list names the new path only
+reset
+git -C "$r" mv base.txt moved.txt
+run main task "$tip"
+fx_check "dirty rename: the line" fx_eq "$out" "refused: owner checkout dirty: moved.txt"
+fx_check "dirty rename: exits 2" fx_eq "$rc" 2
+git -C "$r" reset -q --hard "$base"
+
+# a non-repo owner
+nogit=$scratch/not-a-repo; mkdir -p "$nogit"
+out=$("$script" "$nogit" main task "$tip" 2>&1); rc=$?
+fx_check "non-repo owner: exits 2" fx_eq "$rc" 2
+fx_check "non-repo owner: the line" fx_eq "$out" "refused: $nogit is not a git checkout"
+
+# usage: too few, too many and a wrong flag are each one refusal line, exit 2
+for args in "main task" "main task $tip --ff-only extra" "main task $tip --force"; do
+  out=$("$script" "$r" $args 2>&1); rc=$?
+  fx_check "usage ($args): exits 2" fx_eq "$rc" 2
+  fx_check "usage ($args): one refusal line" fx_eq "$(wc -l <<<"$out" | tr -d ' ')|${out%%:*}" "1|refused"
+done
 
 fx_report_fails
