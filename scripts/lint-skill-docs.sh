@@ -1480,7 +1480,7 @@ para_has "$head_epic_row" "the epic row's minors take no last fix-up" 'minors ta
 row_phrase implement-spec-pins "outside finding on a delivered tip" && para_has "$head_epic_row" "the epic row: outside finding on a delivered tip" "$row_text"
 row_phrase implement-spec-pins "outside finding test: wrong behaviour is blocking" && para_has "$head_epic_row" "the epic row: outside finding test: wrong behaviour is blocking" "$row_text"
 row_phrase implement-spec-pins "outside finding: a blocking one is filed at once, wherever the story stands" && para_has "$head_epic_row" "the epic row: outside finding is filed at once, wherever the story stands" "$row_text"
-row_phrase implement-spec-pins "only a closed or landed story takes no task, a moved tip still takes it" && para_has "$head_epic_row" "the epic row: only a closed or landed story takes no task" "$row_text"
+row_phrase implement-spec-pins "only a closed or landed story takes no task" && para_has "$head_epic_row" "the epic row: only a closed or landed story takes no task" "$row_text"
 row_phrase implement-spec-pins "a story with an open fix-up task is not skipped, polled, ready or Done" && para_has "$head_epic_row" "the epic row: a story with an open fix-up task is not skipped, polled, ready or Done" "$row_text"
 row_phrase implement-spec-pins "outside finding: task first, note after, the task is the record" && para_has "$head_epic_row" "the epic row: outside finding: task first, note after" "$row_text"
 row_phrase implement-spec-pins "an add-mode pass on filed tasks is a fix-up round of its own" && para_has "$head_epic_row" "the epic row: an add-mode pass on filed tasks is a fix-up round of its own" "$row_text"
