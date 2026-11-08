@@ -1795,6 +1795,20 @@ pin_phrase "a routed bead of type chore"
 printf '\n%s\n' "$pinned_phrase" >> "$scratch/docs/agents/issue-tracker.md"
 sec=6 expect "a routed bead of type chore fails" 1 "a routed bead of type chore"
 
+# the capture runs its inbox search before bd create (dev-0o8z): a copy with the search block
+# moved after the create block fails naming the pin
+fresh
+rewrite docs/agents/issue-tracker.md awk '
+  /^bd search "<title words>" --status open -l needs-triage$/ { held = $0; next }
+  held != "" && /^  \[--external-ref / { print; print held; held = ""; next }
+  { print }'
+sec=6 expect "a capture that creates before it searches fails" 1 "out of order: the capture searches the inbox before it creates the bead"
+
+# a capture with no inbox search at all fails as missing, naming the pin
+fresh
+rewrite docs/agents/issue-tracker.md sed 's/^bd search "<title words>".*$/bd list/'
+sec=6 expect "a capture with no inbox search fails" 1 "missing in the"
+
 fresh
 ban ban_to_tickets "/triage citing the retired to-tickets template"
 echo "Body in the \`$ban_to_tickets." >> "$scratch/skills/triage/SKILL.md"
