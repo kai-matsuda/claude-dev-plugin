@@ -220,7 +220,8 @@ call with `zsh: no matches found: --include=*.md` when nothing matches.
 **No leading `cd`.** The plugin's PreToolUse hook `<plugin root>/hooks/guard-cd.sh` refuses a
 Bash command whose first word is `cd`, so use the command's own directory flag or an
 absolute path. For `cd <dir> && git|bd|make <args>` the refusal also prints a `Suggestion:` line
-with the rewrite, `git -C <dir> <args>`, so the retry is mechanical.
+with the rewrite, `git -C <dir> <args>`, so the retry is mechanical; a chain after the first command (`&&`,
+`;`, `|`) is cut from the suggestion.
 
 This section binds every session and subagent, orchestrating or not. Never prefix a command
 with `cd <repo> && …`: the Bash tool already starts in the repo root, and permission rules

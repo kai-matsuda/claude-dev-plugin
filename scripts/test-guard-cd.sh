@@ -76,6 +76,11 @@ suggest=$("$hook" <<<"$(jq -cn '{tool_name: "Bash", tool_input: {command: "cd /w
 fx_check "the refusal of cd /w && bd show dev-1 suggests bd -C /w show dev-1" grep -qF 'Suggestion: bd -C /w show dev-1' <<<"$suggest"
 suggest=$("$hook" <<<"$(jq -cn '{tool_name: "Bash", tool_input: {command: "cd /v && git"}}')" 2>&1 >/dev/null)
 fx_check "an argument-less command is suggested with no trailing space" fx_eq "$(grep -F 'Suggestion' <<<"$suggest")" 'Suggestion: git -C /v'
+# a chained command is suggested up to its first separator only
+for chain in 'cd /x && git status && cd -' 'cd /x && git status; cd -' 'cd /x && git status | head' 'cd /x && git status || true'; do
+  suggest=$("$hook" <<<"$(jq -cn --arg c "$chain" '{tool_name: "Bash", tool_input: {command: $c}}')" 2>&1 >/dev/null)
+  fx_check "the suggestion for '$chain' stops at the first separator" fx_eq "$(grep -F 'Suggestion' <<<"$suggest")" 'Suggestion: git -C /x status'
+done
 suggest=$("$hook" <<<"$(jq -cn '{tool_name: "Bash", tool_input: {command: "cd /z && ls"}}')" 2>&1 >/dev/null)
 fx_check "a cd before a command with no directory flag suggests no rewrite" fx_eq "$(grep -cF 'Suggestion' <<<"$suggest")" 0
 
