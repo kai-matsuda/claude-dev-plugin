@@ -774,6 +774,7 @@ lacks "glossary's avoided term human task" "$pin_avoided_term_human_task"
 lacks "PR-opening steps" 'draft PR|pr create|pulls create|open(s|ing)? (a|the) PR'
 lacks "a budget of blocking verdicts only" 'three blocking verdicts'
 lacks "a spent budget skipping the review" 'is failed and not reviewed again'
+lacks "an add-mode pass with a failure line of its own" 'tip unchanged after add mode'
 lacks "nothing touches a task" 'nothing below touches a task'
 # the review set reads the delivered: note, not a failed: report this run (dev-47z)
 lacks "review set keyed on a failed: report this run" 'did not report `failed:` this run'
@@ -1435,13 +1436,15 @@ para_has "$head_check_gate" "the task row writes no reviewed-tip note" 'the task
 para_has "$head_check_gate" "a low task is gated by the checks alone" 'A `low` task'"'"'s gate is the checks alone, with no review'
 # the fix-up budget is bounded per invocation at every row (dev-gi1): a fresh orchestrator at any
 # row starts its unit's budget at three whatever notes earlier invocations left, the epic
-# orchestrator counts a story's spent budget from the notes after this invocation's epic review 1,
+# orchestrator counts a story's spent budget from the notes after its epic round start marker,
 # an agent resumed with its context keeps its own count, and the epic row is no exception
 para_has "$head_check_gate" "a fresh orchestrator starts its unit's budget at three" "starts its unit's budget at three whatever notes earlier invocations left"
 para_has "$head_check_gate" "the fresh budget holds at any row" 'A fresh orchestrator at any row'
 para_has "$head_check_gate" "a resumed agent keeps its own count" 'an agent resumed with its context keeps its own count'
 para_has "$head_check_gate" "neither the task row nor the story row records spent fix-ups" 'neither the task row nor the story row records spent fix-ups'
-para_has "$head_check_gate" "the epic orchestrator counts from the notes after this invocation's epic review 1" "counts a story's spent budget from the story's \`epic fix-up\` notes after this invocation's \`epic review 1\` note"
+row_phrase implement-spec-pins "spent budget is the fix-up notes after the story's epic round start marker" && para_has "$head_check_gate" "the epic orchestrator counts from the notes after the story's epic round start marker" "$row_text"
+para_has "$head_check_gate" "an add-mode re-run of filed tasks is a round of its own that spends" 'An add-mode re-run of tasks already filed is a round of its own and spends the budget like any other'
+para_has "$head_check_gate" "each round spends once, a filing's note and its add-mode pass included" 'Each round spends once'
 para_has "$head_check_gate" "the bound is per invocation, citing dev-l4j" 'bound a person wants is per invocation (dev-l4j)'
 lacks "the epic row named as the budget's exception" 'The epic row is the exception'
 para_has "$head_epic_row" "the epic row's checks are the forge's status on the PR tip" "the forge reports them green on the PR's tip"
@@ -1453,6 +1456,25 @@ para_has "$head_epic_row" "the red check's task carries its check, command and l
 para_has "$head_epic_row" "a red check spends the epic row's budget" 'three such fix-ups per story per invocation, red or blocking alike'
 para_has "$head_epic_row" "a pending check leaves the PR a draft" "$pin_pr_stays_a_draft and a later invocation reads it again"
 para_has "$head_epic_row" "the epic row's minors take no last fix-up" 'minors take no last fix-up at this row'
+# a finding from outside the story's epic reviewer is one of the epic review's findings (dev-4pm2)
+row_phrase implement-spec-pins "outside finding on a delivered tip" && para_has "$head_epic_row" "the epic row: outside finding on a delivered tip" "$row_text"
+row_phrase implement-spec-pins "outside finding test: wrong behaviour is blocking" && para_has "$head_epic_row" "the epic row: outside finding test: wrong behaviour is blocking" "$row_text"
+row_phrase implement-spec-pins "outside finding: a blocking one is filed at once, wherever the story stands" && para_has "$head_epic_row" "the epic row: outside finding is filed at once, wherever the story stands" "$row_text"
+row_phrase implement-spec-pins "only a closed or landed story takes no task, a moved tip still takes it" && para_has "$head_epic_row" "the epic row: only a closed or landed story takes no task" "$row_text"
+row_phrase implement-spec-pins "a story with an open fix-up task is not skipped, polled, ready or Done" && para_has "$head_epic_row" "the epic row: a story with an open fix-up task is not skipped, polled, ready or Done" "$row_text"
+row_phrase implement-spec-pins "outside finding: task first, note after, the task is the record" && para_has "$head_epic_row" "the epic row: outside finding: task first, note after" "$row_text"
+row_phrase implement-spec-pins "an add-mode pass on filed tasks is a fix-up round of its own" && para_has "$head_epic_row" "the epic row: an add-mode pass on filed tasks is a fix-up round of its own" "$row_text"
+para_has "$head_epic_row" "the epic row: the marker is written once per invocation before any delivery or review" 'writes once per invocation, before any delivery or review'
+row_phrase implement-spec-pins "the marker scope is every open story the preflight covered" && para_has "$head_epic_row" "the epic row: the marker's scope is every open story the preflight covered" "$row_text"
+para_has "$head_epic_row" "the epic row: the markers are written only after the preflight passes" 'once the preflight passes'
+row_phrase implement-spec-pins "an add-mode pass spends only when its round has no note yet" && para_has "$head_epic_row" "the epic row: an add-mode pass spends only when its round has no note yet" "$row_text"
+row_phrase implement-spec-pins "a pass on a task whose filing wrote the round note writes no second note" && para_has "$head_epic_row" "the epic row: a pass on a task whose filing wrote the round note writes no second note" "$row_text"
+row_phrase implement-spec-pins "a re-run of a task whose round had its batch spends" && para_has "$head_epic_row" "the epic row: a re-run of a task whose round had its batch spends" "$row_text"
+row_phrase implement-spec-pins "the failing fourth-round pass writes no fourth note" && para_has "$head_epic_row" "the epic row: the failing fourth-round pass writes no fourth note" "$row_text"
+para_has "$head_epic_row" "the epic row: a ready PR goes back to draft first" 'goes back to draft first'
+row_phrase implement-spec-pins "a story with no marker from this invocation gets one before anything is filed on it" && para_has "$head_epic_row" "the epic row: a story with no marker from this invocation gets one before anything is filed on it" "$row_text"
+row_phrase implement-spec-pins "the add-mode round's note kind" && para_has "$head_epic_row" "the epic row: the add-mode round's note kind" "$row_text"
+row_phrase implement-spec-pins "the epic row counts the budget from the epic round start marker" && para_has "$head_epic_row" "the epic row: the budget counts from the epic round start marker" "$row_text"
 para_has "$head_epic_row" "every epic review's minors go to the inbox, blocking or clean" "verdict, an epic review's minors take no last fix-up"
 para_has "$head_epic_row" "the epic row's minors go to the inbox" "$pin_inbox_as_deferrals"
 para_has "$head_epic_row" "the epic row's minors go to the inbox at once" "$pin_inbox_as_deferrals at once"

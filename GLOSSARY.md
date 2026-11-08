@@ -427,7 +427,10 @@ session limit cut it off. Every fix-up budget is bounded per invocation: three f
 unit, and only a person typing the command again grants more. A later invocation reads
 what earlier ones left in the beads as history, never as spent budget, so a story whose
 epic review failed is reviewed again by every invocation until it is clean or a person
-closes its PR.
+closes its PR. A cut-off orchestrator the person restarts by typing the command again is a new
+invocation. `/dev:implement-spec` marks the start of its invocation with an `epic round start`
+note on every open story of the epic that the preflight covered, written before any delivery or review, and counts a
+story's spent budget from the last one.
 _Avoid_: typed run, fresh run (and "attempt" for one invocation)
 
 **Human stop**:
@@ -502,6 +505,14 @@ It is captured as a retro item in the inbox and never as a child of the story, s
 child is a task and `bd ready` would list it to the next run
 (`docs/agents/orchestration.md`, "Frontier", Deferrals).
 _Avoid_: deferral task, follow-up task, needs-triage child
+
+**Outside finding**:
+A finding about a story's delivered tip that reaches the epic orchestrator from outside the
+story's epic reviewer, such as a security-review notification or a CI annotation. It counts
+as one of that story's epic review findings: blocking when it names wrong behaviour, else
+minor. A blocking one is filed at once as a fix-up task under the story, which is the record
+(`skills/implement-spec/SKILL.md`, step 6).
+_Avoid_: external finding, stray finding
 
 **Provenance cite**:
 The bead id inside parentheses closing the clause of a rules-doc sentence or lint-script

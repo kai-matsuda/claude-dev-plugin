@@ -1,5 +1,9 @@
 # Fix-up budgets are bounded per invocation
 
+> Superseded in part (dev-4pm2): the count starts at the `epic round start` marker that
+> `/dev:implement-spec` writes once per invocation before any delivery or review, not at
+> `epic review 1`. Read each "`epic review 1` delimiter" below as that marker.
+
 ## Problem Statement
 
 dev-94a (bd0af91) made a fresh ticket or story orchestrator start its unit's fix-up budget
