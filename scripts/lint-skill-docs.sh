@@ -218,7 +218,8 @@
 # LINT_PINS_DIR overrides the directory of the pin tables (default: scripts under the repo root); a
 # missing directory or table fails, as a missing doc does.
 # LINT_PIN_LIST names a file every check goes to in place of the queue, so none of them runs, for
-# the regression test to derive its drop cases from.
+# the regression test to derive its drop cases from. The one exception is sec_before, a direct
+# check that never goes to the list, so a LINT_PIN_LIST run still runs it.
 # PLUGIN_SKILLS overrides the plugin skills directory (default: newest installed mattpocock-skills).
 # The last section is the version-bump rule (INFRA-30): a change to what the plugin ships
 # needs a changed version in .claude-plugin/plugin.json. VERSION_BUMP_REPO overrides the repo it
@@ -312,7 +313,7 @@ sec_before() {
     END { if (!na || !nb) print "missing"; else if (na >= nb) print "swapped" }' "$f")
   case $r in
     missing) bad "missing in the $1 section: $2 ($3 before $4)" ;;
-    swapped) bad "out of order: $2 ($3 comes after $4 in the $1 section)" ;;
+    swapped) bad "out of order: $2 ($3 does not come before $4 in the $1 section)" ;;
   esac
 }
 # pins_from <table> [<heading>]: queues the checks of a pin table, one row per line as

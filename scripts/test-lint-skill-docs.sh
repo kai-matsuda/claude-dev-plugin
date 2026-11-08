@@ -1804,6 +1804,11 @@ rewrite docs/agents/issue-tracker.md awk '
   { print }'
 sec=6 expect "a capture that creates before it searches fails" 1 "out of order: the capture searches the inbox before it creates the bead"
 
+# a capture with no inbox search at all fails as missing, naming the pin
+fresh
+rewrite docs/agents/issue-tracker.md sed 's/^bd search "<title words>".*$/bd list/'
+sec=6 expect "a capture with no inbox search fails" 1 "missing in the"
+
 fresh
 ban ban_to_tickets "/triage citing the retired to-tickets template"
 echo "Body in the \`$ban_to_tickets." >> "$scratch/skills/triage/SKILL.md"
