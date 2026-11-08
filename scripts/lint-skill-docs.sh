@@ -1466,6 +1466,7 @@ row_phrase implement-spec-pins "outside finding: task first, note after, the tas
 row_phrase implement-spec-pins "an add-mode pass on filed tasks is a fix-up round of its own" && para_has "$head_epic_row" "the epic row: an add-mode pass on filed tasks is a fix-up round of its own" "$row_text"
 para_has "$head_epic_row" "the epic row: the marker is written once per invocation before any delivery or review" 'writes once per invocation, before any delivery or review'
 row_phrase implement-spec-pins "the marker scope is every open story the preflight covered" && para_has "$head_epic_row" "the epic row: the marker's scope is every open story the preflight covered" "$row_text"
+para_has "$head_epic_row" "the epic row: the markers are written only after the preflight passes" 'once the preflight passes'
 row_phrase implement-spec-pins "an add-mode pass spends only when its round has no note yet" && para_has "$head_epic_row" "the epic row: an add-mode pass spends only when its round has no note yet" "$row_text"
 row_phrase implement-spec-pins "a pass on a task whose filing wrote the round note writes no second note" && para_has "$head_epic_row" "the epic row: a pass on a task whose filing wrote the round note writes no second note" "$row_text"
 row_phrase implement-spec-pins "a re-run of a task whose round had its batch spends" && para_has "$head_epic_row" "the epic row: a re-run of a task whose round had its batch spends" "$row_text"

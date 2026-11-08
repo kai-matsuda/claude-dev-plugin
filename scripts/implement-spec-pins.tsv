@@ -114,7 +114,7 @@ has	outside finding: task first, note after, the task is the record	its task fir
 has	a story with an open fix-up task is not skipped, polled, ready or Done	an open `ready-for-agent` child is not skipped, not re-polled, not marked ready and not Done
 has	an outside finding's ready PR is returned to draft	a PR already marked ready is returned to draft
 has	outside finding's fourth-round failure line	even when the review itself was clean
-has	the skip rule's add mode files nothing and writes its round's note	goes to Fix-up's add mode on the tasks already filed, filing nothing and writing its round's note
+has	the skip rule's add mode files nothing and writes its round's note	goes to Fix-up's add mode on the tasks already filed, filing nothing and writing its round's note unless its filing already wrote it
 has	a fix-up note on the tip with no open child is reviewed again	A story whose `epic fix-up` note names its current tip with no open child is reviewed again
 has	the epic row counts the budget from the epic round start marker	spent budget is counted from the story's `epic round start` note
 has	an add-mode pass on filed tasks is a fix-up round of its own	An add-mode pass on tasks already filed is a fix-up round of its own
@@ -123,7 +123,7 @@ has	mark ready defers to the skip rule's open fix-up	Green, and no open fix-up t
 has	Fix-up files the tasks before the epic fix-up note	file the tasks first and write the note after, so the tasks are the record
 has	the epic fix-up <k> is the spent budget plus one	`<k>` is the story's spent budget plus one
 has	step 7 Done gives way to an open fix-up task	and no open `ready-for-agent` fix-up task (step 6's skip rule)
-has	an add-mode pass spends only when its round has no note yet	spends only when the story has no `epic fix-up` note since its last `epic round start` note or an add-mode batch has run since its last `epic fix-up` note
+has	an add-mode pass spends only when its round has no note yet	spends the budget only when the story has no `epic fix-up` note since its last `epic round start` note or an add-mode batch was spawned after its last `epic fix-up` note
 has	a pass on a task whose filing wrote the round note writes no second note	writes no second note and spends nothing
 has	a re-run of a task whose round had its batch spends	a re-run of a task whose round already had its batch spends
 has	the failing fourth-round pass writes no fourth note	writes no fourth note, files nothing and reports
@@ -131,3 +131,6 @@ has	the marker scope is every open story the preflight covered	on every open sto
 has	a moved-tip story filing spends a round of this invocation only	which spends a round of this invocation only
 has	a story stuck on an open fix-up child needs no Stall line	needs no Stall line of its own
 has	the no-marker check is against the orchestrators own context	against the orchestrator's own context
+has	the markers are written only after the preflight passes	A preflight that stops with `/add-dir` lines writes none
+has	the batch check reads the orchestrators own context, the budget count reads the notes	(a batch you spawned this invocation, which your own context holds; the budget count itself reads the notes only)
+has	a pass after a batch spends, a moved-tip story falls under the tip-not-delivered line	every pass after a batch spends the budget
