@@ -296,6 +296,25 @@ line_lacks() { [ -f "$f" ] || return 0; enqueue "X	$f	$2	$3	$1"; }   # <anchor> 
 para_has() { enqueue "p	$f	$2	$3	$1"; }   # <heading> <description> <phrase>
 sec_has() { enqueue "S	$f	$2	$3	$1"; }   # <heading line> <description> <phrase>: searched between that heading and the next ##
 opening_has() { enqueue "o	$f	$1	$2"; }
+# sec_before <heading line> <description> <first> <second>: a direct check (never in the pin list):
+# inside that section of $f, the first line holding <first> comes before the first line holding
+# <second> (both -F), so a section wrapped across lines is compared by where each phrase starts.
+# A section or a phrase that is missing fails too
+sec_before() {
+  [ -f "$f" ] || return 0
+  unchanged_file && return 0
+  local r
+  r=$(awk -v h="$1" -v a="$3" -v b="$4" '
+    $0 == h { on = 1; next }
+    on && index($0, "## ") == 1 { exit }
+    on && !na && index($0, a) { na = NR }
+    on && !nb && index($0, b) { nb = NR }
+    END { if (!na || !nb) print "missing"; else if (na >= nb) print "swapped" }' "$f")
+  case $r in
+    missing) bad "missing in the $1 section: $2 ($3 before $4)" ;;
+    swapped) bad "out of order: $2 ($3 comes after $4 in the $1 section)" ;;
+  esac
+}
 # pins_from <table> [<heading>]: queues the checks of a pin table, one row per line as
 # <check>	<description>	<phrase>[	<sweep>], tab-separated: has (-iF), hasc (-F) or sec (-F inside the
 # <heading> section of $f, sec_has); the sweep field, a part of the phrase, is read by row_sweep, and a row
@@ -1599,6 +1618,7 @@ lacks "a routed bead of type chore" '--type chore -l complexity:'
 # here; no skill carries its own copy (dev-hmjc)
 sec_has '## When a skill says "capture a retro item" (`/dev:retro`)' "the capture searches the open needs-triage beads first" 'bd search "<title words>" --status open -l needs-triage'
 sec_has '## When a skill says "capture a retro item" (`/dev:retro`)' "a repeat is noted, not filed again" 'bd note <id> "seen again: <moment>"'
+sec_before '## When a skill says "capture a retro item" (`/dev:retro`)' "the capture searches the inbox before it creates the bead" 'bd search "<title words>"' 'bd create "<title>"'
 # the one test of the session mode (ADR 0008), stated once, in the opening before any section
 for need in '`<home>` is the session'"'"'s repo' '`<home>/repos.yaml`' '**workspace session**' '**repo session**' 'the only owner'; do
   opening_has "the tracker doc's one test" "$need"
