@@ -217,6 +217,12 @@ fx_check "commit-lint joins split trailers that are followed by # comment lines"
 lint_msg $'fix: thing\n\nBody.\n\nBead: dev-pf49\nRefs: INFRA-42\n\nCo-authored-by: Claude <noreply@anthropic.com>\nclaude-session: https://example.test/s'
 fx_check "commit-lint joins split trailers whose attribution keys are lowercase" bash -c \
   '[ "$1" = 0 ] && [ "$(grep -c "^$" "$2")" = 2 ]' _ "$lrc" "$lintw/msg"
+lint_msg $'fix: thing\n\nBead: dev-pf49\n\nCo-Authored-By: Claude <noreply@anthropic.com>'
+fx_check "commit-lint joins split trailers with one attribution key alone" bash -c \
+  '[ "$1" = 0 ] && [ "$(grep -c "^$" "$2")" = 1 ]' _ "$lrc" "$lintw/msg"
+lint_msg $'fix: thing\n\nBead: dev-pf49\n\nCO-AUTHORED-BY: Claude <noreply@anthropic.com>\nCLAUDE-SESSION: https://example.test/s'
+fx_check "commit-lint joins split trailers whose attribution keys are all caps" bash -c \
+  '[ "$1" = 0 ] && [ "$(grep -c "^$" "$2")" = 1 ]' _ "$lrc" "$lintw/msg"
 # a CRLF message file
 lint_msg $'fix: thing\r\n\r\nBead: dev-qgww\r\n\r\nCo-Authored-By: Claude <noreply@anthropic.com>\r'
 fx_check "commit-lint passes split trailers in a CRLF message" test "$lrc" = 0
