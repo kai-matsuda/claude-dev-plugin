@@ -2149,6 +2149,8 @@ done
 line_has '^2\. ' "task orchestrator step 2's brief carries the plain-command line" "$plain_command"
 # the implementer and fix-up briefs say seam run and never the check command or the script
 line_has '^2\. ' "the implementer brief says seam runs at the story's test seams" "does seam runs at the story's test seams"
+# the implementer's reset names the command that matches no ask rule (dev-16ml, INFRA-43)
+line_has '^2\. ' "the implementer brief names the reset command" 'first runs `git -C <worktree path> reset --keep <branch>`'
 line_has '^2\. ' "the implementer brief's seam run fallback is the touched modules' tests" "the touched modules' tests for a standalone task that names no seams"
 line_has '^2\. ' "the implementer brief says the implementer never runs the check command or the script" 'never runs the check command or `<plugin root>/scripts/check.sh`'
 line_has '^3\. ' "the fix-up pointer brief says seam run and never the check command or the script" 'it says seam run and never the check command or `<plugin root>/scripts/check.sh`'

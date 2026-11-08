@@ -42,6 +42,19 @@ fx_check "baseline makes the beads and Dolt directories writable" jq -e '
   .sandbox.filesystem.allowWrite | index("~/.beads") != null and index("~/.dolt") != null' "$snippet"
 fx_check "baseline excludes push and fetch from the sandbox" jq -e '
   .sandbox.excludedCommands | any(test("^git push")) and any(test("^git fetch"))' "$snippet"
+# the implementer's reset (dev-16ml, INFRA-43) runs unattended: no ask rule may match it
+no_ask_match() { # <snippet> <command>
+  local pat
+  while IFS= read -r pat; do
+    pat=${pat#Bash(}; pat=${pat%)}
+    [[ $2 == $pat ]] && return 1
+  done < <(jq -r '.permissions.ask[]' "$1")
+  return 0
+}
+fx_check "the implementer's reset with -C matches no ask rule" no_ask_match "$snippet" 'git -C /x/worktree reset --keep feat/x'
+fx_check "the implementer's plain reset matches no ask rule" no_ask_match "$snippet" 'git reset --keep feat/x'
+ask_matches() { ! no_ask_match "$@"; }
+fx_check "the ask rule still catches a hard reset" ask_matches "$snippet" 'git reset --hard feat/x'
 no_org() { ! jq -c '[.. | strings]' "$1" |
   grep -Eiq 'cargo|rustup|crates|npm|pip|gh |tea |github|gitea|mice'; }
 fx_check "baseline carries no toolchain, registry or forge line" no_org "$snippet"

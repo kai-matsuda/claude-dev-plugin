@@ -114,7 +114,7 @@ is no verdict on the task: it rejoins the frontier with its failure count unchan
 claim outlives the orchestrator, and `bd ready` excludes an `in_progress` task, so the story
 orchestrator `bd -C <owner> unclaim <task-id>`s it before the next frontier read. A
 fresh task orchestrator at the claim entry has its implementer reset the worktree onto the
-integration branch tip, so what a cut-off implementer left unmerged there is lost and the task
+integration branch tip with `git reset --keep <branch>` (the task orchestrator's step 2 names the command), so what a cut-off implementer left unmerged there is lost and the task
 starts over; one at the gate entry (`/dev:task-orchestrator`'s "Two entries"), sent when the rules doc's Cut-off probe finds commits, gates them instead. What reached the integration branch stays.
 
 ## Scratch space
@@ -139,7 +139,7 @@ without `-b` (`git worktree add .worktrees/<task-slug> task/<task-slug>`).
 Either way the worktree starts on the wrong base: the harness branches from
 `origin/<default-branch>` (unless the repo sets `worktree.baseRef: "head"`), and a
 hand-rolled one from whatever was checked out. The subagent's first act is to reset onto the
-integration branch tip.
+integration branch tip with `git reset --keep <branch>`, the command the task orchestrator's step 2 names.
 
 **Literal paths.** Inside a harness worktree, a guard checks each `git` and `bd` call
 against the worktree and refuses one whose path comes from a shell variable or sits in a
