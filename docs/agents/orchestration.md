@@ -75,12 +75,12 @@ A finding from outside the story's epic reviewer, about a story's delivered tip,
 the epic review's findings: blocking when it names wrong behaviour, and then it spends the same
 budget and is filed at once, wherever the story stands,
 its task first and its `epic fix-up <k>: <tip SHA> blocking` note after, and a PR already marked ready goes back to draft first;
-any other is a minor for the inbox. Only a closed or landed story takes no task: its finding goes to the inbox too.
+any other is a minor for the inbox. Only a closed or landed story takes no task: its finding goes to the inbox too. A story whose tip moved still takes the task and its note, which spends a round of this invocation only; the task waits for a later run.
 A story with an open `ready-for-agent` child is not skipped, not re-polled, not marked ready and not Done:
 it goes to add mode on the tasks already filed.
-The spent budget is counted from the story's `epic round start` note, which the epic orchestrator writes once per invocation, before any delivery or review, on every open story of the epic;
+The spent budget is counted from the story's `epic round start` note, which the epic orchestrator writes once per invocation, before any delivery or review, on every open story of the epic that the preflight covered;
 a story with no marker from this invocation gets one before anything is filed on it, so the count is always this invocation's (a cut-off orchestrator the user restarts by typing the command again is a new invocation).
-An add-mode pass on tasks already filed is a fix-up round of its own: it files nothing, writes its `epic fix-up <k>: <tip SHA>` note first, `blocking` unless the story's last `epic fix-up` note says `red`, and spends the budget; the fourth round alone fails, with the Check gate's wording.
+An add-mode pass on tasks already filed is a fix-up round of its own, and each round spends once: it files nothing, writes its `epic fix-up <k>: <tip SHA>` note first, `blocking` unless the story's last `epic fix-up` note says `red`, and spends the budget, but spends only when the story has no `epic fix-up` note since its last `epic round start` note or an add-mode batch has run since its last `epic fix-up` note, so a re-run of a task whose round already had its batch spends. A pass on a task whose filing wrote the round's note, with no batch run since, writes no second note and spends nothing. The fourth round alone fails, with the Check gate's wording: it writes no fourth note, files nothing and reports `failed:`.
 
 ## Orchestrator role
 
@@ -294,7 +294,7 @@ still fails at the fourth.
 A fresh orchestrator at any row starts its unit's budget at three whatever notes earlier invocations left,
 and an agent resumed with its context keeps its own count (Cut-off agents in `harness.md`).
 The epic orchestrator's spent budget for a story is the number of its `epic fix-up` notes that follow its last `epic round start` note, whatever their tip (The epic row, above).
-An add-mode re-run of tasks already filed is a round of its own and spends the budget like any other, so it cannot repeat past the fourth round.
+An add-mode re-run of tasks already filed is a round of its own and spends the budget like any other, so it cannot repeat past the fourth round. Each round spends once: a round whose filing already wrote its `epic fix-up` note is not charged again by the add-mode pass that follows it.
 The bound a person wants is per invocation (dev-l4j): a person who types `/dev:implement-spec`, `/dev:implement-story` or `/dev:implement-task` again starts a new invocation,
 and a replaced task orchestrator's budget starts afresh, from the integration branch tip at the claim entry or from the tip its brief hands it at the gate entry (`/dev:task-orchestrator`'s "Two entries"),
 so neither the task row nor the story row records spent fix-ups for a later invocation to count from.

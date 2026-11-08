@@ -123,3 +123,11 @@ has	mark ready defers to the skip rule's open fix-up	Green, and no open fix-up t
 has	Fix-up files the tasks before the epic fix-up note	file the tasks first and write the note after, so the tasks are the record
 has	the epic fix-up <k> is the spent budget plus one	`<k>` is the story's spent budget plus one
 has	step 7 Done gives way to an open fix-up task	and no open `ready-for-agent` fix-up task (step 6's skip rule)
+has	an add-mode pass spends only when its round has no note yet	spends only when the story has no `epic fix-up` note since its last `epic round start` note or an add-mode batch has run since its last `epic fix-up` note
+has	a pass on a task whose filing wrote the round note writes no second note	writes no second note and spends nothing
+has	a re-run of a task whose round had its batch spends	a re-run of a task whose round already had its batch spends
+has	the failing fourth-round pass writes no fourth note	writes no fourth note, files nothing and reports
+has	the marker scope is every open story the preflight covered	on every open story of the epic that the preflight covered
+has	a moved-tip story filing spends a round of this invocation only	which spends a round of this invocation only
+has	a story stuck on an open fix-up child needs no Stall line	needs no Stall line of its own
+has	the no-marker check is against the orchestrators own context	against the orchestrator's own context

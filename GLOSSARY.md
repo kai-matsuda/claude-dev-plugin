@@ -429,7 +429,7 @@ what earlier ones left in the beads as history, never as spent budget, so a stor
 epic review failed is reviewed again by every invocation until it is clean or a person
 closes its PR. A cut-off orchestrator the person restarts by typing the command again is a new
 invocation. `/dev:implement-spec` marks the start of its invocation with an `epic round start`
-note on every open story of the epic, written before any delivery or review, and counts a
+note on every open story of the epic that the preflight covered, written before any delivery or review, and counts a
 story's spent budget from the last one.
 _Avoid_: typed run, fresh run (and "attempt" for one invocation)
 
