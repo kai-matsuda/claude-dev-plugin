@@ -6,8 +6,10 @@
 # INFRA-41's run (dev-6hgz). Only the first word is checked: a cd later in the command, in an
 # argument or in a path runs. For cd <dir> && git|bd|make <args> the refusal adds a
 # "Suggestion:" line with the rewrite using the command's own flag (git -C <dir> <args>). The
-# args stop at the first &&, ||, ; or | outside quotes, so only the first command is rewritten;
-# a >& redirect (2>&1) stays in them. Tests: scripts/test-guard-cd.sh.
+# args are cut at the first ;, |, & (so also &&, || and an &> redirect) outside quotes, so
+# only the first command is rewritten; a >& redirect (2>&1) stays in them. Quotes are
+# honoured but backslash escapes are not, an unterminated quote keeps the rest, and a newline
+# does not end the args. Tests: scripts/test-guard-cd.sh.
 # Only the Bash tool is checked; input the hook cannot read passes, so a missing jq never
 # blocks every command.
 set -u
