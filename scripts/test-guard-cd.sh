@@ -67,17 +67,35 @@ for alt in 'git -C' 'bd -C' 'make -C' 'absolute path' 'Edit'; do
   fx_check "the refusal names $alt" grep -qF "$alt" <<<"$msg"
 done
 
+# suggestion_line <command>: the hook's Suggestion line for that Bash command, empty when none
+suggestion_line() {
+  "$hook" <<<"$(jq -cn --arg c "$1" '{tool_name: "Bash", tool_input: {command: $c}}')" 2>&1 >/dev/null | grep -F 'Suggestion' || true
+}
+# expect_suggestion <command> <expected Suggestion line, empty for none>
+expect_suggestion() {
+  fx_check "the suggestion for '$1' is '$2'" fx_eq "$(suggestion_line "$1")" "$2"
+}
+
 # a cd <dir> && git/bd/make command is answered with the rewrite using the command's own flag
-suggest=$("$hook" <<<"$(jq -cn '{tool_name: "Bash", tool_input: {command: "cd /x && git status"}}')" 2>&1 >/dev/null)
-fx_check "the refusal of cd /x && git status suggests git -C /x status" grep -qF 'git -C /x status' <<<"$suggest"
-suggest=$("$hook" <<<"$(jq -cn '{tool_name: "Bash", tool_input: {command: "cd /y && make check"}}')" 2>&1 >/dev/null)
-fx_check "the refusal of cd /y && make check suggests make -C /y check" grep -qF 'make -C /y check' <<<"$suggest"
-suggest=$("$hook" <<<"$(jq -cn '{tool_name: "Bash", tool_input: {command: "cd /w && bd show dev-1"}}')" 2>&1 >/dev/null)
-fx_check "the refusal of cd /w && bd show dev-1 suggests bd -C /w show dev-1" grep -qF 'Suggestion: bd -C /w show dev-1' <<<"$suggest"
-suggest=$("$hook" <<<"$(jq -cn '{tool_name: "Bash", tool_input: {command: "cd /v && git"}}')" 2>&1 >/dev/null)
-fx_check "an argument-less command is suggested with no trailing space" fx_eq "$(grep -F 'Suggestion' <<<"$suggest")" 'Suggestion: git -C /v'
-suggest=$("$hook" <<<"$(jq -cn '{tool_name: "Bash", tool_input: {command: "cd /z && ls"}}')" 2>&1 >/dev/null)
-fx_check "a cd before a command with no directory flag suggests no rewrite" fx_eq "$(grep -cF 'Suggestion' <<<"$suggest")" 0
+expect_suggestion 'cd /x && git status' 'Suggestion: git -C /x status'
+expect_suggestion 'cd /y && make check' 'Suggestion: make -C /y check'
+expect_suggestion 'cd /w && bd show dev-1' 'Suggestion: bd -C /w show dev-1'
+expect_suggestion 'cd /v && git' 'Suggestion: git -C /v'
+# a chained command is suggested up to its first separator only
+for chain in 'cd /x && git status && cd -' 'cd /x && git status; cd -' 'cd /x && git status | head' 'cd /x && git status || true' 'cd /x && git status & cd -'; do
+  expect_suggestion "$chain" 'Suggestion: git -C /x status'
+done
+# a separator inside quotes is part of the args, and a >& redirect stays in them
+expect_suggestion 'cd /x && git commit -m "a; b"' 'Suggestion: git -C /x commit -m "a; b"'
+expect_suggestion "cd /x && git log --grep='a|b' && cd -" "Suggestion: git -C /x log --grep='a|b'"
+expect_suggestion 'cd /x && git status 2>&1 | head' 'Suggestion: git -C /x status 2>&1'
+# an &> redirect is cut like any &, and an unterminated quote keeps the rest
+expect_suggestion 'cd /x && git status &>/dev/null' 'Suggestion: git -C /x status'
+expect_suggestion 'cd /x && git commit -m "a; b' 'Suggestion: git -C /x commit -m "a; b'
+# a word that only starts with the command, or a command with no directory flag, gets none
+for word in 'cd /x && gitk' 'cd /x && makefoo all' 'cd /x && bdx show' 'cd /z && ls'; do
+  expect_suggestion "$word" ''
+done
 
 hooks_json=$repo_root/hooks/hooks.json
 fx_check "hooks.json runs guard-cd on Bash before tool use, through the plugin root" jq -e '
