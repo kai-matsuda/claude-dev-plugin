@@ -17,7 +17,7 @@
 # either way git drops it from the trailers.
 # Repairs, before those checks, a Bead:/Refs: paragraph followed by a separate
 # Co-Authored-By:/Claude-Session: paragraph by joining them in the message file.
-# The repair applies only when both are whole paragraphs (every line an exact-case key),
+# The repair applies only when both are whole paragraphs (every line a key in any case, as git reads trailer keys),
 # the attribution one is the last paragraph not counting trailing "#" comment lines, and
 # the message is not a `git commit -v` one (scissors line); otherwise the file is untouched.
 # Warns: no "Bead:" trailer in a repo with .beads/ (hand-made commits have
@@ -43,7 +43,7 @@ END {
   last = n
   while (last > 0 && (line[last] ~ /^[[:space:]]*$/ || line[last] ~ /^#/)) last--
   attr_first = last
-  while (attr_first > 0 && line[attr_first] ~ /^(Co-Authored-By|Claude-Session): /) attr_first--
+  while (attr_first > 0 && tolower(line[attr_first]) ~ /^(co-authored-by|claude-session): /) attr_first--
   if (attr_first == last || attr_first == 0 || line[attr_first] !~ /^[[:space:]]*$/) fix = 0
   else {
     prov_last = attr_first

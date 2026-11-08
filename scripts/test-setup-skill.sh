@@ -213,6 +213,10 @@ fx_check "commit-lint leaves a rejected message file unrewritten" bash -c \
 lint_msg $'fix: thing\n\nBead: dev-qgww\n\nCo-Authored-By: Claude <noreply@anthropic.com>\n# Please enter the commit message\n#'
 fx_check "commit-lint joins split trailers that are followed by # comment lines" bash -c \
   '[ "$1" = 0 ] && [ "$(grep -c "^$" "$2")" = 1 ]' _ "$lrc" "$lintw/msg"
+# attribution keys are matched whatever their case, as git matches trailer keys
+lint_msg $'fix: thing\n\nBody.\n\nBead: dev-pf49\nRefs: INFRA-42\n\nCo-authored-by: Claude <noreply@anthropic.com>\nclaude-session: https://example.test/s'
+fx_check "commit-lint joins split trailers whose attribution keys are lowercase" bash -c \
+  '[ "$1" = 0 ] && [ "$(grep -c "^$" "$2")" = 2 ]' _ "$lrc" "$lintw/msg"
 # a CRLF message file
 lint_msg $'fix: thing\r\n\r\nBead: dev-qgww\r\n\r\nCo-Authored-By: Claude <noreply@anthropic.com>\r'
 fx_check "commit-lint passes split trailers in a CRLF message" test "$lrc" = 0
