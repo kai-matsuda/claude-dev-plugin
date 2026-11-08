@@ -427,7 +427,10 @@ session limit cut it off. Every fix-up budget is bounded per invocation: three f
 unit, and only a person typing the command again grants more. A later invocation reads
 what earlier ones left in the beads as history, never as spent budget, so a story whose
 epic review failed is reviewed again by every invocation until it is clean or a person
-closes its PR.
+closes its PR. A cut-off orchestrator the person restarts by typing the command again is a new
+invocation. `/dev:implement-spec` marks the start of its invocation with an `epic round start`
+note on every open story of the epic, written before any delivery or review, and counts a
+story's spent budget from the last one.
 _Avoid_: typed run, fresh run (and "attempt" for one invocation)
 
 **Human stop**:

@@ -1442,7 +1442,8 @@ para_has "$head_check_gate" "a fresh orchestrator starts its unit's budget at th
 para_has "$head_check_gate" "the fresh budget holds at any row" 'A fresh orchestrator at any row'
 para_has "$head_check_gate" "a resumed agent keeps its own count" 'an agent resumed with its context keeps its own count'
 para_has "$head_check_gate" "neither the task row nor the story row records spent fix-ups" 'neither the task row nor the story row records spent fix-ups'
-row_phrase implement-spec-pins "spent budget is the fix-up notes after the story's epic round start marker" && para_has "$head_check_gate" "the epic orchestrator counts from the notes after the story's epic round start marker" "counts a story's spent budget from the story's \`epic fix-up\` notes after its last \`epic round start\` note, whatever their tip"
+row_phrase implement-spec-pins "spent budget is the fix-up notes after the story's epic round start marker" && para_has "$head_check_gate" "the epic orchestrator counts from the notes after the story's epic round start marker" "$row_text"
+para_has "$head_check_gate" "an add-mode re-run of filed tasks is a round of its own that spends" 'An add-mode re-run of tasks already filed is a round of its own and spends the budget like any other'
 para_has "$head_check_gate" "the bound is per invocation, citing dev-l4j" 'bound a person wants is per invocation (dev-l4j)'
 lacks "the epic row named as the budget's exception" 'The epic row is the exception'
 para_has "$head_epic_row" "the epic row's checks are the forge's status on the PR tip" "the forge reports them green on the PR's tip"
@@ -1461,7 +1462,10 @@ row_phrase implement-spec-pins "outside finding: a blocking one is filed at once
 row_phrase implement-spec-pins "only a closed or landed story takes no task, a moved tip still takes it" && para_has "$head_epic_row" "the epic row: only a closed or landed story takes no task" "$row_text"
 row_phrase implement-spec-pins "a story with an open fix-up task is not skipped, polled, ready or Done" && para_has "$head_epic_row" "the epic row: a story with an open fix-up task is not skipped, polled, ready or Done" "$row_text"
 row_phrase implement-spec-pins "outside finding: task first, note after, the task is the record" && para_has "$head_epic_row" "the epic row: outside finding: task first, note after" "$row_text"
-row_phrase implement-spec-pins "an add-mode pass on filed tasks is no failure of its own" && para_has "$head_epic_row" "the epic row: an add-mode pass on filed tasks is no failure of its own" "$row_text"
+row_phrase implement-spec-pins "an add-mode pass on filed tasks is a fix-up round of its own" && para_has "$head_epic_row" "the epic row: an add-mode pass on filed tasks is a fix-up round of its own" "$row_text"
+row_phrase implement-spec-pins "the epic round start marker is written once per invocation, before step 5 and any review" && para_has "$head_epic_row" "the epic row: the marker is written once per invocation before any delivery or review" 'writes once per invocation, before any delivery or review'
+row_phrase implement-spec-pins "a story with no marker from this invocation gets one before anything is filed on it" && para_has "$head_epic_row" "the epic row: a story with no marker from this invocation gets one before anything is filed on it" "$row_text"
+row_phrase implement-spec-pins "the add-mode round's note kind" && para_has "$head_epic_row" "the epic row: the add-mode round's note kind" "$row_text"
 row_phrase implement-spec-pins "the epic row counts the budget from the epic round start marker" && para_has "$head_epic_row" "the epic row: the budget counts from the epic round start marker" "$row_text"
 para_has "$head_epic_row" "every epic review's minors go to the inbox, blocking or clean" "verdict, an epic review's minors take no last fix-up"
 para_has "$head_epic_row" "the epic row's minors go to the inbox" "$pin_inbox_as_deferrals"

@@ -65,8 +65,12 @@ has	tea landed test reads the landed field	never its `state` alone
 has	every forge read sandbox-disabled	every forge command of this step run with the sandbox disabled
 has	step 6 writes epic review 1 on an invocation's first review	epic review 1: <tip SHA> <verdict line>
 has	the review <k> is this invocation's ordinal	this invocation's ordinal for that story
-has	step 6 writes an epic round start note per story of the review set when it starts	`bd -C <owner> note <story-id> "epic round start"`
-has	spent budget is the fix-up notes after the story's epic round start marker	the number of its `epic fix-up` notes that follow its last `epic round start` note, whatever their tip and their order against the review notes, nothing held in context
+has	the epic round start marker is written once per invocation, before step 5 and any review	Once per invocation, before step 5 spawns anything and before any review, write a marker on every open story of the epic
+has	the marker is not written again when step 6 runs again after a fix-up batch	not written again when this step runs again after a fix-up batch
+has	a story with no marker from this invocation gets one before anything is filed on it	a story with no marker from this invocation gets one before anything is filed on it
+has	a cut-off orchestrator the user restarts is a new invocation with new markers	a cut-off orchestrator the user restarts by typing the command again is a new invocation and writes new markers
+has	the round start marker is the epic orchestrator's note on the story	`bd -C <owner> note <story-id> "epic round start"`
+has	spent budget is the fix-up notes after the story's epic round start marker	the number of its `epic fix-up` notes that follow its last `epic round start` note, whatever their tip
 has	Stall's two exits for a failed story	amend the spec and type <resume command> for three more rounds, or close the PR to drop the story
 has	Stall prints the two exits only after the epic-review failed: lines	After the `failed:` line of a story whose epic review failed (`epic review not clean after three fix-ups` or `checks red after three fix-ups`), print
 has	Human stop reports epic-review failures	step 6's `failed:` lines too
@@ -110,10 +114,11 @@ has	outside finding: task first, note after, the task is the record	its task fir
 has	a story with an open fix-up task is not skipped, polled, ready or Done	an open `ready-for-agent` child is not skipped, not re-polled, not marked ready and not Done
 has	an outside finding's ready PR is returned to draft	a PR already marked ready is returned to draft
 has	outside finding's fourth-round failure line	even when the review itself was clean
-has	the skip rule's add mode files nothing and spends nothing	goes to Fix-up's add mode on the tasks already filed, filing nothing and spending nothing
+has	the skip rule's add mode files nothing and writes its round's note	goes to Fix-up's add mode on the tasks already filed, filing nothing and writing its round's note
 has	a fix-up note on the tip with no open child is reviewed again	A story whose `epic fix-up` note names its current tip with no open child is reviewed again
 has	the epic row counts the budget from the epic round start marker	spent budget is counted from the story's `epic round start` note
-has	an add-mode pass on filed tasks is no failure of its own	An add-mode pass on tasks already filed spends nothing and ends in no failure line of its own
+has	an add-mode pass on filed tasks is a fix-up round of its own	An add-mode pass on tasks already filed is a fix-up round of its own
+has	the add-mode round's note kind	`blocking` unless the story's last `epic fix-up` note says `red`
 has	mark ready defers to the skip rule's open fix-up	Green, and no open fix-up task (the skip rule above)
 has	Fix-up files the tasks before the epic fix-up note	file the tasks first and write the note after, so the tasks are the record
 has	the epic fix-up <k> is the spent budget plus one	`<k>` is the story's spent budget plus one
