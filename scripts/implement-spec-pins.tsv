@@ -65,7 +65,7 @@ has	tea landed test reads the landed field	never its `state` alone
 has	every forge read sandbox-disabled	every forge command of this step run with the sandbox disabled
 has	step 6 writes epic review 1 on an invocation's first review	epic review 1: <tip SHA> <verdict line>
 has	the review and fix-up <k> are this invocation's ordinals	this invocation's ordinal for that story
-has	spent budget is the fix-up notes after the last epic review 1	the number of `epic fix-up` notes after its last `epic review 1` note, nothing held in context
+has	spent budget is the fix-up notes after the last epic review 1	the number of its `epic fix-up` notes that follow its last `epic review 1` note or name a tip no `epic review` note names, nothing held in context
 has	Stall's two exits for a failed story	amend the spec and type <resume command> for three more rounds, or close the PR to drop the story
 has	Stall prints the two exits only after the epic-review failed: lines	After the `failed:` line of a story whose epic review failed (`epic review not clean after three fix-ups` or `checks red after three fix-ups`), print
 has	Human stop reports epic-review failures	step 6's `failed:` lines too
@@ -100,16 +100,19 @@ has	epic reviewer brief: one report whose verdict covers the whole review, never
 has	outside finding on a delivered tip	from outside the story's epic reviewer
 has	outside finding test: wrong behaviour is blocking	names wrong behaviour
 has	outside finding never held or dropped	never held in context or dropped
-has	outside finding: a blocking one is filed at once, wherever the story stands	is filed at once, wherever the story stands: its task under the story
-has	outside finding: minor goes to the inbox	a minor goes to the inbox with the review's minors
+has	outside finding: a blocking one is filed at once, wherever the story stands	is filed at once, wherever the story stands
+has	outside finding: minor goes to the inbox	any other is minor, which goes to the inbox with the review's minors
 has	outside finding: only the add-mode spawn waits	Only the add-mode spawn waits
-has	outside finding of a story that left the review set takes no task	A story that has left the review set for good (closed, landed, or its tip moved) takes no task: the finding goes to the inbox as a deferral
-has	outside finding's fix-up note says blocking	its `epic fix-up <k>: <tip SHA> blocking` note
-has	clean verdict with an open blocking outside finding is not ready	is not marked ready until that fix-up has run
+has	only a closed or landed story takes no task, a moved tip still takes it	closed or landed story takes no task
+has	outside finding of a closed or landed story goes to the inbox	its finding goes to the inbox as a deferral, and a story whose tip moved still takes the task
+has	outside finding: task first, note after, the task is the record	its task first and its `epic fix-up <k>: <tip SHA> blocking` note after
+has	a story with an open fix-up task is not skipped, polled, ready or Done	an open `ready-for-agent` child is not skipped, not re-polled, not marked ready and not Done
+has	an outside finding's ready PR is returned to draft	a PR already marked ready is returned to draft
 has	outside finding's fourth-round failure line	even when the review itself was clean
-has	a fix-up note after a ready: or clean review note sends the story back to the fix-up path	unless an `epic fix-up` note follows its `ready:` or clean `epic review` note on the same tip
-has	mark ready defers to the skip rule's epic fix-up note	Green, and no `epic fix-up` note follows (the skip rule above)
-has	the skip rule sends a story with an epic fix-up note back to Fix-up	it is then not re-polled or skipped, and goes back to Fix-up
-has	a story sent back to Fix-up files nothing and spends nothing	the tasks and note are already filed, so the pass only re-runs the story orchestrator in add mode, filing nothing and spending nothing
-has	Fix-up writes the epic fix-up note before the tasks	so a cut-off before the tasks leaves the note a later pass acts on
-has	step 7 Done gives way to an epic fix-up note	and no `epic fix-up` note after it
+has	the skip rule's add mode files nothing and spends nothing	goes to Fix-up's add mode on the tasks already filed, filing nothing and spending nothing
+has	a fix-up note on the tip with no open child is reviewed again	A story whose `epic fix-up` note names its current tip with no open child is reviewed again
+has	an add-mode batch that leaves the tip unchanged fails	`failed: <story-id> tip unchanged after add mode`
+has	mark ready defers to the skip rule's open fix-up	Green, and no open fix-up task (the skip rule above)
+has	Fix-up files the tasks before the epic fix-up note	file the tasks first and write the note after, so the tasks are the record
+has	the epic fix-up <k> is the spent budget plus one	`<k>` is the story's spent budget plus one
+has	step 7 Done gives way to an open fix-up task	and no open `ready-for-agent` fix-up task (step 6's skip rule)

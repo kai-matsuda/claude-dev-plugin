@@ -507,7 +507,8 @@ _Avoid_: deferral task, follow-up task, needs-triage child
 A finding about a story's delivered tip that reaches the epic orchestrator from outside the
 story's epic reviewer, such as a security-review notification or a CI annotation. It counts
 as one of that story's epic review findings: blocking when it names wrong behaviour, else
-minor (`skills/implement-spec/SKILL.md`, step 6).
+minor. A blocking one is filed at once as a fix-up task under the story, which is the record
+(`skills/implement-spec/SKILL.md`, step 6).
 _Avoid_: external finding, stray finding
 
 **Provenance cite**:

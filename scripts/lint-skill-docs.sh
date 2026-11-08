@@ -1442,6 +1442,7 @@ para_has "$head_check_gate" "the fresh budget holds at any row" 'A fresh orchest
 para_has "$head_check_gate" "a resumed agent keeps its own count" 'an agent resumed with its context keeps its own count'
 para_has "$head_check_gate" "neither the task row nor the story row records spent fix-ups" 'neither the task row nor the story row records spent fix-ups'
 para_has "$head_check_gate" "the epic orchestrator counts from the notes after this invocation's epic review 1" "counts a story's spent budget from the story's \`epic fix-up\` notes after this invocation's \`epic review 1\` note"
+para_has "$head_check_gate" "the epic orchestrator's count includes a fix-up note naming a tip no review note names" 'naming a tip no `epic review` note names'
 para_has "$head_check_gate" "the bound is per invocation, citing dev-l4j" 'bound a person wants is per invocation (dev-l4j)'
 lacks "the epic row named as the budget's exception" 'The epic row is the exception'
 para_has "$head_epic_row" "the epic row's checks are the forge's status on the PR tip" "the forge reports them green on the PR's tip"
@@ -1457,7 +1458,9 @@ para_has "$head_epic_row" "the epic row's minors take no last fix-up" 'minors ta
 row_phrase implement-spec-pins "outside finding on a delivered tip" && para_has "$head_epic_row" "the epic row: outside finding on a delivered tip" "$row_text"
 row_phrase implement-spec-pins "outside finding test: wrong behaviour is blocking" && para_has "$head_epic_row" "the epic row: outside finding test: wrong behaviour is blocking" "$row_text"
 row_phrase implement-spec-pins "outside finding: a blocking one is filed at once, wherever the story stands" && para_has "$head_epic_row" "the epic row: outside finding is filed at once, wherever the story stands" "$row_text"
-row_phrase implement-spec-pins "clean verdict with an open blocking outside finding is not ready" && para_has "$head_epic_row" "the epic row: clean verdict with an open blocking outside finding is not ready" "$row_text"
+row_phrase implement-spec-pins "only a closed or landed story takes no task, a moved tip still takes it" && para_has "$head_epic_row" "the epic row: only a closed or landed story takes no task" "$row_text"
+row_phrase implement-spec-pins "a story with an open fix-up task is not skipped, polled, ready or Done" && para_has "$head_epic_row" "the epic row: a story with an open fix-up task is not skipped, polled, ready or Done" "$row_text"
+row_phrase implement-spec-pins "outside finding: task first, note after, the task is the record" && para_has "$head_epic_row" "the epic row: outside finding: task first, note after" "$row_text"
 para_has "$head_epic_row" "every epic review's minors go to the inbox, blocking or clean" "verdict, an epic review's minors take no last fix-up"
 para_has "$head_epic_row" "the epic row's minors go to the inbox" "$pin_inbox_as_deferrals"
 para_has "$head_epic_row" "the epic row's minors go to the inbox at once" "$pin_inbox_as_deferrals at once"

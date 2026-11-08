@@ -73,9 +73,11 @@ implements nothing and its one fix-up is a task under the story, where no minor 
 verdict the PR is marked ready once its checks are green.
 A finding from outside the story's epic reviewer, about a story's delivered tip, is one of
 the epic review's findings: blocking when it names wrong behaviour, and then it spends a
-blocking verdict's budget and is filed at once, wherever the story stands: its task under the story
-and its `epic fix-up` note, else a minor for the inbox. A clean verdict with a blocking one open
-is not marked ready until that fix-up has run.
+blocking verdict's budget and is filed at once, wherever the story stands,
+its task first and its `epic fix-up <k>: <tip SHA> blocking` note after;
+any other is a minor for the inbox. Only a closed or landed story takes no task: its finding goes to the inbox too.
+A story with an open `ready-for-agent` child is not skipped, not re-polled, not marked ready and not Done:
+it goes to add mode on the tasks already filed.
 
 ## Orchestrator role
 
@@ -288,7 +290,7 @@ A fix-up that commits nothing still spends the budget, so a red that stays red o
 still fails at the fourth.
 A fresh orchestrator at any row starts its unit's budget at three whatever notes earlier invocations left,
 and an agent resumed with its context keeps its own count (Cut-off agents in `harness.md`).
-The epic orchestrator counts a story's spent budget from the story's `epic fix-up` notes after this invocation's `epic review 1` note (The epic row, above).
+The epic orchestrator counts a story's spent budget from the story's `epic fix-up` notes after this invocation's `epic review 1` note, or naming a tip no `epic review` note names (The epic row, above).
 The bound a person wants is per invocation (dev-l4j): a person who types `/dev:implement-spec`, `/dev:implement-story` or `/dev:implement-task` again starts a new invocation,
 and a replaced task orchestrator's budget starts afresh, from the integration branch tip at the claim entry or from the tip its brief hands it at the gate entry (`/dev:task-orchestrator`'s "Two entries"),
 so neither the task row nor the story row records spent fix-ups for a later invocation to count from.
