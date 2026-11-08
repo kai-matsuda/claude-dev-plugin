@@ -81,6 +81,17 @@ for chain in 'cd /x && git status && cd -' 'cd /x && git status; cd -' 'cd /x &&
   suggest=$("$hook" <<<"$(jq -cn --arg c "$chain" '{tool_name: "Bash", tool_input: {command: $c}}')" 2>&1 >/dev/null)
   fx_check "the suggestion for '$chain' stops at the first separator" fx_eq "$(grep -F 'Suggestion' <<<"$suggest")" 'Suggestion: git -C /x status'
 done
+# a separator inside quotes is part of the args; a word that only starts with the command gets none
+for pair in 'cd /x && git commit -m "a; b"|Suggestion: git -C /x commit -m "a; b"' \
+  "cd /x && git log --grep='a|b' && cd -|Suggestion: git -C /x log --grep='a|b'" \
+  'cd /x && git status 2>&1 | head|Suggestion: git -C /x status 2>&1'; do
+  suggest=$("$hook" <<<"$(jq -cn --arg c "${pair%%|Suggestion:*}" '{tool_name: "Bash", tool_input: {command: $c}}')" 2>&1 >/dev/null)
+  fx_check "the suggestion for '${pair%%|Suggestion:*}' keeps quoted separators and >& redirects" fx_eq "$(grep -F 'Suggestion' <<<"$suggest")" "Suggestion:${pair#*|Suggestion:}"
+done
+for word in 'cd /x && gitk' 'cd /x && makefoo all' 'cd /x && bdx show'; do
+  suggest=$("$hook" <<<"$(jq -cn --arg c "$word" '{tool_name: "Bash", tool_input: {command: $c}}')" 2>&1 >/dev/null)
+  fx_check "'$word' is refused with no suggestion" fx_eq "$(grep -cF 'Suggestion' <<<"$suggest")" 0
+done
 suggest=$("$hook" <<<"$(jq -cn '{tool_name: "Bash", tool_input: {command: "cd /z && ls"}}')" 2>&1 >/dev/null)
 fx_check "a cd before a command with no directory flag suggests no rewrite" fx_eq "$(grep -cF 'Suggestion' <<<"$suggest")" 0
 
