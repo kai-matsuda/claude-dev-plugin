@@ -43,6 +43,8 @@ fx_git_repo() { # <dir> [<git dir>]
     && git -C "$dir" config commit.gpgsign false
 }
 # Front matter of a SKILL.md: the lines between the opening and closing ---.
+# section <file> <heading>: the lines under a level-2 heading of a Markdown file, up to the next one
+section() { awk -v h="## $2" '$0==h{on=1;next} /^## /{on=0} on' "$1"; }
 fx_front() { awk 'NR==1 && $0!="---"{exit} NR>1 && $0=="---"{exit} NR>1{print}' "$1"; }
 # Native blockers of bead <id> in <repo>: the ids it depends on with type blocks, sorted, comma-joined.
 fx_blockers() { # <repo> <id>

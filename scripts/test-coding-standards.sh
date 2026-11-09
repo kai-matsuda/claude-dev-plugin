@@ -9,12 +9,10 @@ source "$repo_root/scripts/fixture-test-lib.sh"   # fx_check, fx_report_fails
 f=$repo_root/CODING_STANDARDS.md
 h='A verified value is the value every later step uses'
 
-# section <heading>: the lines under a level-2 heading, up to the next one
-section() { awk -v h="## $1" '$0==h{on=1;next} /^## /{on=0} on' "$f"; }
 
 fx_check "CODING_STANDARDS.md exists at the repo root" test -s "$f"
 fx_check "it has the verify-then-use heading" grep -qxF "## $h" "$f"
-rule=$(section "$h")
+rule=$(section "$f" "$h")
 fx_check "the rule names the name-versus-value gap" grep -q 'name it was resolved from' <<<"$rule"
 fx_check "the rule gives its reason, the INFRA-42 land.sh case" bash -c 'grep -q "INFRA-42" <<<"$1" && grep -q "land.sh" <<<"$1"' _ "$rule"
 fx_check "the rule has a wrong and a right example" bash -c 'grep -q "^- Wrong" <<<"$1" && grep -q "^- Right" <<<"$1"' _ "$rule"
