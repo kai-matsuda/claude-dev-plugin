@@ -5,10 +5,9 @@
 # Usage: scripts/test-coding-standards.sh
 set -uo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-source "$repo_root/scripts/fixture-test-lib.sh"   # fx_check, fx_report_fails
+source "$repo_root/scripts/fixture-test-lib.sh"   # fx_check, fx_report_fails, section
 f=$repo_root/CODING_STANDARDS.md
 h='A verified value is the value every later step uses'
-
 
 fx_check "CODING_STANDARDS.md exists at the repo root" test -s "$f"
 fx_check "it has the verify-then-use heading" grep -qxF "## $h" "$f"

@@ -6,7 +6,7 @@
 # Usage: scripts/test-readme.sh
 set -uo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-source "$repo_root/scripts/fixture-test-lib.sh"   # fx_check, fx_report_fails
+source "$repo_root/scripts/fixture-test-lib.sh"   # fx_check, fx_report_fails, section
 readme=$repo_root/README.md
 
 # json_blocks: the bodies of the ```json fences, one block after another
