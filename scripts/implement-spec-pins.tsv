@@ -109,7 +109,8 @@ has	outside finding: a blocking one is filed at once, wherever the story stands	
 has	outside finding: minor goes to the inbox	any other is minor, which goes to the inbox with the review's minors
 has	outside finding: only the add-mode spawn waits	Only the add-mode spawn waits
 has	only a closed or landed story takes no task	closed or landed story takes no task
-has	outside finding of a closed or landed story goes to the inbox	its finding goes to the inbox as a deferral, and a story whose tip moved still takes the task
+has	outside finding of a closed or landed story goes to the inbox	its finding goes to the inbox as a deferral
+has	a story whose tip moved still takes the task	a story whose tip moved still takes the task
 has	outside finding: task first, note after, the task is the record	its task first and its `epic fix-up <k>: <tip SHA> blocking` note after
 has	a story with an open fix-up task is not skipped, polled, ready or Done	an open `ready-for-agent` child is not skipped, not re-polled, not marked ready and not Done
 has	an outside finding's ready PR is returned to draft	a PR already marked ready is returned to draft
