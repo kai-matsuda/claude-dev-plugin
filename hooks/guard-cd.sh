@@ -8,7 +8,8 @@
 # "Suggestion:" line with the rewrite using the command's own flag (git -C <dir> <args>). The
 # args are cut at the first ;, |, & (so also &&, || and an &> redirect) outside quotes, so
 # only the first command is rewritten; a >& redirect (2>&1) stays in them. Quotes are
-# honoured but backslash escapes are not, an unterminated quote keeps the rest, and a newline
+# honoured; inside "..." a backslash escapes the next character (\" does not end the span), while
+# outside quotes backslash escapes are not, an unterminated quote keeps the rest, and a newline
 # does not end the args. Tests: scripts/test-guard-cd.sh.
 # Only the Bash tool is checked; input the hook cannot read passes, so a missing jq never
 # blocks every command.
@@ -48,6 +49,12 @@ if [ "$word" = cd ]; then
       ch=${rest:0:1}
       rest=${rest:1}
       if [ -n "$q" ]; then
+        # in "..." a backslash escapes the next character, so \" does not end the span
+        if [ "$q" = '"' ] && [ "$ch" = '\' ] && [ -n "$rest" ]; then
+          args+="$ch${rest:0:1}" prev=${rest:0:1}
+          rest=${rest:1}
+          continue
+        fi
         [ "$ch" != "$q" ] || q=
       else
         case $ch in

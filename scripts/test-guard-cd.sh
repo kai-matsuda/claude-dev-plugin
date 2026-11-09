@@ -87,6 +87,12 @@ for chain in 'cd /x && git status && cd -' 'cd /x && git status; cd -' 'cd /x &&
 done
 # a separator inside quotes is part of the args, and a >& redirect stays in them
 expect_suggestion 'cd /x && git commit -m "a; b"' 'Suggestion: git -C /x commit -m "a; b"'
+# a backslash-escaped quote inside double quotes does not end the span, so the rewrite stays balanced
+expect_suggestion 'cd /x && git commit -m "a \" ; b" && cd -' 'Suggestion: git -C /x commit -m "a \" ; b"'
+# an unescaped quote still ends the span, and a separator after it cuts the rewrite
+expect_suggestion 'cd /x && git commit -m "a " ; b" && cd -' 'Suggestion: git -C /x commit -m "a "'
+# an escaped backslash is a pair, so the quote after it ends the span
+expect_suggestion 'cd /x && git commit -m "a \\" ; b" && cd -' 'Suggestion: git -C /x commit -m "a \\"'
 expect_suggestion "cd /x && git log --grep='a|b' && cd -" "Suggestion: git -C /x log --grep='a|b'"
 expect_suggestion 'cd /x && git status 2>&1 | head' 'Suggestion: git -C /x status 2>&1'
 # an &> redirect is cut like any &, and an unterminated quote keeps the rest
