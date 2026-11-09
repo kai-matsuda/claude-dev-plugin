@@ -2,9 +2,10 @@
 # Helpers shared by the fixture tests (scripts/test-fixture-*.sh, test-lint-skill-docs.sh,
 # test-guard-rm.sh, test-guard-cd.sh, test-phases.sh, test-glossary-lint.sh, test-setup-skill.sh,
 # test-setup-repo-skill.sh, test-ci-workflow.sh, test-readme.sh, test-check-target.sh,
-# test-check-script.sh).
+# test-check-script.sh, test-coding-standards.sh).
 # Every helper is fx_-prefixed, so it neither shadows nor is shadowed by a sourcing script's own
-# functions. The bead helpers read $out, the fixture workspace, when called; sets fails=0, which
+# functions, except section, which the Markdown doc tests share by that name (lint-skill-docs.sh
+# keeps its own, unrelated section). The bead helpers read $out, the fixture workspace, when called; sets fails=0, which
 # fx_check counts up and fx_report_fails ends the run on.
 fails=0
 fx_check() { # <description> <command...>
@@ -42,6 +43,8 @@ fx_git_repo() { # <dir> [<git dir>]
     && git -C "$dir" config core.hooksPath /dev/null && git -C "$dir" config hook.commitlint.enabled false \
     && git -C "$dir" config commit.gpgsign false
 }
+# section <file> <heading>: the lines under a level-2 heading of a Markdown file, up to the next one
+section() { awk -v h="## $2" '$0==h{on=1;next} /^## /{on=0} on' "$1"; }
 # Front matter of a SKILL.md: the lines between the opening and closing ---.
 fx_front() { awk 'NR==1 && $0!="---"{exit} NR>1 && $0=="---"{exit} NR>1{print}' "$1"; }
 # Native blockers of bead <id> in <repo>: the ids it depends on with type blocks, sorted, comma-joined.
