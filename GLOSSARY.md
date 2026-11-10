@@ -1,7 +1,7 @@
 # Feature workflow
 
 The vocabulary of the Jira + beads feature workflow defined in this repo (runbook in
-`docs/WORKFLOW.md`, agent rules in `docs/agents/`). Several words
+`docs/WORKFLOW.md`, reference docs in `docs/agents/`). Several words
 here name more than one thing in the tools; this file fixes which is which.
 
 ## Language
@@ -532,12 +532,27 @@ database; files, `.gitignore` entries and commits there are the story orchestrat
 _Avoid_: feature-level skill
 
 **Dev plugin**:
-The feature workflow as the unit that is installed: the skills, the rules docs, the
+The feature workflow as the unit that is installed: the skills, the reference docs, the
 runbook, this glossary, the ADRs and the hooks, packaged as the Claude Code plugin `dev`
 and served from its own marketplace repo, `claude-dev-plugin`. Its skills are addressed
 as `/dev:<skill>`. Whatever a machine needs that a plugin cannot carry is the machine
 setup, not the plugin (ADR 0013). No one part stands for the whole: not the
-orchestration rules doc, not the runbook skill, not the skills.
+orchestration doc, not the runbook skill, not the skills.
+
+**Reference doc**:
+One of the three docs the dev plugin's skills share and read by path: the orchestration
+doc, the harness doc and the tracker doc. It binds the skill that reads it, but it is not a
+rule in Claude Code's sense, a file in a rules folder that Claude Code loads itself (ADR 0013).
+
+**Personal standards**:
+The coding standards one person sets for every repo they work in: the rule files in their
+user-level Claude Code rules folder, `~/.claude/rules/`. The dev plugin ships none (ADR 0018).
+_Avoid_: global standards, user standards
+
+**Repo standards**:
+The coding standards one repo sets for itself: the rule files in its `.claude/rules/`.
+Where they conflict with the personal standards, the repo's win (ADR 0018).
+_Avoid_: project standards, local standards
 
 **Machine setup**:
 The per-machine part of running the dev plugin, which a plugin cannot carry: the
