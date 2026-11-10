@@ -635,25 +635,25 @@ skills_dir=$scratch/noskills expect "/mattpocock-skills:<missing> fails while no
 
 # the docs ship in the plugin: a path into the dotfiles deployment or the chezmoi source fails
 # in any doc under docs/ and in the runbook
-for path in '~/.claude/docs/agents/orchestration.md' '~/.claude/hooks/guard-rm.sh' '~/.local/share/chezmoi/GLOSSARY.md'; do
+for path in '~/.claude/references/orchestration.md' '~/.claude/hooks/guard-rm.sh' '~/.local/share/chezmoi/GLOSSARY.md'; do
   fresh
   echo "see \`$path\`" >> "$scratch/docs/adr/0001.md"
   expect "a dotfiles deployment path ($path) under docs/ fails" 1 "dotfiles deployment path in $scratch/docs/adr/0001.md"
 done
 fresh
-echo 'see `~/.claude/docs/agents/*.md`' >> "$scratch/docs/WORKFLOW.md"
+echo 'see `~/.claude/references/*.md`' >> "$scratch/docs/WORKFLOW.md"
 expect "a dotfiles deployment path in the runbook fails" 1 "dotfiles deployment path in $scratch/docs/WORKFLOW.md"
 # and in the skills, the reference docs and the project CLAUDE.md, in the $HOME/ spelling too
 fresh
-echo 'read `~/.claude/docs/agents/orchestration.md`' >> "$scratch/skills/sample/SKILL.md"
+echo 'read `~/.claude/references/orchestration.md`' >> "$scratch/skills/sample/SKILL.md"
 expect "a dotfiles deployment path in a skill fails" 1 "dotfiles deployment path in $scratch/skills/sample/SKILL.md"
 fresh
-echo 'read `~/.claude/docs/agents/orchestration.md`' >> "$scratch/references/sample.md"
+echo 'read `~/.claude/references/orchestration.md`' >> "$scratch/references/sample.md"
 expect "a dotfiles deployment path in a reference doc fails" 1 "dotfiles deployment path in $scratch/references/sample.md"
 fresh
-echo 'rules: `~/.claude/docs/agents/`' >> "$scratch/CLAUDE.md"
+echo 'rules: `~/.claude/references/`' >> "$scratch/CLAUDE.md"
 expect "a dotfiles deployment path in the project CLAUDE.md fails" 1 "dotfiles deployment path in $scratch/CLAUDE.md"
-for path in '$HOME/.claude/docs/agents/orchestration.md' '${HOME}/.claude/hooks/guard-rm.sh' '$HOME/.local/share/chezmoi/GLOSSARY.md'; do
+for path in '$HOME/.claude/references/orchestration.md' '${HOME}/.claude/hooks/guard-rm.sh' '$HOME/.local/share/chezmoi/GLOSSARY.md'; do
   fresh
   echo "see \`$path\`" >> "$scratch/docs/WORKFLOW.md"
   expect "a dotfiles deployment path in the \$HOME spelling ($path) fails" 1 "dotfiles deployment path in $scratch/docs/WORKFLOW.md"
@@ -1598,6 +1598,11 @@ fresh
 pins_dir=$scratch/no-such-pins
 sec="0 1 6" expect "a missing pins directory fails" 1 "no such directory: $scratch/no-such-pins"
 unset pins_dir
+# and so does a docs dir without docs/agents, this repo's mattpocock-skills configuration
+# (section 18's coding-standards doc, which lives there, goes missing with it)
+fresh
+rm -rf "$scratch/docs/agents"
+sec="0 18" expect "a docs dir without docs/agents fails" 1 "no such directory: $scratch/docs/agents"
 
 # pin_row_case <rename|reword> <table>: the one case of a pin table's rows that the lint reads by
 # their description (rename: a row the lint's own calls name, renamed so the lint must name it) or

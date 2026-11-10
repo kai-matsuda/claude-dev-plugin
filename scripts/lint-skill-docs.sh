@@ -46,9 +46,9 @@
 #      its publish task, and no two-wave cap (ADR 0011);
 #   (3, 4 and 1 point at the shared preflight and epic gather that section 6 checks; 3, 4 and 7
 #   cite the "epic bead writes" convention that section 6 checks)
-#   5. one sweep over one file list: every file under the agent docs and the skills dir, the
-#      project CLAUDE.md, the runbook, docs/SEQUENCES.md and the implement-spec skill passed as
-#      $1, each read as one line so a phrase wrapped across a line break is caught (dev-86j):
+#   5. one sweep over one file list: every file under references/, docs/agents and the skills
+#      dir, the project CLAUDE.md, the runbook, docs/SEQUENCES.md and the implement-spec skill
+#      passed as $1, each read as one line so a phrase wrapped across a line break is caught (dev-86j):
 #      no retired "cut one", "cut two" or <spec-slug>, as whole words, and no story-cut.md (the
 #      notes moved to the story bead's design field, chezmoi-cdf); none of the retired walk-up
 #      phrases ("nearest ancestor", "walking up", "walk up", "one level up", "the home repo
@@ -159,9 +159,9 @@
 #      and orders a middle story of a chain in one topological pass, creates every
 #      repo-session story under the epic bead, and makes a deploy split wait on the
 #      earlier story's closure (ADR 0011).
-#  11. the namespace rule: in every .md file under the skills dir, docs/ (the agent docs, ADRs, specs),
-#      the runbook, the project CLAUDE.md, the root GLOSSARY.md and the implement-spec skill passed as $1, a
-#      /<command> is dev:<skill> or mattpocock-skills:<skill> naming a skill that exists, or a
+#  11. the namespace rule: in every .md file under the skills dir, references/, docs/ (docs/agents,
+#      ADRs, specs), the runbook, the project CLAUDE.md, the root GLOSSARY.md and the
+#      implement-spec skill passed as $1, a /<command> is dev:<skill> or mattpocock-skills:<skill> naming a skill that exists, or a
 #      built-in or a path; a bare /<skill> or another namespace fails. The /command extraction
 #      (cmd_tokens) and the existence check (cmds) moved here from section 2, which no longer
 #      calls them. A bare name in the root docs passed before they joined the scan (dev-9np).
@@ -758,7 +758,7 @@ anchor_task_orchestrator_header="^You are the ${pin_task_orchestrator_bold//\*/\
 # the dirs and the docs no section owns must exist, a default as much as an override; the
 # driver ($1) and the runbook ($2) are their sections' documents
 section "0. paths"
-for given in "$skills" "$refs" "$docs" "$pins_dir"; do
+for given in "$skills" "$refs" "$docs" "$agents" "$pins_dir"; do
   [ -d "$given" ] || bad "no such directory: $given"
 done
 for given in "$user_claude_md" "$glossary_md"; do
@@ -1155,7 +1155,7 @@ while IFS= read -r f; do
   esac
   lacksw "retired phrase in $f" "$retired"
   # no foreground spawn instruction: an Agent call returns at once whatever run_in_background
-  # says, so skills and agent docs point at the waiting rule instead (chezmoi-p4q)
+  # says, so the skills and the reference docs point at the waiting rule instead (chezmoi-p4q)
   lacksw "foreground spawn instruction in $f" 'run_in_background: false'
   lacksw "retired walk-up wording in $f" "$walkup"
   lacksw "retired story-DAG wording in $f" "$retired_dag"
@@ -1192,9 +1192,10 @@ lacksw "retired two-gate wording in $f" "$retired_loop"
 lacksw "retired review-only gate wording in $f" "$retired_gate"
 
 # the docs ship in the plugin: no path into the old dotfiles deployment (~/.claude/docs,
-# ~/.claude/hooks) or the chezmoi source remains in any doc under docs/, the skills, the agent
-# docs, the project CLAUDE.md or the runbook, spelled ~/, $HOME/ or ${HOME}/ (INFRA-30)
-deployed='(~|\$HOME|\$\{HOME\})/(\.claude/docs|\.claude/hooks|\.local/share/chezmoi)'
+# ~/.claude/hooks), a deployed copy of the reference docs (~/.claude/references) or the chezmoi
+# source remains in any doc under docs/, references/, docs/agents, the skills, the project
+# CLAUDE.md or the runbook, spelled ~/, $HOME/ or ${HOME}/ (INFRA-30)
+deployed='(~|\$HOME|\$\{HOME\})/(\.claude/docs|\.claude/references|\.claude/hooks|\.local/share/chezmoi)'
 while IFS= read -r f; do
   lacks "dotfiles deployment path in $f" "$deployed"
 done < <({ find "$docs" -type f -name '*.md' 2>/dev/null; find "$refs" "$agents" "$skills" -type f 2>/dev/null
@@ -2602,7 +2603,7 @@ fi
 # ---- 15. mermaid blocks: no semicolon ----
 # mermaid ends a sequenceDiagram statement at a ";", so a line of a ```mermaid block with one does
 # not render (dev-1xf.1.4). The block opens on a fence line starting ```mermaid, indented or not,
-# and closes on the next fence line; every .md under the docs dir, the skills and the agent docs,
+# and closes on the next fence line; every .md under references/, the skills and the docs dir,
 # plus the project CLAUDE.md, the runbook and the root glossary, is read.
 section "15. mermaid blocks: no semicolon"
 mermaid_files=()
