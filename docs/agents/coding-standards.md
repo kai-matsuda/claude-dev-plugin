@@ -66,8 +66,8 @@ when the repo has a `docs/adr/` directory; see `domain.md` for where ADRs live.
 
 ## Bead ids cite provenance in parentheses
 
-A sentence in a reference doc (`references/*.md`) or a skill's `SKILL.md` or a comment in a lint
-script that records why a rule exists names the bead behind it as a **provenance cite**: the
+A sentence in a reference doc (`references/*.md`), a skill's `SKILL.md` or a lint script's
+comment that records why a rule exists names the bead behind it as a **provenance cite**: the
 bare id inside parentheses that close the clause it justifies, as in "a flaky red never
 sticks to its tree (dev-6qi)". The same form serves prose and lint comments. The parentheses
 may hold a short qualifier beside the id, set off by a comma or a space ("(chezmoi-cdf,

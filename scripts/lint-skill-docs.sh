@@ -2171,8 +2171,8 @@ line_hase '^2\. ' "task orchestrator step 2's brief puts the TMPDIR line ahead o
 line_hase '^3\. ' "task orchestrator step 3's two briefs each put the TMPDIR line ahead of the plain-command line" "$tmpdir_then_plain.*$tmpdir_then_plain"
 line_hase "$anchor_task_orchestrator_header" "the task orchestrator header puts the TMPDIR line ahead of the plain-command line" "$tmpdir_then_plain"
 line_hase '^2\. ' "task orchestrator step 2's brief puts the TMPDIR line, the bare pwd step and the spelled path in order" "$tmpdir_line.*$tmpdir_pwd_spelled"
-# the reviewer brief carries the two tags and the verdict line, and step 3 points at the rules
-# doc's Review verdict (chezmoi-49k)
+# the reviewer brief carries the two tags and the verdict line, and step 3 points at the
+# orchestration doc's Review verdict (chezmoi-49k)
 for phrase in "$pin_verdict_clean" "$pin_verdict_blocking" "$pin_blocking_or_minor" 'within the budget above'; do
   line_has '^3\. ' "task orchestrator step 3's reviewer brief" "$phrase"
 done
@@ -2752,8 +2752,8 @@ if [ -f "$standards" ]; then
       else if (numbered) add("step", name)
     }
     END { for (x in k) { split(x, p, SUBSEP); print p[1] "\t" kind_of[p[1] SUBSEP tolower(p[2])] "\t" p[2] } }' "$skills"/*/SKILL.md | LC_ALL=C sort)
-  # the checks depend on the skills' names, so a changed SKILL.md that moves one has every rules
-  # doc and SKILL.md read again, whatever LINT_UNCHANGED vouches for; one that leaves them as
+  # the checks depend on the skills' names, so a changed SKILL.md that moves one has every
+  # reference doc and SKILL.md read again, whatever LINT_UNCHANGED vouches for; one that leaves them as
   # LINT_CITE_BASE holds them moves no verdict on a listed file
   cite_key=$skill_names$'\n'$cite_names
   [ -z "${LINT_PIN_LIST:-}" ] || printf '%s\n' "$cite_key" > "$LINT_PIN_LIST.cites"

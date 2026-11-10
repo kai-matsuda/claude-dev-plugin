@@ -4,8 +4,8 @@
 # no make run. Otherwise it runs make check in the worktree with TMPDIR inside the worktree's
 # .tmp, both streams to <owner>/.tmp/checks/<tree>/log, writes "command=make check exit=<n>" to
 # record, prints that line (and on a red the log's last forty lines) and exits with the check's
-# status. A worktree that is not a git checkout, or an owner with no check target (the rules
-# doc's make database query), is one refusal line, a non-zero exit and no record.
+# status. A worktree that is not a git checkout, or an owner with no check target (the
+# orchestration doc's make database query), is one refusal line, a non-zero exit and no record.
 # Usage: scripts/check.sh <worktree path> <owner>
 set -uo pipefail
 [ "$#" = 2 ] || { echo "check.sh refused: usage: check.sh <worktree path> <owner>"; exit 2; }
