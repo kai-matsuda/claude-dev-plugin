@@ -7,7 +7,7 @@ version on every merge to main.
 
 ## Agent skills
 
-Jira project key: `INFRA`. Everything else follows the rules in `references/`.
+Jira project key: `INFRA`. Everything else follows the reference docs in `references/`.
 
 <!-- BEGIN BEADS INTEGRATION v:1 profile:minimal hash:1105d646 -->
 ## Beads Issue Tracker

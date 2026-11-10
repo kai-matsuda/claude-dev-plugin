@@ -29,7 +29,7 @@ in step 4.
    target, never grep a Makefile: `make -pRrq : 2>/dev/null | awk '/^# Not a target:/{n=1;next} /^check::?([^=:]|$)/&&!n{c=1; if (/^check::? *[^ :]/) f=1} c&&/^#  (commands|recipe) to execute/{f=1} /^$/{c=0} {n=0} END{exit !f}'`
    prints GNU make's database without running the `check` recipe and exits 0 when there is a
    `check` target with prerequisites or a recipe. It is the query `/dev:implement-story`
-   resolves its check command with (the rules doc's Repo plumbing and Cut-off probe): it finds a `check`
+   resolves its check command with (the orchestration doc's Repo plumbing and Cut-off probe): it finds a `check`
    target in an included file or as one of several targets in a rule, and takes neither a
    `check:=` variable, a `check` named only in `.PHONY` nor a missing Makefile for one.
 3. **Present.** List what each write below would do and what is already in place and left
@@ -74,7 +74,7 @@ in step 4.
      with no tests or linters still gets a `check` target, the most useful check that can
      be inferred from what it holds (a syntax check of its scripts, a build, a parse of its
      configs, a lint of its docs) or the one the owner named in step 3, and never an
-     empty or `true` one. It writes no `ci` target (the rules doc's Check command).
+     empty or `true` one. It writes no `ci` target (the orchestration doc's Check command).
 6. **Report** what was written and what was left alone, and, if `core.hooksPath` was
    already set, whether the old hook was chained, and what the `check` target runs. Do not
    commit the CLAUDE.md, Makefile, GLOSSARY.md or `docs/adr/` changes unless the owner asks; the `bd init` commit is the

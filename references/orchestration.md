@@ -211,7 +211,7 @@ commit that first, so no task branch carries scratch files. The entries and thei
 are the story orchestrator's alone (the Gitignore commit in Repo plumbing and Cut-off probe): no earlier stage
 adds a line, and an edit of the user's beside them is never committed.
 
-**Plugin root.** These rules docs, the runbook (`docs/WORKFLOW.md`) and the hooks ship in
+**Plugin root.** These reference docs, the runbook (`docs/WORKFLOW.md`) and the hooks ship in
 the dev plugin, so every skill reaches them through the plugin root, `<plugin root>`, the
 directory the harness names in its plugin-root variable `CLAUDE_PLUGIN_ROOT`. A skill
 resolves it once per session: its text writes `${CLAUDE_PLUGIN_ROOT}/references/<doc>.md`,

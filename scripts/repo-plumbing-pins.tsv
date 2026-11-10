@@ -1,4 +1,4 @@
-# The phrases the rules doc's "## Repo plumbing and Cut-off probe" section must hold, one per
+# The phrases the orchestration doc's "## Repo plumbing and Cut-off probe" section must hold, one per
 # line as <check>	<description>	<phrase>[	<sweep>], tab-separated, the check being sec: the phrase is
 # searched inside that section, case-sensitively. Read by pins_from in lint-skill-docs.sh,
 # whose test-lint-skill-docs.sh derives a drop case for each from the lint's own pin list

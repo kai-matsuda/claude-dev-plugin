@@ -13,7 +13,7 @@ source "$repo_root/scripts/fixture-test-lib.sh"   # fx_scratch_dir, fx_check, fx
 rules_doc=$repo_root/references/orchestration.md
 
 detect=$(grep -o '`make -C <owner> -pRrq[^`]*`' "$rules_doc" | tr -d '`')
-fx_check "the rules doc names one make database query" test "$(grep -c . <<<"$detect")" = 1
+fx_check "the orchestration doc names one make database query" test "$(grep -c . <<<"$detect")" = 1
 setup=$(grep -o '`make -pRrq[^`]*`' "$repo_root/skills/setup-repo/SKILL.md" | tr -d '`')
 fx_check "setup-repo asks the same query from the repo's root" test "$setup" = "${detect/-C <owner> /}"
 

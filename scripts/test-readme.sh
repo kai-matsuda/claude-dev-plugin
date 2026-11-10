@@ -19,6 +19,8 @@ fx_check "README has an Install section" grep -qx '## Install' "$readme"
 fx_check "README has a Setup section" grep -qx '## Setup' "$readme"
 fx_check "README has a Developing section" grep -qx '## Developing' "$readme"
 
+fx_check "README says the reference docs live in references/" grep -q 'reference docs.*`references/`' "$readme"
+
 pre=$(section "$readme" Prerequisites)
 fx_check "prerequisite: bd" grep -q '`bd`' <<<"$pre"
 fx_check "prerequisite: gh or tea for pull requests" bash -c 'grep -q "gh" <<<"$1" && grep -q "tea" <<<"$1"' _ "$pre"

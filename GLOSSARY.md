@@ -543,6 +543,7 @@ orchestration doc, not the runbook skill, not the skills.
 One of the three docs the dev plugin's skills share and read by path: the orchestration
 doc, the harness doc and the tracker doc. It binds the skill that reads it, but it is not a
 rule in Claude Code's sense, a file in a rules folder that Claude Code loads itself (ADR 0013).
+_Avoid_: rules doc
 
 **Personal standards**:
 The coding standards one person sets for every repo they work in: the rule files in their

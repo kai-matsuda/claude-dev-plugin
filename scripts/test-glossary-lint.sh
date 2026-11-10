@@ -97,6 +97,15 @@ fx_check "a banned synonym seeded into the plugin's docs fails the lint" exit_is
 fx_check "the seeded synonym is the hit" grep -qF 'seeded.md:1: "sub-orchestrator" is on the glossary avoid list; use story orchestrator' <<<"$out"
 fx_check "the seeded synonym is the only hit" grep -qF 'glossary-lint: 1 violation(s)' <<<"$out"
 
+# "rules doc" is an avoided term of the Reference doc entry: a leftover use in prose fails
+printf 'The rules doc says so.\n' > "$copy/leftover.md"
+git -C "$copy" add -A
+out=$(run_lint "$copy")
+fx_check "a leftover \"rules doc\" in prose fails the lint" exit_is 1 "$out"
+fx_check "the leftover is the hit, with the reference doc as the use" grep -qF 'leftover.md:1: "rules doc" is on the glossary avoid list; use reference doc' <<<"$out"
+rm "$copy/leftover.md"
+git -C "$copy" add -A
+
 # make check lints the tree itself: its lint step, named by what make -n prints, fails in the seeded
 # copy and passes once .glossary-allow permits the seeded sense
 lint_step=$(make -C "$repo_root" -n check | grep -oE "[a-z/-]*glossary-lint\.sh" | grep -vF test-glossary-lint.sh | sort -u)

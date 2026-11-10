@@ -4,7 +4,8 @@ How a feature moves from idea to merged code using the Matt Pocock engineering s
 Jira, and beads. The commands below are user-typed; the agent cannot invoke them on its
 own. `/dev:implement-story` and `/dev:close-story` are also invoked by
 `/dev:implement-spec` and `/dev:close-epic`, so you type them yourself only in the Variants cases.
-The agent-side rules these commands rely on live in the dev plugin's `references/`. Bold
+The reference docs these commands rely on (the orchestration doc, the harness doc and the
+tracker doc) live in the dev plugin's `references/` folder. Bold
 terms (epic, story and task orchestrator, text blocker, human stop, finished story) are
 defined in the plugin's `GLOSSARY.md`, and the ADRs this runbook cites for the why are the
 plugin's `docs/adr/`. Both live in the plugin repo (`kai-matsuda/claude-dev-plugin`):

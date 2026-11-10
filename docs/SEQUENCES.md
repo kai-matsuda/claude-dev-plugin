@@ -12,7 +12,7 @@ texts disagree, the texts win and the diagram is the bug. Bold terms are defined
 
 The task, the story and the epic are one loop at three rows. The diagram draws the row
 in general, with `O` the row's orchestrator and the unit a task, a story or an epic. Each
-row's parameters are the model doc's table (`references/orchestration.md`, The loop): the
+row's parameters are the orchestration doc's table (`references/orchestration.md`, The loop): the
 Fix-up column is where the rows differ most, and the diagram draws all three of its cases.
 
 ```mermaid

@@ -63,7 +63,7 @@
 #      built-in review by name, the two-review-tools paragraph, the review marker, the lint
 #      command and the test seams as checks (the glossary lists them under _Avoid_, docs/adr/
 #      keeps them through .glossary-allow); and no rule that moved to harness.md cited at the
-#      rules doc (dev-zra), nor a beads database gate on the .beads/ directory alone
+#      reference doc (dev-zra), nor a beads database gate on the .beads/ directory alone
 #      (dev-e87). docs/specs keeps every list. No other section repeats a phrase this
 #      sweep covers, so a seeded one fails here alone;
 #   6. the shared rules: orchestration.md's working-directory preflight, and harness.md's
@@ -131,13 +131,13 @@
 #      step waits for the PR's forge checks and makes a red one a failed: line, a missing forge
 #      or check a checks: skipped line (dev-xc2), and its story fix-up and conflict-resolution
 #      briefs start with the TMPDIR line, whose rule section 6 checks in orchestration.md
-#      (chezmoi-3eg), and its story review step 7 points at the rules doc's Review verdict,
-#      whose rule section 6 checks (chezmoi-49k), and its step 3 applies the rules doc's
+#      (chezmoi-3eg), and its story review step 7 points at the orchestration doc's Review verdict,
+#      whose rule section 6 checks (chezmoi-49k), and its step 3 applies the orchestration doc's
 #      Repo plumbing and Cut-off probe (check target resolved once, forge decision, Gitignore commit and merge
 #      guard, which section 6 pins, dev-yykg), a red record checked again and a
 #      fix-up that commits nothing checked again at step 7, the story gate exiting on a
 #      reviewed tip (dev-vnf), with the lint-command resolution retired (dev-9k5.1.7),
-#      and its story gate (step 7) is the rules doc's Check gate loop at the story row: it exits
+#      and its story gate (step 7) is the orchestration doc's Check gate loop at the story row: it exits
 #      when the checks are green on the tip the review called clean, reads the checks from the
 #      check records, keeps the reviewed tip in the story's review: note, reviews the story's body
 #      (spec) and what entered since the task reviews (standards), sends a red or a blocking
@@ -146,7 +146,7 @@
 #      check record, and step 9 leaves the records in place; "Running the checks" and "the command and
 #      its output" are gone (section 5's sweep covers the review marker, the merger, the keyed
 #      branch, the Evidence run and the second-red stall) (dev-cq0.1.5, dev-1xf.1.3, dev-9k5.1.9); section 6 checks the
-#      rules doc's Check gate;
+#      reference doc's Check gate;
 #   9. /close-story: its Forgejo/Gitea query carries --repo <path> as the intro and
 #      /implement-story's merge guard do (dev-hac); its task check skips a child carrying
 #      needs-triage or wontfix, as the finished story does, and its refusal names each open
@@ -174,7 +174,7 @@
 #      from a line starting with `>`, indented or not, to the next blank line: the blocks the
 #      orchestration skills send to task orchestrators, cutters, implementers and reviewers) never
 #      names the plugin-root variable CLAUDE_PLUGIN_ROOT, which Bash never has and the harness
-#      fills in only in the skill text it loads (the rules doc's Plugin root rule); the skill's
+#      fills in only in the skill text it loads (the orchestration doc's Plugin root rule); the skill's
 #      path and the line are named. Outside a brief, where the skill itself resolves the
 #      variable, it passes (dev-rc9, INFRA-30);
 #  15. the mermaid rule: no ";" on a line of a ```mermaid block in any doc the sweeps read, since
@@ -190,13 +190,13 @@
 #  17. /implement-task (dev-b8d.1.6): the non-task, story-task and not-ready refusals, the story
 #      row's plumbing (the make probe and its refusal, the forge decided once, the gitignore rule,
 #      task/<id> with a branch: note), one task orchestrator with the short brief, the landing by
-#      the Land script with --ff-only, the rules doc's Delivery with the PR opened ready and never a draft,
+#      the Land script with --ff-only, the orchestration doc's Delivery with the PR opened ready and never a draft,
 #      delivered: before pr: and the close at delivery, no forge's pushed branch and skipped-checks
 #      line, the merge guard and the gate re-entry on a rerun, and the report minus the story lines
-#      ending on resume:. Section 6 pins the rules doc's one paragraph on it (the table keeps three
+#      ending on resume:. Section 6 pins the orchestration doc's one paragraph on it (the table keeps three
 #      rows) and the no-seam-test case skipping a standalone task without ## Test seams.
 #  18. the cross-skill cite rule (dev-q47w): the coding standards state it under its heading, and
-#      no other rules doc or SKILL.md cites another skill's heading bare after a possessive, even
+#      no other reference doc or SKILL.md cites another skill's heading bare after a possessive, even
 #      split across a line break. Nor does a step name of a skill in quotes, a heading in bold,
 #      either one bare before "of"/"in" /dev:x or bare after "'s step"/"'s section" (dev-mnz6),
 #      a step or heading in backticks (alone, or with the bold or quotes inside or around the
@@ -204,10 +204,10 @@
 #      from that skill's SKILL.md (numbered or ## to #### headings; bold steps, hyphens,
 #      punctuation and indents included, regex characters escaped), in the closed list of shapes
 #      section 18's "Limits" comment below states and nothing beside it (the coding standards
-#      point there); a changed SKILL.md has every rules doc and SKILL.md re-read.
+#      point there); a changed SKILL.md has every reference doc and SKILL.md re-read.
 # Usage: scripts/lint-skill-docs.sh [implement-spec SKILL.md [WORKFLOW.md]]
 # A section whose doc is missing fails naming it ("missing document: <path>") rather than being
-# skipped, so a renamed skill or rules doc cannot turn its checks off (dev-dov); each section
+# skipped, so a renamed skill or reference doc cannot turn its checks off (dev-dov); each section
 # opens with a "== <n>. " header, under which its FAIL lines print (the regression test reads
 # them to tell which section failed). The plugin layout is skills/, references/, docs/agents/,
 # docs/WORKFLOW.md, CLAUDE.md and GLOSSARY.md under the repo root.
@@ -373,7 +373,7 @@ row_sweep() {
 # hasc_row, lacksf_row <description> <table> <row description>: hasc or lacksf of that row
 hasc_row() { row_phrase "$2" "$3" && hasc "$1" "$row_text"; }
 lacksf_row() { row_sweep "$2" "$3" && lacksf "$1" "$row_text"; }
-# what a skill that cites the rules doc's Repo plumbing and Cut-off probe must not restate
+# what a skill that cites the orchestration doc's Repo plumbing and Cut-off probe must not restate
 plumbing_copies() {
   lacksf_row "a second copy of the check target probe" repo-plumbing-pins "the check target is read from make's database"
   lacksf_row "a second copy of the check target refusal" repo-plumbing-pins "a repo with no check target fails the run with the setup line, before any task orchestrator starts"
@@ -599,7 +599,7 @@ fi
 # pins it is built from that one place, so rewording it is one edit and the regression test's cases
 # follow. A different, longer pin that embeds or shares a run of the phrase is no repeat, and needs
 # no shared variable or split row: rewording the shared run may need an edit in each pin holding it.
-# the harness doc's rule names: its headings pin them, and section 5 sweeps a citation of them at the rules doc
+# the harness doc's rule names: its headings pin them, and section 5 sweeps a citation of them at the orchestration doc
 rule_waiting='Waiting'
 rule_idle='Idle rule'
 rule_commits='Commits'
@@ -705,7 +705,7 @@ pin_its_check_target='its Check target'
 pin_with_fresh_budget='with a fresh budget'
 pin_one_topological_pass='one topological pass'
 pin_pr_command_re='/mattpocock-skills:pr([^a-z-]|$)'
-cite_delivery_authority="the rules doc's Delivery authority"
+cite_delivery_authority="the orchestration doc's Delivery authority"
 # the phrases every worktree brief carries, each written once (dev-yqpz)
 tmpdir_line='TMPDIR line'
 plain_command='plain-command line, one plain `git` or `bd` command per Bash call, every path spelled out'
@@ -725,9 +725,9 @@ rec_fixup='After a red, a fix-up that commits nothing leaves the tree red-record
 rec_call='check > <owner>/.tmp/checks/<tree>/log'
 tmpdir_export='mkdir -p <worktree>/.tmp && export TMPDIR=<worktree>/.tmp'
 dep_line='one `Dependency:` line per publish blocker'
-plumbing_cite="the rules doc's Repo plumbing and Cut-off probe"
-probe_cite="the rules doc's Cut-off probe"
-verdict_cite="the rules doc's Review verdict"
+plumbing_cite="the orchestration doc's Repo plumbing and Cut-off probe"
+probe_cite="the orchestration doc's Cut-off probe"
+verdict_cite="the orchestration doc's Review verdict"
 # phrases built from another pin, so each is still written once: each reads the pin or phrase it extends,
 # and the _re forms read a backtick as any character, to sit in a pattern
 pin_code_review_tool="\`$pin_code_review_name\`"
@@ -777,12 +777,12 @@ lacks "worktree steps" 'worktree'
 # its home database gate is the tracker doc's rule, which section 6 checks (dev-e87)
 hasc "/implement-spec cites the tracker doc's \"Has a database\" rule" "$pin_cite_has_a_database_rule"
 # no merge steps; the one allowed use is the human stop naming "the PR to merge" for the user
-# (chezmoi-9v4.1.6) and the rules doc's "Repo plumbing and Cut-off probe, its Merge guard",
+# (chezmoi-9v4.1.6) and the orchestration doc's "Repo plumbing and Cut-off probe, its Merge guard",
 # which implement-story and implement-task cite the same way), so both are blanked before the
 # scan. The first blanking ignores case (any "The PR to merge"); the second is exact on purpose,
 # so a variant spelling of the citation, or the phrase beside a real merge step, still fails
 if ! unchanged_file; then
-  merge_scan=$(sed -e 's/the PR to merge//gI' -e "s/${merge_guard_cite#"the rules doc's "}//g" "$f")
+  merge_scan=$(sed -e 's/the PR to merge//gI' -e "s/${merge_guard_cite#"the orchestration doc's "}//g" "$f")
   if grep -qi 'merge' <<<"$merge_scan"; then
     bad "present: merge steps (merge)"; grep -ni 'merge' <<<"$merge_scan" | head -3
   fi
@@ -822,10 +822,10 @@ has "Jira already-made read" 'getJiraIssue'
 has "no-startable path" 'No startable story'
 has "stopped state" 'stopped at <bead-id>'
 has "orchestration pointer" 'orchestration.md'
-# the epic review reads delivery from the rules doc's Delivery section, never from a step number
+# the epic review reads delivery from the orchestration doc's Delivery section, never from a step number
 # of /dev:implement-story (dev-b8d.1.3 review 1)
-row_phrase implement-spec-pins "the delivered: note's shape" && hasc "the epic review cites the Delivery section for the delivered: note" "the rules doc's Delivery section writes \`$row_text\`"
-hasc "draft until clean cites the Delivery section's forge-check wait" "the rules doc's Delivery section's forge-check wait"
+row_phrase implement-spec-pins "the delivered: note's shape" && hasc "the epic review cites the Delivery section for the delivered: note" "the orchestration doc's Delivery section writes \`$row_text\`"
+hasc "draft until clean cites the Delivery section's forge-check wait" "the orchestration doc's Delivery section's forge-check wait"
 # (no skill cites another skill's step number: section 5 sweeps every skill, dev-0ohl)
 has "preflight pointer" "$pin_cite_preflight"
 
@@ -1106,21 +1106,21 @@ retired_loop='evidence run|a later run reviews the fix|a third round of either k
 # the gate with no check command (ADR 0015): every owner repo has a check target, so no doc names
 # a review-only gate or a repo, task or gate without a check command
 retired_gate='review-only|no check command|with(out)? a check command'
-# a rule that moved to harness.md (dev-9k5.1.2) cited at the rules doc, doc first as "the rules
-# doc's Worktrees", "the rules doc's worktree fallback", "the rules doc's Scratch space says
+# a rule that moved to harness.md (dev-9k5.1.2) cited at the orchestration doc, doc first as "the rules
+# doc's Worktrees", "the orchestration doc's worktree fallback", "the orchestration doc's Scratch space says
 # (Literal paths)" or "(`orchestration.md`, Commits)", or rule first as 'the "Waiting" rule of
-# `orchestration.md`'; the worktree fallback moved too, so the rules doc holds no fallback (dev-zra)
+# `orchestration.md`'; the worktree fallback moved too, so the orchestration doc holds no fallback (dev-zra)
 moved_names="($rule_waiting|$rule_idle|$rule_commits|$rule_cut_off|worktrees|hand-rolled|fallback|$rule_literal_paths|$rule_tmpdir|diff two files|python's cache line|recursive deletes|shell commands)"
 # a database gate that tests only that .beads/ exists (dev-e87): as the shell test, as a missing
 # <x>/.beads, or as a repo "with `.beads/`"; the gates cite the tracker doc's "Has a database" rule
 beads_gate='test -d [^ ]*/\.beads|`<[a-z ]+>/\.beads` (is )?missing|no `<[a-z ]+>/\.beads`|with (no )?`\.beads/`'
-moved_rule='(rules doc|orchestration\.md)`?(, |'\''s (([a-z-]+ ){1,3}says \(|scratch space \(|[a-z-]+ )?)'"$moved_names"'([^a-z]|$)|'"$moved_names"'"?( rule)? (of|in) (the )?`?(rules doc|orchestration\.md)'
+moved_rule='(orchestration doc|orchestration\.md)`?(, |'\''s (([a-z-]+ ){1,3}says \(|scratch space \(|[a-z-]+ )?)'"$moved_names"'([^a-z]|$)|'"$moved_names"'"?( rule)? (of|in) (the )?`?(orchestration doc|orchestration\.md)'
 # the task row as a skill (INFRA-37): one route per unit. No doc names a flat epic, the small-bug
 # path, the two upstream skills it replaces or the rejected chore names (never the bare word
 # chore, which the gitignore commit subject and the Conventional Commits type use)
 retired_route='flat[ -](epics?|shape)|small[ -]bug path|mattpocock-skills:implement([^-a-z]|$)|(^|[^-a-z])to-tickets([^-a-z]|$)|implement-chore|chore orchestrator|chore/'
 # no skill cites another skill's step number: steps renumber, so a citation like "/dev:close-story
-# step 4" goes stale without a failing test; it names the rule by its section or the rules doc
+# step 4" goes stale without a failing test; it names the rule by its section or the orchestration doc
 # instead (dev-0ohl). A skill's own steps are its own to cite, so a file under the skills dir is
 # swept for every skill but its own; a doc under references/ or docs/agents is no skill's, so it
 # is swept for every skill (dev-90up). The name ends at a boundary (setup is not setup-repo), and the sweep
@@ -1137,9 +1137,9 @@ while IFS= read -r f; do
     "$skills"/*/*)
       own=${f#"$skills"/}; own=${own%%/*}
       others=${skill_names//|$own|/|}; others=${others#|}; others=${others%|}
-      [ -z "$others" ] || lacksw "another skill's step number cited in $f (name the rule by its section or the rules doc)" "dev:($others)([^a-z -][^ ]*)? steps? [0-9]" ;;
+      [ -z "$others" ] || lacksw "another skill's step number cited in $f (name the rule by its section or the orchestration doc)" "dev:($others)([^a-z -][^ ]*)? steps? [0-9]" ;;
     "$refs"/*|"$agents"/*)
-      # a rules doc is no skill, so it cites every skill by rule name, never by step (dev-90up)
+      # a reference doc is no skill, so it cites every skill by rule name, never by step (dev-90up)
       all=${skill_names#|}; all=${all%|}
       [ -z "$all" ] || lacksw "another skill's step number cited in $f (name the rule by its section or bold name)" "dev:($all)([^a-z -][^ ]*)? steps? [0-9]" ;;
   esac
@@ -1167,7 +1167,7 @@ while IFS= read -r f; do
   lacksw "the retired review marker in $f" 'review markers?'
   lacksw "the retired lint command in $f" 'the lint command'
   lacksw "the retired test seams as checks in $f" 'test seams? as (the )?checks?'
-  lacksw "a moved harness rule cited at the rules doc in $f" "$moved_rule"
+  lacksw "a moved harness rule cited at the orchestration doc in $f" "$moved_rule"
   # bd init does take -C but lands on an ancestor's database through it, so the docs cite the
   # tracker doc's "First time in a repo" for why it runs from the repo instead (dev-zyx)
   lacksw "the retired bd init -C wording in $f" 'cannot take `-C`'
@@ -1181,7 +1181,7 @@ while IFS= read -r f; do
   # one route per unit (INFRA-37): a standalone task goes to /dev:implement-task, an epic bead
   # with a non-story child is refused as malformed, and the upstream skills are not named
   lacksw "a retired route (flat epic or shape, small-bug path, upstream skill or chore name) in $f" "$retired_route"
-  # the check record's name is the rules doc's Check record script (dev-3c97): a skill that says
+  # the check record's name is the orchestration doc's Check record script (dev-3c97): a skill that says
   # "Check record call", the compound command's name the script replaced, fails here
   lacksw "the retired Check record call name in $f" 'Check record call'
 done <<<"$swept"
@@ -1213,7 +1213,7 @@ hasc "delivery authority rule" "$head_delivery_authority"
 para_has "$head_delivery_authority" "/dev:implement-task is typed to deliver a PR" 'and `/dev:implement-task` are typed to deliver a PR'
 # the paragraph and the ## Delivery section are named apart, so a citation names one of them
 lacksf "a paragraph named like the Delivery section" '**Delivery.**'
-lacks "profile-gated push in the rules doc" "$pin_profile_gated_push"
+lacks "profile-gated push in the orchestration doc" "$pin_profile_gated_push"
 # the epic-level stages reach an owner repo only through its beads database; files, .gitignore
 # and commits there are the story orchestrator's (chezmoi-cdf, ADR 0010)
 hasc "beads-only principle for the epic-level stages" 'only through its beads database'
@@ -1227,7 +1227,7 @@ hasc "frontier admits ready-for-agent only" 'it is labelled `ready-for-agent`'
 lacks "frontier keyed on ready-for-human alone" 'it is not labelled `ready-for-human`'
 hasc "finished story tolerates untriaged children" "$pin_needs_triage_wontfix"
 para_has '**Gitignore.**' "/.tmp/ among the Gitignore rule's entries" '`/.tmp/`'
-# the rules docs ship in the plugin, so a brief reaches them through the plugin root: resolved
+# the reference docs ship in the plugin, so a brief reaches them through the plugin root: resolved
 # once per session from the harness's variable and spelled as an absolute path in every brief,
 # the TMPDIR rule's pattern (INFRA-30)
 hasc "Plugin root rule" "$head_plugin_root"
@@ -1345,7 +1345,7 @@ hasc "the trust rules are a closed list" 'The list is closed: a rule that wants 
 hasc "Check command rule" "$head_check_command"
 para_has "$head_check_command" "make check is the one check command" 'One command per owner repo, `make check`'
 # the pin of the make check row, named here so a reader sees it: the row's `check` target (its own row
-# check holds the rules doc to the row, so a reword of the row fails there)
+# check holds the orchestration doc to the row, so a reword of the row fails there)
 pin_check_target='every owner repo has a `check`'
 para_has "$head_check_command" "every owner repo has a check target" "$pin_check_target"
 para_has "$head_check_command" "a story run with no check target fails" 'with `failed: no check target`'
@@ -1362,7 +1362,7 @@ para_has "$head_check_record" "the delivered tip's record is the Evidence" "the 
 # the call that writes a record is the shipped script, stated once here, and no compound command is left
 hasc "the Check record script is the shipped script" '`<plugin root>/scripts/check.sh <worktree path> <owner>`, one foreground Bash call with `timeout: 600000`'
 hasc "a red is read from the tail the script prints" 'a red is read from the tail the script prints, never a whole log'
-lacks "the compound record command in the rules doc" 'mkdir -p <owner>/.tmp/checks'
+lacks "the compound record command in the orchestration doc" 'mkdir -p <owner>/.tmp/checks'
 # the implementer brief rule, stated once: a worktree brief says seam run, with the touched-modules fallback, and never the check command or the script
 para_has "$head_check_command" "the brief names the seam run" 'A worktree brief at every row names the seam run (the Seam run term in `GLOSSARY.md`)'
 para_has "$head_check_command" "the seam run fallback is the touched modules' tests" "the touched modules' tests for a standalone task that names no seams."
@@ -1565,7 +1565,7 @@ para_has "$head_idle_rule" "the Idle rule names the check command" 'every run of
 # the story orchestrator's forge-check wait is the one long shell wait the rule allows (dev-xc2),
 # the task orchestrator's lock wait gone with the lock (dev-b8d.1.4), which section 5 sweeps
 para_has "$head_idle_rule" "the Idle rule names the forge-check wait as its one long shell wait" "The one long shell wait is the story orchestrator's"
-para_has "$head_idle_rule" "the Idle rule cites the Delivery section for the forge-check wait" "forge-check wait (the rules doc's Delivery section)"
+para_has "$head_idle_rule" "the Idle rule cites the Delivery section for the forge-check wait" "forge-check wait (the orchestration doc's Delivery section)"
 # (no step number cited for the wait: section 5's sweep covers references/, dev-90up)
 lacks "the Idle rule's second shell wait" 'two shell waits|The other is the story orchestrator'
 lacks "the Idle rule's retired story's-checks clause" "these are the story's checks"
@@ -1588,12 +1588,12 @@ hasc "commit example: the Refs trailer line" "$pin_trailer_refs"
 hasc "commit example: the Co-Authored-By trailer line" "$pin_trailer_co_authored_by"
 hasc "commit example: the Claude-Session trailer line" "$pin_trailer_claude_session"
 lacksw "no blank line between the commit example's trailers" "  (${pin_trailer_refs%%:*}|${pin_trailer_co_authored_by%%:*}|${pin_trailer_claude_session%%:*}):"
-# the shell-commands discipline and the pointer back at the preflight kept in the rules doc
+# the shell-commands discipline and the pointer back at the preflight kept in the orchestration doc
 hasc "the -C discipline" 'This section binds every session and subagent'
 # a glob passed as a flag is quoted, since zsh fails the call with no matches found (dev-elkb)
 sec_has "## Shell commands" "a glob passed as a flag is quoted" "**Quote a glob passed as a flag.** Write \`--include='*.md'\`"
 sec_has "## Shell commands" "the quoting rule names the zsh error it prevents" 'zsh: no matches found'
-hasc "the preflight stays in the rules doc" 'The working-directory preflight stays in `orchestration.md`'
+hasc "the preflight stays in the orchestration doc" 'The working-directory preflight stays in `orchestration.md`'
 # a branch from a remote ref is created with --no-track, since the sandbox denies the
 # .git/config write upstream tracking needs (dev-rlr)
 hasc "branches from a remote ref rule" "$head_branch_from_remote_ref"
@@ -1664,7 +1664,7 @@ hasc "setup-repo runs init by the tracker doc's rule" 'which says where it runs 
 lacks "setup-repo restating the init rule" "$pin_never_through_c"
 # the stop reports the init commit as init made it, before the pruning amends it
 hasc "setup-repo stops before the pruning" 'A stop there comes before the pruning'
-# the check target step writes no ci target: the extension is a repo owner's to add (rules doc, Check command)
+# the check target step writes no ci target: the extension is a repo owner's to add (reference doc, Check command)
 hasc "setup-repo writes no ci target" 'It writes no `ci` target'
 fi
 # one has-a-database rule, stated once in the tracker doc and cited by every gate: .beads/ exists
@@ -1768,14 +1768,14 @@ if doc 8 "/implement-story" "$skills/implement-story/SKILL.md"; then
 hasc "malformed epic refusal" "$pin_cite_malformed_epic_refusal"
 lacks "implement-story restating the malformed-epic refusal" "$pin_malformed_epic_refusal_line"
 hasc "delivery rule pointer" "$cite_delivery_authority"
-hasc "step 8 delivers as the Delivery section says with the story as its unit" "8. **Deliver**, as the rules doc's Delivery section says, with the story as its unit"
+hasc "step 8 delivers as the Delivery section says with the story as its unit" "8. **Deliver**, as the orchestration doc's Delivery section says, with the story as its unit"
 # the delivery records its tip and check record, which /dev:implement-spec's review set reads (dev-47z)
 hasc "finished story backfills a missing delivered: note" 'a finished story with no `delivered:` line'
 lacks "profile-gated push" "$pin_profile_gated_push|ask the user to run that exact command|give the user that exact command"
 lacks "a gitignore hand-off from the story cut" 'the story cut appended|story cut could not commit'
-# the Gitignore commit recipe is the rules doc's Repo plumbing and Cut-off probe (section 6 pins it, dev-yykg); the
+# the Gitignore commit recipe is the orchestration doc's Repo plumbing and Cut-off probe (section 6 pins it, dev-yykg); the
 # step cites it and repeats none of it, its trailers included (dev-ieiv)
-hasc "step 3 cites the rules doc's Repo plumbing and Cut-off probe" "$plumbing_cite"
+hasc "step 3 cites the orchestration doc's Repo plumbing and Cut-off probe" "$plumbing_cite"
 lacksf_row "a second copy of the Gitignore commit's user-edit failure" repo-plumbing-pins "a user edit in .gitignore is a failed: line, not absorbed"
 # the commit carries trailers, so it goes through a message file, never --trailer (dev-7gu)
 lacks "a --trailer commit" 'commit [^`]*--trailer'
@@ -1804,7 +1804,7 @@ hasc "frontier spawn ends the turn" 'then end your turn: each task orchestrator'
 hasc "the skill names the harness doc's Idle rule" "the $cite_harness_idle_rule"
 # the story row lands each reviewed task branch itself (dev-b8d.1.4): in the turn the reviewed:
 # report resumes it, serially and with no lock; the landing is the Land script's call; a conflict
-# to an implementer in the task's worktree, the resolved tree checked with the rules doc's call,
+# to an implementer in the task's worktree, the resolved tree checked with the orchestration doc's call,
 # then the Land script again with --ff-only; three resolutions per landing, the fourth failed; a
 # red on a resolved tree a failed landing whose one retry enters at the gate; a landing closes
 # the task; the story gate's fix-ups land by the same procedure (section 5 sweeps the lock wait)
@@ -1812,12 +1812,12 @@ hase "the Landing section" '^## Landing$'
 line_has '^   - `<id> reviewed: <task branch> <worktree path> <tip SHA>`' "a reviewed: report is landed in the turn it resumes" 'land it now, in the turn this report resumes you'
 sec_has "## Landing" "landings are serial" 'Landings are **serial**: one runs at a time, one per report'
 sec_has "## Landing" "a landing waits on no lock" 'So there is no lock to wait on'
-sec_has "## Landing" "the landing calls the Land script" 'the rules doc'"'"'s **Land script**, `<plugin root>/scripts/land.sh <owner> <branch> <task branch> <tip SHA>`, in one foreground Bash call, `<plugin root>` spelled as the path this session resolved'
+sec_has "## Landing" "the landing calls the Land script" 'the orchestration doc'"'"'s **Land script**, `<plugin root>/scripts/land.sh <owner> <branch> <task branch> <tip SHA>`, in one foreground Bash call, `<plugin root>` spelled as the path this session resolved'
 sec_has "## Landing" "a refusal is wrapped in the failed: line shape" 'A `refused: <reason>` ends the landing unmerged with `<task-id> failed: <reason>`, the refusal'"'"'s reason wrapped in the `failed:` line shape'
 sec_has "## Landing" "a conflict reported by the Land script goes to the conflict implementer" '`conflict` goes to 3'
 sec_has "## Landing" "a conflict goes to an implementer in the task's worktree" "A conflict goes to an implementer in the task's worktree"
 sec_has "## Landing" "the conflict implementer merges the integration tip into the task branch" "it is briefed to merge \`<branch>\`'s tip into the task branch"
-sec_has "## Landing" "the resolved tree is checked with the rules doc's call" "run the rules doc's Check record script, \`<plugin root>/scripts/check.sh <worktree path> <owner>\`, with the task's worktree as its \`<worktree path>\`, in one foreground Bash call with \`timeout: 600000\`, \`<plugin root>\` spelled as the path this session resolved; the script runs nothing on a tree with a green record"
+sec_has "## Landing" "the resolved tree is checked with the orchestration doc's call" "run the orchestration doc's Check record script, \`<plugin root>/scripts/check.sh <worktree path> <owner>\`, with the task's worktree as its \`<worktree path>\`, in one foreground Bash call with \`timeout: 600000\`, \`<plugin root>\` spelled as the path this session resolved; the script runs nothing on a tree with a green record"
 line_lacks '^3\. A conflict goes to an implementer' "the landing reading the resolved tree's record itself" 'run nothing on a green record'
 sec_has "## Landing" "no reviewer runs on the resolution" 'No reviewer runs: the story row'"'"'s standards axis sees the resolution'
 # a resolution always moves the task branch past the reviewed tip, so the Land script is called with
@@ -1846,9 +1846,9 @@ lacks "a closed report from the task orchestrator" '`<id> closed`'
 # opus, and the brief carries only what the run alone knows, a gate entry adding the branch,
 # worktree, tip and the red record's log
 line_has "$anchor_story_step_4_frontier" "the frontier spawn is at opus" "$pin_spawn_at_opus"
-# a cut-off task the rules doc's Cut-off probe hits, on either worktree route, is respawned
+# a cut-off task the orchestration doc's Cut-off probe hits, on either worktree route, is respawned
 # at the gate on the branch, worktree and tip the probe found (dev-b8d.1.4 review 1, dev-ndfi)
-line_has "$anchor_story_step_4_frontier" "step 4 probes a cut-off task through the rules doc's Cut-off probe" "$probe_cite"
+line_has "$anchor_story_step_4_frontier" "step 4 probes a cut-off task through the orchestration doc's Cut-off probe" "$probe_cite"
 lacksf "a second copy of the cut-off probe's old hand-rolled branch test" 'log --oneline <branch>..task/<task-slug>'
 lacksf_row "a second copy of the cut-off probe's trailer query" repo-plumbing-pins "the cut-off probe matches the Bead trailer on the commits its branch adds"
 sec_has "$head_task_orchestrator_brief" "the gate entry covers a probe hit on either route" "a cut-off task orchestrator's replacement for which step 4's Cut-off probe hits"
@@ -1879,9 +1879,9 @@ hasc "merge guard's MERGED refusal says add mode" 'in add mode (or /dev:spec-to-
 hasc "merge guard's MERGED refusal closes the stray task" '; then close <task-id> (moved to the new story)'
 hasc "step 3 defers to the forge decision of the merge guard" '(already decided in step 1 when the merge guard ran)'
 # the guard's mechanism (the forge decision, the queries, the three outcomes, the local decision of a
-# branch form) is the rules doc's Repo plumbing and Cut-off probe, pinned in section 6 (dev-yykg); the step cites it
+# branch form) is the orchestration doc's Repo plumbing and Cut-off probe, pinned in section 6 (dev-yykg); the step cites it
 # and keeps its trigger, its refusal lines and what it does when the state is unknown
-hasc "merge guard cites the rules doc's Repo plumbing and Cut-off probe for its mechanism" "$merge_guard_cite"
+hasc "merge guard cites the orchestration doc's Repo plumbing and Cut-off probe for its mechanism" "$merge_guard_cite"
 hasc "merge guard: OPEN continues on the re-delivery path" 'the re-delivery path of steps 3 and 8'
 row_phrase repo-plumbing-pins "the merge guard refuses a MERGED PR" && hasc "merge guard's MERGED refusal line" "$row_text with \`<story-id> $pin_refused_pr_already_merged;"
 row_phrase repo-plumbing-pins "the merge guard refuses a PR closed unmerged" && hasc "merge guard's closed-unmerged refusal line" "$row_text with \`<story-id> $pin_refused_pr_closed_unmerged\`"
@@ -1969,18 +1969,18 @@ line_has "$anchor_owner_repo_bullet" "the Owner repo bullet spells the path lite
 line_hase "$anchor_owner_repo_bullet" "the Owner repo bullet puts the bare pwd step ahead of the path spelled literally" "$tmpdir_pwd_spelled"
 lacks "the retired fill-in-the-pwd-path wording" 'fills in the path `pwd` prints'
 lacks "Gitignore step counts three entries" "the rule's three entries"
-line_has '^7\. ' "the story review (step 7) points at the rules doc's Review verdict" "$verdict_cite"
+line_has '^7\. ' "the story review (step 7) points at the orchestration doc's Review verdict" "$verdict_cite"
 # the story reviewers' briefs and the fix-up briefs point at the harness doc's Shell commands section (dev-elkb)
 line_has '^7\. ' "the story review's sub-agent briefs point at the harness doc's Shell commands section" "each sub-agent's brief points at $shell_section"
 line_has '^7\. ' "the story review's fix-up brief points at the harness doc's Shell commands section" "it points at $shell_section and cites that doc for its Commits rule"
 line_has "$anchor_conflict_implementer" "the conflict implementer's brief points at the harness doc's Shell commands section" "for its Commits rule and pointing at $shell_section"
 lacks "the zero-findings bar" "$pin_retired_zero_findings_bar"
-# the check target probe, its refusal and the once-per-run resolution are the rules doc's Story
+# the check target probe, its refusal and the once-per-run resolution are the orchestration doc's Story
 # plumbing, pinned in section 6 (dev-yykg, dev-de4, dev-b3p, ADR 0015); scripts/test-check-target.sh
 # runs the pinned query on scratch repos; step 3 cites it, and the
 # run's check command still goes in every brief and gates step 7
 C="^   $apply_probe"
-line_has "$C" "step 3 applies the rules doc's Repo plumbing and Cut-off probe" "$apply_probe"
+line_has "$C" "step 3 applies the orchestration doc's Repo plumbing and Cut-off probe" "$apply_probe"
 line_has "$C" "step 3 resolves the check command through the repo plumbing and Cut-off probe" "$pin_its_check_target, whose \`<check command>\`"
 line_has "$C" "the run's check command goes in every brief" 'every task orchestrator brief carries and step 7 gates on'
 line_has "$C" "the Gitignore commit is the rule's, in the repo plumbing and Cut-off probe" "$pin_gitignore_commit"
@@ -1989,7 +1989,7 @@ plumbing_copies
 lacks "the retired grep for the check target" "grep -q .\\^check:"
 lacks "the retired lint-command resolution" 'resolve the owner repo.s \*\*lint command\*\*|`make lint` when `<owner>`.s makefile has a `lint` target'
 lacksf "the retired lint placeholder" '`<lint>`'
-# the story gate (step 7) is the rules doc's Check gate loop on the integration branch tip, the
+# the story gate (step 7) is the orchestration doc's Check gate loop on the integration branch tip, the
 # story row of its table (dev-9k5.1.9): it exits when the checks are green on the tip the review
 # called clean; each pass reads the checks from the check records first (a recorded tree runs
 # nothing, an unrecorded one is checked once in the clean owner checkout and recorded), then
@@ -2001,7 +2001,7 @@ lacksf "the retired lint placeholder" '`<lint>`'
 # draft, its Evidence the delivered tip's check record; step 9 leaves the records in place
 G7='^7\. '
 hase "step 7 is the story gate" '^7\. \*\*Story gate\.\*\*'
-line_has "$G7" "the story gate names its row of the rules doc's table" "the story row of the rules doc's table"
+line_has "$G7" "the story gate names its row of the orchestration doc's table" "the story row of the orchestration doc's table"
 line_has "$G7" "the story gate exits on green checks at the tip the review called clean" 'it exits when the checks are green on the tip the review called clean'
 line_has "$G7" "the story gate runs the checks first in each pass" "$gate_first"
 line_has "$G7" "the story gate reads the tree only of a clean owner checkout" 'confirm the owner checkout is clean, `git -C <owner> status --porcelain` prints nothing'
@@ -2018,9 +2018,9 @@ line_lacks "$G7" "the story gate reading the record path itself" 'its record is 
 line_lacks "$G7" "the story gate skipping the run on a red record" "$rec_any"
 line_has "$G7" "the story gate checks a red's fix-up that commits nothing again" "$rec_fixup"
 line_has "$G7" "the story gate exits on a green tip its review: note still names" 'a green on a tip the `review:` note still names exits'
-# the check-record call is defined once, in the rules doc's Check record, and step 7
+# the check-record call is defined once, in the orchestration doc's Check record, and step 7
 # names it with <owner> for the worktree path (dev-9k5.1.9 review 1)
-line_has "$G7" "the story gate runs the script with <owner> as its worktree path" "the rules doc's Check record script, \`<plugin root>/scripts/check.sh <owner> <owner>\`, with \`<owner>\` as its \`<worktree path>\`, in one foreground Bash call with \`timeout: 600000\`"
+line_has "$G7" "the story gate runs the script with <owner> as its worktree path" "the orchestration doc's Check record script, \`<plugin root>/scripts/check.sh <owner> <owner>\`, with \`<owner>\` as its \`<worktree path>\`, in one foreground Bash call with \`timeout: 600000\`"
 line_lacks "$G7" "a second copy of the check-record call" "$rec_call"
 line_has "$G7" "the story keeps the reviewed tip in its notes" "The story keeps the reviewed tip in its notes: its \`review:\` note names the tip the gate exits on after a clean review, so a rerun reviews only a tip that has moved past it"
 # the story review round is numbered on from the notes, not from 1 per run, and its note names
@@ -2054,13 +2054,13 @@ unchanged_file || awk -v g="$gate_first" -v m="$gate_same" -v r="$pin_code_revie
   || bad "missing: the story gate (step 7) runs the checks before the reviewed-tip compare and the two-axis review"
 line_has '^8\. ' "the deliver step leaves the PR a draft" "$pin_pr_stays_a_draft"
 # step 3 runs the Delivery section's stray-commit check and cites the Delivery authority, never step 8
-line_has "$anchor_step_3_draft_pr" "step 3 runs the Delivery section's stray-commit check" "first run the rules doc's Delivery section's **stray-commit check**"
+line_has "$anchor_step_3_draft_pr" "step 3 runs the Delivery section's stray-commit check" "first run the orchestration doc's Delivery section's **stray-commit check**"
 # step 3 and step 8 cite the stray-commit script by name (dev-skn5.1.6)
 line_has "$anchor_step_3_draft_pr" "step 3 cites the stray-commit script by name" 'stray-commit check** through its **stray-commit script**, `<plugin root>/scripts/stray-commit.sh <owner> <default branch>..<branch>`, in one foreground Bash call, `<plugin root>` spelled as the path this session resolved (a hit ends the run there, as that section says)'
 line_has "$anchor_step_3_draft_pr" "step 3 pushes on the Delivery authority" "($cite_delivery_authority)"
 line_lacks "$anchor_step_3_draft_pr" "step 3 pointing at step 8's stray-commit check" "step 8's **stray-commit check**"
 # step 8 reuses step 3's citation by name (dev-skn5.1.6)
-line_has '^8\. ' "step 8 cites the stray-commit script by name" 'run through the rules doc'"'"'s **stray-commit script** as step 3 does'
+line_has '^8\. ' "step 8 cites the stray-commit script by name" 'run through the orchestration doc'"'"'s **stray-commit script** as step 3 does'
 line_has '^8\. ' "step 8 opens the draft itself" 'open the draft after the push if step 3 could not'
 line_has '^8\. ' "step 8 appends the sibling line" 'append the sibling line (rebuilt as in step 3)'
 line_has '^8\. ' "step 8 runs the sibling refresh" "only then run step 3's sibling refresh"
@@ -2137,7 +2137,7 @@ done
 CUT='^A subagent that returns an API error'
 line_has "$CUT" "a fresh task orchestrator starts at round 1" 'so you start at round 1'
 line_has "$CUT" "the fresh start ignores earlier attempts' notes" 'whatever `checks <n>:` or `review <n>:` notes earlier attempts left'
-line_has "$CUT" "the fresh start points at the rules doc's Check gate" "your task starts over from \`<branch>\`'s tip (the rules doc's Check gate)"
+line_has "$CUT" "the fresh start points at the orchestration doc's Check gate" "your task starts over from \`<branch>\`'s tip (the orchestration doc's Check gate)"
 line_has "$CUT" "a replaced implementer's no reset holds within one task orchestrator" 'no reset within this task orchestrator'
 # the per-task reviewer reads the standards the story review reads (dev-co6)
 for need in '`CODING_STANDARDS.md` or `CONTRIBUTING.md`' '<plugin root>/docs/agents/coding-standards.md` spelled as the path this session resolved'; do
@@ -2176,17 +2176,17 @@ line_hase '^2\. ' "task orchestrator step 2's brief puts the TMPDIR line, the ba
 for phrase in "$pin_verdict_clean" "$pin_verdict_blocking" "$pin_blocking_or_minor" 'within the budget above'; do
   line_has '^3\. ' "task orchestrator step 3's reviewer brief" "$phrase"
 done
-line_has '^3\. ' "task orchestrator step 3 points at the rules doc's Review verdict" "$verdict_cite"
+line_has '^3\. ' "task orchestrator step 3 points at the orchestration doc's Review verdict" "$verdict_cite"
 # the reviewer briefs and both fix-up briefs point at the harness doc's Shell commands section (dev-elkb)
 line_has '^3\. ' "the task reviewer briefs point at the harness doc's Shell commands section" "Both reviewer briefs point at $shell_section"
 line_has '^3\. ' "the red fix-up brief points at the harness doc's Shell commands section" "as every worktree brief; it points at $shell_section"
 line_has '^3\. ' "the blocking fix-up brief points at the harness doc's Shell commands section" "every path spelled out, and it points at $shell_section"
 lacks "the zero-findings bar" "$pin_retired_zero_findings_bar"
-# the skill states its row of the rules doc's table, the run's check command from its brief, and
+# the skill states its row of the orchestration doc's table, the run's check command from its brief, and
 # cites the harness doc in one line (dev-9k5.1.7); its row reports a reviewed branch (dev-b8d.1.4)
 H="$anchor_task_orchestrator_header"
 hase "the row opens on the task orchestrator" "$H"
-for pin in "your row is the task row of the rules doc's table|the skill names its row of the rules doc's table" \
+for pin in "your row is the task row of the orchestration doc's table|the skill names its row of the orchestration doc's table" \
   'you build with one implementer in a worktree|the row builds with one implementer in a worktree' \
   'check with the check command|the row checks with the check command' \
   "review the task's body as the spec axis and the task diff as the standards axis, one tier up, none at \`low\`, fix up|the row reviews the task body and diff one tier up, none at low" \
@@ -2210,7 +2210,7 @@ line_lacks "$H" "the per-task check command by Makefile convention" "Makefile ha
 # task exiting on green (dev-cq0.1.4, dev-1xf.1.2)
 G3='^3\. \*\*Check gate\*\*, every tier'
 hase "task orchestrator step 3 opens with the check gate, every tier" "$G3"
-line_has "$G3" "the loop step cites the rules doc's loop" "as the rules doc's Check gate says"
+line_has "$G3" "the loop step cites the orchestration doc's loop" "as the orchestration doc's Check gate says"
 line_has "$G3" "a red starts the loop over from the checks" 'A red spawns a fresh implementer on the fix-up and the loop starts over from the checks'
 line_has "$G3" "a blocking verdict starts the loop over from the checks, never straight to the reviewers" 'a blocking verdict spawns a fresh implementer on the fix-up and the loop starts over from the checks, never straight to the reviewers'
 line_has "$G3" "a clean verdict exits the loop" '**Clean** exits the loop'
@@ -2234,10 +2234,10 @@ line_lacks "$G3" "the gate reading the record path itself" 'its check record is 
 line_lacks "$G3" "the gate skipping the run on a red record" "$rec_any"
 line_has "$G3" "the task gate checks a red's fix-up that commits nothing again" "$rec_fixup"
 line_has "$G3" "the gate runs the shipped script in one foreground call" 'run `<plugin root>/scripts/check.sh <worktree path> <owner>` (`<worktree path>` the task'"'"'s worktree path) in one foreground Bash call with `timeout: 600000`'
-line_has "$G3" "the gate cites the rules doc's Check record script" "the rules doc's Check record script"
+line_has "$G3" "the gate cites the orchestration doc's Check record script" "the orchestration doc's Check record script"
 line_lacks "$G3" "the gate running the check command itself" 'run the check command in one foreground Bash call'
 line_lacks "$G3" "a second copy of the check-record call in the skill" "$rec_call"
-line_has "$G3" "the gate names the rules doc's Check record as the writer's rule" "Only you write a record, never an implementer (the rules doc's Check record)"
+line_has "$G3" "the gate names the orchestration doc's Check record as the writer's rule" "Only you write a record, never an implementer (the orchestration doc's Check record)"
 line_has "$G3" "the gate reviews with mattpocock-skills:code-review" "$pin_code_review_tool"
 line_has "$G3" "the reviewer brief names the harness-route diff" '`git -C <worktree path> diff <branch>...HEAD`'
 line_lacks "$G3" "the per-round check log" 'checks-<round>-<k>.log'
@@ -2272,7 +2272,7 @@ fi
 # story orchestrator's plumbing (the make probe and its refusal, the forge decision, the gitignore
 # rule, task/<id> off the default branch with a branch: note), spawns one task orchestrator with
 # the short brief, lands its reviewed branch through the Land script with --ff-only, and delivers
-# by the rules doc's Delivery section: the PR opened ready, delivered: before pr:, then the close;
+# by the orchestration doc's Delivery section: the PR opened ready, delivered: before pr:, then the close;
 # with no forge the pushed branch and checks: skipped: no forge. A rerun applies the merge guard on the pr: note and
 # re-enters at the gate on a failed run's commits with a fresh budget; the report ends on resume:.
 if doc 17 "/implement-task" "$skills/implement-task/SKILL.md"; then
@@ -2287,7 +2287,7 @@ hasc "the story row with a frontier of one" "$pin_story_row_frontier_of_one"
 hasc "no story gate" "$pin_no_story_bead_or_gate"
 # the plumbing: the same make probe and refusal, the forge decision, the gitignore rule, the branch
 # the make probe, its refusal, the forge decision, the Gitignore commit and the merge guard's
-# mechanism are the rules doc's Repo plumbing and Cut-off probe (section 6 pins them, dev-yykg); the skill cites
+# mechanism are the orchestration doc's Repo plumbing and Cut-off probe (section 6 pins them, dev-yykg); the skill cites
 # it and repeats none of it
 hasc "the repo plumbing and Cut-off probe cited for the check target" "$plumbing_cite"
 hasc "the repo plumbing and Cut-off probe's Check target" "$pin_its_check_target"
@@ -2300,13 +2300,13 @@ hasc "the branch: note" 'bd -C <owner> note <task-id> "branch: feat/<task-id>"'
 hasc "one task orchestrator through the skill" "$pin_call_task_orchestrator_skill"
 hasc "the task orchestrator at opus" "$pin_spawn_at_opus"
 hasc "the brief's gate entry" "$gate_entry"
-# the landing is the rules doc's Land script with --ff-only, its refusal wrapped in the failed:
+# the landing is the orchestration doc's Land script with --ff-only, its refusal wrapped in the failed:
 # line shape; a review: note's resume path re-lands the noted tip through the same call, which
 # reports landed with nothing merged, so a green record never keys a tree the checkout lacks
 # (dev-jv82, dev-skn5.1.4)
-hasc "the landing calls the Land script with --ff-only" 'land it through the rules doc'"'"'s **Land script**, `<plugin root>/scripts/land.sh <owner> <branch> <task branch> <tip SHA> --ff-only`, in one foreground Bash call, `<plugin root>` spelled as the path this session resolved'
-# the delivery's stray-commit check runs through the rules doc's stray-commit script, cited by name (dev-skn5.1.6)
-hasc "the delivery cites the stray-commit script by name" 'its stray-commit check before any push (run through the rules doc'"'"'s **stray-commit script**, `<plugin root>/scripts/stray-commit.sh <owner> <default branch>..<branch>`, in one foreground Bash call, `<plugin root>` spelled as the path this session resolved)'
+hasc "the landing calls the Land script with --ff-only" 'land it through the orchestration doc'"'"'s **Land script**, `<plugin root>/scripts/land.sh <owner> <branch> <task branch> <tip SHA> --ff-only`, in one foreground Bash call, `<plugin root>` spelled as the path this session resolved'
+# the delivery's stray-commit check runs through the orchestration doc's stray-commit script, cited by name (dev-skn5.1.6)
+hasc "the delivery cites the stray-commit script by name" 'its stray-commit check before any push (run through the orchestration doc'"'"'s **stray-commit script**, `<plugin root>/scripts/stray-commit.sh <owner> <default branch>..<branch>`, in one foreground Bash call, `<plugin root>` spelled as the path this session resolved)'
 hasc "a refusal is wrapped in the failed: line shape" 'A `refused: <reason>` ends the run with `failed: <task-id> <reason>`, the refusal'"'"'s reason wrapped in the `failed:` line shape'
 hasc "a diverged refusal names both branches" 'a `diverged` is ended as `failed: <task-id> <branch> diverged from <task branch>`'
 hasc "a moved-past refusal names the reviewed tip" 'a `moved past <tip>` names the reviewed `<tip SHA>`'
@@ -2315,12 +2315,12 @@ hasc "the resume path's refusal is the failed: line" 'a `refused: <reason>` ends
 lacks "the resume path that goes straight to step 5" 'failed at delivery: go straight to step 5'
 hasc "a conflict landing is the failed: line" 'so it is a script fault: end the run with `failed: <task-id> conflict landing <task branch>`'
 hasc "the landed tip is noted" 'bd -C <owner> note <task-id> "review: <tip SHA>"'
-# delivery: the rules doc's Delivery section, the PR opened ready, the notes in order, the close
-hasc "delivery by the rules doc's Delivery section" "as the rules doc's Delivery section says, with the standalone task as its unit"
+# delivery: the orchestration doc's Delivery section, the PR opened ready, the notes in order, the close
+hasc "delivery by the orchestration doc's Delivery section" "as the orchestration doc's Delivery section says, with the standalone task as its unit"
 hasc "the PR opened ready, not draft" 'opened **ready**, not draft'
 # a tree with no green record is checked by the shipped script run on the owner checkout, a red
 # ending on the failed: check make check line, and the check records stay after a delivery (dev-9x6c.1.7)
-hasc "the delivery runs the Check record script on the owner checkout" 'Run the rules doc'"'"'s Check record script, `<plugin root>/scripts/check.sh <owner> <owner>`, with `<owner>` as its `<worktree path>`, in one foreground Bash call with `timeout: 600000`, `<plugin root>` spelled as the path this session resolved'
+hasc "the delivery runs the Check record script on the owner checkout" 'Run the orchestration doc'"'"'s Check record script, `<plugin root>/scripts/check.sh <owner> <owner>`, with `<owner>` as its `<worktree path>`, in one foreground Bash call with `timeout: 600000`, `<plugin root>` spelled as the path this session resolved'
 hasc "the delivery leaves the green-record read to the script" 'The script reads the tip'"'"'s tree record itself: on a green record it runs nothing, and a red or missing record is checked; a red ends the run with `failed: check make check`'
 lacks "the delivery reading the green record itself" 'with no green record there (`exit=0` in `<owner>/.tmp/checks/<tree>/record`)'
 lacks "the clean-up removing the check records" 'rm -rf <owner>/.tmp/checks'
@@ -2333,13 +2333,13 @@ hasc "no forge: the skipped-checks line" "$pin_checks_skipped_no_forge"
 hasc "the merge guard" '**Merge guard.**'
 hasc "the merge guard's merged refusal" "\`<task-id> $pin_refused_pr_already_merged"
 hasc "the merge guard's closed-unmerged refusal" "\`<task-id> $pin_refused_pr_closed_unmerged\`"
-hasc "the merge guard cites the rules doc's Repo plumbing and Cut-off probe for its mechanism" "$merge_guard_cite"
+hasc "the merge guard cites the orchestration doc's Repo plumbing and Cut-off probe for its mechanism" "$merge_guard_cite"
 hasc "the merge guard's open PR delivers again" 'and deliver again (steps 2 to 5 once more, on it)'
 hasc "the branch form's refusals name the pr: value" 'the `pr:` value stands in for `<url>` in the refusals'
 # a finished task touches nothing: no worktree removed (review 2)
 hasc "a finished task runs only the stray scan" "run only step 6's stray scan"
 hasc "a failed run re-enters at the gate" 'its next spawn is a gate entry'
-hasc "the probe for a failed run's commits is the rules doc's Cut-off probe" "$probe_cite"
+hasc "the probe for a failed run's commits is the orchestration doc's Cut-off probe" "$probe_cite"
 lacksf_row "a second copy of the cut-off probe's trailer query" repo-plumbing-pins "the cut-off probe matches the Bead trailer on the commits its branch adds"
 hasc "the gate entry starts a fresh budget" "$pin_with_fresh_budget"
 # the report: the story block minus the story lines, ending on resume:
@@ -2544,7 +2544,7 @@ lacks "the bare grep instruction" 'grep the whole slug directory'
 fi
 
 # ---- 13. the brief rule: no plugin-root variable inside a brief block ----
-# a brief spells the plugin root literally (the rules doc's Plugin root rule): Bash never has
+# a brief spells the plugin root literally (the orchestration doc's Plugin root rule): Bash never has
 # CLAUDE_PLUGIN_ROOT, in the main session or a subagent; the harness fills it in only in the
 # skill text it loads, which a brief's subagent never sees, so a brief naming the variable sends
 # it to a doc it cannot open. A brief block is a markdown quote: it opens on a line starting with
@@ -2558,7 +2558,7 @@ while IFS= read -r -d '' f; do
   unchanged_file || brief_files+=("$f")
 done < <(find "$skills" -type f -name '*.md' -print0 2>/dev/null | sort -z)
 [ "${#brief_files[@]}" -eq 0 ] || while IFS=$'\t' read -r f n line; do
-  bad "plugin-root variable in a brief in $f:$n (spell the plugin root literally; the rules doc's Plugin root rule): $line"
+  bad "plugin-root variable in a brief in $f:$n (spell the plugin root literally; the orchestration doc's Plugin root rule): $line"
 done < <(awk -v name="$pin_plugin_root_variable" '
   FNR == 1 {inq=0} /^[[:space:]]*>/ {inq=1} /^[[:space:]]*$/ {inq=0}
   inq && index($0, name) {print FILENAME "\t" FNR "\t" $0}' "${brief_files[@]}")
@@ -2622,11 +2622,11 @@ if [ "${#mermaid_files[@]}" -gt 0 ]; then
 fi
 
 # ---- 18. cross-skill cites ----
-# dev-q47w: the coding standards state how a rules doc or SKILL.md cites another skill's rule: a
+# dev-q47w: the coding standards state how a reference doc or SKILL.md cites another skill's rule: a
 # bold step name in bold, a heading in quotes, the skill named in backticks, never bare and never
 # a name in backticks (dev-hcn9). A skill named in backticks and followed by a possessive and a
 # bare capitalised heading ("`/dev:x`'s Two entries") is a heading cite in neither form, so it
-# fails in every rules doc and SKILL.md but the coding standards, which show the wrong forms as
+# fails in every reference doc and SKILL.md but the coding standards, which show the wrong forms as
 # examples, and a SKILL.md citing its own skill. The other wrong forms fail the same way
 # (dev-mnz6): a step name in quotes, a heading in bold, either one bare before "of"/"in"
 # `/dev:x`, and a bare name after the possessive and an optional "step"/"section" (the quoted and
@@ -2835,7 +2835,7 @@ if [ -f "$standards" ]; then
   names_all= q_step= b_step= q_heading= b_heading= q_both= b_both=
   # the tail of a bare possessive cite: a backticked possessive and a capital
   poss_cap="\`'s [A-Z]"
-  # every skill's SKILL.md is read too (dev-xyrl), the skills' own docs binding like a rules doc
+  # every skill's SKILL.md is read too (dev-xyrl), the skills' own docs binding like a reference doc
   for f in "$refs"/*.md "$agents"/*.md "$skills"/*/SKILL.md; do
     [ "$f" = "$standards" ] && continue   # it shows the wrong forms as examples
     # a listed file queues nothing here, and the loop below is most of a run's cost (the pin list

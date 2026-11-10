@@ -66,7 +66,7 @@ when the repo has a `docs/adr/` directory; see `domain.md` for where ADRs live.
 
 ## Bead ids cite provenance in parentheses
 
-A sentence in a rules doc (`references/*.md`, a skill's `SKILL.md`) or a comment in a lint
+A sentence in a reference doc (`references/*.md`, a skill's `SKILL.md`) or a comment in a lint
 script that records why a rule exists names the bead behind it as a **provenance cite**: the
 bare id inside parentheses that close the clause it justifies, as in "a flaky red never
 sticks to its tree (dev-6qi)". The same form serves prose and lint comments. The parentheses
@@ -83,7 +83,7 @@ Flag a cite outside parentheses, or a cited id woven into the sentence or posses
 
 ## Another skill's rule is cited in one form
 
-A sentence in a rules doc (`references/*.md`) or a skill's `SKILL.md` that cites a rule
+A sentence in a reference doc (`references/*.md`) or a skill's `SKILL.md` that cites a rule
 another skill owns names the skill and cites the rule in the form of the rule's own marking.
 A rule the skill's `SKILL.md` marks with a bold step name is cited in bold
 (`/dev:implement-story`'s **Story gate**, the **Clean up** sweep of `/dev:implement-story`);
@@ -94,10 +94,10 @@ marker, opens on a letter or a backtick, and either opens a numbered item or end
 period inside the bold (`**Story gate.**`, `- **Stall.**`). A bold lead-in with no period
 that opens no numbered item (`**Owner**`, `**Alone**:`) is a label, and a bold term inside
 a sentence (the **story orchestrator**) is neither; a cite of a label or such a term is
-outside this rule, so a lead-in that another skill or a rules doc cites takes the period
+outside this rule, so a lead-in that another skill or a reference doc cites takes the period
 inside the bold and is cited in bold. A heading cited bare (`/dev:task-orchestrator`'s
 Two entries), a heading cited in bold, or a step name cited in quotes is a cite in the wrong form. A cite of the
-rules doc's own sections, or of a skill's own steps and headings, is not a cross-skill
+orchestration doc's own sections, or of a skill's own steps and headings, is not a cross-skill
 cite and is outside this rule.
 
 A cite names the skill in backticks (`/dev:close-story`), never bare (/dev:close-story's
