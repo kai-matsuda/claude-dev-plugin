@@ -2,7 +2,7 @@
 # Helpers shared by the fixture tests (scripts/test-fixture-*.sh, test-lint-skill-docs.sh,
 # test-guard-rm.sh, test-guard-cd.sh, test-phases.sh, test-glossary-lint.sh, test-setup-skill.sh,
 # test-setup-repo-skill.sh, test-ci-workflow.sh, test-readme.sh, test-check-target.sh,
-# test-check-script.sh, test-coding-standards.sh).
+# test-check-script.sh).
 # Every helper is fx_-prefixed, so it neither shadows nor is shadowed by a sourcing script's own
 # functions, except section, which the Markdown doc tests share by that name (lint-skill-docs.sh
 # keeps its own, unrelated section). The bead helpers read $out, the fixture workspace, when called; sets fails=0, which

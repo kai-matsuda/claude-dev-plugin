@@ -195,7 +195,7 @@
 #      line, the merge guard and the gate re-entry on a rerun, and the report minus the story lines
 #      ending on resume:. Section 6 pins the orchestration doc's one paragraph on it (the table keeps three
 #      rows) and the no-seam-test case skipping a standalone task without ## Test seams.
-#  18. the cross-skill cite rule (dev-q47w): the coding standards state it under its heading, and
+#  18. the cross-skill cite rule (dev-q47w): the cross-skill cite rule file states it, and
 #      no other reference doc or SKILL.md cites another skill's heading bare after a possessive, even
 #      split across a line break. Nor does a step name of a skill in quotes, a heading in bold,
 #      either one bare before "of"/"in" /dev:x or bare after "'s step"/"'s section" (dev-mnz6),
@@ -203,7 +203,7 @@
 #      pair), or the right marking beside a skill not in backticks (dev-hcn9). The names are read
 #      from that skill's SKILL.md (numbered or ## to #### headings; bold steps, hyphens,
 #      punctuation and indents included, regex characters escaped), in the closed list of shapes
-#      section 18's "Limits" comment below states and nothing beside it (the coding standards
+#      section 18's "Limits" comment below states and nothing beside it (the cross-skill cite rule file
 #      point there); a changed SKILL.md has every reference doc and SKILL.md re-read.
 # Usage: scripts/lint-skill-docs.sh [implement-spec SKILL.md [WORKFLOW.md]]
 # A section whose doc is missing fails naming it ("missing document: <path>") rather than being
@@ -577,7 +577,8 @@ skills=${SKILLS_DIR:-$root/skills}
 refs=${REFERENCES_DIR:-$root/references}
 docs=${DOCS_DIR:-$root/docs}
 docs=${docs%/}
-agents=$docs/agents   # this repo's docs/agents: domain.md, triage-labels.md, coding-standards.md
+agents=$docs/agents   # this repo's docs/agents: domain.md, triage-labels.md (coding-standards.md until dev-7mkq.1.7 deletes it)
+rules=${RULES_DIR:-$root/.claude/rules}   # this repo's rule files
 user_claude_md=${USER_CLAUDE_MD:-$root/CLAUDE.md}
 glossary_md=${GLOSSARY_MD:-$root/GLOSSARY.md}
 hooks=${HOOKS_DIR:-$root/hooks}
@@ -2641,11 +2642,11 @@ if [ "${#mermaid_files[@]}" -gt 0 ]; then
 fi
 
 # ---- 18. cross-skill cites ----
-# dev-q47w: the coding standards state how a reference doc or SKILL.md cites another skill's rule: a
+# dev-q47w: the cross-skill cite rule file states how a reference doc or SKILL.md cites another skill's rule: a
 # bold step name in bold, a heading in quotes, the skill named in backticks, never bare and never
 # a name in backticks (dev-hcn9). A skill named in backticks and followed by a possessive and a
 # bare capitalised heading ("`/dev:x`'s Two entries") is a heading cite in neither form, so it
-# fails in every reference doc and SKILL.md but the coding standards, which show the wrong forms as
+# fails in every reference doc and SKILL.md but the cross-skill cite rule file, which shows the wrong forms as
 # examples, and a SKILL.md citing its own skill. The other wrong forms fail the same way
 # (dev-mnz6): a step name in quotes, a heading in bold, either one bare before "of"/"in"
 # `/dev:x`, and a bare name after the possessive and an optional "step"/"section" (the quoted and
@@ -2662,7 +2663,7 @@ fi
 # part of the name (**`git` rule**) is no pair around it. Every check but the bare skill-first
 # one matches the name in any case; that one matches its own case only.
 # Limits: the one list of what the lint reads and what it leaves open, bar the limits kept below
-# (the cross-skill cite rule in docs/agents/coding-standards.md points here, so a change to a
+# (the cross-skill cite rule in .claude/rules/cross-skill-cites.md points here, so a change to a
 # regex changes this list alone, bar those limits):
 #
 # The lint reads the shapes below and nothing more. It reads a skill beside a step or heading
@@ -2719,7 +2720,7 @@ fi
 # read in the of/in order when its closing backtick is straight after the name, so the name
 # fails as bare. A mark that closes a name never opened fails after the possessive and
 # skill-first, where the name reads bare, and passes in the of/in order. The cite rule in
-# docs/agents/coding-standards.md says which forms are wrong; the lint fails them only in the
+# .claude/rules/cross-skill-cites.md says which forms are wrong; the lint fails them only in the
 # shapes above, and any shape it does not read is outside the lint.
 #
 # Names are the skill's own words (every regex character escaped, any characters but a bold
@@ -2729,10 +2730,10 @@ fi
 # The heading extractor reads ## to #### lines inside code fences and tags too, so
 # story-to-tasks's template (in an <issue-template> tag) gives Parent, What to build and
 # Acceptance criteria.
-standards=$agents/coding-standards.md
+standards=$rules/cross-skill-cites.md
 # each file is read as one line (lacksw and lackswc, as section 5 does, dev-86j), so a cite
 # split across a line break fails too
-doc 18 "cross-skill cites" "$standards" && has "the cross-skill cite rule heading" "## Another skill's rule is cited in one form"
+doc 18 "cross-skill cites" "$standards" && has "the cross-skill cite rule heading" "# Another skill's rule is cited in one form"
 # the sweep reads every skill and doc, so the standards doc being listed in LINT_UNCHANGED leaves
 # it to run
 if [ -f "$standards" ]; then
@@ -2856,7 +2857,7 @@ if [ -f "$standards" ]; then
   poss_cap="\`'s [A-Z]"
   # every skill's SKILL.md is read too (dev-xyrl), the skills' own docs binding like a reference doc
   for f in "$refs"/*.md "$agents"/*.md "$skills"/*/SKILL.md; do
-    [ "$f" = "$standards" ] && continue   # it shows the wrong forms as examples
+    [ "$f" = "$standards" ] || [ "$f" = "$agents/coding-standards.md" ] && continue   # the rule file and the doc it replaces show the wrong forms as examples
     # a listed file queues nothing here, and the loop below is most of a run's cost (the pin list
     # still takes its checks)
     [ -n "${LINT_PIN_LIST:-}" ] || ! unchanged_file || continue

@@ -86,6 +86,7 @@ plugin_names=$(grep -rhoE 'mattpocock-skills:[a-z-]+' "$repo_root/skills" "$repo
 pristine=$jobs/pristine
 mkdir "$pristine"
 cp -R "$repo_root/skills" "$repo_root/references" "$repo_root/docs" "$repo_root/CLAUDE.md" "$repo_root/GLOSSARY.md" "$pristine/"
+mkdir -p "$pristine/.claude" && cp -R "$repo_root/.claude/rules" "$pristine/.claude/"
 cp -R "$fixtures/skills/sample" "$pristine/skills/"
 cp "$fixtures/references/sample.md" "$pristine/references/"
 (cd "$pristine" && sort -u <<<"$plugin_names" | sed 's|^|plugin/|' | xargs mkdir -p)
@@ -159,7 +160,7 @@ lint_scratch() {
   # a seeded hang swaps in a lint that never returns
   cmd=("$lint")
   [ "${LINT_TEST_SEED:-}" != "hang:$njobs" ] || cmd=(/bin/sh -c 'sleep 86400' sh)
-  out=$(SKILLS_DIR=${skills_dir:-$scratch/skills} REFERENCES_DIR=${references_dir:-$scratch/references} DOCS_DIR=$scratch/docs \
+  out=$(SKILLS_DIR=${skills_dir:-$scratch/skills} REFERENCES_DIR=${references_dir:-$scratch/references} DOCS_DIR=$scratch/docs RULES_DIR=$scratch/.claude/rules \
     USER_CLAUDE_MD=${claude_md:-$scratch/CLAUDE.md} HOOKS_DIR=$scratch/hooks README_MD=$scratch/README.md GLOSSARY_MD=${glossary_md:-$scratch/GLOSSARY.md} \
     LINT_PINS_DIR=${pins_dir:-$repo_root/scripts} PLUGIN_SKILLS=$scratch/plugin VERSION_BUMP_REPO=${bump_repo_dir:-$scratch/no-repo} \
     LINT_UNCHANGED=${unchanged_list:-} bounded "$case_timeout" "${cmd[@]}" "$@" 2>&1)
@@ -954,7 +955,7 @@ sec=5 expect "a reference doc citing a skill's step number fails section 5 with 
 for case in '1 skills/implement-spec/SKILL.md' '2 skills/workflow/SKILL.md' '2 docs/WORKFLOW.md' \
   '3 skills/spec-to-stories/SKILL.md' '4 skills/spec-to-tasks/SKILL.md' '6 10 references/orchestration.md' \
   '6 references/harness.md' '6 10 references/issue-tracker.md' '6 skills/setup-repo/SKILL.md' '7 skills/story-to-tasks/SKILL.md' '8 skills/implement-story/SKILL.md' \
-  '9 skills/close-story/SKILL.md' '6 skills/triage/SKILL.md' '12 skills/retro/SKILL.md' '16 skills/task-orchestrator/SKILL.md' '17 skills/implement-task/SKILL.md' '18 docs/agents/coding-standards.md' '0 CLAUDE.md' '0 GLOSSARY.md'; do
+  '9 skills/close-story/SKILL.md' '6 skills/triage/SKILL.md' '12 skills/retro/SKILL.md' '16 skills/task-orchestrator/SKILL.md' '17 skills/implement-task/SKILL.md' '18 .claude/rules/cross-skill-cites.md' '0 CLAUDE.md' '0 GLOSSARY.md'; do
   doc=${case##* }
   fresh
   rm "$scratch/$doc"
@@ -1642,10 +1643,10 @@ pins_dir=$scratch/no-such-pins
 sec="0 1 6" expect "a missing pins directory fails" 1 "no such directory: $scratch/no-such-pins"
 unset pins_dir
 # and so does a docs dir without docs/agents, this repo's mattpocock-skills configuration
-# (section 18's coding-standards doc, which lives there, goes missing with it)
+# (the domain and triage-labels docs live there)
 fresh
 rm -rf "$scratch/docs/agents"
-sec="0 18" expect "a docs dir without docs/agents fails" 1 "no such directory: $scratch/docs/agents"
+sec="0" expect "a docs dir without docs/agents fails" 1 "no such directory: $scratch/docs/agents"
 
 # pin_row_case <rename|reword> <table>: the one case of a pin table's rows that the lint reads by
 # their description (rename: a row the lint's own calls name, renamed so the lint must name it) or
@@ -2251,6 +2252,10 @@ prep=zed_step cite_seeds 1 $orch "$bt_msg" "a name of kind both in backticks" \
 # the cite rule binds a skill doc too (dev-xyrl): a wrong cite of another skill's rule in a
 # SKILL.md fails section 18 in the bare and quoted forms, and the right forms pass
 fresh
+sed -i.bak "s/^# Another skill's rule is cited in one form/# Another rule/" "$scratch/.claude/rules/cross-skill-cites.md" && rm "$scratch/.claude/rules/cross-skill-cites.md.bak"
+sec=18 expect "the cite rule file without its heading fails section 18" 1 "missing: the cross-skill cite rule heading"
+
+fresh
 printf '%s\n' "As \`/dev:task-orchestrator\`'s Two entries says." >> "$scratch/skills/implement-task/SKILL.md"
 sec=18 expect "a bare heading cite in a SKILL.md fails section 18" 1 "present: an unquoted heading cite of a skill in $scratch/skills/implement-task/SKILL.md"
 
@@ -2762,12 +2767,12 @@ printf '%s\n' "As \`/dev:implement-story\`'s \"Zed middle\" says." >> "$scratch/
 expect "a mid-line bold term is no step name in section 18" 0
 
 fresh
-printf '%s\n' "The wrong form: \`/dev:task-orchestrator\`'s Two entries." >> "$scratch/docs/agents/coding-standards.md"
-expect "a bare heading cite in the coding standards passes section 18" 0
+printf '%s\n' "The wrong form: \`/dev:task-orchestrator\`'s Two entries." >> "$scratch/.claude/rules/cross-skill-cites.md"
+expect "a bare heading cite in the cross-skill cite rule file passes section 18" 0
 
 fresh
-printf '%s\n' "The wrong forms: \`/dev:close-story\`'s **The forge shows MERGED**, \`/dev:implement-story\`'s \"Merge guard\" and the Landing section of \`/dev:implement-story\`." >> "$scratch/docs/agents/coding-standards.md"
-expect "the other wrong forms in the coding standards pass section 18" 0
+printf '%s\n' "The wrong forms: \`/dev:close-story\`'s **The forge shows MERGED**, \`/dev:implement-story\`'s \"Merge guard\" and the Landing section of \`/dev:implement-story\`." >> "$scratch/.claude/rules/cross-skill-cites.md"
+expect "the other wrong forms in the cross-skill cite rule file pass section 18" 0
 
 # every section 18 case kept above runs here
 cite_flush
@@ -2788,7 +2793,7 @@ printf '%s\t%s\t%s\t%s\t%s\t%s\n' \
   1 3 plain a.md 'fires another check' 'present: x in /s/a.md' \
   0 4 plain a.md 'passes' '' \
   0 11 plain a.md 'named' '' > "$jobs/judged.cites"
-printf '%s\n' '== 5. retired phrases' '== 18. cross-skill cites: /d/docs/agents/coding-standards.md' \
+printf '%s\n' '== 5. retired phrases' '== 18. cross-skill cites: /d/.claude/rules/cross-skill-cites.md' \
   'FAIL: present: x in /d/references/cite-1.md (p)' '1:text' \
   'FAIL: present: y in /d/references/cite-3.md (p)' 'FAIL: present: y in /d/references/cite-11.md (p)' > "$jobs/judged.lint"
 fx_check "a cite batch vouches for a doc's own message and a quiet doc, and retries the rest" \
@@ -3068,7 +3073,8 @@ expect_keep() {
   scratch_entries
   mkdir "$kept" && cp -R "${entries[@]}" "$kept/" || { echo "FAIL keep the tree for the next case"; exit 1; }
   expect "$@"
-  mv "$kept"/* "$scratch/" && rmdir "$kept"
+  # dotglob: the tree holds .claude (the rule file section 18 reads), which a bare * leaves behind
+  (shopt -s dotglob nullglob; mv "$kept"/* "$scratch/") && rmdir "$kept"
   handed=0
 }
 
