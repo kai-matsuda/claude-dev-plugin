@@ -1975,8 +1975,8 @@ line_has '^7\. ' "the story review's sub-agent briefs point at the harness doc's
 line_has '^7\. ' "the story review's fix-up brief points at the harness doc's Shell commands section" "it points at $shell_section and cites that doc for its Commits rule"
 line_has "$anchor_conflict_implementer" "the conflict implementer's brief points at the harness doc's Shell commands section" "for its Commits rule and pointing at $shell_section"
 lacks "the zero-findings bar" "$pin_retired_zero_findings_bar"
-# the check target probe, its refusal and the once-per-run resolution are the orchestration doc's Story
-# plumbing, pinned in section 6 (dev-yykg, dev-de4, dev-b3p, ADR 0015); scripts/test-check-target.sh
+# the check target probe, its refusal and the once-per-run resolution are the orchestration doc's "Repo plumbing
+# and Cut-off probe" section, pinned in section 6 (dev-yykg, dev-de4, dev-b3p, ADR 0015); scripts/test-check-target.sh
 # runs the pinned query on scratch repos; step 3 cites it, and the
 # run's check command still goes in every brief and gates step 7
 C="^   $apply_probe"
