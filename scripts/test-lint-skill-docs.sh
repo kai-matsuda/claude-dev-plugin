@@ -160,7 +160,7 @@ lint_scratch() {
   cmd=("$lint")
   [ "${LINT_TEST_SEED:-}" != "hang:$njobs" ] || cmd=(/bin/sh -c 'sleep 86400' sh)
   out=$(SKILLS_DIR=${skills_dir:-$scratch/skills} REFERENCES_DIR=${references_dir:-$scratch/references} DOCS_DIR=$scratch/docs \
-    USER_CLAUDE_MD=${claude_md:-$scratch/CLAUDE.md} GLOSSARY_MD=${glossary_md:-$scratch/GLOSSARY.md} \
+    USER_CLAUDE_MD=${claude_md:-$scratch/CLAUDE.md} HOOKS_DIR=$scratch/hooks README_MD=$scratch/README.md GLOSSARY_MD=${glossary_md:-$scratch/GLOSSARY.md} \
     LINT_PINS_DIR=${pins_dir:-$repo_root/scripts} PLUGIN_SKILLS=$scratch/plugin VERSION_BUMP_REPO=${bump_repo_dir:-$scratch/no-repo} \
     LINT_UNCHANGED=${unchanged_list:-} bounded "$case_timeout" "${cmd[@]}" "$@" 2>&1)
   rc=$?
@@ -658,6 +658,49 @@ for path in '$HOME/.claude/references/orchestration.md' '${HOME}/.claude/hooks/g
   echo "see \`$path\`" >> "$scratch/docs/WORKFLOW.md"
   expect "a dotfiles deployment path in the \$HOME spelling ($path) fails" 1 "dotfiles deployment path in $scratch/docs/WORKFLOW.md"
 done
+
+# the reference docs live in references/: a path naming one under the old docs/agents/ folder fails
+# in a skill and in a doc, naming the file; the two docs that stay there are no reference docs
+for doc in orchestration harness issue-tracker; do
+  fresh
+  echo "read \`<plugin root>/docs/agents/$doc.md\`" >> "$scratch/skills/sample/SKILL.md"
+  expect "a skill naming $doc under docs/agents fails" 1 "reference doc under the old folder in $scratch/skills/sample/SKILL.md"
+  fresh
+  echo "see docs/agents/$doc.md" >> "$scratch/docs/WORKFLOW.md"
+  expect "a doc naming $doc under docs/agents fails" 1 "reference doc under the old folder in $scratch/docs/WORKFLOW.md"
+done
+for doc in domain triage-labels; do
+  fresh
+  echo "read docs/agents/$doc.md" >> "$scratch/skills/sample/SKILL.md"
+  echo "see docs/agents/$doc.md" >> "$scratch/docs/WORKFLOW.md"
+  expect "a path to docs/agents/$doc.md is not flagged" 0
+done
+# accepted ADRs and past specs keep their old paths
+fresh
+mkdir -p "$scratch/docs/specs"
+echo "see docs/agents/orchestration.md" >> "$scratch/docs/adr/0001.md"
+echo "see docs/agents/harness.md" > "$scratch/docs/specs/past.md"
+expect "an ADR and a spec keeping an old path pass" 0
+# the sweep's other inputs fail too, naming the file (dev-7mkq.1.3)
+old_msg="reference doc under the old folder in"
+for rel in GLOSSARY.md CLAUDE.md README.md references/sample.md docs/agents/domain.md hooks/sample.sh; do
+  fresh
+  mkdir -p "$scratch/hooks" "$scratch/$(dirname "$rel")"
+  echo "see docs/agents/harness.md" >> "$scratch/$rel"
+  expect "$rel naming harness under docs/agents fails" 1 "$old_msg $scratch/$rel"
+done
+# the pattern ends at a word boundary: a longer name passes, the bare name at line end fails
+fresh
+printf '%s\n' "see docs/agents/harness-notes.md and docs/agents/orchestration_x.md" >> "$scratch/docs/WORKFLOW.md"
+expect "a longer name after docs/agents/harness passes" 0
+fresh
+printf '%s\n' "see docs/agents/harness" >> "$scratch/docs/WORKFLOW.md"
+expect "the bare name at line end fails" 1 "$old_msg $scratch/docs/WORKFLOW.md"
+# a near-miss folder (docs/adr-notes) is still swept; only docs/adr and docs/specs are pruned
+fresh
+mkdir -p "$scratch/docs/adr-notes"
+echo "see docs/agents/harness.md" > "$scratch/docs/adr-notes/n.md"
+expect "docs/adr-notes is still swept" 1 "$old_msg $scratch/docs/adr-notes/n.md"
 
 # the brief rule (dev-rc9): a brief block (a markdown quote, indented or not) that names the
 # plugin-root variable fails with the skill and line named; the variable in a step outside a
@@ -1382,7 +1425,7 @@ loop_facts() {
       loop_files=$(cd "$pristine" && { find docs -type f -name '*.md'; find references docs/agents skills -type f; echo CLAUDE.md; } | sort -u)
       loop_seed='Install to ~/.claude/docs.'
       loop_message="dotfiles deployment path in $scratch/@FILE@"
-      loop_sed_addr='/echo "$runbook"; } | grep/' ;;
+      loop_sed_addr='/done < <(sweep_files | grep/' ;;
     ns)
       loop_files=$(cd "$pristine" && { find docs skills -type f -name '*.md'; echo CLAUDE.md; echo GLOSSARY.md; } | sort -u)
       loop_seed='Run /story-to-tasks.'
@@ -3127,6 +3170,15 @@ bump_repo feat
 echo two > "$bump_repo_dir/docs/a.md"
 echo '{"name":"dev","version":"0.2.0"}' > "$bump_repo_dir/.claude-plugin/plugin.json"; bump_commit "docs change and bump"
 expect "a docs change with a version bump passes" 0
+
+bump_repo feat
+mkdir -p "$bump_repo_dir/references"; echo r > "$bump_repo_dir/references/r.md"; bump_commit "reference change"
+expect "a references change without a version bump fails" 1 "version bump"
+
+bump_repo feat
+mkdir -p "$bump_repo_dir/references"; echo r > "$bump_repo_dir/references/r.md"
+echo '{"name":"dev","version":"0.2.0"}' > "$bump_repo_dir/.claude-plugin/plugin.json"; bump_commit "reference change and bump"
+expect "a references change with a version bump passes" 0
 
 bump_repo feat
 mkdir -p "$bump_repo_dir/skills/x"; echo s > "$bump_repo_dir/skills/x/SKILL.md"; bump_commit "skill change"

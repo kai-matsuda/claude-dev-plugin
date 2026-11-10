@@ -580,6 +580,8 @@ docs=${docs%/}
 agents=$docs/agents   # this repo's docs/agents: domain.md, triage-labels.md, coding-standards.md
 user_claude_md=${USER_CLAUDE_MD:-$root/CLAUDE.md}
 glossary_md=${GLOSSARY_MD:-$root/GLOSSARY.md}
+hooks=${HOOKS_DIR:-$root/hooks}
+readme_md=${README_MD:-$root/README.md}
 runbook=${2:-$root/docs/WORKFLOW.md}
 pins_dir=${LINT_PINS_DIR:-$root/scripts}
 # set when LINT_UNCHANGED lists every pin table the lint reads, which lets doc skip a listed doc's
@@ -1196,10 +1198,27 @@ lacksw "retired review-only gate wording in $f" "$retired_gate"
 # source remains in any doc under docs/, references/, docs/agents, the skills, the project
 # CLAUDE.md or the runbook, spelled ~/, $HOME/ or ${HOME}/ (INFRA-30)
 deployed='(~|\$HOME|\$\{HOME\})/(\.claude/docs|\.claude/references|\.claude/hooks|\.local/share/chezmoi)'
+# sweep_files [find args]: the docs under docs/ (docs/agents among them; the find args prune it),
+# the reference docs, the skills, the project CLAUDE.md and the runbook, one path per line
+sweep_files() {
+  find "$docs" -type f -name '*.md' "$@" 2>/dev/null
+  find "$refs" "$skills" -type f 2>/dev/null
+  echo "$user_claude_md"; echo "$runbook"
+}
 while IFS= read -r f; do
   lacks "dotfiles deployment path in $f" "$deployed"
-done < <({ find "$docs" -type f -name '*.md' 2>/dev/null; find "$refs" "$agents" "$skills" -type f 2>/dev/null
-  echo "$user_claude_md"; echo "$runbook"; } | grep . | sort -u | drop_unchanged)
+done < <(sweep_files | grep . | sort -u | drop_unchanged)
+
+# the three reference docs live in references/, so no skill or doc names one under the old
+# docs/agents/ folder; domain.md and triage-labels.md stay there and pass. The accepted ADRs and the
+# past specs keep their old paths, so docs/adr and docs/specs are not swept. The hooks and the
+# README are swept too (dev-7mkq.1.3, INFRA-45)
+old_folder='docs/agents/(orchestration|harness|issue-tracker)([^-A-Za-z0-9_]|$)'
+while IFS= read -r f; do
+  [ -f "$f" ] || continue
+  lacks "reference doc under the old folder in $f (it lives in references/)" "$old_folder"
+done < <({ sweep_files ! -path "$docs/adr/*" ! -path "$docs/specs/*"
+  find "$hooks" -type f 2>/dev/null; echo "$glossary_md"; echo "$readme_md"; } | grep . | sort -u | drop_unchanged)
 
 # ---- 6. shared rules the skills point at ----
 if doc 6 "orchestration rules" "$refs/orchestration.md"; then
@@ -2563,7 +2582,7 @@ done < <(awk -v name="$pin_plugin_root_variable" '
   FNR == 1 {inq=0} /^[[:space:]]*>/ {inq=1} /^[[:space:]]*$/ {inq=0}
   inq && index($0, name) {print FILENAME "\t" FNR "\t" $0}' "${brief_files[@]}")
 
-# version-bump rule: a change to what the plugin ships (skills, docs, hooks and the glossary,
+# version-bump rule: a change to what the plugin ships (skills, references, docs, hooks and the glossary,
 # less the specs under docs, which never reach an installed machine) needs a version change in
 # the plugin manifest. The base is VERSION_BUMP_BASE (a CI job sets it to the PR base) or else
 # the default branch's remote tracking ref, origin/HEAD or origin/main, so a detached HEAD
@@ -2575,7 +2594,7 @@ done < <(awk -v name="$pin_plugin_root_variable" '
 # the same value, is no bump. A no-op with a local main checked out (by name, the one place a
 # branch name counts), and in a tree that is not a git repo.
 bump_repo=${VERSION_BUMP_REPO:-$root}
-shipping=(skills docs hooks GLOSSARY.md ':(exclude)docs/specs')
+shipping=(skills references docs hooks GLOSSARY.md ':(exclude)docs/specs')
 if git -C "$bump_repo" rev-parse --git-dir >/dev/null 2>&1 \
   && [ "$(git -C "$bump_repo" rev-parse --abbrev-ref HEAD 2>/dev/null)" != main ]; then
   section "14. version bump"
