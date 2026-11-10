@@ -1201,6 +1201,16 @@ while IFS= read -r f; do
 done < <({ find "$docs" -type f -name '*.md' 2>/dev/null; find "$refs" "$agents" "$skills" -type f 2>/dev/null
   echo "$user_claude_md"; echo "$runbook"; } | grep . | sort -u | drop_unchanged)
 
+# the three reference docs live in references/, so no skill or doc names one under the old
+# docs/agents/ folder; domain.md and triage-labels.md stay there and pass. The accepted ADRs and the
+# past specs keep their old paths, so docs/adr and docs/specs are not swept
+old_folder='docs/agents/(orchestration|harness|issue-tracker)([^-A-Za-z0-9_]|$)'
+while IFS= read -r f; do
+  lacks "reference doc under the old folder in $f (it lives in references/)" "$old_folder"
+done < <({ find "$docs" -type f -name '*.md' ! -path "$docs/adr/*" ! -path "$docs/specs/*" 2>/dev/null
+  find "$refs" "$agents" "$skills" -type f 2>/dev/null
+  echo "$user_claude_md"; echo "$runbook"; echo "$glossary_md"; } | grep . | sort -u | drop_unchanged)
+
 # ---- 6. shared rules the skills point at ----
 if doc 6 "orchestration rules" "$refs/orchestration.md"; then
 lacks "a foreground spawn" "$pin_retired_foreground_spawn"
@@ -2563,7 +2573,7 @@ done < <(awk -v name="$pin_plugin_root_variable" '
   FNR == 1 {inq=0} /^[[:space:]]*>/ {inq=1} /^[[:space:]]*$/ {inq=0}
   inq && index($0, name) {print FILENAME "\t" FNR "\t" $0}' "${brief_files[@]}")
 
-# version-bump rule: a change to what the plugin ships (skills, docs, hooks and the glossary,
+# version-bump rule: a change to what the plugin ships (skills, references, docs, hooks and the glossary,
 # less the specs under docs, which never reach an installed machine) needs a version change in
 # the plugin manifest. The base is VERSION_BUMP_BASE (a CI job sets it to the PR base) or else
 # the default branch's remote tracking ref, origin/HEAD or origin/main, so a detached HEAD
@@ -2575,7 +2585,7 @@ done < <(awk -v name="$pin_plugin_root_variable" '
 # the same value, is no bump. A no-op with a local main checked out (by name, the one place a
 # branch name counts), and in a tree that is not a git repo.
 bump_repo=${VERSION_BUMP_REPO:-$root}
-shipping=(skills docs hooks GLOSSARY.md ':(exclude)docs/specs')
+shipping=(skills references docs hooks GLOSSARY.md ':(exclude)docs/specs')
 if git -C "$bump_repo" rev-parse --git-dir >/dev/null 2>&1 \
   && [ "$(git -C "$bump_repo" rev-parse --abbrev-ref HEAD 2>/dev/null)" != main ]; then
   section "14. version bump"

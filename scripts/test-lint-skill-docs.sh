@@ -659,6 +659,29 @@ for path in '$HOME/.claude/references/orchestration.md' '${HOME}/.claude/hooks/g
   expect "a dotfiles deployment path in the \$HOME spelling ($path) fails" 1 "dotfiles deployment path in $scratch/docs/WORKFLOW.md"
 done
 
+# the reference docs live in references/: a path naming one under the old docs/agents/ folder fails
+# in a skill and in a doc, naming the file; the two docs that stay there are no reference docs
+for doc in orchestration harness issue-tracker; do
+  fresh
+  echo "read \`<plugin root>/docs/agents/$doc.md\`" >> "$scratch/skills/sample/SKILL.md"
+  expect "a skill naming $doc under docs/agents fails" 1 "reference doc under the old folder in $scratch/skills/sample/SKILL.md"
+  fresh
+  echo "see docs/agents/$doc.md" >> "$scratch/docs/WORKFLOW.md"
+  expect "a doc naming $doc under docs/agents fails" 1 "reference doc under the old folder in $scratch/docs/WORKFLOW.md"
+done
+for doc in domain triage-labels; do
+  fresh
+  echo "read docs/agents/$doc.md" >> "$scratch/skills/sample/SKILL.md"
+  echo "see docs/agents/$doc.md" >> "$scratch/docs/WORKFLOW.md"
+  expect "a path to docs/agents/$doc.md is not flagged" 0
+done
+# accepted ADRs and past specs keep their old paths
+fresh
+mkdir -p "$scratch/docs/specs"
+echo "see docs/agents/orchestration.md" >> "$scratch/docs/adr/0001.md"
+echo "see docs/agents/harness.md" > "$scratch/docs/specs/past.md"
+expect "an ADR and a spec keeping an old path pass" 0
+
 # the brief rule (dev-rc9): a brief block (a markdown quote, indented or not) that names the
 # plugin-root variable fails with the skill and line named; the variable in a step outside a
 # brief, where the skill itself resolves it, passes
@@ -3127,6 +3150,15 @@ bump_repo feat
 echo two > "$bump_repo_dir/docs/a.md"
 echo '{"name":"dev","version":"0.2.0"}' > "$bump_repo_dir/.claude-plugin/plugin.json"; bump_commit "docs change and bump"
 expect "a docs change with a version bump passes" 0
+
+bump_repo feat
+mkdir -p "$bump_repo_dir/references"; echo r > "$bump_repo_dir/references/r.md"; bump_commit "reference change"
+expect "a references change without a version bump fails" 1 "version bump"
+
+bump_repo feat
+mkdir -p "$bump_repo_dir/references"; echo r > "$bump_repo_dir/references/r.md"
+echo '{"name":"dev","version":"0.2.0"}' > "$bump_repo_dir/.claude-plugin/plugin.json"; bump_commit "reference change and bump"
+expect "a references change with a version bump passes" 0
 
 bump_repo feat
 mkdir -p "$bump_repo_dir/skills/x"; echo s > "$bump_repo_dir/skills/x/SKILL.md"; bump_commit "skill change"
