@@ -786,6 +786,13 @@ drop_last() {
     }
     print }'
 }
+# drop_first <file under scratch> <anchor regex> <phrase>: on the lines matching the anchor, take
+# out the first occurrence of the phrase and leave the others
+drop_first() {
+  an="$2" p="$3" rewrite "$1" awk '{
+    if ($0 ~ ENVIRON["an"] && (i = index($0, ENVIRON["p"]))) $0 = substr($0, 1, i - 1) substr($0, i + length(ENVIRON["p"]))
+    print }'
+}
 # drop_pin <type> <file under scratch> <phrase> <anchor>: seeds the doc without the pinned phrase
 drop_pin() {
   case $1 in
@@ -1002,6 +1009,24 @@ fresh
 ban ban_medium_high_only "the runbook's task review limited to medium and high"
 echo "at the task $ban_medium_high_only on both axes" >> "$scratch/docs/WORKFLOW.md"
 expect "runbook copy limiting the task review to medium and high fails" 1 "the runbook's task review limited to medium and high"
+
+# every implementer and reviewer brief at the task and story rows names both rules folders, the
+# personal ~/.claude/rules/ and the repo's .claude/rules/ (ADR 0018, dev-7mkq.1.6): one brief
+# missing one folder fails its own pin while the briefs beside it keep theirs. drop_first and
+# drop_last take the folder out of the first or the last brief on the anchored line, where a
+# line holds a reviewer brief and then a fix-up's
+for c in "first|the task standards reviewer brief names both rules folders and the breach form|task-orchestrator|\`<owner>/.claude/rules/\`" \
+  "last|the task implementer brief names both rules folders|task-orchestrator|\`~/.claude/rules/\`" \
+  "last|the task fix-up brief names both rules folders|task-orchestrator|\`<owner>/.claude/rules/\`" \
+  "first|the story review brief names both rules folders and the breach form|implement-story|\`~/.claude/rules/\`" \
+  "last|the story fix-up brief names both rules folders|implement-story|\`~/.claude/rules/\`" \
+  "last|the conflict implementer brief names both rules folders|implement-story|\`<owner>/.claude/rules/\`"; do
+  IFS='|' read -r which desc skill folder <<<"$c"
+  pin_anchor "$desc"
+  fresh
+  "drop_$which" "skills/$skill/SKILL.md" "$pinned_anchor" "$folder"
+  expect "$skill: a brief without $folder fails '$desc'" 1 "$desc"
+done
 
 # one has-a-database rule: .beads/ exists and bd where names it, stated once in the tracker doc
 # and cited by every gate; a gate testing only that .beads/ exists fails the sweep (dev-e87)

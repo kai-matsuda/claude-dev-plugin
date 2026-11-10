@@ -174,6 +174,13 @@ the task row; the conflict resolutions, the coherence across tasks and the story
 since each task's diff was reviewed at its own row; nothing at the epic row, where the axis
 is skipped. So no line is read for standards twice (ADR 0014 in the plugin repo).
 
+**Standards scope.** The plugin ships no coding standards; they are the user's, the personal
+standards and the repo standards, and every brief names them by path, so none depends on what
+Claude Code loads into a subagent (ADR 0018 in the plugin repo).
+Every implementer brief at the task row and the story row, a fix-up's and a conflict resolution's included, reads the coding standards in `~/.claude/rules/` and `<owner>/.claude/rules/` (the repo's win where the two conflict; a missing or empty folder is not an error; a rule applies only where its own text or path scope says it does).
+The standards axis of the review at those rows is read against the coding standards in `~/.claude/rules/` and `<owner>/.claude/rules/`, with `<owner>`'s root `CODING_STANDARDS.md` or `CONTRIBUTING.md` where it has one counted with the repo's (the repo's win where the two conflict; a missing or empty folder is not an error; a rule applies only where its own text or path scope says it does), plus `GLOSSARY.md` and `docs/adr/` in `<owner>` where they exist, each breach reported as the rule's heading, the file and line, and the reader who would be misled or broken.
+The epic row's review names no standards: it runs the spec axis only.
+
 **Check scope.** Every tree is checked once green. A check is one run of the check command through the Check record script
 on a tree, named by the tip's tree SHA, and a tree with a green check record (`exit=0`) counts as checked at
 any row, whichever orchestrator wrote it, so a later agent spends no check run on it.
