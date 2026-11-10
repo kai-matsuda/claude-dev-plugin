@@ -628,6 +628,7 @@ head_landing_a_task='**Landing a task.**'
 head_plugin_root='**Plugin root.**'
 head_repo_plumbing='## Repo plumbing and Cut-off probe'
 head_review_scope='**Review scope.**'
+head_standards_scope='**Standards scope.**'
 head_review_verdict='**Review verdict.**'
 head_standalone_task='**The standalone task.**'
 head_start_work_on_a_task='## When a skill says "start work on a task" (`/dev:implement-story`, `/dev:implement-task`)'
@@ -712,6 +713,15 @@ cite_delivery_authority="the orchestration doc's Delivery authority"
 # the phrases every worktree brief carries, each written once (dev-yqpz)
 tmpdir_line='TMPDIR line'
 plain_command='plain-command line, one plain `git` or `bd` command per Bash call, every path spelled out'
+# the standards every implementer and reviewer brief at the task and story rows names: both rules
+# folders, the repo's winning, a missing folder no error, a rule scoped by its own text or path
+# (ADR 0018, dev-7mkq.1.6); the reviewer's adds the root standards file and the breach form
+rules_folders='the coding standards in `~/.claude/rules/` and `<owner>/.claude/rules/`'
+standards_terms='(the repo'"'"'s win where the two conflict; a missing or empty folder is not an error; a rule applies only where its own text or path scope says it does)'
+standards_implementer="$rules_folders $standards_terms"
+standards_reviewer="$rules_folders, with \`<owner>\`'s root \`CODING_STANDARDS.md\` or \`CONTRIBUTING.md\` where it has one counted with the repo's $standards_terms, plus \`GLOSSARY.md\` and \`docs/adr/\` in \`<owner>\` where they exist, each breach reported as the rule's heading, the file and line, and the reader who would be misled or broken"
+# the task row's spec reviewer reads no standards and names both folders as the standards reviewer's
+standards_spec_reviewer="with $rules_folders left to the standards reviewer"
 # where a reviewer or fix-up brief points for quoting a glob passed as a flag (dev-elkb)
 shell_section='the Shell commands section of `<plugin root>/references/harness.md`'
 pwd_step='first Bash call is `pwd` alone'
@@ -1318,6 +1328,12 @@ para_has "$head_review_scope" "the spec axis takes the row's own unit" "The spec
 para_has "$head_review_scope" "the standards axis reads what entered since" 'The standards axis reviews what entered since the last standards review'
 para_has "$head_review_scope" "the review scope's why is ADR 0014" 'ADR 0014 in the plugin repo'
 para_has "$head_review_scope" "the story row's standards axis takes the gate's fix-up commits" "the story gate's own fix-up commits"
+# the orchestration doc's account of the briefs names both rules folders in the briefs' words, and
+# leaves the epic row's review without standards (ADR 0018, dev-7mkq.1.6)
+hasc "standards scoping rule" "$head_standards_scope"
+para_has "$head_standards_scope" "every implementer brief at the task and story rows names both rules folders" "Every implementer brief at the task row and the story row, a fix-up's and a conflict resolution's included, reads $standards_implementer"
+para_has "$head_standards_scope" "every standards reviewer brief at the task and story rows names both rules folders and the breach form" "The standards axis of the review at those rows is read against $standards_reviewer"
+para_has "$head_standards_scope" "the epic row's review names no standards" "The epic row's review names no standards"
 hasc "check scoping rule" "$head_check_scope"
 para_has "$head_check_scope" "every tree is checked once" "$pin_every_tree_checked_once"
 # only a green record lets a later agent skip the run; a red one is checked again, so a flaky or
@@ -1837,6 +1853,7 @@ sec_has "## Landing" "a refusal is wrapped in the failed: line shape" 'A `refuse
 sec_has "## Landing" "a conflict reported by the Land script goes to the conflict implementer" '`conflict` goes to 3'
 sec_has "## Landing" "a conflict goes to an implementer in the task's worktree" "A conflict goes to an implementer in the task's worktree"
 sec_has "## Landing" "the conflict implementer merges the integration tip into the task branch" "it is briefed to merge \`<branch>\`'s tip into the task branch"
+line_has '^3\. A conflict goes to an implementer' "the conflict implementer brief names both rules folders" "reads $standards_implementer"
 sec_has "## Landing" "the resolved tree is checked with the orchestration doc's call" "run the orchestration doc's Check record script, \`<plugin root>/scripts/check.sh <worktree path> <owner>\`, with the task's worktree as its \`<worktree path>\`, in one foreground Bash call with \`timeout: 600000\`, \`<plugin root>\` spelled as the path this session resolved; the script runs nothing on a tree with a green record"
 line_lacks '^3\. A conflict goes to an implementer' "the landing reading the resolved tree's record itself" 'run nothing on a green record'
 sec_has "## Landing" "no reviewer runs on the resolution" 'No reviewer runs: the story row'"'"'s standards axis sees the resolution'
@@ -2051,6 +2068,10 @@ line_has "$G7" "the story review note names the reviewed tip" '`bd -C <owner> no
 line_has "$G7" "a green tip the review called clean exits the gate" "$gate_same"
 line_has "$G7" "the story review's spec axis is the story's body" "the spec axis is the story's body"
 line_has "$G7" "the story review's standards axis is what entered since the task reviews" "the standards axis is what entered since the task reviews: the $pin_conflict_resolutions and the coherence across tasks"
+# the story review and its fix-ups name both rules folders, in the task row's words (ADR 0018,
+# dev-7mkq.1.6)
+line_has "$G7" "the story review brief names both rules folders and the breach form" "read against $standards_reviewer"
+line_has "$G7" "the story fix-up brief names both rules folders" "reads $standards_implementer"
 # the standards axis gets its inputs: the base SHA, each merge's resolution and the fix-up
 # commits since the last story review (dev-9k5.1.9 review 1)
 line_has "$G7" "the story review names the base SHA" '`<base>`, `git -C <owner> merge-base <default branch> <branch>`'
@@ -2159,10 +2180,12 @@ line_has "$CUT" "a fresh task orchestrator starts at round 1" 'so you start at r
 line_has "$CUT" "the fresh start ignores earlier attempts' notes" 'whatever `checks <n>:` or `review <n>:` notes earlier attempts left'
 line_has "$CUT" "the fresh start points at the orchestration doc's Check gate" "your task starts over from \`<branch>\`'s tip (the orchestration doc's Check gate)"
 line_has "$CUT" "a replaced implementer's no reset holds within one task orchestrator" 'no reset within this task orchestrator'
-# the per-task reviewer reads the standards the story review reads (dev-co6)
-for need in '`CODING_STANDARDS.md` or `CONTRIBUTING.md`' '<plugin root>/docs/agents/coding-standards.md` spelled as the path this session resolved'; do
-  line_has '^3\. ' "the task reviewer brief's standards source" "$need"
-done
+# the task row's implementer, fix-up and standards reviewer briefs name both rules folders, in the
+# story row's words (dev-co6, ADR 0018, dev-7mkq.1.6)
+line_has '^2\. ' "the task implementer brief names both rules folders" "reads $standards_implementer"
+line_has '^3\. ' "the task fix-up brief names both rules folders" "reads $standards_implementer"
+line_has '^3\. ' "the task spec reviewer brief leaves both rules folders to the standards reviewer" "$standards_spec_reviewer"
+line_has '^3\. ' "the task standards reviewer brief names both rules folders and the breach form" "read against the skill's smell baseline and $standards_reviewer"
 # the implementer and fix-up briefs start with the TMPDIR line, then the plain-command line
 # (chezmoi-3eg, dev-ask); on the harness route the TMPDIR line is two steps (dev-r1p)
 hasc "task orchestrator brief points at the harness doc's TMPDIR rule" "the harness doc's TMPDIR rule"
