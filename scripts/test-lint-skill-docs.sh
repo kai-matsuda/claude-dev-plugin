@@ -160,7 +160,7 @@ lint_scratch() {
   cmd=("$lint")
   [ "${LINT_TEST_SEED:-}" != "hang:$njobs" ] || cmd=(/bin/sh -c 'sleep 86400' sh)
   out=$(SKILLS_DIR=${skills_dir:-$scratch/skills} REFERENCES_DIR=${references_dir:-$scratch/references} DOCS_DIR=$scratch/docs \
-    USER_CLAUDE_MD=${claude_md:-$scratch/CLAUDE.md} GLOSSARY_MD=${glossary_md:-$scratch/GLOSSARY.md} \
+    USER_CLAUDE_MD=${claude_md:-$scratch/CLAUDE.md} HOOKS_DIR=$scratch/hooks README_MD=$scratch/README.md GLOSSARY_MD=${glossary_md:-$scratch/GLOSSARY.md} \
     LINT_PINS_DIR=${pins_dir:-$repo_root/scripts} PLUGIN_SKILLS=$scratch/plugin VERSION_BUMP_REPO=${bump_repo_dir:-$scratch/no-repo} \
     LINT_UNCHANGED=${unchanged_list:-} bounded "$case_timeout" "${cmd[@]}" "$@" 2>&1)
   rc=$?
@@ -681,6 +681,26 @@ mkdir -p "$scratch/docs/specs"
 echo "see docs/agents/orchestration.md" >> "$scratch/docs/adr/0001.md"
 echo "see docs/agents/harness.md" > "$scratch/docs/specs/past.md"
 expect "an ADR and a spec keeping an old path pass" 0
+# the sweep's other inputs fail too, naming the file (dev-7mkq.1.3)
+old_msg="reference doc under the old folder in"
+for rel in GLOSSARY.md CLAUDE.md README.md references/sample.md docs/agents/domain.md hooks/sample.sh; do
+  fresh
+  mkdir -p "$scratch/hooks" "$scratch/$(dirname "$rel")"
+  echo "see docs/agents/harness.md" >> "$scratch/$rel"
+  expect "$rel naming harness under docs/agents fails" 1 "$old_msg $scratch/$rel"
+done
+# the pattern ends at a word boundary: a longer name passes, the bare name at line end fails
+fresh
+printf '%s\n' "see docs/agents/harness-notes.md and docs/agents/orchestration_x.md" >> "$scratch/docs/WORKFLOW.md"
+expect "a longer name after docs/agents/harness passes" 0
+fresh
+printf '%s\n' "see docs/agents/harness" >> "$scratch/docs/WORKFLOW.md"
+expect "the bare name at line end fails" 1 "$old_msg $scratch/docs/WORKFLOW.md"
+# a near-miss folder (docs/adr-notes) is still swept; only docs/adr and docs/specs are pruned
+fresh
+mkdir -p "$scratch/docs/adr-notes"
+echo "see docs/agents/harness.md" > "$scratch/docs/adr-notes/n.md"
+expect "docs/adr-notes is still swept" 1 "$old_msg $scratch/docs/adr-notes/n.md"
 
 # the brief rule (dev-rc9): a brief block (a markdown quote, indented or not) that names the
 # plugin-root variable fails with the skill and line named; the variable in a step outside a
@@ -1405,7 +1425,7 @@ loop_facts() {
       loop_files=$(cd "$pristine" && { find docs -type f -name '*.md'; find references docs/agents skills -type f; echo CLAUDE.md; } | sort -u)
       loop_seed='Install to ~/.claude/docs.'
       loop_message="dotfiles deployment path in $scratch/@FILE@"
-      loop_sed_addr='/echo "$runbook"; } | grep/' ;;
+      loop_sed_addr='/done < <(sweep_files | grep/' ;;
     ns)
       loop_files=$(cd "$pristine" && { find docs skills -type f -name '*.md'; echo CLAUDE.md; echo GLOSSARY.md; } | sort -u)
       loop_seed='Run /story-to-tasks.'

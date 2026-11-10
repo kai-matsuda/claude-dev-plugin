@@ -580,6 +580,8 @@ docs=${docs%/}
 agents=$docs/agents   # this repo's docs/agents: domain.md, triage-labels.md, coding-standards.md
 user_claude_md=${USER_CLAUDE_MD:-$root/CLAUDE.md}
 glossary_md=${GLOSSARY_MD:-$root/GLOSSARY.md}
+hooks=${HOOKS_DIR:-$root/hooks}
+readme_md=${README_MD:-$root/README.md}
 runbook=${2:-$root/docs/WORKFLOW.md}
 pins_dir=${LINT_PINS_DIR:-$root/scripts}
 # set when LINT_UNCHANGED lists every pin table the lint reads, which lets doc skip a listed doc's
@@ -1196,20 +1198,27 @@ lacksw "retired review-only gate wording in $f" "$retired_gate"
 # source remains in any doc under docs/, references/, docs/agents, the skills, the project
 # CLAUDE.md or the runbook, spelled ~/, $HOME/ or ${HOME}/ (INFRA-30)
 deployed='(~|\$HOME|\$\{HOME\})/(\.claude/docs|\.claude/references|\.claude/hooks|\.local/share/chezmoi)'
+# sweep_files [find args]: the docs under docs/ (docs/agents among them; the find args prune it),
+# the reference docs, the skills, the project CLAUDE.md and the runbook, one path per line
+sweep_files() {
+  find "$docs" -type f -name '*.md' "$@" 2>/dev/null
+  find "$refs" "$skills" -type f 2>/dev/null
+  echo "$user_claude_md"; echo "$runbook"
+}
 while IFS= read -r f; do
   lacks "dotfiles deployment path in $f" "$deployed"
-done < <({ find "$docs" -type f -name '*.md' 2>/dev/null; find "$refs" "$agents" "$skills" -type f 2>/dev/null
-  echo "$user_claude_md"; echo "$runbook"; } | grep . | sort -u | drop_unchanged)
+done < <(sweep_files | grep . | sort -u | drop_unchanged)
 
 # the three reference docs live in references/, so no skill or doc names one under the old
 # docs/agents/ folder; domain.md and triage-labels.md stay there and pass. The accepted ADRs and the
-# past specs keep their old paths, so docs/adr and docs/specs are not swept
+# past specs keep their old paths, so docs/adr and docs/specs are not swept. The hooks and the
+# README are swept too (dev-7mkq.1.3, INFRA-45)
 old_folder='docs/agents/(orchestration|harness|issue-tracker)([^-A-Za-z0-9_]|$)'
 while IFS= read -r f; do
+  [ -f "$f" ] || continue
   lacks "reference doc under the old folder in $f (it lives in references/)" "$old_folder"
-done < <({ find "$docs" -type f -name '*.md' ! -path "$docs/adr/*" ! -path "$docs/specs/*" 2>/dev/null
-  find "$refs" "$agents" "$skills" -type f 2>/dev/null
-  echo "$user_claude_md"; echo "$runbook"; echo "$glossary_md"; } | grep . | sort -u | drop_unchanged)
+done < <({ sweep_files ! -path "$docs/adr/*" ! -path "$docs/specs/*"
+  find "$hooks" -type f 2>/dev/null; echo "$glossary_md"; echo "$readme_md"; } | grep . | sort -u | drop_unchanged)
 
 # ---- 6. shared rules the skills point at ----
 if doc 6 "orchestration rules" "$refs/orchestration.md"; then
