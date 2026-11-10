@@ -18,7 +18,7 @@
 set -uo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 skill=$repo_root/skills/spec-to-stories/SKILL.md
-tracker=$repo_root/docs/agents/issue-tracker.md
+tracker=$repo_root/references/issue-tracker.md
 cases="workspace repo-refuse repo-one"
 
 fixture() { echo "$repo_root/.fixtures/test-story-cut-$1"; }

@@ -7,13 +7,13 @@ description: "Implement one standalone task bead in its repo: spawn one task orc
      `/dev:task-orchestrator`, a fast-forward landing and the rules doc's Delivery section, with no
      story bead, no story gate and the PR opened ready. -->
 
-You have been given a **standalone task** bead id: a task with no story (`GLOSSARY.md`), typed in the repo whose beads hold it, a workspace's own tasks included. The issue tracker rules are in `${CLAUDE_PLUGIN_ROOT}/docs/agents/issue-tracker.md`.
+You have been given a **standalone task** bead id: a task with no story (`GLOSSARY.md`), typed in the repo whose beads hold it, a workspace's own tasks included. The issue tracker rules are in `${CLAUDE_PLUGIN_ROOT}/references/issue-tracker.md`.
 
 The goal is the task built and reviewed by one task orchestrator on the branch `feat/<task-id>`, delivered as a PR **opened ready** (or, with no forge, the pushed branch), and the task closed at delivery.
 
 ## Shared rules
 
-The session running this skill is a **story orchestrator**, the story row with a frontier of one: no story bead and no story gate (the rules doc's The standalone task). It follows `${CLAUDE_PLUGIN_ROOT}/docs/agents/orchestration.md`: Orchestrator role, Scratch space, Complexity tier, Frontier, Check gate, Repo plumbing and Cut-off probe and Delivery, with the harness mechanics in `${CLAUDE_PLUGIN_ROOT}/docs/agents/harness.md`. Read both before step 1. There is one task, so there is no story gate: the task gate is the review, and the task gate's green record on the delivered tip is the check. You never implement and never resolve a conflict by hand: every change comes from a subagent.
+The session running this skill is a **story orchestrator**, the story row with a frontier of one: no story bead and no story gate (the rules doc's The standalone task). It follows `${CLAUDE_PLUGIN_ROOT}/references/orchestration.md`: Orchestrator role, Scratch space, Complexity tier, Frontier, Check gate, Repo plumbing and Cut-off probe and Delivery, with the harness mechanics in `${CLAUDE_PLUGIN_ROOT}/references/harness.md`. Read both before step 1. There is one task, so there is no story gate: the task gate is the review, and the task gate's green record on the delivered tip is the check. You never implement and never resolve a conflict by hand: every change comes from a subagent.
 
 ## Owner repo
 

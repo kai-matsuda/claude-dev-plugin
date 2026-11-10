@@ -66,7 +66,7 @@ when the repo has a `docs/adr/` directory; see `domain.md` for where ADRs live.
 
 ## Bead ids cite provenance in parentheses
 
-A sentence in a rules doc (`docs/agents/*.md`, a skill's `SKILL.md`) or a comment in a lint
+A sentence in a rules doc (`references/*.md`, a skill's `SKILL.md`) or a comment in a lint
 script that records why a rule exists names the bead behind it as a **provenance cite**: the
 bare id inside parentheses that close the clause it justifies, as in "a flaky red never
 sticks to its tree (dev-6qi)". The same form serves prose and lint comments. The parentheses
@@ -83,7 +83,7 @@ Flag a cite outside parentheses, or a cited id woven into the sentence or posses
 
 ## Another skill's rule is cited in one form
 
-A sentence in a rules doc (`docs/agents/*.md`) or a skill's `SKILL.md` that cites a rule
+A sentence in a rules doc (`references/*.md`) or a skill's `SKILL.md` that cites a rule
 another skill owns names the skill and cites the rule in the form of the rule's own marking.
 A rule the skill's `SKILL.md` marks with a bold step name is cited in bold
 (`/dev:implement-story`'s **Story gate**, the **Clean up** sweep of `/dev:implement-story`);

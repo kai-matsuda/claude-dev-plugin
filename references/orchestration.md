@@ -214,7 +214,7 @@ adds a line, and an edit of the user's beside them is never committed.
 **Plugin root.** These rules docs, the runbook (`docs/WORKFLOW.md`) and the hooks ship in
 the dev plugin, so every skill reaches them through the plugin root, `<plugin root>`, the
 directory the harness names in its plugin-root variable `CLAUDE_PLUGIN_ROOT`. A skill
-resolves it once per session: its text writes `${CLAUDE_PLUGIN_ROOT}/docs/agents/<doc>.md`,
+resolves it once per session: its text writes `${CLAUDE_PLUGIN_ROOT}/references/<doc>.md`,
 which the harness fills in with the absolute path when it loads the skill (as it fills in
 `hooks/hooks.json`'s `guard-rm.sh` command). Bash never has the variable, in the
 session or a subagent, so only if the text still shows it does the session fall back to the
@@ -223,13 +223,13 @@ that path is `<plugin root>/skills/<skill>`, so the root is two levels up (under
 `claude --plugin-dir .` it is that checkout). With neither, it ends with
 `failed: plugin root unresolved` rather than guessing a path. From then on the session
 spells the absolute rules-doc path literally in every brief,
-`<plugin root>/docs/agents/orchestration.md` with `<plugin root>` replaced by the path it
+`<plugin root>/references/orchestration.md` with `<plugin root>` replaced by the path it
 resolved, as the TMPDIR rule in `harness.md` spells `<worktree>`: never `$CLAUDE_PLUGIN_ROOT`, never a `~/`
 path. A subagent's Bash has no such variable (unset in this rule's own task run,
 2026-10-24) and the worktree guard refuses a path
 built from one (Literal paths in `harness.md`), so a brief that names a variable sends its subagent to a
 doc it cannot open. Every pointer a brief carries, "the harness doc's TMPDIR rule" or "the
-harness doc's Idle rule", names that doc by its own absolute path, `<plugin root>/docs/agents/harness.md`.
+harness doc's Idle rule", names that doc by its own absolute path, `<plugin root>/references/harness.md`.
 
 ## Complexity tier
 

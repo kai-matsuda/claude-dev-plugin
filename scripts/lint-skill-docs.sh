@@ -46,9 +46,9 @@
 #      its publish task, and no two-wave cap (ADR 0011);
 #   (3, 4 and 1 point at the shared preflight and epic gather that section 6 checks; 3, 4 and 7
 #   cite the "epic bead writes" convention that section 6 checks)
-#   5. one sweep over one file list: every file under the agent docs and the skills dir, the
-#      project CLAUDE.md, the runbook, docs/SEQUENCES.md and the implement-spec skill passed as
-#      $1, each read as one line so a phrase wrapped across a line break is caught (dev-86j):
+#   5. one sweep over one file list: every file under references/, docs/agents and the skills
+#      dir, the project CLAUDE.md, the runbook, docs/SEQUENCES.md and the implement-spec skill
+#      passed as $1, each read as one line so a phrase wrapped across a line break is caught (dev-86j):
 #      no retired "cut one", "cut two" or <spec-slug>, as whole words, and no story-cut.md (the
 #      notes moved to the story bead's design field, chezmoi-cdf); none of the retired walk-up
 #      phrases ("nearest ancestor", "walking up", "walk up", "one level up", "the home repo
@@ -159,9 +159,9 @@
 #      and orders a middle story of a chain in one topological pass, creates every
 #      repo-session story under the epic bead, and makes a deploy split wait on the
 #      earlier story's closure (ADR 0011).
-#  11. the namespace rule: in every .md file under the skills dir, docs/ (the agent docs, ADRs, specs),
-#      the runbook, the project CLAUDE.md, the root GLOSSARY.md and the implement-spec skill passed as $1, a
-#      /<command> is dev:<skill> or mattpocock-skills:<skill> naming a skill that exists, or a
+#  11. the namespace rule: in every .md file under the skills dir, references/, docs/ (docs/agents,
+#      ADRs, specs), the runbook, the project CLAUDE.md, the root GLOSSARY.md and the
+#      implement-spec skill passed as $1, a /<command> is dev:<skill> or mattpocock-skills:<skill> naming a skill that exists, or a
 #      built-in or a path; a bare /<skill> or another namespace fails. The /command extraction
 #      (cmd_tokens) and the existence check (cmds) moved here from section 2, which no longer
 #      calls them. A bare name in the root docs passed before they joined the scan (dev-9np).
@@ -209,9 +209,10 @@
 # A section whose doc is missing fails naming it ("missing document: <path>") rather than being
 # skipped, so a renamed skill or rules doc cannot turn its checks off (dev-dov); each section
 # opens with a "== <n>. " header, under which its FAIL lines print (the regression test reads
-# them to tell which section failed). The plugin layout is skills/, docs/agents/,
+# them to tell which section failed). The plugin layout is skills/, references/, docs/agents/,
 # docs/WORKFLOW.md, CLAUDE.md and GLOSSARY.md under the repo root.
-# SKILLS_DIR and AGENT_DOCS override the skills and agent docs directories (scratch copies).
+# SKILLS_DIR and REFERENCES_DIR override the skills and reference docs directories (scratch
+# copies); the docs/agents directory is the one under the docs directory (DOCS_DIR).
 # DOCS_DIR overrides the docs directory the namespace rule scans (default: docs under the repo root).
 # USER_CLAUDE_MD overrides the project CLAUDE.md (default: CLAUDE.md under the repo root).
 # GLOSSARY_MD overrides the root glossary (default: GLOSSARY.md under the repo root).
@@ -573,9 +574,10 @@ section() { checks_run; echo "== $1"; }
 doc() { f=$3; section "$1. $2: $f"; [ -f "$f" ] || { bad "missing document: $f"; return 1; }; [ -z "$tables_unchanged" ] || ! unchanged_file; }
 
 skills=${SKILLS_DIR:-$root/skills}
-agents=${AGENT_DOCS:-$root/docs/agents}
+refs=${REFERENCES_DIR:-$root/references}
 docs=${DOCS_DIR:-$root/docs}
 docs=${docs%/}
+agents=$docs/agents   # this repo's docs/agents: domain.md, triage-labels.md, coding-standards.md
 user_claude_md=${USER_CLAUDE_MD:-$root/CLAUDE.md}
 glossary_md=${GLOSSARY_MD:-$root/GLOSSARY.md}
 runbook=${2:-$root/docs/WORKFLOW.md}
@@ -708,7 +710,7 @@ cite_delivery_authority="the rules doc's Delivery authority"
 tmpdir_line='TMPDIR line'
 plain_command='plain-command line, one plain `git` or `bd` command per Bash call, every path spelled out'
 # where a reviewer or fix-up brief points for quoting a glob passed as a flag (dev-elkb)
-shell_section='the Shell commands section of `<plugin root>/docs/agents/harness.md`'
+shell_section='the Shell commands section of `<plugin root>/references/harness.md`'
 pwd_step='first Bash call is `pwd` alone'
 spelled='spelled literally in every later `export`'
 # the story gate's two phrases whose order the step 7 awk check reads (below) beside their pins
@@ -756,7 +758,7 @@ anchor_task_orchestrator_header="^You are the ${pin_task_orchestrator_bold//\*/\
 # the dirs and the docs no section owns must exist, a default as much as an override; the
 # driver ($1) and the runbook ($2) are their sections' documents
 section "0. paths"
-for given in "$skills" "$agents" "$docs" "$pins_dir"; do
+for given in "$skills" "$refs" "$docs" "$agents" "$pins_dir"; do
   [ -d "$given" ] || bad "no such directory: $given"
 done
 for given in "$user_claude_md" "$glossary_md"; do
@@ -1080,15 +1082,15 @@ lacks "rerun hint covering an already cut dependent" 'rerun this skill for the d
 
 fi
 
-# ---- 5. agent docs and skills: retired phrases ----
+# ---- 5. reference docs, docs/agents and skills: retired phrases ----
 section "5. retired phrases"
-# the files a reader meets, listed once for every sweep below: every file under the agent docs
-# and the skills, the project CLAUDE.md, the runbook, the sequence diagrams and the
+# the files a reader meets, listed once for every sweep below: every file under the reference
+# docs, docs/agents and the skills, the project CLAUDE.md, the runbook, the sequence diagrams and the
 # implement-spec skill passed as $1, wherever it lives (less those LINT_UNCHANGED lists). Each
 # sweep reads a file as one line (lacksw), so a phrase wrapped across a line break is caught,
 # and no other section repeats one: a seeded retired phrase fails here alone.
 # docs/specs keeps every list, since a spec states the change it makes
-swept=$({ find "$agents" "$skills" -type f 2>/dev/null
+swept=$({ find "$refs" "$agents" "$skills" -type f 2>/dev/null
   printf '%s\n' "$user_claude_md" "$runbook" "$docs/SEQUENCES.md" "${1:-}"; } | grep . | sort -u | drop_unchanged)
 # whole words only ("shortcut one", "cut ones" pass); "re-cut one" is the spec's wording, not the retired name
 retired='(^|[^-A-Za-z0-9_])cut (one|two)([^-A-Za-z0-9_]|$)|<spec-slug>|story-cut\.md|[Ss]tory [Pp]lumbing'
@@ -1120,8 +1122,8 @@ retired_route='flat[ -](epics?|shape)|small[ -]bug path|mattpocock-skills:implem
 # no skill cites another skill's step number: steps renumber, so a citation like "/dev:close-story
 # step 4" goes stale without a failing test; it names the rule by its section or the rules doc
 # instead (dev-0ohl). A skill's own steps are its own to cite, so a file under the skills dir is
-# swept for every skill but its own; a doc under docs/agents is no skill's, so it is swept for
-# every skill (dev-90up). The name ends at a boundary (setup is not setup-repo), and the sweep
+# swept for every skill but its own; a doc under references/ or docs/agents is no skill's, so it
+# is swept for every skill (dev-90up). The name ends at a boundary (setup is not setup-repo), and the sweep
 # reads "dev:<skill> step N" in that order only: a "step N of /dev:<skill>" citation is not
 # caught. The match ignores case ("Step 4" fails). A "step" ending one line with "N. " opening a list item on the next is not
 # caught either: the join puts two spaces at a block start, which the pattern's one space misses.
@@ -1136,7 +1138,7 @@ while IFS= read -r f; do
       own=${f#"$skills"/}; own=${own%%/*}
       others=${skill_names//|$own|/|}; others=${others#|}; others=${others%|}
       [ -z "$others" ] || lacksw "another skill's step number cited in $f (name the rule by its section or the rules doc)" "dev:($others)([^a-z -][^ ]*)? steps? [0-9]" ;;
-    "$agents"/*)
+    "$refs"/*|"$agents"/*)
       # a rules doc is no skill, so it cites every skill by rule name, never by step (dev-90up)
       all=${skill_names#|}; all=${all%|}
       [ -z "$all" ] || lacksw "another skill's step number cited in $f (name the rule by its section or bold name)" "dev:($all)([^a-z -][^ ]*)? steps? [0-9]" ;;
@@ -1153,7 +1155,7 @@ while IFS= read -r f; do
   esac
   lacksw "retired phrase in $f" "$retired"
   # no foreground spawn instruction: an Agent call returns at once whatever run_in_background
-  # says, so skills and agent docs point at the waiting rule instead (chezmoi-p4q)
+  # says, so the skills and the reference docs point at the waiting rule instead (chezmoi-p4q)
   lacksw "foreground spawn instruction in $f" 'run_in_background: false'
   lacksw "retired walk-up wording in $f" "$walkup"
   lacksw "retired story-DAG wording in $f" "$retired_dag"
@@ -1190,16 +1192,17 @@ lacksw "retired two-gate wording in $f" "$retired_loop"
 lacksw "retired review-only gate wording in $f" "$retired_gate"
 
 # the docs ship in the plugin: no path into the old dotfiles deployment (~/.claude/docs,
-# ~/.claude/hooks) or the chezmoi source remains in any doc under docs/, the skills, the agent
-# docs, the project CLAUDE.md or the runbook, spelled ~/, $HOME/ or ${HOME}/ (INFRA-30)
-deployed='(~|\$HOME|\$\{HOME\})/(\.claude/docs|\.claude/hooks|\.local/share/chezmoi)'
+# ~/.claude/hooks), a deployed copy of the reference docs (~/.claude/references) or the chezmoi
+# source remains in any doc under docs/, references/, docs/agents, the skills, the project
+# CLAUDE.md or the runbook, spelled ~/, $HOME/ or ${HOME}/ (INFRA-30)
+deployed='(~|\$HOME|\$\{HOME\})/(\.claude/docs|\.claude/references|\.claude/hooks|\.local/share/chezmoi)'
 while IFS= read -r f; do
   lacks "dotfiles deployment path in $f" "$deployed"
-done < <({ find "$docs" -type f -name '*.md' 2>/dev/null; find "$agents" "$skills" -type f 2>/dev/null
+done < <({ find "$docs" -type f -name '*.md' 2>/dev/null; find "$refs" "$agents" "$skills" -type f 2>/dev/null
   echo "$user_claude_md"; echo "$runbook"; } | grep . | sort -u | drop_unchanged)
 
 # ---- 6. shared rules the skills point at ----
-if doc 6 "orchestration rules" "$agents/orchestration.md"; then
+if doc 6 "orchestration rules" "$refs/orchestration.md"; then
 lacks "a foreground spawn" "$pin_retired_foreground_spawn"
 hasc "preflight section" '## Working-directory preflight'
 has "preflight remedy" "$pin_add_dir_remedy"
@@ -1230,7 +1233,7 @@ para_has '**Gitignore.**' "/.tmp/ among the Gitignore rule's entries" '`/.tmp/`'
 hasc "Plugin root rule" "$head_plugin_root"
 para_has "$head_plugin_root" "the harness's plugin-root variable" "$pin_plugin_root_variable"
 para_has "$head_plugin_root" "resolved once per session" 'once per session'
-para_has "$head_plugin_root" "the rules-doc path spelled literally in every brief" '<plugin root>/docs/agents/'
+para_has "$head_plugin_root" "the rules-doc path spelled literally in every brief" '<plugin root>/references/'
 para_has "$head_plugin_root" "spelled out in every brief" 'every brief'
 # a reviewer tags every finding blocking or minor and ends on a verdict line; a round with no
 # blocking findings is clean; every fix-up, red or blocking, spends the check gate loop's budget. The
@@ -1516,7 +1519,7 @@ para_has "$head_standalone_task" "the paragraph: the table keeps three rows" 'th
 para_has "$head_standalone_task" "the paragraph: the merge guard on a rerun is for an open task only, a closed task is reported from its notes" 'a rerun applies the merge guard on the `pr:` note only to an open task; a closed task with one is finished and reported from its notes'
 lackse "a fourth row in the table" '^[|] [*][*](Standalone|Standalone task|Implement-task)[*][*] [|]'
 fi
-if doc 6 "harness rules" "$agents/harness.md"; then
+if doc 6 "harness rules" "$refs/harness.md"; then
 # the mechanics live in the harness doc (dev-9k5.1.2): the rules above moved out of the
 # orchestration doc with it, and the doc points back at the preflight that stays there
 # a runner waits on its subagent's report, never on a Bash poll loop; pgrep is dead in the sandbox (chezmoi-flq)
@@ -1563,7 +1566,7 @@ para_has "$head_idle_rule" "the Idle rule names the check command" 'every run of
 # the task orchestrator's lock wait gone with the lock (dev-b8d.1.4), which section 5 sweeps
 para_has "$head_idle_rule" "the Idle rule names the forge-check wait as its one long shell wait" "The one long shell wait is the story orchestrator's"
 para_has "$head_idle_rule" "the Idle rule cites the Delivery section for the forge-check wait" "forge-check wait (the rules doc's Delivery section)"
-# (no step number cited for the wait: section 5's sweep covers docs/agents, dev-90up)
+# (no step number cited for the wait: section 5's sweep covers references/, dev-90up)
 lacks "the Idle rule's second shell wait" 'two shell waits|The other is the story orchestrator'
 lacks "the Idle rule's retired story's-checks clause" "these are the story's checks"
 # the cut-off rule with its stop sweep, and the commits rule with its clean-tree check
@@ -1597,7 +1600,7 @@ hasc "branches from a remote ref rule" "$head_branch_from_remote_ref"
 para_has "$head_branch_from_remote_ref" "the --no-track switch" '`git switch --no-track -c <branch> origin/<x>`'
 para_has "$head_branch_from_remote_ref" "the sandbox denies the tracking write" 'denies the write to `.git/config`'
 fi
-if doc 6 "tracker rules" "$agents/issue-tracker.md"; then
+if doc 6 "tracker rules" "$refs/issue-tracker.md"; then
 # the "Has a database" rule: .beads/ exists and bd where names it (dev-e87)
 para_has "$head_has_database" "the rule checks bd where" '`bd -C <repo> where` then prints `<repo>/.beads`'
 para_has "$head_has_database" "a .beads where does not name is no database" 'counts as no database'
@@ -2194,7 +2197,7 @@ for pin in "your row is the task row of the rules doc's table|the skill names it
   line_has "$H" "${pin#*|}" "${pin%%|*}"
 done
 line_lacks "$H" "the row's conflict resolutions" "$pin_conflict_resolutions"
-line_has "$H" "the skill cites the harness doc in one line" 'The harness mechanics are in `<plugin root>/docs/agents/harness.md`'
+line_has "$H" "the skill cites the harness doc in one line" 'The harness mechanics are in `<plugin root>/references/harness.md`'
 line_has "$H" "every brief it sends cites the harness doc" 'every brief you send cites it in one line'
 # the story orchestrator resolves the check command once per run and the brief carries it; the
 # skill never resolves it itself (dev-yyu)
@@ -2366,7 +2369,7 @@ fi
 # a feature's stories form a DAG of text blockers, each naming a human gate task or a story;
 # the one-text-blocker and no-chains rules are retired. Section 5 sweeps "only text blocker"
 # and "chains are out of scope"; the wider chains wording is scoped to these two docs.
-for d in "$agents/issue-tracker.md" "$agents/orchestration.md"; do
+for d in "$refs/issue-tracker.md" "$refs/orchestration.md"; do
   doc 10 "story DAG" "$d" || continue
   has "story DAG" "$pin_story_dag"
   has "human gate task" 'human gate task'
@@ -2378,7 +2381,7 @@ for d in "$agents/issue-tracker.md" "$agents/orchestration.md"; do
 done
 # a story held only by a story-closure blocker ends the run as a human stop naming the merge
 # and the /close-story; a publish task waits on its story's tasks, not its repo's
-f=$agents/orchestration.md
+f=$refs/orchestration.md
 if [ -f "$f" ]; then
 section "10. story DAG: $f"
 hasc "story-closure human stop" "$merge_then_close"
@@ -2386,7 +2389,7 @@ has "publish task ready on its story's tasks" "as soon as its story's implementa
 lacks "publish task ready on its repo's tasks" "its repo's implementation tasks close"
 fi
 # the story body shows only blocker lines a step fills; a middle story of a chain is ordered
-f=$agents/issue-tracker.md
+f=$refs/issue-tracker.md
 if [ -f "$f" ]; then
 section "10. story DAG: $f"
 lacks "gate task line no step fills" '<repo> <gate task id>'
@@ -2509,7 +2512,7 @@ for given in "$skills" "$plugin"; do
 done
 while IFS= read -r f; do
   [ -f "$f" ] && scanned+=("$f")
-done < <({ find "$docs" "$agents" "$skills" -type f -name '*.md' 2>/dev/null
+done < <({ find "$docs" "$refs" "$skills" -type f -name '*.md' 2>/dev/null
   echo "$runbook"; echo "$user_claude_md"; echo "$glossary_md"; echo "${1:-}"; } | grep . | sort -u \
   | if [ -n "$trees_unchanged" ]; then drop_unchanged; else cat; fi)
 pairs=
@@ -2600,13 +2603,13 @@ fi
 # ---- 15. mermaid blocks: no semicolon ----
 # mermaid ends a sequenceDiagram statement at a ";", so a line of a ```mermaid block with one does
 # not render (dev-1xf.1.4). The block opens on a fence line starting ```mermaid, indented or not,
-# and closes on the next fence line; every .md under the docs dir, the skills and the agent docs,
+# and closes on the next fence line; every .md under references/, the skills and the docs dir,
 # plus the project CLAUDE.md, the runbook and the root glossary, is read.
 section "15. mermaid blocks: no semicolon"
 mermaid_files=()
 while IFS= read -r f; do
   [ -f "$f" ] && mermaid_files+=("$f")
-done < <({ find "$agents" "$skills" "$docs" -type f -name '*.md' 2>/dev/null; echo "$user_claude_md"; echo "$runbook"; echo "$glossary_md"; } | sort -u | drop_unchanged)
+done < <({ find "$refs" "$skills" "$docs" -type f -name '*.md' 2>/dev/null; echo "$user_claude_md"; echo "$runbook"; echo "$glossary_md"; } | sort -u | drop_unchanged)
 # one awk pass over every file, a FAIL line per file with its first three hits under it
 if [ "${#mermaid_files[@]}" -gt 0 ]; then
   hits=$(awk 'FNR == 1 { inm = 0; c = 0 }
@@ -2833,7 +2836,7 @@ if [ -f "$standards" ]; then
   # the tail of a bare possessive cite: a backticked possessive and a capital
   poss_cap="\`'s [A-Z]"
   # every skill's SKILL.md is read too (dev-xyrl), the skills' own docs binding like a rules doc
-  for f in "$agents"/*.md "$skills"/*/SKILL.md; do
+  for f in "$refs"/*.md "$agents"/*.md "$skills"/*/SKILL.md; do
     [ "$f" = "$standards" ] && continue   # it shows the wrong forms as examples
     # a listed file queues nothing here, and the loop below is most of a run's cost (the pin list
     # still takes its checks)

@@ -22,7 +22,7 @@
 set -uo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 skill=$repo_root/skills/retro/SKILL.md
-tracker=$repo_root/docs/agents/issue-tracker.md
+tracker=$repo_root/references/issue-tracker.md
 cases="root consumer personal reporule bare"
 
 fixture() { echo "$repo_root/.fixtures/test-retro-$1"; }

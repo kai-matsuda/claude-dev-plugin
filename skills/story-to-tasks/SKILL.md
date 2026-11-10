@@ -11,14 +11,14 @@ description: "Break one story bead into tracer-bullet tasks for its owner repo, 
      complexity tier per task; two modes, alone (quiz, then publish) and called (a "story
      cutter" brief returns the breakdown, a "Publish this block" brief publishes it); Spec: file
      fallback; the story's design field as orientation; re-cut edge moves; publishing, dependency-repo and
-     re-cut rules live in ${CLAUDE_PLUGIN_ROOT}/docs/agents/issue-tracker.md; task template without
+     re-cut rules live in ${CLAUDE_PLUGIN_ROOT}/references/issue-tracker.md; task template without
      `## Blocked by`. Re-sync against the plugin copy when it updates; keep those edits. -->
 
 # Story To Tasks
 
 Break one **story** (`${CLAUDE_PLUGIN_ROOT}/GLOSSARY.md`: the part of a feature that lands in one repo) into a set of **tasks**: tracer-bullet vertical slices in that repo, each declaring the tasks that **block** it.
 
-The issue tracker rules are in `${CLAUDE_PLUGIN_ROOT}/docs/agents/issue-tracker.md`. This skill performs its "When a skill says 'fetch the spec'" operation in step 1, its "When a skill says 'publish a story's tasks'" operation, and its "When the breakdown touches a dependency repo" section when the story is one side of a dependency pair. Read "fetch the spec" before step 1 and the other two before step 3.
+The issue tracker rules are in `${CLAUDE_PLUGIN_ROOT}/references/issue-tracker.md`. This skill performs its "When a skill says 'fetch the spec'" operation in step 1, its "When a skill says 'publish a story's tasks'" operation, and its "When the breakdown touches a dependency repo" section when the story is one side of a dependency pair. Read "fetch the spec" before step 1 and the other two before step 3.
 
 **Input**: a story bead id, and `<path>`, the absolute path of its owner repo, when that is not the session's repo. With `<path>`, check first that `<path>` has a database by the tracker doc's "Has a database" rule ("First time in a repo"; none → `no beads database at <path>`, stop), then run every `bd` call below as `bd -C <path> ...`, except step 1's epic bead read, which runs plainly in the session's own database (`<home>`'s). When a `bd -C` fails with `Operation not permitted`, the tracker doc's "bd writes outside the session's repo" says what to do.
 

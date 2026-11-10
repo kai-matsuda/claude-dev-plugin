@@ -9,7 +9,7 @@ a path, every `bd` call below is `bd -C <path> ...` and every forge command name
 repo (`git -C <path> remote get-url origin`, `gh -R <owner/repo>`, `tea` run with
 `--repo`). When a `bd -C` fails with `Operation not permitted`, the
 tracker doc's "bd writes outside the session's repo" says what to do. The rules this enforces are
-in `${CLAUDE_PLUGIN_ROOT}/docs/agents/issue-tracker.md`, under "When a skill says 'close the epic'";
+in `${CLAUDE_PLUGIN_ROOT}/references/issue-tracker.md`, under "When a skill says 'close the epic'";
 the `pr:` note format is under "When a skill says 'the spec is done'" there.
 
 ## Outcome lines
