@@ -8,6 +8,8 @@ version on every merge to main.
 ## Agent skills
 
 Jira project key: `INFRA`. Everything else follows the reference docs in `references/`.
+`docs/agents/domain.md` and `docs/agents/triage-labels.md` stay in this repo's `docs/agents/`;
+`domain.md` governs where glossary entries and ADRs go.
 
 <!-- BEGIN BEADS INTEGRATION v:1 profile:minimal hash:1105d646 -->
 ## Beads Issue Tracker

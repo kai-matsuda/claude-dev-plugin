@@ -21,18 +21,23 @@ fx_check "README has a Developing section" grep -qx '## Developing' "$readme"
 
 fx_check "README says the reference docs live in references/" grep -q 'reference docs.*`references/`' "$readme"
 
+# the runbook holds the full standards paragraph; the README says it briefly and points there
 runbook=$repo_root/docs/WORKFLOW.md
-for doc in "$readme" "$runbook"; do
-  n=${doc##*/}
-  fx_check "$n says coding standards are the user's" grep -q "oding standards are yours" "$doc"
-  fx_check "$n names the personal layer ~/.claude/rules/" grep -q '~/.claude/rules/' "$doc"
-  fx_check "$n names the repo layer .claude/rules/" grep -q "a repo's \`.claude/rules/\`" "$doc"
-  fx_check "$n says the repo's standards win" grep -q "repo's win" "$doc"
-  fx_check "$n counts the root CODING_STANDARDS.md or CONTRIBUTING.md" grep -q 'CODING_STANDARDS.md' "$doc"
-  fx_check "$n says a rule applies only where its scope says" grep -q 'applies only where its' "$doc"
-  fx_check "$n says setup and setup-repo create no rules folder" grep -q 'create no rules' "$doc"
-  fx_check "$n says setup and setup-repo write no starter rule" grep -q 'write no starter rule' "$doc"
-done
+std=$(section "$readme" "Coding standards")
+fx_check "README says coding standards are the user's" grep -q "oding standards are yours" <<<"$std"
+fx_check "README names the personal layer ~/.claude/rules/" grep -q '~/.claude/rules/' <<<"$std"
+fx_check "README names the repo layer .claude/rules/" grep -q "a repo's \`.claude/rules/\`" <<<"$std"
+fx_check "README says the repo's standards win" grep -q "repo's win" <<<"$std"
+fx_check "README points at the runbook for the rest" grep -q 'docs/WORKFLOW.md' <<<"$std"
+fx_check "README leaves the full paragraph to the runbook" bash -c '! grep -q "write no starter rule" <<<"$1"' _ "$std"
+fx_check "WORKFLOW.md says coding standards are the user's" grep -q "oding standards are yours" "$runbook"
+fx_check "WORKFLOW.md names the personal layer ~/.claude/rules/" grep -q '~/.claude/rules/' "$runbook"
+fx_check "WORKFLOW.md names the repo layer .claude/rules/" grep -q "a repo's \`.claude/rules/\`" "$runbook"
+fx_check "WORKFLOW.md says the repo's standards win" grep -q "repo's win" "$runbook"
+fx_check "WORKFLOW.md counts the root CODING_STANDARDS.md or CONTRIBUTING.md" grep -q 'CODING_STANDARDS.md' "$runbook"
+fx_check "WORKFLOW.md says a rule applies only where its scope says" grep -q 'applies only where its' "$runbook"
+fx_check "WORKFLOW.md says setup and setup-repo create no rules folder" grep -q 'create no rules' "$runbook"
+fx_check "WORKFLOW.md says setup and setup-repo write no starter rule" grep -q 'write no starter rule' "$runbook"
 
 pre=$(section "$readme" Prerequisites)
 fx_check "prerequisite: bd" grep -q '`bd`' <<<"$pre"

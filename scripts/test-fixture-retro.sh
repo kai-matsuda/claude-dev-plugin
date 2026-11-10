@@ -27,8 +27,8 @@ cases="root consumer personal reporule bare"
 
 fixture() { echo "$repo_root/.fixtures/test-retro-$1"; }
 home_of() { case "$1" in root) echo . ;; personal|reporule) echo consumer ;; *) echo "$1" ;; esac; }
-lib_fix="Reviewer misses unused imports. layer: check. file: \$FIX/lib/src/lib.rs (add #![deny(unused_imports)]). blocks commits: yes"
-con_fix="Main prints without a label. layer: code. file: \$FIX/consumer/src/main.rs. blocks commits: no"
+lib_fix="Reviewer misses unused imports. category: coding standards. layer: check. file: \$FIX/lib/src/lib.rs (add #![deny(unused_imports)]). blocks commits: yes"
+con_fix="Main prints without a label. category: coding standards. layer: code. file: \$FIX/consumer/src/main.rs. blocks commits: no"
 per_fix="Reviewer lets error messages that name no cause through. category: coding standards. layer: standard. file: ~/.claude/rules/error-messages.md (proposed: the file does not exist yet; a rule that should hold in every repo). blocks commits: no"
 rep_fix="Reviewer misses a handler that skips the label. category: coding standards. layer: standard. file: \$FIX/consumer/.claude/rules/handlers.md (proposed, path-scoped to src/**; a rule for this repo only). blocks commits: no"
 
