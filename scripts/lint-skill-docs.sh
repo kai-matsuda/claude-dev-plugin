@@ -715,8 +715,12 @@ plain_command='plain-command line, one plain `git` or `bd` command per Bash call
 # the standards every implementer and reviewer brief at the task and story rows names: both rules
 # folders, the repo's winning, a missing folder no error, a rule scoped by its own text or path
 # (ADR 0018, dev-7mkq.1.6); the reviewer's adds the root standards file and the breach form
-standards_implementer='the coding standards in `~/.claude/rules/` and `<owner>/.claude/rules/` (the repo'"'"'s win where the two conflict; a missing or empty folder is not an error; a rule applies only where its own text or path scope says it does)'
-standards_reviewer='the coding standards in `~/.claude/rules/` and `<owner>/.claude/rules/`, with `<owner>`'"'"'s root `CODING_STANDARDS.md` or `CONTRIBUTING.md` where it has one counted with the repo'"'"'s (the repo'"'"'s win where the two conflict; a missing or empty folder is not an error; a rule applies only where its own text or path scope says it does), plus `GLOSSARY.md` and `docs/adr/` in `<owner>` where they exist, each breach reported as the rule'"'"'s heading, the file and line, and the reader who would be misled or broken'
+rules_folders='the coding standards in `~/.claude/rules/` and `<owner>/.claude/rules/`'
+standards_terms='(the repo'"'"'s win where the two conflict; a missing or empty folder is not an error; a rule applies only where its own text or path scope says it does)'
+standards_implementer="$rules_folders $standards_terms"
+standards_reviewer="$rules_folders, with \`<owner>\`'s root \`CODING_STANDARDS.md\` or \`CONTRIBUTING.md\` where it has one counted with the repo's $standards_terms, plus \`GLOSSARY.md\` and \`docs/adr/\` in \`<owner>\` where they exist, each breach reported as the rule's heading, the file and line, and the reader who would be misled or broken"
+# the task row's spec reviewer reads no standards and names both folders as the standards reviewer's
+standards_spec_reviewer="with $rules_folders left to the standards reviewer"
 # where a reviewer or fix-up brief points for quoting a glob passed as a flag (dev-elkb)
 shell_section='the Shell commands section of `<plugin root>/references/harness.md`'
 pwd_step='first Bash call is `pwd` alone'
@@ -2179,6 +2183,7 @@ line_has "$CUT" "a replaced implementer's no reset holds within one task orchest
 # story row's words (dev-co6, ADR 0018, dev-7mkq.1.6)
 line_has '^2\. ' "the task implementer brief names both rules folders" "reads $standards_implementer"
 line_has '^3\. ' "the task fix-up brief names both rules folders" "reads $standards_implementer"
+line_has '^3\. ' "the task spec reviewer brief leaves both rules folders to the standards reviewer" "$standards_spec_reviewer"
 line_has '^3\. ' "the task standards reviewer brief names both rules folders and the breach form" "read against the skill's smell baseline and $standards_reviewer"
 # the implementer and fix-up briefs start with the TMPDIR line, then the plain-command line
 # (chezmoi-3eg, dev-ask); on the harness route the TMPDIR line is two steps (dev-r1p)

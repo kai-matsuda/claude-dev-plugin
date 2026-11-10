@@ -793,6 +793,15 @@ drop_first() {
     if ($0 ~ ENVIRON["an"] && (i = index($0, ENVIRON["p"]))) $0 = substr($0, 1, i - 1) substr($0, i + length(ENVIRON["p"]))
     print }'
 }
+# drop_second <file under scratch> <anchor regex> <phrase>: on the lines matching the anchor, take
+# out the second occurrence of the phrase and leave the others
+drop_second() {
+  an="$2" p="$3" rewrite "$1" awk '{
+    if ($0 ~ ENVIRON["an"] && (i = index($0, ENVIRON["p"])) && (k = index(substr($0, i + 1), ENVIRON["p"]))) {
+      j = i + k; $0 = substr($0, 1, j - 1) substr($0, j + length(ENVIRON["p"]))
+    }
+    print }'
+}
 # drop_pin <type> <file under scratch> <phrase> <anchor>: seeds the doc without the pinned phrase
 drop_pin() {
   case $1 in
@@ -1012,20 +1021,29 @@ expect "runbook copy limiting the task review to medium and high fails" 1 "the r
 
 # every implementer and reviewer brief at the task and story rows names both rules folders, the
 # personal ~/.claude/rules/ and the repo's .claude/rules/ (ADR 0018, dev-7mkq.1.6): one brief
-# missing one folder fails its own pin while the briefs beside it keep theirs. drop_first and
-# drop_last take the folder out of the first or the last brief on the anchored line, where a
-# line holds a reviewer brief and then a fix-up's
-for c in "first|the task standards reviewer brief names both rules folders and the breach form|task-orchestrator|\`<owner>/.claude/rules/\`" \
-  "last|the task implementer brief names both rules folders|task-orchestrator|\`~/.claude/rules/\`" \
-  "last|the task fix-up brief names both rules folders|task-orchestrator|\`<owner>/.claude/rules/\`" \
-  "first|the story review brief names both rules folders and the breach form|implement-story|\`~/.claude/rules/\`" \
-  "last|the story fix-up brief names both rules folders|implement-story|\`~/.claude/rules/\`" \
-  "last|the conflict implementer brief names both rules folders|implement-story|\`<owner>/.claude/rules/\`"; do
-  IFS='|' read -r which desc skill folder <<<"$c"
-  pin_anchor "$desc"
-  fresh
-  "drop_$which" "skills/$skill/SKILL.md" "$pinned_anchor" "$folder"
-  expect "$skill: a brief without $folder fails '$desc'" 1 "$desc"
+# missing either folder fails its own pin and no sibling brief's on its line (the ;-list of
+# descriptions after the folder). drop_first, drop_second and drop_last take the folder out of
+# the first, second or last brief on the anchored line, where the task row's step 3 holds the
+# spec reviewer's, the standards reviewer's and then a fix-up's brief
+spec_d='the task spec reviewer brief leaves both rules folders to the standards reviewer'
+std_d='the task standards reviewer brief names both rules folders and the breach form'
+fix_d='the task fix-up brief names both rules folders'
+srev_d='the story review brief names both rules folders and the breach form'
+sfix_d='the story fix-up brief names both rules folders'
+for folder in '`~/.claude/rules/`' '`<owner>/.claude/rules/`'; do
+  for c in "first|$spec_d|task-orchestrator|$std_d;$fix_d" \
+    "second|$std_d|task-orchestrator|$spec_d;$fix_d" \
+    "last|$fix_d|task-orchestrator|$spec_d;$std_d" \
+    "last|the task implementer brief names both rules folders|task-orchestrator|" \
+    "first|$srev_d|implement-story|$sfix_d" \
+    "last|$sfix_d|implement-story|$srev_d" \
+    "last|the conflict implementer brief names both rules folders|implement-story|"; do
+    IFS='|' read -r which desc skill siblings <<<"$c"
+    pin_anchor "$desc"
+    fresh
+    "drop_$which" "skills/$skill/SKILL.md" "$pinned_anchor" "$folder"
+    must_not_print=${siblings//;/$'\n'} expect "$skill: a brief without $folder fails '$desc'" 1 "$desc"
+  done
 done
 
 # one has-a-database rule: .beads/ exists and bd where names it, stated once in the tracker doc
