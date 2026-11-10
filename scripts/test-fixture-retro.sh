@@ -11,18 +11,26 @@
 #             inbox as target:lib
 #   consumer  typed in consumer alone (a repo session): a fix inside consumer files as
 #             target:consumer, a fix under lib as retro:foreign with the lib path in the body
+#   personal  typed in consumer alone: a judgement rule for every repo, a finding located at a
+#             proposed ~/.claude/rules/ file that does not exist (so no chezmoi source maps it),
+#             files as retro:foreign with that path in the body, the label a file outside the
+#             home gets
+#   reporule  typed in consumer alone: a judgement rule for the repo, a finding located at a
+#             file under consumer's .claude/rules/, files as target:consumer
 #   bare      typed in a git repo with no .beads/ inside the fixture: the run stops, files
 #             nothing, and plain bd never climbs to the root's database
 set -uo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 skill=$repo_root/skills/retro/SKILL.md
 tracker=$repo_root/docs/agents/issue-tracker.md
-cases="root consumer bare"
+cases="root consumer personal reporule bare"
 
 fixture() { echo "$repo_root/.fixtures/test-retro-$1"; }
-home_of() { case "$1" in root) echo . ;; *) echo "$1" ;; esac; }
+home_of() { case "$1" in root) echo . ;; personal|reporule) echo consumer ;; *) echo "$1" ;; esac; }
 lib_fix="Reviewer misses unused imports. layer: check. file: \$FIX/lib/src/lib.rs (add #![deny(unused_imports)]). blocks commits: yes"
 con_fix="Main prints without a label. layer: code. file: \$FIX/consumer/src/main.rs. blocks commits: no"
+per_fix="Reviewer lets error messages that name no cause through. category: coding standards. layer: standard. file: ~/.claude/rules/error-messages.md (proposed: the file does not exist yet; a rule that should hold in every repo). blocks commits: no"
+rep_fix="Reviewer misses a handler that skips the label. category: coding standards. layer: standard. file: \$FIX/consumer/.claude/rules/handlers.md (proposed, path-scoped to src/**; a rule for this repo only). blocks commits: no"
 
 seed() { # <case>
   local home home_dir survivors
@@ -33,6 +41,8 @@ seed() { # <case>
   fi
   case "$1" in
     root|bare) survivors="1. ${lib_fix//\$FIX/$out}" ;;
+    personal) survivors="1. $per_fix" ;;
+    reporule) survivors="1. ${rep_fix//\$FIX/$out}" ;;
     consumer) survivors="1. ${con_fix//\$FIX/$out} 2. ${lib_fix//\$FIX/$out}" ;;
   esac
   echo "seeded $out"
@@ -60,6 +70,20 @@ assert() { # <case>
       fx_check "the foreign bead's body names the lib path" grep -qF "lib/src/lib.rs" <<<"$(fx_field consumer "$b" .description)"
       fx_check "nothing in the root (no manifest read)" fx_eq "$(fx_all . | jq length)" 0
       fx_check "nothing in lib (no bd -C)" fx_eq "$(fx_all lib | jq length)" 0 ;;
+    personal)
+      a=$(fx_one consumer '.title != null')
+      fx_check "one inbox bead in consumer" fx_eq "$(fx_all consumer | jq length)" 1
+      fx_check "labelled retro:foreign, no target: label (a file outside the home)" fx_eq "$(labels consumer "$a")" "needs-triage,retro,retro:foreign"
+      fx_check "the body names the proposed ~/.claude/rules/ file" grep -qF ".claude/rules/error-messages.md" <<<"$(fx_field consumer "$a" .description)"
+      fx_check "nothing in the root" fx_eq "$(fx_all . | jq length)" 0
+      fx_check "nothing in lib" fx_eq "$(fx_all lib | jq length)" 0 ;;
+    reporule)
+      a=$(fx_one consumer '.title != null')
+      fx_check "one inbox bead in consumer" fx_eq "$(fx_all consumer | jq length)" 1
+      fx_check "labelled target:consumer (a file under the repo's .claude/rules/)" fx_eq "$(labels consumer "$a")" "needs-triage,retro,target:consumer"
+      fx_check "the body names the rules file" grep -qF ".claude/rules/handlers.md" <<<"$(fx_field consumer "$a" .description)"
+      fx_check "nothing in the root" fx_eq "$(fx_all . | jq length)" 0
+      fx_check "nothing in lib" fx_eq "$(fx_all lib | jq length)" 0 ;;
     bare)
       fx_check "no database was initialised in bare" test ! -e "$out/bare/.beads"
       fx_check "plain bd did not climb to the root's database" fx_eq "$(fx_all . | jq length)" 0
