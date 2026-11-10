@@ -5,8 +5,8 @@ feature for people; beads for the agent's stories and tasks; skills that cut a s
 into stories and tasks, implement them AFK through story orchestrators and task
 orchestrators, review, open the PR, and close the loop with retro and triage.
 
-Skills are addressed as `/dev:<skill>`. Start with `/dev:workflow` for the runbook. The reference docs the skills share live in `references/` at the plugin root
-(the orchestration doc, the harness doc and the tracker doc).
+Skills are addressed as `/dev:<skill>`. Start with `/dev:workflow` for the runbook. The reference docs the skills share live in `references/`
+at the plugin root (the orchestration doc, the harness doc and the tracker doc).
 
 ## Install
 

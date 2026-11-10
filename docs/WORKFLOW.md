@@ -229,7 +229,7 @@ The tier table above sets *subagent* models; this sets what your own session run
 | Exploration notes | `<repo>/.spec-notes/<epic-id>/` |
 | A worktree agent's temp files | `<worktree>/.tmp/`, where the TMPDIR line points `TMPDIR` (gitignored as `/.tmp/`) |
 | Human status and discussion | the Jira epic |
-| Agent-side rules | `references/*.md` in the dev plugin repo (`kai-matsuda/claude-dev-plugin`; the installed copy serves every repo), repo `CLAUDE.md` (overrides) |
+| Reference docs | `references/*.md` in the dev plugin repo (`kai-matsuda/claude-dev-plugin`; the installed copy serves every repo), repo `CLAUDE.md` (overrides) |
 | Which repo owns a file or crate | `repos.yaml` at the workspace root (the repo manifest) |
 | Decisions that span repos | `docs/adr/` at the workspace root |
 | Retro inbox | the home's beads, label `needs-triage`; closed ones record where each item went |

@@ -66,7 +66,7 @@ when the repo has a `docs/adr/` directory; see `domain.md` for where ADRs live.
 
 ## Bead ids cite provenance in parentheses
 
-A sentence in a reference doc (`references/*.md`, a skill's `SKILL.md`) or a comment in a lint
+A sentence in a reference doc (`references/*.md`) or a skill's `SKILL.md` or a comment in a lint
 script that records why a rule exists names the bead behind it as a **provenance cite**: the
 bare id inside parentheses that close the clause it justifies, as in "a flaky red never
 sticks to its tree (dev-6qi)". The same form serves prose and lint comments. The parentheses
@@ -96,8 +96,8 @@ that opens no numbered item (`**Owner**`, `**Alone**:`) is a label, and a bold t
 a sentence (the **story orchestrator**) is neither; a cite of a label or such a term is
 outside this rule, so a lead-in that another skill or a reference doc cites takes the period
 inside the bold and is cited in bold. A heading cited bare (`/dev:task-orchestrator`'s
-Two entries), a heading cited in bold, or a step name cited in quotes is a cite in the wrong form. A cite of the
-orchestration doc's own sections, or of a skill's own steps and headings, is not a cross-skill
+Two entries), a heading cited in bold, or a step name cited in quotes is a cite in the wrong form. A cite of a
+reference doc's own sections, or of a skill's own steps and headings, is not a cross-skill
 cite and is outside this rule.
 
 A cite names the skill in backticks (`/dev:close-story`), never bare (/dev:close-story's

@@ -63,7 +63,7 @@
 #      built-in review by name, the two-review-tools paragraph, the review marker, the lint
 #      command and the test seams as checks (the glossary lists them under _Avoid_, docs/adr/
 #      keeps them through .glossary-allow); and no rule that moved to harness.md cited at the
-#      reference doc (dev-zra), nor a beads database gate on the .beads/ directory alone
+#      orchestration doc (dev-zra), nor a beads database gate on the .beads/ directory alone
 #      (dev-e87). docs/specs keeps every list. No other section repeats a phrase this
 #      sweep covers, so a seeded one fails here alone;
 #   6. the shared rules: orchestration.md's working-directory preflight, and harness.md's
@@ -146,7 +146,7 @@
 #      check record, and step 9 leaves the records in place; "Running the checks" and "the command and
 #      its output" are gone (section 5's sweep covers the review marker, the merger, the keyed
 #      branch, the Evidence run and the second-red stall) (dev-cq0.1.5, dev-1xf.1.3, dev-9k5.1.9); section 6 checks the
-#      reference doc's Check gate;
+#      orchestration doc's Check gate;
 #   9. /close-story: its Forgejo/Gitea query carries --repo <path> as the intro and
 #      /implement-story's merge guard do (dev-hac); its task check skips a child carrying
 #      needs-triage or wontfix, as the finished story does, and its refusal names each open
@@ -1106,8 +1106,8 @@ retired_loop='evidence run|a later run reviews the fix|a third round of either k
 # the gate with no check command (ADR 0015): every owner repo has a check target, so no doc names
 # a review-only gate or a repo, task or gate without a check command
 retired_gate='review-only|no check command|with(out)? a check command'
-# a rule that moved to harness.md (dev-9k5.1.2) cited at the orchestration doc, doc first as "the rules
-# doc's Worktrees", "the orchestration doc's worktree fallback", "the orchestration doc's Scratch space says
+# a rule that moved to harness.md (dev-9k5.1.2) cited at the orchestration doc, doc first as "the
+# orchestration doc's Worktrees", "the orchestration doc's worktree fallback", "the orchestration doc's Scratch space says
 # (Literal paths)" or "(`orchestration.md`, Commits)", or rule first as 'the "Waiting" rule of
 # `orchestration.md`'; the worktree fallback moved too, so the orchestration doc holds no fallback (dev-zra)
 moved_names="($rule_waiting|$rule_idle|$rule_commits|$rule_cut_off|worktrees|hand-rolled|fallback|$rule_literal_paths|$rule_tmpdir|diff two files|python's cache line|recursive deletes|shell commands)"
@@ -1233,7 +1233,7 @@ para_has '**Gitignore.**' "/.tmp/ among the Gitignore rule's entries" '`/.tmp/`'
 hasc "Plugin root rule" "$head_plugin_root"
 para_has "$head_plugin_root" "the harness's plugin-root variable" "$pin_plugin_root_variable"
 para_has "$head_plugin_root" "resolved once per session" 'once per session'
-para_has "$head_plugin_root" "the rules-doc path spelled literally in every brief" '<plugin root>/references/'
+para_has "$head_plugin_root" "the orchestration doc path spelled literally in every brief" '<plugin root>/references/'
 para_has "$head_plugin_root" "spelled out in every brief" 'every brief'
 # a reviewer tags every finding blocking or minor and ends on a verdict line; a round with no
 # blocking findings is clean; every fix-up, red or blocking, spends the check gate loop's budget. The
@@ -1664,7 +1664,7 @@ hasc "setup-repo runs init by the tracker doc's rule" 'which says where it runs 
 lacks "setup-repo restating the init rule" "$pin_never_through_c"
 # the stop reports the init commit as init made it, before the pruning amends it
 hasc "setup-repo stops before the pruning" 'A stop there comes before the pruning'
-# the check target step writes no ci target: the extension is a repo owner's to add (reference doc, Check command)
+# the check target step writes no ci target: the extension is a repo owner's to add (orchestration doc, Check command)
 hasc "setup-repo writes no ci target" 'It writes no `ci` target'
 fi
 # one has-a-database rule, stated once in the tracker doc and cited by every gate: .beads/ exists

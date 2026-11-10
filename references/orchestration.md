@@ -222,7 +222,7 @@ session or a subagent, so only if the text still shows it does the session fall 
 that path is `<plugin root>/skills/<skill>`, so the root is two levels up (under
 `claude --plugin-dir .` it is that checkout). With neither, it ends with
 `failed: plugin root unresolved` rather than guessing a path. From then on the session
-spells the absolute rules-doc path literally in every brief,
+spells the absolute orchestration doc path literally in every brief,
 `<plugin root>/references/orchestration.md` with `<plugin root>` replaced by the path it
 resolved, as the TMPDIR rule in `harness.md` spells `<worktree>`: never `$CLAUDE_PLUGIN_ROOT`, never a `~/`
 path. A subagent's Bash has no such variable (unset in this rule's own task run,
