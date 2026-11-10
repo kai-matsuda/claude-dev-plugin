@@ -2043,7 +2043,7 @@ echo 'Prose may keep a semicolon; one, two.' >> "$scratch/docs/SEQUENCES.md"
 expect "a semicolon outside a mermaid block passes" 0
 
 # another skill's rule is cited in one form (dev-q47w): a heading cited bare after a
-# possessive fails in any reference doc or SKILL.md but the coding standards, which show the wrong
+# possessive fails in any reference doc or SKILL.md but the cite rule file and the coding standards doc, which show the wrong
 # form
 fresh
 printf '%s\n' "As \`/dev:task-orchestrator\`'s Two entries says." >> "$scratch/references/orchestration.md"
@@ -2091,7 +2091,7 @@ printf '%s\n' "As \`/dev:task-orchestrator\`'s Two entries says." >> "$scratch/r
 must_not_print='/dev:(' sec=18 expect "an unquoted heading cite of one skill names that skill in its FAIL line, not the alternation" 1 "present: an unquoted heading cite of a skill in $scratch/references/orchestration.md (/dev:task-orchestrator)"
 
 # the other wrong forms the rule names (dev-mnz6): a step name in quotes, a heading in bold and a
-# bare cite in the "of /dev:x" word order, each failing in a reference doc but the coding standards
+# bare cite in the "of /dev:x" word order, each failing in a reference doc but the cite rule file and the coding standards doc
 orch=references/orchestration.md
 # Section 18's cases seed a line of prose, and a lint run over a reference doc pays for that doc's every
 # check, so they share their runs (dev-xier): cite_case keeps each case's text for a doc of its own,
@@ -2292,12 +2292,13 @@ prep=zed_step cite_seeds 1 $orch "$bt_msg" "a name of kind both in backticks" \
   "As /dev:implement-story's \`Zed gate\` says." \
   "As \`/dev:implement-story\`'s \`Zed gate\` says."
 
-# the cite rule binds a skill doc too (dev-xyrl): a wrong cite of another skill's rule in a
-# SKILL.md fails section 18 in the bare and quoted forms, and the right forms pass
+# the cite rule file needs its heading (dev-7mkq.1.5): without it section 18 fails naming it
 fresh
 sed -i.bak "s/^# Another skill's rule is cited in one form/# Another rule/" "$scratch/.claude/rules/cross-skill-cites.md" && rm "$scratch/.claude/rules/cross-skill-cites.md.bak"
 sec=18 expect "the cite rule file without its heading fails section 18" 1 "missing: the cross-skill cite rule heading"
 
+# the cite rule binds a skill doc too (dev-xyrl): a wrong cite of another skill's rule in a
+# SKILL.md fails section 18 in the bare and quoted forms, and the right forms pass
 fresh
 printf '%s\n' "As \`/dev:task-orchestrator\`'s Two entries says." >> "$scratch/skills/implement-task/SKILL.md"
 sec=18 expect "a bare heading cite in a SKILL.md fails section 18" 1 "present: an unquoted heading cite of a skill in $scratch/skills/implement-task/SKILL.md"

@@ -213,6 +213,7 @@
 # docs/WORKFLOW.md, CLAUDE.md and GLOSSARY.md under the repo root.
 # SKILLS_DIR and REFERENCES_DIR override the skills and reference docs directories (scratch
 # copies); the docs/agents directory is the one under the docs directory (DOCS_DIR).
+# RULES_DIR overrides this repo's rule files directory (default: .claude/rules under the repo root).
 # DOCS_DIR overrides the docs directory the namespace rule scans (default: docs under the repo root).
 # USER_CLAUDE_MD overrides the project CLAUDE.md (default: CLAUDE.md under the repo root).
 # GLOSSARY_MD overrides the root glossary (default: GLOSSARY.md under the repo root).
@@ -577,7 +578,7 @@ skills=${SKILLS_DIR:-$root/skills}
 refs=${REFERENCES_DIR:-$root/references}
 docs=${DOCS_DIR:-$root/docs}
 docs=${docs%/}
-agents=$docs/agents   # this repo's docs/agents: domain.md, triage-labels.md (coding-standards.md until dev-7mkq.1.7 deletes it)
+agents=$docs/agents   # this repo's docs/agents: domain.md, triage-labels.md (coding-standards.md until `dev-7mkq.1.7` deletes it)
 rules=${RULES_DIR:-$root/.claude/rules}   # this repo's rule files
 user_claude_md=${USER_CLAUDE_MD:-$root/CLAUDE.md}
 glossary_md=${GLOSSARY_MD:-$root/GLOSSARY.md}
@@ -2753,13 +2754,13 @@ fi
 # The heading extractor reads ## to #### lines inside code fences and tags too, so
 # story-to-tasks's template (in an <issue-template> tag) gives Parent, What to build and
 # Acceptance criteria.
-standards=$rules/cross-skill-cites.md
+cite_rule=$rules/cross-skill-cites.md
 # each file is read as one line (lacksw and lackswc, as section 5 does, dev-86j), so a cite
 # split across a line break fails too
-doc 18 "cross-skill cites" "$standards" && has "the cross-skill cite rule heading" "# Another skill's rule is cited in one form"
-# the sweep reads every skill and doc, so the standards doc being listed in LINT_UNCHANGED leaves
+doc 18 "cross-skill cites" "$cite_rule" && has "the cross-skill cite rule heading" "# Another skill's rule is cited in one form"
+# the sweep reads every skill and doc, so the cite rule file being listed in LINT_UNCHANGED leaves
 # it to run
-if [ -f "$standards" ]; then
+if [ -f "$cite_rule" ]; then
   # the cite targets of every skill, read in one pass: "<skill> <kind> <name>" with the kind step
   # or heading (both when the skill marks the name both ways), the name's regex characters
   # escaped. A step is a bold name opening a numbered item (**Name** or **Name.**) or opening a
@@ -2880,7 +2881,7 @@ if [ -f "$standards" ]; then
   poss_cap="\`'s [A-Z]"
   # every skill's SKILL.md is read too (dev-xyrl), the skills' own docs binding like a reference doc
   for f in "$refs"/*.md "$agents"/*.md "$skills"/*/SKILL.md; do
-    [ "$f" = "$standards" ] || [ "$f" = "$agents/coding-standards.md" ] && continue   # the rule file and the doc it replaces show the wrong forms as examples
+    { [ "$f" = "$cite_rule" ] || [ "$f" = "$agents/coding-standards.md" ]; } && continue   # the rule file and the doc it replaces show the wrong forms as examples
     # a listed file queues nothing here, and the loop below is most of a run's cost (the pin list
     # still takes its checks)
     [ -n "${LINT_PIN_LIST:-}" ] || ! unchanged_file || continue
