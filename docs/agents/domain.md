@@ -51,7 +51,7 @@ An ADR records a decision and its reasons, and both stay as written. A later cha
 edit an ADR's prose only to keep a citation resolvable after the cited thing was renamed
 or moved (a section, a paragraph, a term, a path); the edit changes the citation's words
 and nothing the ADR decides. A change that alters the decision is an amendment or a
-superseding ADR instead, per `coding-standards.md`.
+superseding ADR instead.
 
 Mark a citation edit in place: append `(so named since ADR NNNN)` to the changed
 citation, NNNN being the ADR whose change caused the rename, as ADR 0014 does for "Landing

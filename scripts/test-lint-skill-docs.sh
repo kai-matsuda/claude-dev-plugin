@@ -1488,8 +1488,7 @@ loop_facts() {
       loop_message="a semicolon in a mermaid block in $scratch/@FILE@"
       loop_sed_addr='/echo "$glossary_md"; } | sort/' ;;
     cite)
-      loop_files=$(cd "$pristine" && { find references docs/agents -maxdepth 1 -type f -name '*.md'; find skills -mindepth 2 -maxdepth 2 -name SKILL.md; } \
-        | grep -v '^docs/agents/coding-standards\.md$' | sort -u)
+      loop_files=$(cd "$pristine" && { find references docs/agents -maxdepth 1 -type f -name '*.md'; find skills -mindepth 2 -maxdepth 2 -name SKILL.md; } | sort -u)
       loop_seed='As the @HEADING@ step of `/dev:@OTHER_SKILL@` says.'
       loop_message="a bare cite of /dev:@OTHER_SKILL@ in $scratch/@FILE@"
       loop_sed_addr='\#for f in "$refs"/\*.md#'

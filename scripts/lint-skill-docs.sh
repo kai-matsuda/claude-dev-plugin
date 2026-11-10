@@ -578,7 +578,7 @@ skills=${SKILLS_DIR:-$root/skills}
 refs=${REFERENCES_DIR:-$root/references}
 docs=${DOCS_DIR:-$root/docs}
 docs=${docs%/}
-agents=$docs/agents   # this repo's docs/agents: domain.md, triage-labels.md (coding-standards.md until `dev-7mkq.1.7` deletes it)
+agents=$docs/agents   # this repo's docs/agents: domain.md, triage-labels.md
 rules=${RULES_DIR:-$root/.claude/rules}   # this repo's rule files
 user_claude_md=${USER_CLAUDE_MD:-$root/CLAUDE.md}
 glossary_md=${GLOSSARY_MD:-$root/GLOSSARY.md}
@@ -2881,7 +2881,7 @@ if [ -f "$cite_rule" ]; then
   poss_cap="\`'s [A-Z]"
   # every skill's SKILL.md is read too (dev-xyrl), the skills' own docs binding like a reference doc
   for f in "$refs"/*.md "$agents"/*.md "$skills"/*/SKILL.md; do
-    { [ "$f" = "$cite_rule" ] || [ "$f" = "$agents/coding-standards.md" ]; } && continue   # the rule file and the doc it replaces show the wrong forms as examples
+    [ "$f" = "$cite_rule" ] && continue   # the rule file shows the wrong forms as examples
     # a listed file queues nothing here, and the loop below is most of a run's cost (the pin list
     # still takes its checks)
     [ -n "${LINT_PIN_LIST:-}" ] || ! unchanged_file || continue

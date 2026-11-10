@@ -218,6 +218,12 @@ The tier table above sets *subagent* models; this sets what your own session run
 
 ## Where things live
 
+Coding standards are yours; the plugin ships none. They live in two layers: your personal
+standards in `~/.claude/rules/` and a repo's standards in a repo's `.claude/rules/`. Implementers
+and reviewers read both, and the repo's win. `/dev:setup` and `/dev:setup-repo` create no rules
+folder and write no starter rule.
+
+
 | Artifact | Place |
 |---|---|
 | Spec | Jira epic description (long ones also `docs/specs/<slug>.md` in the home) |

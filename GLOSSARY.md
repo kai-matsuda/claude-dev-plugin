@@ -515,9 +515,8 @@ minor. A blocking one is filed at once as a fix-up task under the story, which i
 _Avoid_: external finding, stray finding
 
 **Provenance cite**:
-The bead id inside parentheses closing the clause of a sentence in a reference doc or a skill's `SKILL.md`, or of a
-lint-script comment, that records why a rule exists, as in "(dev-6qi)"; a bead named as a sentence's
-subject is not one (`docs/agents/coding-standards.md`, "Bead ids cite provenance in parentheses").
+The bead id inside parentheses closing the clause of a sentence that records why a rule exists, as in
+"(dev-6qi)"; a bead named as a sentence's subject is not one.
 _Avoid_: footnote id, inline bead reference
 
 **Stage**:

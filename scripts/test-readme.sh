@@ -21,6 +21,15 @@ fx_check "README has a Developing section" grep -qx '## Developing' "$readme"
 
 fx_check "README says the reference docs live in references/" grep -q 'reference docs.*`references/`' "$readme"
 
+runbook=$repo_root/docs/WORKFLOW.md
+for doc in "$readme" "$runbook"; do
+  n=${doc##*/}
+  fx_check "$n says coding standards are the user's" grep -q "oding standards are yours" "$doc"
+  fx_check "$n names the personal layer ~/.claude/rules/" grep -q '~/.claude/rules/' "$doc"
+  fx_check "$n names the repo layer .claude/rules/" grep -q "a repo's \`.claude/rules/\`" "$doc"
+  fx_check "$n says the repo's standards win" grep -q "repo's win" "$doc"
+done
+
 pre=$(section "$readme" Prerequisites)
 fx_check "prerequisite: bd" grep -q '`bd`' <<<"$pre"
 fx_check "prerequisite: gh or tea for pull requests" bash -c 'grep -q "gh" <<<"$1" && grep -q "tea" <<<"$1"' _ "$pre"
