@@ -76,7 +76,9 @@ ones your machine uses:
 
 Coding standards are yours; the plugin ships none. They live in two layers: your personal
 standards in `~/.claude/rules/` and a repo's standards in a repo's `.claude/rules/`. Implementers
-and reviewers read both, and the repo's win. `/dev:setup` and `/dev:setup-repo` create no rules
+and reviewers read both, and the repo's win; the reviewer counts a root `CODING_STANDARDS.md` or
+`CONTRIBUTING.md` with the repo's, and a rule applies only where its own text or path scope says it
+does. `/dev:setup` and `/dev:setup-repo` create no rules
 folder and write no starter rule.
 
 ## Developing

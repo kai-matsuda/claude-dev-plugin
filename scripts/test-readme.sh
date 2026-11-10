@@ -28,6 +28,10 @@ for doc in "$readme" "$runbook"; do
   fx_check "$n names the personal layer ~/.claude/rules/" grep -q '~/.claude/rules/' "$doc"
   fx_check "$n names the repo layer .claude/rules/" grep -q "a repo's \`.claude/rules/\`" "$doc"
   fx_check "$n says the repo's standards win" grep -q "repo's win" "$doc"
+  fx_check "$n counts the root CODING_STANDARDS.md or CONTRIBUTING.md" grep -q 'CODING_STANDARDS.md' "$doc"
+  fx_check "$n says a rule applies only where its scope says" grep -q 'applies only where its' "$doc"
+  fx_check "$n says setup and setup-repo create no rules folder" grep -q 'create no rules' "$doc"
+  fx_check "$n says setup and setup-repo write no starter rule" grep -q 'write no starter rule' "$doc"
 done
 
 pre=$(section "$readme" Prerequisites)
