@@ -36,6 +36,9 @@ seed() { # <case>
   local home home_dir survivors
   fx_build_fixture
   home=$(home_of "$1"); home_dir=$(home_path "$1")
+  if [ "$1" = personal ] && [ -e "$HOME/.claude/rules/error-messages.md" ]; then
+    echo "FAIL ~/.claude/rules/error-messages.md exists; the personal case needs it absent"; exit 1
+  fi
   if [ "$1" = bare ]; then
     fx_git_repo "$out/bare" "$out/.git-dirs/bare" || { echo "FAIL init bare"; exit 1; }
   fi
@@ -50,6 +53,18 @@ seed() { # <case>
 }
 
 labels() { fx_field "$1" "$2" '.labels // [] | sort | join(",")'; }
+
+# The shared arms of personal and reporule: one inbox bead in consumer with the expected labels,
+# its body naming the rules file (grep -e patterns), nothing in the root or lib.
+rule_case() { # <label desc> <labels> <body desc> <grep -e args...>
+  local a ld=$1 lab=$2 bd=$3; shift 3
+  a=$(fx_one consumer '.title != null')
+  fx_check "one inbox bead in consumer" fx_eq "$(fx_all consumer | jq length)" 1
+  fx_check "$ld" fx_eq "$(labels consumer "$a")" "$lab"
+  fx_check "$bd" grep -qF "$@" <<<"$(fx_field consumer "$a" .description)"
+  fx_check "nothing in the root" fx_eq "$(fx_all . | jq length)" 0
+  fx_check "nothing in lib" fx_eq "$(fx_all lib | jq length)" 0
+}
 
 assert() { # <case>
   local a b
@@ -71,19 +86,13 @@ assert() { # <case>
       fx_check "nothing in the root (no manifest read)" fx_eq "$(fx_all . | jq length)" 0
       fx_check "nothing in lib (no bd -C)" fx_eq "$(fx_all lib | jq length)" 0 ;;
     personal)
-      a=$(fx_one consumer '.title != null')
-      fx_check "one inbox bead in consumer" fx_eq "$(fx_all consumer | jq length)" 1
-      fx_check "labelled retro:foreign, no target: label (a file outside the home)" fx_eq "$(labels consumer "$a")" "needs-triage,retro,retro:foreign"
-      fx_check "the body names the proposed ~/.claude/rules/ file" grep -qF ".claude/rules/error-messages.md" <<<"$(fx_field consumer "$a" .description)"
-      fx_check "nothing in the root" fx_eq "$(fx_all . | jq length)" 0
-      fx_check "nothing in lib" fx_eq "$(fx_all lib | jq length)" 0 ;;
+      rule_case "labelled retro:foreign, no target: label (a file outside the home)" "needs-triage,retro,retro:foreign" \
+        "the body names the proposed ~/.claude/rules/ file" -e "~/.claude/rules/error-messages.md" -e "$HOME/.claude/rules/error-messages.md"
+      fx_check "the personal rules file was not written" test ! -e "$HOME/.claude/rules/error-messages.md" ;;
     reporule)
-      a=$(fx_one consumer '.title != null')
-      fx_check "one inbox bead in consumer" fx_eq "$(fx_all consumer | jq length)" 1
-      fx_check "labelled target:consumer (a file under the repo's .claude/rules/)" fx_eq "$(labels consumer "$a")" "needs-triage,retro,target:consumer"
-      fx_check "the body names the rules file" grep -qF ".claude/rules/handlers.md" <<<"$(fx_field consumer "$a" .description)"
-      fx_check "nothing in the root" fx_eq "$(fx_all . | jq length)" 0
-      fx_check "nothing in lib" fx_eq "$(fx_all lib | jq length)" 0 ;;
+      rule_case "labelled target:consumer (a file under the repo's .claude/rules/)" "needs-triage,retro,target:consumer" \
+        "the body names the rules file" -e ".claude/rules/handlers.md"
+      fx_check "the repo rules file was not written" test ! -e "$out/consumer/.claude/rules/handlers.md" ;;
     bare)
       fx_check "no database was initialised in bare" test ! -e "$out/bare/.beads"
       fx_check "plain bd did not climb to the root's database" fx_eq "$(fx_all . | jq length)" 0
