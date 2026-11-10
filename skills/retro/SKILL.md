@@ -80,7 +80,7 @@ watching, straight after an unattended `/dev:implement-spec`.
    the file it would change, and whether it would block commits. Done when every survivor
    carries all six.
 
-5. File each survivor in the **inbox**. The tracker doc's (`${CLAUDE_PLUGIN_ROOT}/docs/agents/issue-tracker.md`)
+5. File each survivor in the **inbox**. The tracker doc's (`${CLAUDE_PLUGIN_ROOT}/references/issue-tracker.md`)
    "capture a retro item" section has the commands (the search, then the create); this is the procedure around it.
 
    - The session mode is the tracker doc's one test: the inbox is the home's `.beads/`,

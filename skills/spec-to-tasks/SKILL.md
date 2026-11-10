@@ -17,7 +17,7 @@ disable-model-invocation: true
 
 The **task cut** (`${CLAUDE_PLUGIN_ROOT}/GLOSSARY.md`): every **story** of a feature that has no tasks yet is cut into **tasks**, tracer-bullet vertical slices in that story's repo, each declaring the tasks that **block** it. The **story cut** (`/dev:spec-to-stories`) made the stories; this skill runs one **story cutter** per story: you gather, check, spawn, quiz, publish and report, and you never draft a task yourself.
 
-The issue tracker rules are in `${CLAUDE_PLUGIN_ROOT}/docs/agents/issue-tracker.md`. This skill performs its "When a skill says 'gather the epic bead'", the "Stories" gather of its "When a skill says 'fetch the relevant task'", with its database guard, and the Jira comment of "publish a story's tasks"; `/dev:story-to-tasks` performs the rest of that operation and of "When the breakdown touches a dependency repo". Read those sections before step 1, and the "Working-directory preflight" of `${CLAUDE_PLUGIN_ROOT}/docs/agents/orchestration.md` before step 2.
+The issue tracker rules are in `${CLAUDE_PLUGIN_ROOT}/references/issue-tracker.md`. This skill performs its "When a skill says 'gather the epic bead'", the "Stories" gather of its "When a skill says 'fetch the relevant task'", with its database guard, and the Jira comment of "publish a story's tasks"; `/dev:story-to-tasks` performs the rest of that operation and of "When the breakdown touches a dependency repo". Read those sections before step 1, and the "Working-directory preflight" of `${CLAUDE_PLUGIN_ROOT}/references/orchestration.md` before step 2.
 
 **Names**: `<home>`, `<workspace>`, `<owner repo>` and `<owner>` are as **the one test** in the tracker doc's opening defines them, with the session mode. For each story, `<owner>` is the checkout of the database the story was found in, and `<owner repo>` is as the one test names it. `<epic-id>` is the epic bead's id and `<KEY>-<n>` its `external_ref`.
 
@@ -60,7 +60,7 @@ A story may be the dependent of several publish edges and the dependency of seve
 
 ### 2. Preflight
 
-Run the "Working-directory preflight" of `${CLAUDE_PLUGIN_ROOT}/docs/agents/orchestration.md` on the owner repo of every one of the run's stories; on a refusal, spawn nothing. An already cut story that is not re-cut needs no working directory. The preflight covers every story it will cut, so a cutter never starts in a repo it cannot read.
+Run the "Working-directory preflight" of `${CLAUDE_PLUGIN_ROOT}/references/orchestration.md` on the owner repo of every one of the run's stories; on a refusal, spawn nothing. An already cut story that is not re-cut needs no working directory. The preflight covers every story it will cut, so a cutter never starts in a repo it cannot read.
 
 ### 3. Spawn the story cutters in topological waves
 

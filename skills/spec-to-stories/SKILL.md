@@ -12,17 +12,17 @@ disable-model-invocation: true
      ADR 0010: the story cut writes beads only). The argument is required and the no-argument
      epic recovery is retired (chezmoi-nz0). It is not a fork of a plugin skill and
      tracks no plugin copy. Every bd and Jira rule lives in
-     ${CLAUDE_PLUGIN_ROOT}/docs/agents/issue-tracker.md; this file names the operations it performs. -->
+     ${CLAUDE_PLUGIN_ROOT}/references/issue-tracker.md; this file names the operations it performs. -->
 
 # Spec To Stories
 
 The **story cut** (`${CLAUDE_PLUGIN_ROOT}/GLOSSARY.md`): break a spec into **stories**, one per PR, usually one per repo it changes, each the part of the feature that lands in one PR, and the **story DAG** of their edges. It ends at the story quiz and the published stories; the **task cut** (`/dev:spec-to-tasks`) cuts each story into tasks afterwards. On a feature whose stories exist it runs in add mode and adds to the story DAG.
 
-The issue tracker rules are in `${CLAUDE_PLUGIN_ROOT}/docs/agents/issue-tracker.md`. This skill performs its "Before the story quiz", "When a skill says 'publish the stories'" and "When the breakdown touches a dependency repo" operations (the story cut's part: detection, the proposed version, the stories' order), the "Stories" gather of "When a skill says 'fetch the relevant task'", with its database guard, "When a skill says 'gather the epic bead'" and "When a skill says 'fetch the spec'". Read all six before step 1, and the "Working-directory preflight" of `${CLAUDE_PLUGIN_ROOT}/docs/agents/orchestration.md` before step 3. Every `bd` command shape, label, body shape and order below is the doc's.
+The issue tracker rules are in `${CLAUDE_PLUGIN_ROOT}/references/issue-tracker.md`. This skill performs its "Before the story quiz", "When a skill says 'publish the stories'" and "When the breakdown touches a dependency repo" operations (the story cut's part: detection, the proposed version, the stories' order), the "Stories" gather of "When a skill says 'fetch the relevant task'", with its database guard, "When a skill says 'gather the epic bead'" and "When a skill says 'fetch the spec'". Read all six before step 1, and the "Working-directory preflight" of `${CLAUDE_PLUGIN_ROOT}/references/orchestration.md` before step 3. Every `bd` command shape, label, body shape and order below is the doc's.
 
 **Names**: `<home>`, `<workspace>`, `<owner repo>` and `<owner>` are as **the one test** in the tracker doc's opening defines them, with the session mode. `<KEY>-<n>` is the epic bead's `external_ref`. `<epic-id>` is the epic bead's id.
 
-**Beads only.** This skill writes no file and runs no git write in any owner repo, `<home>` included: its only writes there are beads, the stories (with their design field, step 8) and the epic bead's skipped-story record. Reading an owner repo's code (step 4) is allowed, which is what the preflight is for. Files, `.gitignore` entries and commits in an owner repo are the story orchestrator's alone, as the Orchestrator role of `${CLAUDE_PLUGIN_ROOT}/docs/agents/orchestration.md` says (ADR 0010, `${CLAUDE_PLUGIN_ROOT}/docs/adr/0010-epic-level-stages-write-owner-repos-through-beads-only.md`).
+**Beads only.** This skill writes no file and runs no git write in any owner repo, `<home>` included: its only writes there are beads, the stories (with their design field, step 8) and the epic bead's skipped-story record. Reading an owner repo's code (step 4) is allowed, which is what the preflight is for. Files, `.gitignore` entries and commits in an owner repo are the story orchestrator's alone, as the Orchestrator role of `${CLAUDE_PLUGIN_ROOT}/references/orchestration.md` says (ADR 0010, `${CLAUDE_PLUGIN_ROOT}/docs/adr/0010-epic-level-stages-write-owner-repos-through-beads-only.md`).
 
 ## Process
 
@@ -48,7 +48,7 @@ In a repo session, say `repo session in <home>: one story, in the home repo` and
 
 ### 3. Preflight
 
-Run the "Working-directory preflight" of `${CLAUDE_PLUGIN_ROOT}/docs/agents/orchestration.md` on every owner repo other than `<home>`, so none in a repo session; on a refusal, create nothing. A `/add-dir` typed here carries the task cut and `/dev:implement-spec` in the same session.
+Run the "Working-directory preflight" of `${CLAUDE_PLUGIN_ROOT}/references/orchestration.md` on every owner repo other than `<home>`, so none in a repo session; on a refusal, create nothing. A `/add-dir` typed here carries the task cut and `/dev:implement-spec` in the same session.
 
 ### 4. Explore every owner repo
 

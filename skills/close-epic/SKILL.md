@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 Closes out one feature whose PRs have merged. `/dev:close-story` verifies and closes
 each **story** (${CLAUDE_PLUGIN_ROOT}/GLOSSARY.md), this skill closes the **epic bead** after them and updates the
-Jira Epic. The rules it enforces are in `${CLAUDE_PLUGIN_ROOT}/docs/agents/issue-tracker.md`, under
+Jira Epic. The rules it enforces are in `${CLAUDE_PLUGIN_ROOT}/references/issue-tracker.md`, under
 "When a skill says 'close the epic'". Every precondition refuses rather than proceeds, with
 no override flag: the remedy is a visible action the user takes first. Jira never sees
 individual tasks or stories.
@@ -14,7 +14,7 @@ individual tasks or stories.
 ## 1. Pick the epic bead
 
 Before any `bd` call, check that `<home>` has a database by the "Has a database" rule in
-`${CLAUDE_PLUGIN_ROOT}/docs/agents/issue-tracker.md`'s "First time in a repo" (`<home>` and the session mode are as
+`${CLAUDE_PLUGIN_ROOT}/references/issue-tracker.md`'s "First time in a repo" (`<home>` and the session mode are as
 **the one test** in its opening defines them): without one, plain `bd`
 climbs to an ancestor's database (another home's inbox). Missing →
 `refused: no beads database in <home>`, and stop.
@@ -29,10 +29,10 @@ it. Several → list them and ask which. None → say so and stop.
 
 ## 2. Gather the stories
 
-Run the "Stories" gather of "fetch the relevant task" in `${CLAUDE_PLUGIN_ROOT}/docs/agents/issue-tracker.md`, its fallback
+Run the "Stories" gather of "fetch the relevant task" in `${CLAUDE_PLUGIN_ROOT}/references/issue-tracker.md`, its fallback
 and failure rules included. Keep each story's `<owner>`, its owner repo's absolute path; in
 a repo session the only story is the home story and its owner is `<home>`. Skip
-`retro`-labelled beads (${CLAUDE_PLUGIN_ROOT}/docs/agents/issue-tracker.md).
+`retro`-labelled beads (${CLAUDE_PLUGIN_ROOT}/references/issue-tracker.md).
 
 Check for a **malformed epic** separately, by the malformed-epic refusal of the tracker doc's
 "gather the epic bead", and refuse on it. The gather above finding no story → refuse,

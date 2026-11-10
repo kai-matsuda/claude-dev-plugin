@@ -1,7 +1,7 @@
 # Feature workflow
 
 The vocabulary of the Jira + beads feature workflow defined in this repo (runbook in
-`docs/WORKFLOW.md`, reference docs in `docs/agents/`). Several words
+`docs/WORKFLOW.md`, reference docs in `references/`). Several words
 here name more than one thing in the tools; this file fixes which is which.
 
 ## Language
@@ -211,7 +211,7 @@ _Avoid_: merge check, PR check, seal check
 **Check command**:
 The one command an owner repo's check runs: `make check`. Every owner repo has a `check`
 target: `/dev:setup-repo` adds one, and a story run in a repo with none fails at once
-(`docs/agents/orchestration.md`, "Review"). Every row runs the same one, resolved once per
+(`references/orchestration.md`, "Review"). Every row runs the same one, resolved once per
 story run by the story orchestrator, which hands it to each task orchestrator.
 _Avoid_: gate command, CI command, lint command
 
@@ -263,7 +263,7 @@ and is skipped at the epic row. A clean round sends its minors to one last
 fix-up or to the inbox (at the epic row, always the inbox) and moves on; a blocking
 round's fix-up fixes its in-scope minors too and the rest go to the inbox at once, and every minor still unfixed when the unit
 lands or fails goes to the inbox; a red or blocking fix-up spends the check gate's
-budget, a minors fix-up spends none (`docs/agents/orchestration.md`, "Review").
+budget, a minors fix-up spends none (`references/orchestration.md`, "Review").
 _Avoid_: zero findings, nit-free, pass/fail
 
 **Epic orchestrator**:
@@ -412,7 +412,7 @@ task cut's: a batch of task orchestrators is not a wave.
 Per story: the tasks of one story that `bd ready --parent <story-id>` lists and that
 carry `ready-for-agent` (`bd ready` lists a `ready-for-human` or `needs-triage` child
 all the same), and none at all while the story has an open text blocker
-(`docs/agents/orchestration.md`, "Frontier"). A task whose orchestrator ended
+(`references/orchestration.md`, "Frontier"). A task whose orchestrator ended
 without closing it is unclaimed by the story orchestrator before its next frontier read,
 since a claim outlives its orchestrator and hides the task from `bd ready`; a task that failed
 twice in a run is off that run's frontier though `bd ready` lists it. (The grilling skill uses the
@@ -503,7 +503,7 @@ out of the story's scope, or a note with nothing to implement; one kind of
 follow-up.
 It is captured as a retro item in the inbox and never as a child of the story, since a
 child is a task and `bd ready` would list it to the next run
-(`docs/agents/orchestration.md`, "Frontier", Deferrals).
+(`references/orchestration.md`, "Frontier", Deferrals).
 _Avoid_: deferral task, follow-up task, needs-triage child
 
 **Outside finding**:

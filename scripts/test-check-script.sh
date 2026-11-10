@@ -111,6 +111,6 @@ fx_check "cannot create record dir: one refusal line" fx_eq "$(wc -l <<<"$outc" 
 
 # check.sh's make database query is the rules doc's
 doc_awk() { grep pRrq "$1" | grep -o "awk '[^']*'"; }
-fx_check "check.sh's query is the rules doc's" fx_eq "$(doc_awk "$script")" "$(doc_awk "$repo_root/docs/agents/orchestration.md")"
+fx_check "check.sh's query is the rules doc's" fx_eq "$(doc_awk "$script")" "$(doc_awk "$repo_root/references/orchestration.md")"
 
 fx_report_fails
