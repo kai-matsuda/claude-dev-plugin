@@ -86,6 +86,7 @@ plugin_names=$(grep -rhoE 'mattpocock-skills:[a-z-]+' "$repo_root/skills" "$repo
 pristine=$jobs/pristine
 mkdir "$pristine"
 cp -R "$repo_root/skills" "$repo_root/references" "$repo_root/docs" "$repo_root/CLAUDE.md" "$repo_root/GLOSSARY.md" "$pristine/"
+cp "$repo_root/scripts/forge-wait.sh" "$pristine/forge-wait.sh"
 mkdir -p "$pristine/.claude" && cp -R "$repo_root/.claude/rules" "$pristine/.claude/"
 cp -R "$fixtures/skills/sample" "$pristine/skills/"
 cp "$fixtures/references/sample.md" "$pristine/references/"
@@ -163,7 +164,7 @@ lint_scratch() {
   out=$(SKILLS_DIR=${skills_dir:-$scratch/skills} REFERENCES_DIR=${references_dir:-$scratch/references} DOCS_DIR=$scratch/docs RULES_DIR=$scratch/.claude/rules \
     USER_CLAUDE_MD=${claude_md:-$scratch/CLAUDE.md} HOOKS_DIR=$scratch/hooks README_MD=$scratch/README.md GLOSSARY_MD=${glossary_md:-$scratch/GLOSSARY.md} \
     LINT_PINS_DIR=${pins_dir:-$repo_root/scripts} PLUGIN_SKILLS=$scratch/plugin VERSION_BUMP_REPO=${bump_repo_dir:-$scratch/no-repo} \
-    LINT_UNCHANGED=${unchanged_list:-} bounded "$case_timeout" "${cmd[@]}" "$@" 2>&1)
+    FORGE_WAIT_SCRIPT=$scratch/forge-wait.sh LINT_UNCHANGED=${unchanged_list:-} bounded "$case_timeout" "${cmd[@]}" "$@" 2>&1)
   rc=$?
   [ "$rc" != 124 ] || out+="${out:+$nl}FAIL the lint run timed out after ${case_timeout}s"
   printf '%s\n%s\n' "$out" "$rc"
@@ -969,7 +970,7 @@ sec=5 expect "a reference doc citing a skill's step number fails section 5 with 
 # a section's document gone: the section fails naming it, never skips; a reference doc that two
 # sections read fails both
 for case in '1 skills/implement-spec/SKILL.md' '2 skills/workflow/SKILL.md' '2 docs/WORKFLOW.md' \
-  '3 skills/spec-to-stories/SKILL.md' '4 skills/spec-to-tasks/SKILL.md' '6 10 references/orchestration.md' \
+  '3 skills/spec-to-stories/SKILL.md' '4 skills/spec-to-tasks/SKILL.md' '6 10 19 references/orchestration.md' \
   '6 references/harness.md' '6 10 references/issue-tracker.md' '6 skills/setup-repo/SKILL.md' '7 skills/story-to-tasks/SKILL.md' '8 skills/implement-story/SKILL.md' \
   '9 skills/close-story/SKILL.md' '6 skills/triage/SKILL.md' '12 skills/retro/SKILL.md' '16 skills/task-orchestrator/SKILL.md' '17 skills/implement-task/SKILL.md' '18 .claude/rules/cross-skill-cites.md' '0 CLAUDE.md' '0 GLOSSARY.md'; do
   doc=${case##* }
@@ -3096,6 +3097,18 @@ expect "the glossary naming the task row's skills passes" 0
 fresh
 echo 'The `/dev:not-built-yet` runs it.' >> "$scratch/GLOSSARY.md"
 expect "the glossary naming another missing skill fails" 1 "/dev:not-built-yet names no skill"
+
+# section 19: the Forge decision's config-error strings and forge-wait.sh's pattern name the same
+# strings, each way. A seeded doc string also breaks the Forge decision's pinned sentence, so the
+# cases name the section 19 message alone
+fresh
+expect "the forge config-error strings of the Forge decision and forge-wait.sh match" 0
+fresh
+swap_phrase references/orchestration.md 'failed to read configuration`; not' 'failed to read configuration`, `config file not found`; not'
+expect "a config-error string the Forge decision lists that forge-wait.sh lacks fails" 1 "the Forge decision lists 'config file not found', which forge-wait.sh's config-error pattern lacks"
+fresh
+rewrite forge-wait.sh sed -E "s#failed to read configuration'\*\)#failed to read configuration'*|*'cannot read forge config'*)#"
+expect "a config-error string forge-wait.sh matches that the Forge decision lacks fails" 1 "forge-wait.sh's config-error pattern matches 'cannot read forge config', which the Forge decision lacks"
 
 phase "hand-written cases after the derived ones"
 # --- the version-bump rule, on a throwaway git repo the lint reads via VERSION_BUMP_REPO ---
