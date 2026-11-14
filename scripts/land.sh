@@ -10,7 +10,7 @@
 #   conflict                          exit 1, after the script's own merge --abort left the checkout clean
 #   refused: <reason>                 exit 2, nothing merged; reasons: not on <branch>,
 #                                     owner checkout dirty: <files>, <task branch> moved past <tip>,
-#                                     stray commit <sha> <subject>, diverged (only under --ff-only),
+#                                     stray commit <sha> <subject> (or stray merge <sha> adds <path>), diverged (only under --ff-only),
 #                                     or a wrong usage, an owner that is not a git checkout, a merge
 #                                     that failed without a conflict (merge failed), a merge that
 #                                     failed and left the checkout dirty (the one refusal that can

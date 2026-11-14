@@ -3,7 +3,8 @@
 # check) as one call: run on a scratch git repo, reading only what it printed and its exit status.
 # The first non-merge commit of the range whose author is not the repo's user.email, or that has no
 # Bead: trailer, is one "stray commit <sha> <subject>" line and exit 1; a clean or empty range
-# prints nothing and exits 0; merge commits are skipped; a wrong usage is one refusal line, exit 2.
+# prints nothing and exits 0; a merge commit passes unless it changes a path the merge of its parents
+# does not, outside its conflicted paths (one "stray merge <sha> adds <path>" line, exit 1); a wrong usage is one refusal line, exit 2.
 # Usage: scripts/test-stray-commit-script.sh
 set -uo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
@@ -61,7 +62,7 @@ run "$base..HEAD"
 fx_check "stray author: exits 1" fx_eq "$rc" 1
 fx_check "stray author: the first stray is the line" fx_eq "$out" "stray commit $other feat: other author"
 
-# merge commits are skipped, whatever their author or trailer
+# a clean merge passes, whatever its author or trailer
 git -C "$r" reset -q --hard "$base"
 git -C "$r" checkout -q -b side
 commit s.txt "feat: side" "" "Bead: x-5"
@@ -72,6 +73,45 @@ fx_check "merge fixture: the tip is a merge" fx_eq "$(git -C "$r" rev-list --par
 run "$base..HEAD"
 fx_check "merge skipped: exits 0" fx_eq "$rc" 0
 fx_check "merge skipped: prints nothing" fx_eq "$out" ""
+
+# a merge adding content found in neither parent, outside any conflicted path: stopped, naming the merge and the path
+git -C "$r" reset -q --hard "$base"
+git -C "$r" checkout -q -b side2
+commit s2.txt "feat: side two" "" "Bead: x-7"
+git -C "$r" checkout -q main
+commit m2.txt "feat: main two" "" "Bead: x-8"
+git -C "$r" merge -q --no-ff --no-commit side2
+echo smuggled > "$r/smuggled.txt" && git -C "$r" add smuggled.txt
+git -C "$r" commit -q -m "merge side two"
+smerge=$(sha HEAD)
+run "$base..HEAD"
+fx_check "merge adding content: exits 1" fx_eq "$rc" 1
+fx_check "merge adding content: names the merge and the path" fx_eq "$out" "stray merge $smerge adds smuggled.txt"
+
+# a conflict resolution changing only the conflicted path passes
+git -C "$r" reset -q --hard "$base"
+git -C "$r" checkout -q -b side3
+commit x.txt "side version" "" "Bead: x-9"
+git -C "$r" checkout -q main
+commit x.txt "main version" "" "Bead: x-10"
+git -C "$r" merge --no-ff side3 >/dev/null 2>&1
+fx_check "conflict fixture: the merge conflicted" fx_eq "$(git -C "$r" ls-files -u | wc -l | tr -d ' ')" 2
+echo resolved > "$r/x.txt" && git -C "$r" add x.txt
+git -C "$r" commit -q -m "merge side three"
+run "$base..HEAD"
+fx_check "conflict resolution: exits 0" fx_eq "$rc" 0
+fx_check "conflict resolution: prints nothing" fx_eq "$out" ""
+
+# a conflict resolution that also adds a path outside the conflict is stopped
+git -C "$r" reset -q --hard HEAD^
+git -C "$r" merge --no-ff side3 >/dev/null 2>&1
+echo resolved > "$r/x.txt" && git -C "$r" add x.txt
+echo smuggled > "$r/extra.txt" && git -C "$r" add extra.txt
+git -C "$r" commit -q -m "merge side three plus"
+cmerge=$(sha HEAD)
+run "$base..HEAD"
+fx_check "conflict resolution plus extra: exits 1" fx_eq "$rc" 1
+fx_check "conflict resolution plus extra: names the merge and the extra path" fx_eq "$out" "stray merge $cmerge adds extra.txt"
 
 # usage
 out=$("$script" "$r" 2>&1); rc=$?
