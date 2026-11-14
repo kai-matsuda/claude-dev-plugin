@@ -8,7 +8,8 @@
 #   forge error: <text>               exit 1, at once: the forge CLI's config error (`unable to get or
 #                                     create config file` or `failed to read configuration`) from a
 #                                     read in the loop or the watch, never looped on to the caller's
-#                                     timeout; or a gh watch that failed with checks still pending
+#                                     timeout; or a gh watch that failed with checks still pending;
+#                                     or a gh head that moved off the tip during the wait
 #   refused: <reason>                 exit 2, a wrong usage, an unknown forge, or tea without jq
 # gh and tea stderr is kept apart from the compared head SHA and the JSON, but scanned for the config
 # error, so a stray warning never keeps the head from equalling the tip.
@@ -21,8 +22,10 @@
 # A watch that exits non-zero is a red check or a failed watch: a recheck of the pending checks
 # (`gh pr checks --json bucket`) tells them apart, so `checks finished` prints only when the recheck
 # reads and counts none pending; a config error or a recheck that fails or counts one pending
-# prints `forge error: <watch output>` and exits 1. The head is verified at <tip SHA> once, then
-# the probe and the watch read the PR by number: a push to the PR after that read is not seen.
+# prints `forge error: <watch output>` and exits 1. gh reads checks by PR number, so the head is
+# verified at <tip SHA> before the probe and read again after the watch and recheck: a head that is
+# no longer the tip (a push to the PR meanwhile) or cannot be read prints `forge error: head moved:
+# the PR head is <head>, not the verified tip <tip SHA>` and exits 1, never `checks finished`.
 # tea: loops on the pushed tip's commit status
 # every FORGE_WAIT_SLEEP seconds (default 30) until it has a status and none is pending; needs jq on PATH (refused: exit 2 without it).
 # <repo> is gh's owner/name slug and <pr> its PR number: tea uses neither (it finds its repo from
@@ -57,6 +60,12 @@ case $forge in
       cfg_err "$w"; w=$w$(cat "$errf")
       p=$(gh pr checks "$pr" --repo "$repo" --json bucket -q '[.[] | select(.bucket == "pending")] | length' 2>"$errf"); cfg_err "$p"
       if [ "$p" != 0 ]; then echo "forge error: $w"; exit 1; fi
+    fi
+    # gh pr checks reads by PR number, so the checks just waited on are the tip's only if the head is
+    # still the verified tip
+    h=$(gh pr view "$pr" --repo "$repo" --json headRefOid -q .headRefOid 2>"$errf"); cfg_err "$h"
+    if [ "$h" != "$tip" ]; then
+      echo "forge error: head moved: the PR head is ${h:-unreadable}, not the verified tip $tip"; exit 1
     fi
     ;;
   tea)

@@ -3,7 +3,8 @@
 # script: run against stub gh and tea on PATH (FORGE_WAIT_SLEEP=0), reading its output lines and
 # exit status. Covers, for gh and for tea: the forge CLI's config error (exit 1 at once), a head
 # not yet at the tip, checks registered then passing, and checks failing (both exit 0 with
-# "checks finished": the checks' verdict is read by Delivery step 4, not here), a gh watch that fails
+# "checks finished": the checks' verdict is read by Delivery step 4, not here), a gh head that moves
+# during the wait (exit 1, the moved head named), a gh watch that fails
 # for another reason (exit 1 unless no check is pending), a head read failing for another reason
 # (retried), a recheck config error, stderr kept out of the compared values, tea without jq and a
 # wrong usage.
@@ -77,7 +78,7 @@ put head old old $tip; put probe '[{"name":"x"}]'; put watch ok
 run /o gh org/r 7 $tip
 fx_check "gh head behind: exits 0" fx_eq "$rc" 0
 fx_check "gh head behind: finished line" fx_eq "$out" "checks finished"
-fx_check "gh head behind: read the head three times" fx_eq "$(calls head)" 3
+fx_check "gh head behind: read the head three times, then once after the watch" fx_eq "$(calls head)" 4
 fx_check "gh head behind: probed once" fx_eq "$(calls probe)" 1
 
 # gh: checks not yet registered, then registered and passing
@@ -124,12 +125,29 @@ fx_check "gh stderr warning: exits 0" fx_eq "$rc" 0
 fx_check "gh stderr warning: finished line only" fx_eq "$out" "checks finished"
 rm -f "$st/warn"
 
+# gh: the head moves during the wait (a push after the verified read): the checks watched are not the
+# tip's, so no finished line, exit 1 and a line naming the moved head; also when the watch ended red
+put head $tip def456; put probe '[{"name":"x"}]'; put watch ok
+run /o gh org/r 7 $tip
+fx_check "gh head moved during the wait: exits 1" fx_eq "$rc" 1
+fx_check "gh head moved during the wait: names the moved head" fx_eq "$out" "forge error: head moved: the PR head is def456, not the verified tip $tip"
+fx_check "gh head moved during the wait: re-read the head after the watch" fx_eq "$(calls head)" 2
+put head $tip def456; put probe '[{"name":"x"}]'; put watch "!x fail"; put recheck 0
+run /o gh org/r 7 $tip
+fx_check "gh head moved, checks failing: exits 1" fx_eq "$rc" 1
+fx_check "gh head moved, checks failing: names the moved head" fx_eq "$out" "forge error: head moved: the PR head is def456, not the verified tip $tip"
+# the head re-read fails for a config error
+put head $tip "!$cfg"; put probe '[{"name":"x"}]'; put watch ok
+run /o gh org/r 7 $tip
+fx_check "gh config error on the head re-read: exits 1" fx_eq "$rc" 1
+fx_check "gh config error on the head re-read: names it" fx_eq "$out" "forge error: $cfg"
+
 # gh: a head read that fails for a non-config reason is retried
 put head "!dial tcp: operation not permitted" $tip; put probe '[{"name":"x"}]'; put watch ok
 run /o gh org/r 7 $tip
 fx_check "gh head read failed: exits 0" fx_eq "$rc" 0
 fx_check "gh head read failed: finished line" fx_eq "$out" "checks finished"
-fx_check "gh head read failed: read the head twice" fx_eq "$(calls head)" 2
+fx_check "gh head read failed: read the head twice, then once after the watch" fx_eq "$(calls head)" 3
 
 # tea: config error
 put status "$cfg"
