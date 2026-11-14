@@ -1129,7 +1129,7 @@ retired_gate='review-only|no check command|with(out)? a check command'
 # a forge command runs plainly first and is rerun with the sandbox disabled only when it fails with the
 # forge CLI's config error or a sandbox denial, a rule the orchestration doc's Forge decision states once
 # and the rest cite (dev-aosb): no doc tells an agent to disable the sandbox for a forge command up front
-retired_forge_sandbox='run each forge command with the sandbox disabled|run the one forge command with the sandbox disabled|forge command of this step run with the sandbox disabled|with the sandbox disabled as every forge command is|push runs with the sandbox disabled|with the sandbox disabled, as the push is|run with the sandbox disabled, as `/dev:close-story`|with the sandbox disabled, as forge commands do|Run that one forge command with the sandbox disabled'
+retired_forge_sandbox='the mode the Forge decision.s proof|run in that same mode|run each forge command with the sandbox disabled|run the one forge command with the sandbox disabled|forge command of this step run with the sandbox disabled|with the sandbox disabled as every forge command is|push runs with the sandbox disabled|with the sandbox disabled, as the push is|run with the sandbox disabled, as `/dev:close-story`|with the sandbox disabled, as forge commands do|Run that one forge command with the sandbox disabled'
 # a rule that moved to harness.md (dev-9k5.1.2) cited at the orchestration doc, doc first as "the
 # orchestration doc's Worktrees", "the orchestration doc's worktree fallback", "the orchestration doc's Scratch space says
 # (Literal paths)" or "(`orchestration.md`, Commits)", or rule first as 'the "Waiting" rule of
@@ -1450,7 +1450,7 @@ row_phrase implement-spec-pins "tea fallback evidence" && sec_has "## Delivery" 
 sec_has "## Delivery" "Delivery waits for the forge checks" '4. **Forge-check wait**, before the delivery is recorded'
 sec_has "## Delivery" "Delivery watches the gh checks" "$pin_gh_checks_watch"
 sec_has "## Delivery" "Delivery waits on the tea commit status" 'tea api --repo <owner> repos/{owner}/{repo}/commits/<tip SHA>/status | jq -e'
-sec_has "## Delivery" "Delivery's gh wait waits for the pushed tip as the PR head" '--json headRefOid -q .headRefOid)" = <tip SHA> ]'
+sec_has "## Delivery" "Delivery's gh wait waits for the pushed tip as the PR head" '[ "$h" = <tip SHA> ]'
 sec_has "## Delivery" "Delivery treats a failing forge read as an error, not a skip" 'is a forge error, never a skip'
 sec_has "## Delivery" "Delivery reads the merge state on every forge PR, ahead of the workflows read" 'Read whether the PR can merge on every forge PR, ahead of the workflows read'
 sec_has "## Delivery" "Delivery reads the gh merge state and head together" 'gh pr view <n> --repo <forge-slug> --json mergeable,headRefOid'
@@ -1470,8 +1470,9 @@ sec_has "## Delivery" "Delivery verifies the default branch ref before merge-tre
 sec_has "## Delivery" "Delivery's conflict fix is the human's" 'resolve the conflict on the branch, and a rerun pushes it again and reads the merge state again'
 sec_has "## Delivery" "Delivery's conflict does not spend the wait's timeout" 'the wait is not entered and its `timeout` is not spent'
 sec_has "## Delivery" "Delivery bounds the forge-check wait" 'at most six calls in all'
-sec_has "## Delivery" "the forge-check wait and the checks read after it run in the mode of the forge CLI's own proof, never the push's, so a loop never spins on a swallowed config error (dev-aosb)" 'run in the mode the Forge decision'"'"'s proof (the forge CLI'"'"'s own `gh repo view` or `tea pr list` call) succeeded in (plain when the plain call worked, with the sandbox disabled when it needed the rerun), and the push'"'"'s mode does not decide it (`git push` may be excluded while `gh` and `tea` are not), so a loop never spins on a swallowed `unable to get or create config file`'
-sec_has "## Delivery" "the gh merge read and its UNKNOWN re-reads run in the forge proof's mode (dev-aosb)" 'The `gh` merge read and its `UNKNOWN` re-reads run in that same mode'
+sec_has "## Delivery" "the forge-check wait runs with the sandbox disabled because an exemption matches a plain forge command, not one inside a compound command (dev-urom)" 'run with the sandbox disabled, because a sandbox exemption such as `sandbox.excludedCommands` matches a plain forge command but not one inside a compound command'
+sec_has "## Delivery" "any compound or \$(...) call wrapping a forge command runs with the sandbox disabled too (dev-urom)" 'so does any other compound or `$(...)` call that wraps a forge command'
+sec_has "## Delivery" "the forge-check wait stops at once on the forge CLI's config error instead of looping to its timeout (dev-urom)" 'stops at once on `unable to get or create config file` or `failed to read configuration`'
 sec_has "## Repo plumbing and Cut-off probe" "the Merge guard decides and runs its forge query as the Forge decision says, once" 'decided and run as the Forge decision says (plain first)'
 sec_has "## Repo plumbing and Cut-off probe" "the Merge guard's branch-form fetch runs as the Forge decision says" 'git -C <owner> fetch origin` (run as the Forge decision says, skipped with no `origin`)'
 sec_has "## Repo plumbing and Cut-off probe" "git push and fetch are reached by sandbox.excludedCommands only when a pattern matching them is listed" 'git push` and `git fetch` are reached when a pattern matching them (the baseline'"'"'s `git push*`, `git fetch*`) is listed there, else their ssh `Permission denied (publickey)` is a sandbox denial and reruns'
