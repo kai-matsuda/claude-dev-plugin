@@ -205,6 +205,9 @@
 #      punctuation and indents included, regex characters escaped), in the closed list of shapes
 #      section 18's "Limits" comment below states and nothing beside it (the cross-skill cite rule file
 #      point there); a changed SKILL.md has every reference doc and SKILL.md re-read.
+#  19. the forge CLI's config-error strings (dev-42ag): the Forge decision's list in orchestration.md
+#      and the config-error case pattern of forge-wait.sh name the same strings, each way; a string
+#      on one side only fails here, since the wait would loop to its timeout on the other.
 # Usage: scripts/lint-skill-docs.sh [implement-spec SKILL.md [WORKFLOW.md]]
 # A section whose doc is missing fails naming it ("missing document: <path>") rather than being
 # skipped, so a renamed skill or reference doc cannot turn its checks off (dev-dov); each section
@@ -3010,6 +3013,28 @@ if [ -f "$cite_rule" ]; then
     cite_checks "$last"
   done
   unchanged=$saved_unchanged unchanged_f=/
+fi
+
+# 19. the forge CLI's config-error strings: the Forge decision's list (orchestration.md) and the
+# config-error case pattern of forge-wait.sh name the same strings, each way (dev-42ag)
+section "19. forge config-error strings"
+forge_doc=$refs/orchestration.md
+forge_wait=${FORGE_WAIT_SCRIPT:-$root/scripts/forge-wait.sh}
+if [ ! -f "$forge_doc" ]; then bad "missing document: $forge_doc"
+elif [ ! -f "$forge_wait" ]; then bad "missing script: $forge_wait"
+else
+  doc_strings=$(grep -o 'config error (`[^;]*' "$forge_doc" | grep -o '`[^`]*`' | tr -d '`' | sort -u)
+  script_strings=$(sed -n '/^cfg_err() {/,/^}/p' "$forge_wait" | grep -o "'[^']*'" | tr -d "'" | sort -u)
+  [ -n "$doc_strings" ] || bad "the Forge decision names no config-error string in $forge_doc"
+  [ -n "$script_strings" ] || bad "forge-wait.sh's cfg_err names no config-error string in $forge_wait"
+  while IFS= read -r s; do
+    [ -z "$s" ] || grep -qxF -- "$s" <<<"$script_strings" \
+      || bad "the Forge decision lists '$s', which forge-wait.sh's config-error pattern lacks"
+  done <<<"$doc_strings"
+  while IFS= read -r s; do
+    [ -z "$s" ] || grep -qxF -- "$s" <<<"$doc_strings" \
+      || bad "forge-wait.sh's config-error pattern matches '$s', which the Forge decision lacks"
+  done <<<"$script_strings"
 fi
 
 checks_run
