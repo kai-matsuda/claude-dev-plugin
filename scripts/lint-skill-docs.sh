@@ -647,8 +647,8 @@ pin_cite_one_test='the one test'
 pin_cite_preflight='"Working-directory preflight"'
 pin_conflict_resolutions='conflict resolutions'
 pin_forge_decision='its Forge decision'
+pin_forge_wait_script='forge-wait.sh'
 pin_frontmatter_disable_model_invocation='disable-model-invocation: true'
-pin_gh_checks_watch='gh pr checks <n> --repo <forge-slug> --watch'
 pin_gitignore_commit='its Gitignore commit'
 pin_literal_owner_git_path='<owner>/\.git/'
 pin_mktemp_template='mktemp -d <worktree>/.tmp/<name>.XXXXXX'
@@ -1129,8 +1129,8 @@ retired_gate='review-only|no check command|with(out)? a check command'
 # a forge command runs plainly first and is rerun with the sandbox disabled only when it fails with the
 # forge CLI's config error or a sandbox denial, a rule the orchestration doc's Forge decision states once
 # and the rest cite (dev-aosb): no doc tells an agent to disable the sandbox for a simple forge command up
-# front; the one exception is a compound or $(...) call wrapping a forge command, such as the forge-check
-# wait, which Delivery step 4 runs with the sandbox disabled (dev-urom)
+# front, a compound or $(...) call wrapping one included: a forge call the plugin repeats lives in a
+# script, such as the forge-wait script of Delivery step 4 (dev-bveq)
 retired_forge_sandbox='the mode the Forge decision.s proof|run in that same mode|run each forge command with the sandbox disabled|run the one forge command with the sandbox disabled|forge command of this step run with the sandbox disabled|with the sandbox disabled as every forge command is|push runs with the sandbox disabled|with the sandbox disabled, as the push is|run with the sandbox disabled, as `/dev:close-story`|with the sandbox disabled, as forge commands do|Run that one forge command with the sandbox disabled'
 # a rule that moved to harness.md (dev-9k5.1.2) cited at the orchestration doc, doc first as "the
 # orchestration doc's Worktrees", "the orchestration doc's worktree fallback", "the orchestration doc's Scratch space says
@@ -1450,9 +1450,6 @@ sec_has "## Delivery" "Delivery's PR body is written by mattpocock-skills:pr" 't
 sec_has "## Delivery" "Delivery's PR body is written with a forge" '3. **PR body.** With a forge, call the Skill tool'
 row_phrase implement-spec-pins "tea fallback evidence" && sec_has "## Delivery" "Delivery's Evidence is the delivered tip's check record" "its Evidence $row_text"
 sec_has "## Delivery" "Delivery waits for the forge checks" '4. **Forge-check wait**, before the delivery is recorded'
-sec_has "## Delivery" "Delivery watches the gh checks" "$pin_gh_checks_watch"
-sec_has "## Delivery" "Delivery waits on the tea commit status" 'tea api --repo <owner> repos/{owner}/{repo}/commits/<tip SHA>/status 2>"<owner>/.tmp/tea.err"); e=$(cat "<owner>/.tmp/tea.err"); case'
-sec_has "## Delivery" "Delivery's gh wait waits for the pushed tip as the PR head" '[ "$h" = <tip SHA> ]'
 sec_has "## Delivery" "Delivery treats a failing forge read as an error, not a skip" 'is a forge error, never a skip'
 sec_has "## Delivery" "Delivery reads the merge state on every forge PR, ahead of the workflows read" 'Read whether the PR can merge on every forge PR, ahead of the workflows read'
 sec_has "## Delivery" "Delivery reads the gh merge state and head together" 'gh pr view <n> --repo <forge-slug> --json mergeable,headRefOid'
@@ -1472,17 +1469,23 @@ sec_has "## Delivery" "Delivery verifies the default branch ref before merge-tre
 sec_has "## Delivery" "Delivery's conflict fix is the human's" 'resolve the conflict on the branch, and a rerun pushes it again and reads the merge state again'
 sec_has "## Delivery" "Delivery's conflict does not spend the wait's timeout" 'the wait is not entered and its `timeout` is not spent'
 sec_has "## Delivery" "Delivery bounds the forge-check wait" 'at most six calls in all'
-sec_has "## Delivery" "the forge-check wait runs with the sandbox disabled because an exemption matches a plain forge command, not one inside a compound command (dev-urom)" 'run with the sandbox disabled, because a sandbox exemption such as `sandbox.excludedCommands` matches a plain forge command but not one inside a compound command'
-sec_has "## Delivery" "any other compound or \$(...) call wrapping a forge command runs with the sandbox disabled too (dev-urom)" 'any other compound or `$(...)` call that wraps a forge command runs with the sandbox disabled too'
-sec_has "## Delivery" "the forge-check wait loop reads stop at once on the forge CLI's config error instead of looping to its timeout (dev-urom)" 'the reads in the wait loop stop at once on the forge CLI'"'"'s config error (defined in the Forge decision; the trailing `gh pr checks --watch` is not a loop read)'
-sec_has "## Delivery" "the gh wait loop exits on the config error from the head read, whose stderr is kept apart from the SHA compared (dev-urom)" "2>\"<owner>/.tmp/gh.err\"); e=\$(cat \"<owner>/.tmp/gh.err\"); case \"\$e\$h\" in *'unable to get or create config file'*|*'failed to read configuration'*) echo \"\$e\$h\"; exit 1;; esac"
-sec_has "## Delivery" "the gh wait loop exits on the config error from the checks-registered probe (dev-urom)" "case \"\$c\" in *'unable to get or create config file'*|*'failed to read configuration'*) echo \"\$c\"; exit 1;; esac"
-sec_has "## Delivery" "the tea wait loop exits on the config error too, read from its stderr kept apart from the JSON fed to jq (dev-urom)" "case \"\$e\$s\" in *'unable to get or create config file'*|*'failed to read configuration'*) echo \"\$e\$s\"; exit 1;; esac"
-sec_has "## Delivery" "a pipe counts as a compound call, so the tea checks read runs with the sandbox disabled (dev-urom)" 'a pipe counts as compound, so the `tea api ... | jq` read is a compound call run with the sandbox disabled'
-sec_has "## Delivery" "the tea checks read stops on a failed tea call instead of reading empty output as none reported (dev-urom)" '/status 2>"<owner>/.tmp/tea.err") || { cat "<owner>/.tmp/tea.err"; exit 1; }; echo "$s" | jq -r'
-sec_has "## Delivery" "the UNKNOWN re-reads stop on the config error as the wait does (dev-urom)" 'so they run as the wait does and stop on the config error as it does'
+sec_has "## Delivery" "the forge-check wait is the forge-wait script, called with the pushed tip (dev-bveq)" 'wait with the **forge-wait script**, `<plugin root>/scripts/forge-wait.sh <owner> <gh|tea> <forge-slug> <n> <tip SHA>`'
+sec_has "## Delivery" "the forge-wait script runs as one plain command in one foreground call, plain first (dev-bveq)" 'as one plain command in one foreground Bash call with `timeout: 600000`'
+sec_has "## Delivery" "the forge-wait script waits for the head at the tip and the checks registered, then finished (dev-bveq)" "It waits until the PR's head is \`<tip SHA>\` and its checks have registered"
+sec_has "## Delivery" "the forge-wait script's finished line and exit 0 (dev-bveq)" 'It prints `checks finished` and exits 0 once no check is pending, a red check included'
+sec_has "## Delivery" "the forge-wait script stops at once on the forge CLI's config error, exit 1 (dev-bveq)" 'it prints `forge error: <text>` and exits 1 at once on the forge CLI'"'"'s config error'
+sec_has "## Delivery" "the forge-wait script's config error ends the delivery on a failed line (dev-bveq)" 'failed: forge check forge-wait.sh: <text>'
+sec_has "## Delivery" "a plain forge-wait run's config error reruns once unsandboxed, only the rerun's ends the delivery (dev-bveq)" "a plain run's \`forge error\` that is the config error reruns the script once with the sandbox disabled, and only the rerun's \`forge error\` ends the delivery"
+sec_has "## Delivery" "the tea checks read's config error reruns once unsandboxed (dev-bveq)" "its config error reruns that one call once with the sandbox disabled"
+sec_has "## Delivery" "the forge-wait script's unused tea arguments are both named (dev-bveq)" '`<forge-slug>` and `<n>` are unused on `tea`'
+sec_has "## Delivery" "the forge-wait script refuses a wrong usage, unknown forge or missing jq with exit 2, ending the delivery (dev-bveq)" 'It prints `refused: <reason>` and exits 2 on a wrong usage, an unknown forge, or `tea` without `jq` on `PATH`, which ends the delivery with `failed: forge check forge-wait.sh: <reason>`, with no rerun.'
+sec_has "## Delivery" "the gh merge read and its UNKNOWN re-reads are plain forge commands (dev-bveq)" 'The `gh` merge read and its `UNKNOWN` re-reads (below) are plain forge commands and run plain first'
+sec_has "## Delivery" "the UNKNOWN re-reads are plain calls with a sleep call between (dev-bveq)" 'a `sleep 10` call between reads, at most six reads, each a plain call'
+sec_has "## Delivery" "the tea checks read is one plain tea api call, not a pipe (dev-bveq)" 'on `tea`, one plain forge command, `tea api --repo <owner> repos/{owner}/{repo}/commits/<tip SHA>/status`'
+sec_has "## Repo plumbing and Cut-off probe" "the Forge decision keeps each forge command plain and points to the forge-wait script (dev-bveq)" "so a forge call the plugin repeats lives in a script, as Delivery step 4's forge-wait script does"
+lacks "the inline compound forge-check wait loop (dev-bveq)" 'until h=|until s=|gh.err|tea.err'
+lacks "the compound-call sandbox exception (dev-bveq)" 'a compound call, an exception to one command per Bash call|any other compound or `\$\(\.\.\.\)` call|is a compound call run with the sandbox disabled|The one exception is a compound call'
 sec_has "## Repo plumbing and Cut-off probe" "the Forge decision defines the forge CLI's config error once (dev-urom)" "the forge CLI's config error (\`unable to get or create config file\` or \`failed to read configuration\`; not a missing login)"
-sec_has "## Repo plumbing and Cut-off probe" "the Forge decision's plain-first rule points to the compound-call exception (dev-urom)" 'The one exception is a compound call wrapping a forge command, which a sandbox exemption does not match (a pipe counts as compound) and so runs with the sandbox disabled, as Delivery step 4 says'
 sec_has "## Repo plumbing and Cut-off probe" "the Merge guard decides and runs its forge query as the Forge decision says, once" 'decided and run as the Forge decision says (plain first)'
 sec_has "## Repo plumbing and Cut-off probe" "the Merge guard's branch-form fetch runs as the Forge decision says" 'git -C <owner> fetch origin` (run as the Forge decision says, skipped with no `origin`)'
 sec_has "## Repo plumbing and Cut-off probe" "git push and fetch are reached by sandbox.excludedCommands only when a pattern matching them is listed" 'git push` and `git fetch` are reached when a pattern matching them (the baseline'"'"'s `git push*`, `git fetch*`) is listed there, else their ssh `Permission denied (publickey)` is a sandbox denial and reruns'
@@ -2134,7 +2137,7 @@ line_has '^8\. ' "step 8 cites the stray-commit script by name" 'run through the
 line_has '^8\. ' "step 8 opens the draft itself" 'open the draft after the push if step 3 could not'
 line_has '^8\. ' "step 8 appends the sibling line" 'append the sibling line (rebuilt as in step 3)'
 line_has '^8\. ' "step 8 runs the sibling refresh" "only then run step 3's sibling refresh"
-line_lacks '^8\. ' "a second copy of the forge-check wait in step 8" "$pin_gh_checks_watch"
+line_lacks '^8\. ' "a second copy of the forge-check wait in step 8" "$pin_forge_wait_script"
 line_lacks '^8\. ' "a second copy of the stray-commit check in step 8" '--no-merges --format='
 row_sweep implement-spec-pins "mark ready with gh" && line_lacks '^8\. ' "the deliver step marking the PR ready" "$row_text"
 row_sweep implement-spec-pins "mark ready with tea" && line_lacks '^8\. ' "the deliver step marking the PR ready with tea" "$row_text"

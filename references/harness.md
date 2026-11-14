@@ -57,9 +57,10 @@ were backgrounded that way, and one agent went looking for its own process with 
 This is the mechanism behind the no-polling rule above, and why INFRA-29's until-loops
 and Monitors woke agents with stale state. The one long shell wait is the story orchestrator's
 forge-check wait (the orchestration doc's Delivery section): one
-foreground Bash call that waits for the PR's forge checks on the pushed tip, bounded by its
-`timeout: 600000` and run again while a check is still pending, at most six calls (its
-merge-state re-read before it, `sleep 10` between at most six reads, is a short compound call too).
+foreground Bash call, the forge-wait script, that waits for the PR's forge checks on the
+pushed tip, bounded by its `timeout: 600000` and run again while a check is still pending, at
+most six calls (its merge-state re-read before it is at most six plain reads with a `sleep 10`
+call between).
 The Bash tool's text says foreground `sleep` is blocked and points at `Monitor`; a check
 (2026-10-22, chezmoi-sn1) ran a foreground `until` loop unblocked in a session and in a subagent
 alike, and the observed run wins.
