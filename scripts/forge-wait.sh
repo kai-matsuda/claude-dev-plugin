@@ -47,11 +47,13 @@ cfg_err() {
     *'unable to get or create config file'*|*'failed to read configuration'*) echo "forge error: $t"; exit 1 ;;
   esac
 }
+# head: the PR's head SHA on stdout, its stderr in $errf, the exit status the read's own
+head() { gh pr view "$pr" --repo "$repo" --json headRefOid -q .headRefOid 2>"$errf"; }
 case $forge in
   gh)
     nap=${FORGE_WAIT_SLEEP:-10}
     while :; do
-      h=$(gh pr view "$pr" --repo "$repo" --json headRefOid -q .headRefOid 2>"$errf"); cfg_err "$h"
+      h=$(head); cfg_err "$h"
       if [ "$h" = "$tip" ]; then
         c=$(gh pr checks "$pr" --repo "$repo" --json name 2>"$errf") && break
         cfg_err "$c"
@@ -66,7 +68,7 @@ case $forge in
     # gh pr checks reads by PR number, so the checks just waited on are the tip's only if the head is
     # still the verified tip
     while :; do
-      h=$(gh pr view "$pr" --repo "$repo" --json headRefOid -q .headRefOid 2>"$errf"); rc=$?; cfg_err "$h"
+      h=$(head); rc=$?; cfg_err "$h"
       [ "$rc" = 0 ] && break
       sleep "$nap"
     done

@@ -3,11 +3,11 @@
 # script: run against stub gh and tea on PATH (FORGE_WAIT_SLEEP=0), reading its output lines and
 # exit status. Covers, for gh and for tea: the forge CLI's config error (exit 1 at once), a head
 # not yet at the tip, checks registered then passing, and checks failing (both exit 0 with
-# "checks finished": the checks' verdict is read by Delivery step 4, not here), a gh head that moves
-# during the wait (exit 1, the moved head named), a gh watch that fails
+# "checks finished": the checks' verdict is read by Delivery step 4, not here). Covers for gh
+# alone: a head that moves during the wait (exit 1, the moved head named), a watch that fails
 # for another reason (exit 1 unless no check is pending), a head read failing for another reason
-# (retried), a recheck config error, stderr kept out of the compared values, tea without jq and a
-# wrong usage.
+# (retried), a recheck config error and stderr kept out of the compared values. Covers tea
+# without jq and a wrong usage.
 # Each stub answers from a file of lines (one per call, the last one repeating) and counts its calls.
 # Usage: scripts/test-forge-wait-script.sh
 set -uo pipefail
