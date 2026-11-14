@@ -2260,11 +2260,13 @@ line_has "$G3" "a blocking verdict starts the loop over from the checks, never s
 line_has "$G3" "a clean verdict exits the loop" '**Clean** exits the loop'
 # a new or changed fixture case runs end to end at the gate, since the check skips an unrun
 # one: seed, one subagent at the seed's brief, assert, the assert record kept beside the check
-# record; the spec reviewer's blocking list counts a case with no assert record (dev-lf9v, INFRA-45)
+# record; both reviewers' blocking lists count a case with no assert record (dev-lf9v, INFRA-45)
 line_has "$G3" "the gate seeds, runs a subagent on and asserts each new or changed fixture case" 'when the task'"'"'s diff adds or changes a case in one, then on the green tip, for each such case, in the task'"'"'s worktree, you run its test script'"'"'s `seed <case>`, spawn one subagent at the tier'"'"'s implementation model to follow the brief the seed prints'
 line_has "$G3" "the gate runs the assert in one foreground call with the long timeout" 'run `assert <case>` in one foreground Bash call with `timeout: 600000`'
-line_has "$G3" "the fixture subagent brief starts with the TMPDIR line and the plain-command line and points at the Shell commands section" 'spawn one subagent at the tier'"'"'s implementation model to follow the brief the seed prints, its own brief starting with the TMPDIR line, then the plain-command line, one plain `git` or `bd` command per Bash call, every path spelled out, and pointing at the Shell commands section of `<plugin root>/references/harness.md`'
+line_has "$G3" "the fixture subagent brief starts with the TMPDIR line and the plain-command line and points at the Shell commands section" 'its own brief starting with the TMPDIR line, then the plain-command line, one plain `git` or `bd` command per Bash call, every path spelled out, and pointing at the Shell commands section of `<plugin root>/references/harness.md`'
 line_has "$G3" "the gate records the assert beside the check record" 'keep the assert'"'"'s output as the case'"'"'s **assert record** beside the check record'
+line_has "$G3" "the assert record sits at the owner's check-record path for the case" '`<owner>/.tmp/checks/<tree>/assert-<case>`'
+line_has "$G3" "the gate notes each assert's result on the task bead" 'note <task-id> "assert <case>: <pass or fail>"'
 line_has "$G3" "the spec reviewer brief names each fixture case and its assert record" "the spec reviewer's brief names each such case and the assert record's path"
 line_has "$G3" "a fixture case with no assert record is a blocking finding" 'a new or changed fixture case with no assert record (a missing test, whatever the check'"'"'s green)'
 line_has "$G3" "the check gate runs before step 3's reviewer" "go to step 4; for \`medium\` and \`high\`, $pin_spawn_two_reviewers"

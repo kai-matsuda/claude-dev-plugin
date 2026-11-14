@@ -3014,7 +3014,7 @@ pin_phrase "the task orchestrator header carries the plain-command line"; second
 pin_anchor "the task orchestrator header carries the plain-command line"
 swap_two $task_orch "$pinned_anchor" "$first" "$second"
 expect "the task orchestrator header with its TMPDIR line behind the plain-command line fails" 1 "missing: the task orchestrator header puts the TMPDIR line ahead of the plain-command line"
-# step 3 holds three briefs: the second one cut short, or opening without its TMPDIR line, fails
+# step 3 holds three briefs: the last one cut short, or opening without its TMPDIR line, fails
 fresh
 pin_phrase "task orchestrator step 3's brief carries the plain-command line"
 pin_anchor "task orchestrator step 3's brief carries the plain-command line"

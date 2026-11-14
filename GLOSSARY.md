@@ -225,7 +225,7 @@ _Avoid_: pre-flight, verification step
 **Fixture case**:
 A case in a fixture test (a `scripts/test-fixture-*.sh` that ends in `run_phases`),
 whose seam is a live subagent run: `seed <case>`, the skill run, then `assert <case>`. The
-check skips one that was never run, so the Check gate at the task row runs every case its diff adds or
+check skips one that was never run, so the Check gate at the task row runs every case the task's diff adds or
 changes, and a new or changed case with no assert record is a blocking finding.
 _Avoid_: fixture test case, live case
 
@@ -253,8 +253,8 @@ _Avoid_: check stamp, check cache, run log
 
 **Check gate**:
 The one gate every row (task, story, epic) runs: the check command, then the review. It
-exits when the checks are green on the tip the review called clean; at the task row, the
-checks include a live run of each fixture case the diff adds or changes (**Fixture case**). A red or a blocking
+exits when the checks are green on the tip the review called clean; at the task row, a live run
+of each **Fixture case** the task's diff adds or changes runs beside the checks. A red or a blocking
 verdict goes to a fresh implementer by pointer brief (at the epic row, to `ready-for-agent`
 tasks under the story) and the loop starts over, three such
 fix-ups per unit (per story at the epic row) per invocation and the fourth `failed`; a minors fix-up and
