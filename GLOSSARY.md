@@ -362,8 +362,8 @@ no checks delivers with a `checks: skipped` line. The one long shell wait the Id
 allows (the merge-state re-read adds only bounded `sleep 10` calls). The forge-wait script,
 `scripts/forge-wait.sh <owner> <gh|tea> <repo> <pr> <tip SHA>`, is the wait as one plain
 command: it prints `checks finished` (exit 0), `forge error: <text>` on the forge CLI's
-config error or a `gh` watch that failed with checks still pending (exit 1), or `refused:
-<reason>` on a wrong usage (exit 2); a plain run's config error is rerun once with the
+config error or a `gh` watch that failed with checks still pending or unreadable (exit 1), or
+`refused: <reason>` on a wrong usage, an unknown forge or `tea` without `jq` (exit 2); a plain run's config error is rerun once with the
 sandbox disabled, and the step reads the checks afterwards.
 _Avoid_: CI wait, check poll
 

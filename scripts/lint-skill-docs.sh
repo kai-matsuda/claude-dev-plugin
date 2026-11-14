@@ -1478,7 +1478,7 @@ sec_has "## Delivery" "the forge-wait script's config error ends the delivery on
 sec_has "## Delivery" "a plain forge-wait run's config error reruns once unsandboxed, only the rerun's ends the delivery (dev-bveq)" "a plain run's \`forge error\` that is the config error reruns the script once with the sandbox disabled, and only the rerun's \`forge error\` ends the delivery"
 sec_has "## Delivery" "the tea checks read's config error reruns once unsandboxed (dev-bveq)" "its config error reruns that one call once with the sandbox disabled"
 sec_has "## Delivery" "the forge-wait script's unused tea arguments are both named (dev-bveq)" '`<forge-slug>` and `<n>` are unused on `tea`'
-sec_has "## Delivery" "the forge-wait script refuses a wrong usage with exit 2 (dev-bveq)" 'it prints `refused: <reason>` and exits 2 on a wrong usage'
+sec_has "## Delivery" "the forge-wait script refuses a wrong usage, unknown forge or missing jq with exit 2, ending the delivery (dev-bveq)" 'It prints `refused: <reason>` and exits 2 on a wrong usage, an unknown forge, or `tea` without `jq` on `PATH`, which ends the delivery with `failed: forge check forge-wait.sh: <reason>`, with no rerun.'
 sec_has "## Delivery" "the gh merge read and its UNKNOWN re-reads are plain forge commands (dev-bveq)" 'The `gh` merge read and its `UNKNOWN` re-reads (below) are plain forge commands and run plain first'
 sec_has "## Delivery" "the UNKNOWN re-reads are plain calls with a sleep call between (dev-bveq)" 'a `sleep 10` call between reads, at most six reads, each a plain call'
 sec_has "## Delivery" "the tea checks read is one plain tea api call, not a pipe (dev-bveq)" 'on `tea`, one plain forge command, `tea api --repo <owner> repos/{owner}/{repo}/commits/<tip SHA>/status`'

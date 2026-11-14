@@ -5,7 +5,8 @@
 # not yet at the tip, checks registered then passing, and checks failing (both exit 0 with
 # "checks finished": the checks' verdict is read by Delivery step 4, not here), a gh watch that fails
 # for another reason (exit 1 unless no check is pending), a head read failing for another reason
-# (retried) and a wrong usage.
+# (retried), a recheck config error, stderr kept out of the compared values, tea without jq and a
+# wrong usage.
 # Each stub answers from a file of lines (one per call, the last one repeating) and counts its calls.
 # Usage: scripts/test-forge-wait-script.sh
 set -uo pipefail
@@ -32,6 +33,7 @@ EOF
 # recheck line (the count of pending checks)
 cat > "$bin/gh" <<'EOF'
 #!/usr/bin/env bash
+[ -f "$ST/warn" ] && echo "warning: a new gh is available" >&2
 case "$*" in
   *"pr view"*) "$ST/../bin/next" head ;;
   *"--watch"*) "$ST/../bin/next" watch ;;
@@ -41,6 +43,7 @@ esac
 EOF
 cat > "$bin/tea" <<'EOF'
 #!/usr/bin/env bash
+[ -f "$ST/warn" ] && echo "warning: a new tea is available" >&2
 "$ST/../bin/next" status
 EOF
 chmod +x "$bin/next" "$bin/gh" "$bin/tea"
@@ -107,6 +110,20 @@ run /o gh org/r 7 $tip
 fx_check "gh config error on watch: exits 1" fx_eq "$rc" 1
 fx_check "gh config error on watch: names it" fx_eq "$out" "forge error: $cfg"
 
+# gh: the watch fails, then the recheck hits the config error: that error is reported, not the watch output
+put head $tip; put probe '[{"name":"x"}]'; put watch "!dial tcp: operation not permitted"; put recheck "!$cfg"
+run /o gh org/r 7 $tip
+fx_check "gh recheck config error: exits 1" fx_eq "$rc" 1
+fx_check "gh recheck config error: names the recheck's error" fx_eq "$out" "forge error: $cfg"
+
+# gh: a stderr warning on every call stays out of the compared head and the counts
+: > "$st/warn"
+put head $tip; put probe '[{"name":"x"}]'; put watch "!x fail"; put recheck 0
+run /o gh org/r 7 $tip
+fx_check "gh stderr warning: exits 0" fx_eq "$rc" 0
+fx_check "gh stderr warning: finished line only" fx_eq "$out" "checks finished"
+rm -f "$st/warn"
+
 # gh: a head read that fails for a non-config reason is retried
 put head "!dial tcp: operation not permitted" $tip; put probe '[{"name":"x"}]'; put watch ok
 run /o gh org/r 7 $tip
@@ -127,6 +144,22 @@ run /o tea /o 7 $tip
 fx_check "tea registered then passing: exits 0" fx_eq "$rc" 0
 fx_check "tea registered then passing: finished line" fx_eq "$out" "checks finished"
 fx_check "tea registered then passing: read three times" fx_eq "$(calls status)" 3
+
+# tea: a stderr warning stays out of the JSON
+: > "$st/warn"
+put status "$green"
+run /o tea /o 7 $tip
+fx_check "tea stderr warning: exits 0" fx_eq "$rc" 0
+fx_check "tea stderr warning: finished line only" fx_eq "$out" "checks finished"
+rm -f "$st/warn"
+
+# tea: no jq on PATH is refused, not waited out
+mkdir -p "$scratch/nojq"; ln -sf "$bin/tea" "$scratch/nojq/tea"
+for t in mktemp rm cat; do ln -sf "$(command -v $t)" "$scratch/nojq/$t"; done
+put status "$green"
+out=$(PATH="$scratch/nojq" ST=$st FORGE_WAIT_SLEEP=0 /bin/bash "$script" /o tea /o 7 $tip 2>&1); rc=$?
+fx_check "tea without jq: exits 2" fx_eq "$rc" 2
+fx_check "tea without jq: refused line" fx_eq "$out" "refused: tea needs jq on PATH"
 
 # tea: failing checks end the wait too
 put status "$pend" "$red"
