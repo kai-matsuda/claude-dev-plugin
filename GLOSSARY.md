@@ -367,9 +367,10 @@ head that moved off the tip during the wait (exit 1; on `gh`, `checks finished` 
 tip's checks as of the head's second read, and a failed head read other than the config
 error is retried), or `refused: <reason>` on a wrong usage, an unknown forge or `tea`
 without `jq` (exit 2); the setup baseline exempts the script from the sandbox and allows it, so
-on a machine set up from it the plain run needs no rerun, and a plain run's config error (a machine
-without the baseline, or a fork or `--plugin-dir` copy it does not cover) is rerun once with the
-sandbox disabled, and the step reads the checks afterwards.
+on a machine set up from it the plain run should need no rerun (the harness's matcher for the
+exclusion is unverified), and a plain run's config error (a machine without the baseline, or a
+fork or `--plugin-dir` copy it does not cover) is rerun once with the sandbox disabled, and the
+step reads the checks afterwards.
 _Avoid_: CI wait, check poll
 
 **Cut-off**:
@@ -597,5 +598,7 @@ _Avoid_: project config
 The settings snippet the dev plugin ships for the machine setup: the denies on secret
 files, the asks on destructive git and on pushing beads, the `bd` allow, and the sandbox
 enabled with the beads and Dolt directories writable and push and fetch outside it. It
-holds nothing org-specific; toolchain, registry and forge lines are the machine owner's.
+holds nothing org-specific apart from one sandbox exclusion and one allow for the plugin's own
+`forge-wait.sh` (see Forge-check wait); toolchain, registry and forge-CLI lines are the machine
+owner's.
 _Avoid_: recommended settings, the settings file

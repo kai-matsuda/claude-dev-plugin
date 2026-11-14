@@ -60,9 +60,9 @@ The baseline settings are org-neutral, apart from one sandbox exclusion and one
 permission allow that let the plugin's own `forge-wait.sh`, run from the installed plugin cache
 (`~/.claude/plugins/cache/claude-dev-plugin/dev/*/scripts/forge-wait.sh *`, with your home
 written out), run unsandboxed and without a prompt; a fork under another marketplace name or a
-`--plugin-dir` checkout is not covered, and `skills/setup/SKILL.md` states the residual breadth. Toolchain, registry and forge-CLI
-entries are yours to add; the lines below are examples only, not part of the plugin, so replace them with the
-ones your machine uses:
+`--plugin-dir` checkout is not covered, and `skills/setup/SKILL.md` states the residual
+breadth. Toolchain, registry and forge-CLI entries are yours to add; the lines below are
+examples only, not part of the plugin, so replace them with the ones your machine uses:
 
 ```json
 {
