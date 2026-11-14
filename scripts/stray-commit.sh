@@ -21,9 +21,7 @@ email=$(git -C "$repo" config user.email 2>/dev/null) \
   || { echo "refused: $repo has no user.email"; exit 2; }
 log=$(git -C "$repo" log --no-merges --reverse \
   --format='%H%x1f%ae%x1f%(trailers:key=Bead,valueonly,separator=%x2C)%x1f%s' "$range" -- 2>/dev/null) \
-  || { echo "refused: cannot read $range in $repo"; exit 2; }
-
-merges=$(git -C "$repo" log --merges --reverse --format='%H %P' "$range" -- 2>/dev/null) \
+  && merges=$(git -C "$repo" log --merges --reverse --format='%H %P' "$range" -- 2>/dev/null) \
   || { echo "refused: cannot read $range in $repo"; exit 2; }
 
 sep=$(printf '\037')
@@ -36,9 +34,12 @@ if [ -n "$log" ]; then
   done <<<"$log"
 fi
 
-# A merge adds nothing of its own: its tree equals the merge of its parents, bar the paths that
-# merge reported as conflicted. Any other differing path is content no commit carries. Only
-# two-parent merges are compared (git merge-tree takes two parents), so an octopus merge is refused.
+# A merge made with git's default ort strategy and default options adds nothing of its own: its
+# tree equals the merge of its parents, bar the paths that merge reported as conflicted. Any other
+# differing path is content no commit carries (dev-bxtw). A merge made otherwise (-X, -s recursive,
+# a different merge.renames or rename limit) can differ from merge-tree on auto-merged paths, and
+# those show as "stray merge". Only two-parent merges are compared (git merge-tree takes two
+# parents), so an octopus merge is refused.
 [ -n "$merges" ] || exit 0
 while read -r sha p1 p2 extra; do
   [ -z "$extra" ] || { echo "refused: octopus merge $sha in $repo is not read"; exit 2; }

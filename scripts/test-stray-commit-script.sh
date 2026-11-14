@@ -153,7 +153,7 @@ git -C "$r" merge -q --no-ff -m "merge side four" side4 >/dev/null
 dmerge=$(sha HEAD)
 mkdir -p "$scratch/stubbin"
 real_git=$(command -v git)
-printf '#!/bin/sh\nfor a in "$@"; do [ "$a" = diff-tree ] && exit 128; done\nexec %s "$@"\n' "$real_git" > "$scratch/stubbin/git"
+printf '#!/bin/sh\nfor a in "$@"; do [ "$a" = diff-tree ] && exit 128; done\nexec "%s" "$@"\n' "$real_git" > "$scratch/stubbin/git"
 chmod +x "$scratch/stubbin/git"
 out=$(PATH="$scratch/stubbin:$PATH" "$script" "$r" "$base..HEAD" 2>&1); rc=$?
 fx_check "diff-tree failure: exits 2" fx_eq "$rc" 2
