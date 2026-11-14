@@ -38,7 +38,7 @@ had caught.
   parametrised by the owner repo is what `/dev:implement-story` is, and the authority is the
   same command either way.
 - **Keeping the `ask` entries as a second gate.** Rejected: they prompt only where the
-  permission mode already prompts (push and the forge CLIs run outside the sandbox and are
+  permission mode already prompts (push and the forge CLIs may run outside the sandbox and are
   not in `allow`), and they vanish in bypass mode, so they decide nothing the mode does
   not; what they did was contradict the rule above on paper.
 

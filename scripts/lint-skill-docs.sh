@@ -931,6 +931,7 @@ fi
 
 # ---- 3. /spec-to-stories ----
 if doc 3 "/spec-to-stories" "$skills/spec-to-stories/SKILL.md"; then
+hasc "the finished-story forge query is run as the orchestration doc's Forge decision says, plain first (dev-aosb)" "Following the orchestration doc, run that one forge command as the Forge decision says (plain first)"
 has "frontmatter" "$pin_frontmatter_disable_model_invocation"
 has "preflight pointer" "$pin_cite_preflight"
 has "epic gather pointer" "$pin_cite_gather_epic_bead"
@@ -1469,6 +1470,10 @@ sec_has "## Delivery" "Delivery verifies the default branch ref before merge-tre
 sec_has "## Delivery" "Delivery's conflict fix is the human's" 'resolve the conflict on the branch, and a rerun pushes it again and reads the merge state again'
 sec_has "## Delivery" "Delivery's conflict does not spend the wait's timeout" 'the wait is not entered and its `timeout` is not spent'
 sec_has "## Delivery" "Delivery bounds the forge-check wait" 'at most six calls in all'
+sec_has "## Delivery" "the forge-check wait and the checks read after it run in the mode the forge proof or push succeeded in, so a loop never spins on a swallowed config error (dev-aosb)" 'run in the mode the Forge decision'"'"'s proof or the push succeeded in (plain when the plain call worked, with the sandbox disabled when it needed the rerun), so a loop never spins on a swallowed `unable to get or create config file`'
+sec_has "## Repo plumbing and Cut-off probe" "the Merge guard decides and runs its forge query as the Forge decision says, once" 'decided and run as the Forge decision says (plain first)'
+sec_has "## Repo plumbing and Cut-off probe" "the Merge guard's branch-form fetch runs as the Forge decision says" 'git -C <owner> fetch origin` (run as the Forge decision says, skipped with no `origin`)'
+sec_has "## Repo plumbing and Cut-off probe" "git push and fetch are reached by sandbox.excludedCommands only when git is listed" 'git push` and `git fetch` are reached only when `git` is listed there, else their ssh `Permission denied (publickey)` is a sandbox denial and reruns'
 sec_has "## Delivery" "Delivery says no workflows skips the checks" '`checks: skipped: no workflows`'
 sec_has "## Delivery" "Delivery says no checks reported skips the checks" '`checks: skipped: none reported`'
 sec_has "## Delivery" "Delivery says no forge skips the checks" "\`$pin_checks_skipped_no_forge\`"
