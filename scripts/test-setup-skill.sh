@@ -27,7 +27,7 @@ fx_check "baseline asks on destructive git and bd dolt push" jq -e '
 fx_check "baseline ask entries take any argument, bare commands included" jq -e '
   .permissions.ask | map(select(test("git reset --hard|git clean|bd dolt push"))) | all(endswith("*)") and (endswith(" *)") | not))' "$snippet"
 fx_check "baseline excluded commands take any argument, bare commands included" jq -e '
-  .sandbox.excludedCommands | map(select(test("forge-wait") | not)) | all(endswith("*") and (endswith(" *") | not))' "$snippet"
+  .sandbox.excludedCommands | map(select(test("FORGE_WAIT_PATH") | not)) | all(endswith("*") and (endswith(" *") | not))' "$snippet"
 fx_check "baseline denies Read and Edit alike on every secret path" jq -e '
   .permissions.deny | (map(select(startswith("Read("))|.[5:-1]) | sort) == (map(select(startswith("Edit("))|.[5:-1]) | sort)' "$snippet"
 fx_check "every destructive-git ask and excluded git entry has a git -C form too" jq -e '
@@ -55,40 +55,19 @@ fx_check "the implementer's reset with -C matches no ask rule" no_ask_match "$sn
 fx_check "the implementer's plain reset matches no ask rule" no_ask_match "$snippet" 'git reset --keep feat/x'
 ask_matches() { ! no_ask_match "$@"; }
 fx_check "the ask rule still catches a hard reset" ask_matches "$snippet" 'git reset --hard feat/x'
-# the forge-check wait: one narrow rule pair covers the plugin's forge-wait.sh at any installed
-# version, so the plain-first run needs neither the unsandboxed rerun nor a prompt (dev-tt2l, INFRA-44)
-fw_pat='~/.claude/plugins/cache/claude-dev-plugin/dev/*/scripts/forge-wait.sh *'
-fx_check "baseline excludes forge-wait.sh at any plugin version from the sandbox" jq -e --arg p "$fw_pat" '
+# the forge-check wait: one narrow rule pair covers the plugin's forge-wait.sh. The file holds the
+# placeholder FORGE_WAIT_PATH; check-prereqs.sh prints the installed script's real path in its
+# place (dev-6xui, INFRA-44), so no wildcard stands before the script name
+fw_pat='FORGE_WAIT_PATH * * * * *'
+fx_check "baseline excludes forge-wait.sh with its five arguments from the sandbox" jq -e --arg p "$fw_pat" '
   .sandbox.excludedCommands | index($p) != null' "$snippet"
-fx_check "baseline allows forge-wait.sh at any plugin version without a prompt" jq -e --arg p "Bash($fw_pat)" '
+fx_check "baseline allows forge-wait.sh with its five arguments without a prompt" jq -e --arg p "Bash($fw_pat)" '
   .permissions.allow | index($p) != null' "$snippet"
 fx_check "baseline exempts no forge CLI and no other script, only forge-wait.sh" jq -e '
   (.sandbox.excludedCommands + .permissions.allow)
-  | map(select(test("gh|tea|forge|scripts"))) | length == 2 and all(test("scripts/forge-wait\\.sh \\*"))' "$snippet"
+  | map(select(test("gh|tea|forge|scripts|FORGE_WAIT"))) | length == 2 and all(startswith("Bash(FORGE_WAIT_PATH ") or startswith("FORGE_WAIT_PATH "))' "$snippet"
 fx_check "no exclusion or allow entry starts with a wildcard" jq -e '
   (.sandbox.excludedCommands + .permissions.allow) | map(sub("^Bash\\("; "")) | all(startswith("*") | not)' "$snippet"
-# what the rules match, as a shell glob over the command string (the same reading as no_ask_match):
-# the printed rule has the owner's home in place of ~, so the checks use a fixed home
-fw_home=/home/owner
-fw_rule_match() { # <command>: matches the allow rule and the exclusion, home spelled out
-  local pat
-  for pat in "$(jq -r '.sandbox.excludedCommands[] | select(test("forge-wait"))' "$snippet")" \
-             "$(jq -r '.permissions.allow[] | select(test("forge-wait")) | sub("^Bash\\("; "") | sub("\\)$"; "")' "$snippet")"; do
-    pat=${pat/#\~/$fw_home}
-    [[ $1 == $pat ]] || return 1
-  done
-}
-fw_rule_miss() { ! fw_rule_match "$1"; }
-fw_dir=$fw_home/.claude/plugins/cache/claude-dev-plugin/dev
-fx_check "the rules match forge-wait.sh at an installed version, with its arguments" fw_rule_match "$fw_dir/0.4.1/scripts/forge-wait.sh /x/owner gh a/b 12 abc123"
-fx_check "the rules match forge-wait.sh at another version" fw_rule_match "$fw_dir/1.0.0/scripts/forge-wait.sh /x/owner tea o 3 abc"
-fx_check "the rules miss a gh command carrying the script path as an argument" fw_rule_miss "gh pr merge $fw_dir/0.4.1/scripts/forge-wait.sh x"
-fx_check "the rules miss a tea command" fw_rule_miss "tea pr list --repo /x"
-fx_check "the rules miss a script outside the plugin cache root" fw_rule_miss "/tmp/plugins/cache/claude-dev-plugin/dev/0.4.1/scripts/forge-wait.sh a gh b 1 c"
-fx_check "the rules miss another user's cache root" fw_rule_miss "/home/other/.claude/plugins/cache/claude-dev-plugin/dev/0.4.1/scripts/forge-wait.sh a gh b 1 c"
-fx_check "the rules miss a script named forge-wait.sh2" fw_rule_miss "$fw_dir/0.4.1/scripts/forge-wait.sh2 a gh b 1 c"
-fx_check "the rules miss another script of the plugin" fw_rule_miss "$fw_dir/0.4.1/scripts/other.sh a gh b 1 c"
-fx_check "the rules miss another plugin's forge-wait.sh" fw_rule_miss "$fw_home/.claude/plugins/cache/other/dev/0.4.1/scripts/forge-wait.sh a gh b 1 c"
 no_org() { ! jq -c '[.. | strings]' "$1" |
   grep -Eiq 'cargo|rustup|crates|npm|pip|gh |tea |github|gitea|mice'; }
 fx_check "baseline carries no toolchain, registry or forge-CLI line" no_org "$snippet"
@@ -148,7 +127,7 @@ mkbin "$work/mcpjson/bin" bd gh; plugin_installed mcpjson
 printf '{"mcpServers":{"atlassian":{}}}\n' >"$work/mcpjson/project-mcp.json"
 run() { # <machine> [subdir] [tools dir]: run the helper there; sets out and rc
   out=$(cd "$work/$1/cwd/${2:-}" && env -i PATH="$work/$1/bin:${3:-$work/tools}" HOME="$work/$1/home" \
-        SETUP_PLUGINS_DIR="$work/$1/plugins" SETUP_PROJECT_MCP_JSON="$work/$1/project-mcp.json" "$(command -v bash)" "$prereqs" 2>&1)
+        SETUP_PLUGINS_DIR="$work/$1/plugins" SETUP_PROJECT_MCP_JSON="$work/$1/project-mcp.json" "$(command -v bash)" "${prereqs_at:-$prereqs}" 2>&1)
   rc=$?
 }
 only_missing() { # <prerequisite>: $out names it, and only it, on a missing: line, and $rc is non-zero
@@ -167,13 +146,70 @@ run full
 fx_check "full machine exits 0" test "$rc" = 0
 fx_check "full machine says all prerequisites are present" grep -q '^all prerequisites present' <<<"$out"
 fx_check "full machine prints the CLAUDE.md stub" bash -c '[[ $1 == *"$(cat "$2")"* ]]' _ "$out" "$stub"
-prints_baseline() { # <machine>: $out holds the snippet, ~ in the forge-wait rules written as that machine's home
+script_fw=$repo_root/scripts/forge-wait.sh
+fw_real=$(cd "$repo_root/scripts" && pwd -P)/forge-wait.sh
+prints_baseline() { # <machine> [script path]: $out holds the snippet, the forge-wait rules naming the installed script
   local want; want=$(cat "$snippet")
-  shopt -u patsub_replacement 2>/dev/null   # a home with & (bash 5.2 reads it as the match)
-  want=${want//\~\/.claude\/plugins\/cache/$work/$1/home/.claude/plugins/cache}
+  shopt -u patsub_replacement 2>/dev/null   # a path with & (bash 5.2 reads it as the match)
+  want=${want//FORGE_WAIT_PATH/${2:-$fw_real}}
   [[ $out == *"$want"* ]]
 }
-fx_check "full machine prints the baseline snippet, the forge-wait rules with its home" prints_baseline full
+fx_check "full machine prints the baseline snippet, the forge-wait rules with the installed script's path" prints_baseline full
+# what the printed rules match, as a shell glob. fw_rule_match models a matcher that splits a
+# compound command on && || ; | & and requires every part to match (how permission rules are
+# documented to behave; sandbox.excludedCommands doing the same is not verified, dev-6xui);
+# fw_whole_match models one that does not split and globs the whole string
+fw_rules() { # the printed rule pair, one per line
+  jq -r '(.sandbox.excludedCommands[], (.permissions.allow[] | sub("^Bash\\("; "") | sub("\\)$"; ""))) | select(test("forge-wait"))' \
+    <<<"${1//FORGE_WAIT_PATH/$fw_real}"
+}
+fw_rule_match() { # <command>
+  local pat seg
+  while IFS= read -r pat; do
+    while IFS= read -r seg; do
+      seg=${seg#"${seg%%[![:space:]]*}"}; seg=${seg%"${seg##*[![:space:]]}"}
+      [[ $seg == $pat ]] || return 1
+    done < <(printf '%s\n' "$2" | sed -e 's/&&/;/g' -e 's/||/;/g' -e 's/|/;/g' -e 's/&/;/g' | tr ';' '\n')
+  done <<<"$1"
+}
+fw_whole_match() { # <rules> <command>: every rule globbed against the whole command string, unsplit
+  local pat
+  while IFS= read -r pat; do [[ $2 == $pat ]] || return 1; done <<<"$1"
+}
+fw_printed=$(fw_rules "$(cat "$snippet")")
+fw_hit() { fw_rule_match "$fw_printed" "$1"; }
+fw_miss() { ! fw_hit "$1"; }
+fx_check "the printed rules are two, one exclusion and one allow" test "$(grep -c . <<<"$fw_printed")" = 2
+fx_check "the printed rules match the script with its five arguments" fw_hit "$fw_real /x/owner gh a/b 12 abc1234"
+fx_check "the printed rules match the script with the tea forge" fw_hit "$fw_real /x/owner tea o/r 3 abc1234"
+fx_check "the printed rules miss a ../ path to the same script" fw_miss "${fw_real%/scripts/forge-wait.sh}/scripts/../scripts/forge-wait.sh /x gh a/b 1 c"
+fx_check "the printed rules miss a ../ path out of the plugin cache" fw_miss "$HOME/.claude/plugins/cache/claude-dev-plugin/dev/../../../../src/x/scripts/forge-wait.sh /x gh a/b 1 c"
+# contrast: the earlier rule, with home spelled out, matches the ../ path out of the cache that the
+# printed rule misses
+fw_old_home="$HOME/.claude/plugins/cache/claude-dev-plugin/dev/*/scripts/forge-wait.sh *"
+fw_dotdot="$HOME/.claude/plugins/cache/claude-dev-plugin/dev/../../../../src/x/scripts/forge-wait.sh /x gh a/b 1 c"
+fx_check "the earlier wildcard rule matches a ../ path out of the plugin cache" fw_rule_match "$fw_old_home" "$fw_dotdot"
+fx_check "the printed rules miss another file named forge-wait.sh" fw_miss "/home/owner/src/x/scripts/forge-wait.sh /x gh a/b 1 c"
+# note: fw_rule_match splits a compound command first, so the next four checks would also pass under
+# the earlier free-trailing-* rule; the whole-string check below is what tells the two rules apart
+fx_check "the printed rules miss a compound command after the five arguments" fw_miss "$fw_real /x gh a/b 1 c && touch /x/y"
+fx_check "the printed rules miss a command chained with ;" fw_miss "$fw_real /x gh a/b 1 c; rm -rf /x"
+fx_check "the printed rules miss a piped command" fw_miss "$fw_real /x gh a/b 1 c | sh"
+fx_check "the printed rules miss a command run first" fw_miss "touch /x/y && $fw_real /x gh a/b 1 c"
+fx_check "the printed rules miss the script with four arguments" fw_miss "$fw_real /x gh a/b 1"
+# tells the five-* rule from a free trailing * (the earlier "<path> *"): the call with a short
+# argument list matches the old rule and misses the printed one
+fw_old_rule="$fw_real *"
+fx_check "the old free trailing * rule would match the script with three arguments" fw_rule_match "$fw_old_rule" "$fw_real /x gh a/b"
+fx_check "the printed rules miss the script with three arguments" fw_miss "$fw_real /x gh a/b"
+# known limit: a glob cannot stop the whole-string match, so if the matcher does not split a
+# compound command, the five * words span "a b c d e && touch /x/y" and the rule matches it; the
+# script's own argument checks and a matcher that splits are what stop it, not the glob
+fx_check "known limit: unsplit, the printed rules match a compound command whose first part has five words" fw_whole_match "$fw_printed" "$fw_real /x gh a/b 1 c && touch /x/y"
+fx_check "the printed rules miss the script with no arguments" fw_miss "$fw_real"
+fx_check "the printed rules miss a script named forge-wait.sh2" fw_miss "${fw_real}2 /x gh a/b 1 c"
+fx_check "the printed rules miss a gh command carrying the script path as an argument" fw_miss "gh pr merge $fw_real x y z w"
+fx_check "the printed rules miss a tea command" fw_miss "tea pr list --repo /x"
 fx_check "full machine names the shipped commit-lint.sh to install" grep -qF "$lint" <<<"$out"
 fx_check "full machine says commit-lint.sh goes to ~/.config/git" grep -qF '~/.config/git/commit-lint.sh' <<<"$out"
 fx_check "full machine prints the commit-msg hook config" bash -c '
@@ -186,8 +222,27 @@ stub_leads_with_command_grep() { # before the cd rule, the printed stub's first 
 }
 fx_check "the printed CLAUDE.md stub leads its shell lines with command grep" stub_leads_with_command_grep
 fx_check "full machine changes nothing" test "$(snapshot)" = "$before"
-run 'amp&home'
-fx_check "a home holding & is written into the forge-wait rules as it is" prints_baseline 'amp&home'
+# the path is the installed script's real one: a symlinked skill dir resolves, and a path holding & prints as it is
+ln -s "$repo_root" "$work/lnk"
+prereqs_at=$work/lnk/skills/setup/check-prereqs.sh run full; prereqs_at=
+fx_check "a symlinked install prints the script's real path" prints_baseline full
+mkdir -p "$work/a&b/scripts" "$work/a&b/skills"
+cp -R "$skill" "$work/a&b/skills/setup"; cp "$script_fw" "$work/a&b/scripts/forge-wait.sh"
+prereqs_at=$work/a\&b/skills/setup/check-prereqs.sh run 'amp&home'; prereqs_at=
+fx_check "an install path holding & is written into the forge-wait rules as it is" prints_baseline 'amp&home' "$(cd "$work/a&b/scripts" && pwd -P)/forge-wait.sh"
+# an install with no scripts/ beside skills/ has no forge-wait.sh to name: the helper says so and
+# exits non-zero rather than printing a rule for a path that is not there
+mkdir -p "$work/noscripts/skills"; cp -R "$skill" "$work/noscripts/skills/setup"
+prereqs_at=$work/noscripts/skills/setup/check-prereqs.sh run full; prereqs_at=
+fx_check "an install with no scripts/ beside skills/ reports it missing" grep -q '^missing: the plugin.s scripts/ directory' <<<"$out"
+fx_check "an install with no scripts/ beside skills/ exits non-zero" test "$rc" != 0
+fx_check "an install with no scripts/ beside skills/ prints no forge-wait rule" bash -c '! grep -q "forge-wait" <<<"$1"' _ "$out"
+# a scripts/ directory without forge-wait.sh in it is just as missing
+mkdir -p "$work/nofw/scripts" "$work/nofw/skills"; cp -R "$skill" "$work/nofw/skills/setup"
+prereqs_at=$work/nofw/skills/setup/check-prereqs.sh run full; prereqs_at=
+fx_check "an install whose scripts/ lacks forge-wait.sh reports it missing" grep -q '^missing: the plugin.s scripts/forge-wait.sh' <<<"$out"
+fx_check "an install whose scripts/ lacks forge-wait.sh exits non-zero" test "$rc" != 0
+fx_check "an install whose scripts/ lacks forge-wait.sh prints no forge-wait rule" bash -c '! grep -q "FORGE_WAIT_PATH\|forge-wait.sh \*" <<<"$1"' _ "$out"
 run tea
 fx_check "tea satisfies the forge prerequisite" test "$rc" = 0
 run nobd
@@ -212,7 +267,7 @@ fx_check "no jq: exit non-zero" test "$rc" != 0
 run subdir deep/er
 fx_check "project-scoped install counts from a subdirectory" grep -q '^present: mattpocock-skills' <<<"$out"
 ln -s "$work/subdir/cwd" "$work/subdir/link"
-out=$(cd "$work/subdir/link/deep" && env -i PATH="$work/subdir/bin:$work/tools" HOME="$work/subdir/home" SETUP_PLUGINS_DIR="$work/subdir/plugins" "$(command -v bash)" "$prereqs" 2>&1)
+out=$(cd "$work/subdir/link/deep" && env -i PATH="$work/subdir/bin:$work/tools" HOME="$work/subdir/home" SETUP_PLUGINS_DIR="$work/subdir/plugins" "$(command -v bash)" "${prereqs_at:-$prereqs}" 2>&1)
 fx_check "project-scoped install counts through a symlinked path" grep -q '^present: mattpocock-skills' <<<"$out"
 run projmcp
 fx_check "Atlassian under .projects[<path>].mcpServers is present" grep -q '^present: Atlassian' <<<"$out"

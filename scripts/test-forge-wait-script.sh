@@ -7,7 +7,7 @@
 # alone: a head that moves during the wait (exit 1, the moved head named), a watch that fails
 # for another reason (exit 1 unless no check is pending), a head read failing for another reason
 # (retried), a recheck config error and stderr kept out of the compared values. Covers tea
-# without jq and a wrong usage.
+# without jq, a wrong usage and each argument shape it refuses (forge, repo, PR number, tip).
 # Each stub answers from a file of lines (one per call, the last one repeating) and counts its calls.
 # Usage: scripts/test-forge-wait-script.sh
 set -uo pipefail
@@ -54,7 +54,7 @@ put() { local n=$1; shift; printf '%s\n' "$@" > "$st/$n"; rm -f "$st/$n.calls"; 
 calls() { [ -f "$st/$1.calls" ] && wc -l < "$st/$1.calls" | tr -d ' ' || echo 0; }
 run() { out=$(PATH="$bin:$PATH" ST=$st FORGE_WAIT_SLEEP=0 "$script" "$@" 2>&1); rc=$?; }
 cfg='unable to get or create config file: permission denied'
-tip=abc123
+tip=abc1234
 pend='{"total_count":1,"statuses":[{"status":"pending"}]}'
 none='{"total_count":0,"statuses":[]}'
 red='{"total_count":1,"statuses":[{"status":"failure"}]}'
@@ -158,14 +158,14 @@ fx_check "gh head re-read failed: read the head three times" fx_eq "$(calls head
 
 # tea: config error
 put status "$cfg"
-run /o tea /o 7 $tip
+run /o tea org/r 7 $tip
 fx_check "tea config error: exits 1" fx_eq "$rc" 1
 fx_check "tea config error: names it" fx_eq "$out" "forge error: $cfg"
 fx_check "tea config error: stops at the first read" fx_eq "$(calls status)" 1
 
 # tea: no status yet (head not seen), then pending, then passing
 put status "$none" "$pend" "$green"
-run /o tea /o 7 $tip
+run /o tea org/r 7 $tip
 fx_check "tea registered then passing: exits 0" fx_eq "$rc" 0
 fx_check "tea registered then passing: finished line" fx_eq "$out" "checks finished"
 fx_check "tea registered then passing: read three times" fx_eq "$(calls status)" 3
@@ -173,7 +173,7 @@ fx_check "tea registered then passing: read three times" fx_eq "$(calls status)"
 # tea: a stderr warning stays out of the JSON
 : > "$st/warn"
 put status "$green"
-run /o tea /o 7 $tip
+run /o tea org/r 7 $tip
 fx_check "tea stderr warning: exits 0" fx_eq "$rc" 0
 fx_check "tea stderr warning: finished line only" fx_eq "$out" "checks finished"
 rm -f "$st/warn"
@@ -182,13 +182,13 @@ rm -f "$st/warn"
 mkdir -p "$scratch/nojq"; ln -sf "$bin/tea" "$scratch/nojq/tea"
 for t in mktemp rm cat; do ln -sf "$(command -v $t)" "$scratch/nojq/$t"; done
 put status "$green"
-out=$(PATH="$scratch/nojq" ST=$st FORGE_WAIT_SLEEP=0 /bin/bash "$script" /o tea /o 7 $tip 2>&1); rc=$?
+out=$(PATH="$scratch/nojq" ST=$st FORGE_WAIT_SLEEP=0 /bin/bash "$script" /o tea org/r 7 $tip 2>&1); rc=$?
 fx_check "tea without jq: exits 2" fx_eq "$rc" 2
 fx_check "tea without jq: refused line" fx_eq "$out" "refused: tea needs jq on PATH"
 
 # tea: failing checks end the wait too
 put status "$pend" "$red"
-run /o tea /o 7 $tip
+run /o tea org/r 7 $tip
 fx_check "tea checks failing: exits 0" fx_eq "$rc" 0
 fx_check "tea checks failing: finished line" fx_eq "$out" "checks finished"
 fx_check "tea checks failing: read twice" fx_eq "$(calls status)" 2
@@ -200,5 +200,31 @@ fx_check "too few args: refused line" fx_eq "$out" "refused: usage: forge-wait.s
 run /o hub org/r 7 $tip
 fx_check "unknown forge: exits 2" fx_eq "$rc" 2
 fx_check "unknown forge: refused line" fx_eq "$out" "refused: forge must be gh or tea, not hub"
+
+# the argument shapes the permission rule cannot pin: each wrong shape is refused before any forge call
+refuses() { # <label> <refusal text after "refused: "> <forge> <repo> <pr> <tip>
+  put head $tip; put probe '[{"name":"x"}]'; put watch ok; put status "$green"
+  run /o "$3" "$4" "$5" "$6"
+  fx_check "$1: exits 2" fx_eq "$rc" 2
+  fx_check "$1: refused line" fx_eq "$out" "refused: $2"
+  fx_check "$1: no forge call made" fx_eq "$(calls head)$(calls status)" 00
+}
+long=$(printf 'a%.0s' $(seq 65))
+refuses "repo without owner" "repo must be owner/name, not r" gh r 7 $tip
+refuses "repo with a path" "repo must be owner/name, not ../r/x/y" gh ../r/x/y 7 $tip
+refuses "repo with a ../ owner" "repo must be owner/name, not ../r" gh ../r 7 $tip
+refuses "repo with a . name" "repo must be owner/name, not org/." gh org/. 7 $tip
+refuses "repo with a .. name" "repo must be owner/name, not org/.." gh org/.. 7 $tip
+refuses "repo with a space" "repo must be owner/name, not org/r x" gh "org/r x" 7 $tip
+refuses "repo on tea too" "repo must be owner/name, not r" tea r 7 $tip
+refuses "pr not digits" "pr must be digits, not 7a" gh org/r 7a $tip
+refuses "pr with a flag shape" "pr must be digits, not --watch" gh org/r --watch $tip
+refuses "tip not hex" "tip must be 7 to 64 hex digits, not abc12g" gh org/r 7 abc12g
+refuses "tip with a command" "tip must be 7 to 64 hex digits, not abc;rm" tea org/r 7 'abc;rm'
+refuses "tip shorter than 7 hex digits" "tip must be 7 to 64 hex digits, not abc123" gh org/r 7 abc123
+refuses "tip longer than 64 hex digits" "tip must be 7 to 64 hex digits, not $long" gh org/r 7 "$long"
+run /o gh org/r 7 $tip extra
+fx_check "six args: exits 2" fx_eq "$rc" 2
+fx_check "six args: refused line" fx_eq "$out" "refused: usage: forge-wait.sh <owner> <gh|tea> <repo> <pr> <tip SHA>"
 
 fx_report_fails
