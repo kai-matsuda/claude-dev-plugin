@@ -1010,11 +1010,11 @@ hasc "refusal only when every story is closed" 'refused: every story is closed'
 hasc "add mode shows each story's state" 'finished, open with failed tasks, waiting'
 hasc "add mode reads the failed twice: notes" 'names the `failed twice:` reason it answers'
 hasc "add mode quizzes the additions only" 'quizzes the additions only'
-# one forge query per finished story an addition touches, sandbox-disabled as /close-story's
+# one forge query per finished story an addition touches, run as the Forge decision says, as /close-story's
 hasc_row "forge query, GitHub" repo-plumbing-pins "the merge guard's GitHub query"
 hasc_row "forge query, Forgejo/Gitea" repo-plumbing-pins "the merge guard's Forgejo query names the repo"
 lacks "Forgejo/Gitea forge query without --repo" "$pin_tea_api_without_repo"
-hasc_row "forge query runs sandbox-disabled" repo-plumbing-pins "the merge guard runs the forge query sandbox-disabled"
+hasc_row "forge query runs as the Forge decision says" repo-plumbing-pins "the merge guard runs the forge query as the Forge decision says"
 hasc "MERGED forces a new story on the old one's closure" 'a new story blocked on its closure and on the new publish'
 hasc "MERGED reminds the close" "$pin_run_close_story"
 hasc "OPEN defaults to a re-cut" '`OPEN` defaults to a re-cut'
@@ -1125,6 +1125,10 @@ retired_loop='evidence run|a later run reviews the fix|a third round of either k
 # the gate with no check command (ADR 0015): every owner repo has a check target, so no doc names
 # a review-only gate or a repo, task or gate without a check command
 retired_gate='review-only|no check command|with(out)? a check command'
+# a forge command runs plainly first and is rerun with the sandbox disabled only when it fails with the
+# forge CLI's config error or a sandbox denial, a rule the orchestration doc's Forge decision states once
+# and the rest cite (dev-aosb): no doc tells an agent to disable the sandbox for a forge command up front
+retired_forge_sandbox='run each forge command with the sandbox disabled|run the one forge command with the sandbox disabled|forge command of this step run with the sandbox disabled|with the sandbox disabled as every forge command is|push runs with the sandbox disabled|with the sandbox disabled, as the push is|run with the sandbox disabled, as `/dev:close-story`|with the sandbox disabled, as forge commands do|Run that one forge command with the sandbox disabled'
 # a rule that moved to harness.md (dev-9k5.1.2) cited at the orchestration doc, doc first as "the
 # orchestration doc's Worktrees", "the orchestration doc's worktree fallback", "the orchestration doc's Scratch space says
 # (Literal paths)" or "(`orchestration.md`, Commits)", or rule first as 'the "Waiting" rule of
@@ -1179,6 +1183,7 @@ while IFS= read -r f; do
   lacksw "retired walk-up wording in $f" "$walkup"
   lacksw "retired story-DAG wording in $f" "$retired_dag"
   lacksw "retired two-gate wording in $f" "$retired_loop"
+  lacksw "retired forge sandbox-disable wording in $f" "$retired_forge_sandbox"
   lacksw "retired review-only gate wording in $f" "$retired_gate"
   # the retired vocabulary (dev-9k5.1.11): the epic, task and landing roles, the built-in
   # review by name, the review marker, the lint command and the test seams as checks
@@ -1436,7 +1441,7 @@ sec_has "## Delivery" "Delivery's stray-commit check runs the stray-commit scrip
 sec_has "## Delivery" "Delivery's stray-commit failed: line" 'failed: stray commit <sha> <subject>'
 sec_has "## Delivery" "Delivery's push command" 'git -C <owner> push -u origin <branch>'
 sec_has "## Delivery" "Delivery's refused push is a failed: line" 'failed: push <command>: <error>'
-sec_has "## Delivery" "Delivery's push runs with the sandbox disabled, and only an error outside it is a refused push" 'The push runs with the sandbox disabled, as forge commands do; only an error outside the sandbox is a refused push'
+sec_has "## Delivery" "Delivery's push runs as every forge command does, and only an error that outlasts the rerun outside the sandbox is a refused push" 'The push runs as every forge command does (the Forge decision'"'"'s plain-first rule); only an error that outlasts the rerun outside the sandbox is a refused push'
 sec_has "## Delivery" "Delivery's PR body is written by mattpocock-skills:pr" 'the Skill tool with `mattpocock-skills:pr` to write the body'
 sec_has "## Delivery" "Delivery's PR body is written with a forge" '3. **PR body.** With a forge, call the Skill tool'
 row_phrase implement-spec-pins "tea fallback evidence" && sec_has "## Delivery" "Delivery's Evidence is the delivered tip's check record" "its Evidence $row_text"
@@ -1458,7 +1463,7 @@ sec_has "## Delivery" "Delivery's conflicted PR records no delivery" 'with no `d
 sec_has "## Delivery" "Delivery reads an unknown merge state again" 'A `gh` merge state of `UNKNOWN` is not yet known: it is read again, never read as a conflict'
 sec_has "## Delivery" "Delivery tells a conflict from a repo with no checks" 'is a forge with no checks, for a repo whose workflows never run on PRs'
 sec_has "## Delivery" "Delivery reads a head other than the tip like UNKNOWN" 'a head other than `<tip SHA>` (the push not yet seen) read like `UNKNOWN`'
-sec_has "## Delivery" "Delivery fetches the default branch with the sandbox disabled on tea" 'git -C <owner> fetch origin <default branch>` (with the sandbox disabled, as the push is)'
+sec_has "## Delivery" "Delivery fetches the default branch as the push runs on tea" 'git -C <owner> fetch origin <default branch>` (run as the push is)'
 sec_has "## Delivery" "Delivery verifies the default branch ref before merge-tree" 'git -C <owner> rev-parse --verify origin/<default branch>'
 sec_has "## Delivery" "Delivery's conflict fix is the human's" 'resolve the conflict on the branch, and a rerun pushes it again and reads the merge state again'
 sec_has "## Delivery" "Delivery's conflict does not spend the wait's timeout" 'the wait is not entered and its `timeout` is not spent'

@@ -22,13 +22,13 @@ sec	the forge CLI takes the repo by --repo, tea by its absolute path	the repo's 
 sec	the forge is decided once	Decide **once** which forge fronts the repo
 sec	the forge is pre-checked on the origin URL	Pre-check `git -C <owner> remote get-url origin`
 sec	every forge command names its repo	every forge command names its repo
-sec	the forge is proved outside the sandbox	run each forge command with the sandbox disabled
+sec	the forge runs plain first, rerun sandbox-disabled only on a config error or denial	**Plain first:** run each forge command
 sec	the Gitignore commit is keyed on a dirty file	git -C <owner> status --porcelain -- .gitignore
 sec	the Gitignore commit counts the rule's four entries	is one of the rule's four entries and no line is removed
 sec	the Gitignore commit follows the Commits rule	commit it as the harness doc's Commits rule says
 sec	the Gitignore commit goes through a message file	`git -C <owner> commit -F <owner>/.tmp/commit-msg`
 sec	a user edit in .gitignore is a failed: line, not absorbed	failed: <owner>/.gitignore has uncommitted edits	has uncommitted edits
-sec	the merge guard runs the forge query sandbox-disabled	with the sandbox disabled, as `/dev:close-story`'s "The forge shows MERGED" section does
+sec	the merge guard runs the forge query as the Forge decision says	run as the Forge decision says (plain first), as `/dev:close-story`'s "The forge shows MERGED" section does
 sec	the merge guard's GitHub query	gh pr view <url> --json state
 sec	the merge guard's Forgejo query names the repo	tea api --repo <owner> repos/{owner}/{repo}/pulls/<n>
 sec	the merge guard refuses a MERGED PR	MERGED: refuse
