@@ -55,6 +55,16 @@ fx_check "the implementer's reset with -C matches no ask rule" no_ask_match "$sn
 fx_check "the implementer's plain reset matches no ask rule" no_ask_match "$snippet" 'git reset --keep feat/x'
 ask_matches() { ! no_ask_match "$@"; }
 fx_check "the ask rule still catches a hard reset" ask_matches "$snippet" 'git reset --hard feat/x'
+# the forge-check wait (INFRA-44): one narrow rule pair covers the plugin's forge-wait.sh at any
+# installed version, so the plain-first run needs neither the unsandboxed rerun nor a prompt
+fw_pat='*/plugins/cache/claude-dev-plugin/dev/*/scripts/forge-wait.sh*'
+fx_check "baseline excludes forge-wait.sh at any plugin version from the sandbox" jq -e --arg p "$fw_pat" '
+  .sandbox.excludedCommands | index($p) != null' "$snippet"
+fx_check "baseline allows forge-wait.sh at any plugin version without a prompt" jq -e --arg p "Bash($fw_pat)" '
+  .permissions.allow | index($p) != null' "$snippet"
+fx_check "baseline exempts no forge CLI and no other script, only forge-wait.sh" jq -e '
+  (.sandbox.excludedCommands + .permissions.allow)
+  | map(select(test("gh|tea|forge|scripts"))) | length == 2 and all(test("scripts/forge-wait\\.sh\\*"))' "$snippet"
 no_org() { ! jq -c '[.. | strings]' "$1" |
   grep -Eiq 'cargo|rustup|crates|npm|pip|gh |tea |github|gitea|mice'; }
 fx_check "baseline carries no toolchain, registry or forge line" no_org "$snippet"

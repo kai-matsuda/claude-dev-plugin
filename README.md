@@ -56,8 +56,9 @@ Run it from the repo root; the flag loads that checkout in place of the installe
 - `/dev:setup-repo` once per repo: records the Jira project key in the repo's
   `CLAUDE.md`, initialises beads, and lays out `GLOSSARY.md` and `docs/adr/`.
 
-The baseline settings are org-neutral. Toolchain, registry and forge entries are yours to
-add; the lines below are examples only, not part of the plugin, so replace them with the
+The baseline settings are org-neutral, apart from one rule that lets the plugin's own
+`forge-wait.sh` run unsandboxed and without a prompt. Toolchain, registry and forge-CLI
+entries are yours to add; the lines below are examples only, not part of the plugin, so replace them with the
 ones your machine uses:
 
 ```json

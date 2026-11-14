@@ -34,5 +34,11 @@ edits `~/.claude` or any file outside the repo it runs in, and the check itself 
 The baseline is org-neutral: it denies reads of secret files, asks before destructive git
 and `bd dolt push`, allows `bd`, and enables the sandbox with the beads and Dolt
 directories writable and push, fetch and pull excluded. `~/.config/bd` is writable too,
-because `bd` writes its user-level config there. Toolchain, registry and forge entries
-are the owner's own to add.
+because `bd` writes its user-level config there. One rule is plugin-specific: the plugin's
+own `scripts/forge-wait.sh`, at any installed version (the `plugins/cache/claude-dev-plugin/dev/*/`
+path), is both excluded from the sandbox and allowed. Without it the delivery's forge-check
+wait fails on the forge CLI's config error inside the sandbox and needs an unsandboxed rerun
+with a permission prompt, which an unattended story orchestrator cannot answer (INFRA-44).
+It matches that one script, so no `gh` or `tea` command is exempted. A `--plugin-dir`
+checkout runs from outside the cache path and is not covered. Toolchain, registry and
+forge-CLI entries are the owner's own to add.
