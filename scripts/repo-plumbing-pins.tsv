@@ -22,7 +22,7 @@ sec	the forge CLI takes the repo by --repo, tea by its absolute path	the repo's 
 sec	the forge is decided once	Decide **once** which forge fronts the repo
 sec	the forge is pre-checked on the origin URL	Pre-check `git -C <owner> remote get-url origin`
 sec	every forge command names its repo	every forge command names its repo
-sec	the forge runs plain first, rerun sandbox-disabled only on a config error or denial	**Plain first:** run each forge command
+sec	the forge runs plain first	**Plain first:** run each forge command
 sec	the forge rerun is limited to the config error and a sandbox denial	Only a plain call that fails with the forge CLI's `unable to get or create config file` (not a missing login) or with a sandbox denial is rerun
 sec	any other forge failure is no reason to rerun	any other failure is not a reason to rerun
 sec	the Gitignore commit is keyed on a dirty file	git -C <owner> status --porcelain -- .gitignore

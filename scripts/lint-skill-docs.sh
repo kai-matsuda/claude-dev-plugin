@@ -2445,7 +2445,7 @@ lacks "refusal without the label" 'open tasks <child> <status>, \.\.\.'
 # reads whichever repo the shell sits in (dev-hac)
 hasc "Forgejo/Gitea query names the repo" 'tea api --repo <path> repos/{owner}/{repo}/pulls/<n>'
 # the forge command runs as the orchestration doc's Forge decision says, rerun only on its config error or
-# a sandbox denial, never on any failure (dev-aosb)
+# a sandbox denial, never on any other failure (dev-aosb)
 hasc "forge command runs plainly first, rerun only on the config error or a sandbox denial" "and rerun with the sandbox disabled only on its config error or a sandbox denial."
 lacks "Forgejo/Gitea query without --repo" "$pin_tea_api_without_repo"
 

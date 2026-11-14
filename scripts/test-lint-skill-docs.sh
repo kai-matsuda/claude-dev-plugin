@@ -1854,7 +1854,7 @@ ban_nth ban_evidence_run "retired two-gate wording in $scratch/docs/WORKFLOW.md"
 echo "The retired $ban_evidence_run stays in the spec." >> "$scratch/docs/specs/check-and-review-loop.md"
 expect "a spec keeping '$ban_evidence_run' passes" 0
 
-# a forge command is run plainly first and rerun with the sandbox disabled only on its failure (dev-aosb): the
+# a forge command is run plainly first and rerun with the sandbox disabled only on its config error or a sandbox denial (dev-aosb): the
 # retired "run it with the sandbox disabled" wording is swept from every file kind; docs/specs keeps the words
 fresh
 ban_nth ban_forge_sandbox "retired forge sandbox-disable wording in $scratch/docs/WORKFLOW.md" 1
