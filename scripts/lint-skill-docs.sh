@@ -727,6 +727,11 @@ standards_spec_reviewer="with $rules_folders left to the standards reviewer"
 shell_section='the Shell commands section of `<plugin root>/references/harness.md`'
 pwd_step='first Bash call is `pwd` alone'
 spelled='spelled literally in every later `export`'
+# the three forms the implementer and fix-up briefs state beside their plain-command line, each
+# pointing at its harness doc rule (dev-c5dh, INFRA-45)
+forms_edit="file edits go through the Edit tool (the harness doc's Literal paths rule)"
+forms_commit="a commit message with trailers is written whole to \`<worktree>/.tmp/commit-msg\` and committed with \`git commit -F\` on that file (the harness doc's Commits rule)"
+forms_glob="a glob passed as a flag is quoted, as \`--include='*.md'\` (the harness doc's Shell commands section)"
 # the story gate's two phrases whose order the step 7 awk check reads (below) beside their pins
 gate_first='Each pass runs the checks first'
 gate_same='the same SHA exits the gate'
@@ -2223,8 +2228,19 @@ done
 line_has '^3\. ' "task orchestrator step 3 points at the orchestration doc's Review verdict" "$verdict_cite"
 # the reviewer briefs and both fix-up briefs point at the harness doc's Shell commands section (dev-elkb)
 line_has '^3\. ' "the task reviewer briefs point at the harness doc's Shell commands section" "Both reviewer briefs point at $shell_section"
-line_has '^3\. ' "the red fix-up brief points at the harness doc's Shell commands section" "as every worktree brief; it points at $shell_section"
-line_has '^3\. ' "the blocking fix-up brief points at the harness doc's Shell commands section" "every path spelled out, and it points at $shell_section"
+line_has '^3\. ' "the red fix-up brief points at the harness doc's Shell commands section" "It points at $shell_section"
+line_has '^3\. ' "the blocking fix-up brief points at the harness doc's Shell commands section" "It points at $shell_section"
+# the implementer and both fix-up briefs state the three forms beside their plain-command line
+# (dev-c5dh, INFRA-45); the fix-ups share step 3's line, so each form is pinned there twice
+line_has '^2\. ' "the implementer brief says file edits go through the Edit tool" "$forms_edit"
+line_has '^2\. ' "the implementer brief says a commit message with trailers goes through a message file" "$forms_commit"
+line_has '^2\. ' "the implementer brief says a glob passed as a flag is quoted" "$forms_glob"
+line_has '^3\. ' "the red fix-up brief says file edits go through the Edit tool" "$forms_edit"
+line_has '^3\. ' "the red fix-up brief says a commit message with trailers goes through a message file" "$forms_commit"
+line_has '^3\. ' "the red fix-up brief says a glob passed as a flag is quoted" "$forms_glob"
+line_has '^3\. ' "the blocking fix-up brief says file edits go through the Edit tool" "$forms_edit"
+line_has '^3\. ' "the blocking fix-up brief says a commit message with trailers goes through a message file" "$forms_commit"
+line_has '^3\. ' "the blocking fix-up brief says a glob passed as a flag is quoted" "$forms_glob"
 lacks "the zero-findings bar" "$pin_retired_zero_findings_bar"
 # the skill states its row of the orchestration doc's table, the run's check command from its brief, and
 # cites the harness doc in one line (dev-9k5.1.7); its row reports a reviewed branch (dev-b8d.1.4)

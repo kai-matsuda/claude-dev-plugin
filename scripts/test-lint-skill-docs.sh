@@ -2942,6 +2942,16 @@ pin_anchor "the clean-worktree guard that hides untracked files"
 swap_phrase skills/task-orchestrator/SKILL.md "($pinned_anchor.*)$" "\\1 $pinned_phrase"
 sec=16 expect "the clean-worktree guard regaining --untracked-files=no fails" 1 "present: the clean-worktree guard that hides untracked files"
 
+# the implementer brief drops one of the three forms beside its plain-command line (dev-c5dh, INFRA-45)
+for pin in 'the implementer brief says file edits go through the Edit tool' \
+  'the implementer brief says a commit message with trailers goes through a message file' \
+  'the implementer brief says a glob passed as a flag is quoted'; do
+  fresh
+  pin_phrase "$pin"
+  drop_phrase skills/task-orchestrator/SKILL.md "$pinned_phrase"
+  sec=16 expect "task-orchestrator dropping '$pin' fails" 1 "missing: $pin"
+done
+
 for case in 'Then merge, @merge@.|present: a write command on the owner checkout' \
   'Then `git -C <owner> switch <branch>`.|present: a write command on the owner checkout'; do
   seed=${case%%|*}
