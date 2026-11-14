@@ -10,7 +10,8 @@
 #                                     read in the loop or the watch, never looped on to the caller's
 #                                     timeout; or a gh watch that failed with checks still pending;
 #                                     or a gh head that moved off the tip during the wait
-#   refused: <reason>                 exit 2, a wrong usage, an unknown forge, or tea without jq
+#   refused: <reason>                 exit 2, a wrong usage, a forge other than gh or tea, a <repo> not
+#                                     owner/name, a <pr> not digits, a <tip SHA> not hex, or tea without jq
 # gh and tea stderr is kept apart from the compared head SHA and the JSON, but scanned for the config
 # error, so a stray warning never keeps the head from equalling the tip.
 # A wait that outlasts its caller's `timeout` is killed by it and prints nothing: the caller reads
@@ -37,6 +38,12 @@ set -uo pipefail
 refuse() { echo "refused: $*"; exit 2; }
 [ "$#" = 5 ] || refuse "usage: forge-wait.sh <owner> <gh|tea> <repo> <pr> <tip SHA>"
 owner=$1 forge=$2 repo=$3 pr=$4 tip=$5
+# The permission rule and sandbox exclusion that cover this script match its arguments only as a
+# glob of five words, so the shapes are pinned here (dev-6xui, INFRA-44), tea's unused ones too.
+case $forge in gh|tea) ;; *) refuse "forge must be gh or tea, not $forge" ;; esac
+[[ $repo =~ ^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$ ]] || refuse "repo must be owner/name, not $repo"
+[[ $pr =~ ^[0-9]+$ ]] || refuse "pr must be digits, not $pr"
+[[ $tip =~ ^[0-9a-fA-F]+$ ]] || refuse "tip must be hex, not $tip"
 errf=$(mktemp "${TMPDIR:-/tmp}/forge-wait.XXXXXX") || refuse "no scratch file"
 trap 'rm -f "$errf"' EXIT
 # cfg_err <stdout>: exit 1 with the text when stdout or the stderr of the last call (in $errf) holds
@@ -85,6 +92,5 @@ case $forge in
       sleep "$nap"
     done
     ;;
-  *) refuse "forge must be gh or tea, not $forge" ;;
 esac
 echo "checks finished"

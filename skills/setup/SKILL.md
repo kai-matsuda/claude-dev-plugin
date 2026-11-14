@@ -35,22 +35,25 @@ The baseline is org-neutral apart from one rule pair: it denies reads of secret 
 and `bd dolt push`, allows `bd`, and enables the sandbox with the beads and Dolt
 directories writable and push, fetch and pull excluded. `~/.config/bd` is writable too,
 because `bd` writes its user-level config there. The pair is plugin-specific: the plugin's own
-`scripts/forge-wait.sh`, run with its arguments from the installed cache
-(`~/.claude/plugins/cache/claude-dev-plugin/dev/*/scripts/forge-wait.sh *`, the `*` after
-`dev/` standing for the plugin version), is both excluded from the sandbox
-(`sandbox.excludedCommands`) and allowed (`permissions.allow`). The printed snippet has the
-owner's home spelled out in place of `~`, because a Bash pattern is matched against the
-command string and nothing confirms the matchers expand `~`; the file in the plugin keeps `~`,
-so the owner (or a setup tool such as chezmoi) pastes the printed snippet, never the file.
+`scripts/forge-wait.sh`, run with its five arguments from the installed cache, is both
+excluded from the sandbox (`sandbox.excludedCommands`) and allowed (`permissions.allow`). The
+file in the plugin holds the placeholder `FORGE_WAIT_PATH`; the printed snippet has in its
+place the installed script's real path (resolved with `pwd -P`), with no wildcard before the
+script name, and ends in five `*` words: `<path> * * * * *`. The path names the installed
+plugin version, so the owner pastes the printed snippet again after each plugin update, as
+for the commit-msg hook. A Bash pattern is matched against the command string and nothing confirms the matchers expand `~`, so the snippet is printed, never copied from the file; the owner (or a setup tool such as chezmoi) pastes the printed one.
 Without the pair the delivery's forge-check wait fails on the forge CLI's config error
 inside the sandbox and, in a permission mode that prompts for an unlisted command (the
 default; ADR 0009), needs an unsandboxed rerun with a permission prompt, which an
-unattended story orchestrator cannot answer (dev-tt2l, INFRA-44). The pattern starts at the
-cache root, so a `gh` or `tea` command carrying that path as an argument does not match, and
-the space before the trailing `*` rules out `forge-wait.sh2`. Residual breadth: the version
-`*` can span `/`, so any file named `forge-wait.sh` under `scripts/` below `dev/` in the
-plugin cache matches (the cache is not sandbox-writable); and whether
-`sandbox.excludedCommands` reads the space before `*` as a word boundary is not verified, so
-if it does not, `forge-wait.sh2` is excluded there too. A fork installed under another
-marketplace name and a `--plugin-dir` checkout run from outside that path and are not
-covered. Toolchain, registry and forge-CLI entries are the owner's own to add.
+unattended story orchestrator cannot answer (dev-tt2l, INFRA-44). The pattern is the exact path, so a `../` path, a script of the same name elsewhere, a
+`forge-wait.sh2` and a `gh` or `tea` command carrying the path as an argument do not match,
+and a compound command (`<path> a b c d e && other`) is split into its parts, as permission
+rules do, and `other` matches no rule. What it does not pin: a glob has no argument count or
+shape, so `<path> * * * * *` also matches a call with more than five words, and `*` may hold
+spaces; `forge-wait.sh` itself refuses (exit 2) a forge other than `gh` or `tea`, a repo not
+`owner/name`, a PR number that is not digits and a tip that is not hex. Whether
+`sandbox.excludedCommands` splits a compound command as permission rules do is not verified
+(dev-6xui). Before the owner pastes the printed pair no machine has it, so the plain run is
+still rerun with the sandbox disabled. A fork installed under another marketplace name and a
+`--plugin-dir` checkout run from a different path and are covered only by pasting the pair
+that checkout's own `check-prereqs.sh` prints. Toolchain, registry and forge-CLI entries are the owner's own to add.

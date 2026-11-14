@@ -365,8 +365,8 @@ command: it prints `checks finished` (exit 0), `forge error: <text>` on the forg
 config error, a `gh` watch that failed with checks still pending or unreadable, or a `gh`
 head that moved off the tip during the wait (exit 1; on `gh`, `checks finished` is for the
 tip's checks as of the head's second read, and a failed head read other than the config
-error is retried), or `refused: <reason>` on a wrong usage, an unknown forge or `tea`
-without `jq` (exit 2); the setup baseline exempts the script from the sandbox and allows it, so
+error is retried), or `refused: <reason>` on a wrong usage, a forge other than `gh` or `tea`, a repo not
+`owner/name`, a PR number not digits, a tip not hex or `tea` without `jq` (exit 2); the setup baseline exempts the script, by the installed path the setup check prints, from the sandbox and allows it, so
 on a machine set up from it the plain run should need no rerun (the harness's matcher for the
 exclusion is unverified), and a plain run's config error (a machine without the baseline, or a
 fork or `--plugin-dir` copy it does not cover) is rerun once with the sandbox disabled, and the

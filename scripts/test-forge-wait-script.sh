@@ -7,7 +7,7 @@
 # alone: a head that moves during the wait (exit 1, the moved head named), a watch that fails
 # for another reason (exit 1 unless no check is pending), a head read failing for another reason
 # (retried), a recheck config error and stderr kept out of the compared values. Covers tea
-# without jq and a wrong usage.
+# without jq, a wrong usage and each argument shape it refuses (forge, repo, PR number, tip).
 # Each stub answers from a file of lines (one per call, the last one repeating) and counts its calls.
 # Usage: scripts/test-forge-wait-script.sh
 set -uo pipefail
@@ -158,14 +158,14 @@ fx_check "gh head re-read failed: read the head three times" fx_eq "$(calls head
 
 # tea: config error
 put status "$cfg"
-run /o tea /o 7 $tip
+run /o tea org/r 7 $tip
 fx_check "tea config error: exits 1" fx_eq "$rc" 1
 fx_check "tea config error: names it" fx_eq "$out" "forge error: $cfg"
 fx_check "tea config error: stops at the first read" fx_eq "$(calls status)" 1
 
 # tea: no status yet (head not seen), then pending, then passing
 put status "$none" "$pend" "$green"
-run /o tea /o 7 $tip
+run /o tea org/r 7 $tip
 fx_check "tea registered then passing: exits 0" fx_eq "$rc" 0
 fx_check "tea registered then passing: finished line" fx_eq "$out" "checks finished"
 fx_check "tea registered then passing: read three times" fx_eq "$(calls status)" 3
@@ -173,7 +173,7 @@ fx_check "tea registered then passing: read three times" fx_eq "$(calls status)"
 # tea: a stderr warning stays out of the JSON
 : > "$st/warn"
 put status "$green"
-run /o tea /o 7 $tip
+run /o tea org/r 7 $tip
 fx_check "tea stderr warning: exits 0" fx_eq "$rc" 0
 fx_check "tea stderr warning: finished line only" fx_eq "$out" "checks finished"
 rm -f "$st/warn"
@@ -182,13 +182,13 @@ rm -f "$st/warn"
 mkdir -p "$scratch/nojq"; ln -sf "$bin/tea" "$scratch/nojq/tea"
 for t in mktemp rm cat; do ln -sf "$(command -v $t)" "$scratch/nojq/$t"; done
 put status "$green"
-out=$(PATH="$scratch/nojq" ST=$st FORGE_WAIT_SLEEP=0 /bin/bash "$script" /o tea /o 7 $tip 2>&1); rc=$?
+out=$(PATH="$scratch/nojq" ST=$st FORGE_WAIT_SLEEP=0 /bin/bash "$script" /o tea org/r 7 $tip 2>&1); rc=$?
 fx_check "tea without jq: exits 2" fx_eq "$rc" 2
 fx_check "tea without jq: refused line" fx_eq "$out" "refused: tea needs jq on PATH"
 
 # tea: failing checks end the wait too
 put status "$pend" "$red"
-run /o tea /o 7 $tip
+run /o tea org/r 7 $tip
 fx_check "tea checks failing: exits 0" fx_eq "$rc" 0
 fx_check "tea checks failing: finished line" fx_eq "$out" "checks finished"
 fx_check "tea checks failing: read twice" fx_eq "$(calls status)" 2
@@ -200,5 +200,24 @@ fx_check "too few args: refused line" fx_eq "$out" "refused: usage: forge-wait.s
 run /o hub org/r 7 $tip
 fx_check "unknown forge: exits 2" fx_eq "$rc" 2
 fx_check "unknown forge: refused line" fx_eq "$out" "refused: forge must be gh or tea, not hub"
+
+# the argument shapes the permission rule cannot pin: each wrong shape is refused before any forge call
+refuses() { # <label> <forge> <repo> <pr> <tip>
+  put head $tip; put probe '[{"name":"x"}]'; put watch ok; put status "$green"
+  run /o "$2" "$3" "$4" "$5"
+  fx_check "$1: exits 2" fx_eq "$rc" 2
+  fx_check "$1: refused line" bash -c '[[ $1 == "refused: "* ]]' _ "$out"
+  fx_check "$1: no forge call made" fx_eq "$(calls head)$(calls status)" 00
+}
+refuses "repo without owner" gh r 7 $tip
+refuses "repo with a path" gh ../r/x/y 7 $tip
+refuses "repo with a space" gh "org/r x" 7 $tip
+refuses "repo on tea too" tea r 7 $tip
+refuses "pr not digits" gh org/r 7a $tip
+refuses "pr with a flag shape" gh org/r --watch $tip
+refuses "tip not hex" gh org/r 7 abc12g
+refuses "tip with a command" tea org/r 7 'abc;rm'
+run /o gh org/r 7 $tip extra
+fx_check "six args: exits 2" fx_eq "$rc" 2
 
 fx_report_fails
