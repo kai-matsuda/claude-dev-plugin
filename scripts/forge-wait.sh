@@ -38,10 +38,12 @@ set -uo pipefail
 refuse() { echo "refused: $*"; exit 2; }
 [ "$#" = 5 ] || refuse "usage: forge-wait.sh <owner> <gh|tea> <repo> <pr> <tip SHA>"
 owner=$1 forge=$2 repo=$3 pr=$4 tip=$5
-# The permission rule and sandbox exclusion that cover this script match its arguments only as a
-# glob of five words, so the shapes are pinned here (dev-6xui, INFRA-44), tea's unused ones too.
+# The permission rule and sandbox exclusion that cover this script match its arguments only as
+# five * globs, each matching any text, so the shapes are pinned here, tea's unused ones too
+# (dev-6xui, INFRA-44).
 case $forge in gh|tea) ;; *) refuse "forge must be gh or tea, not $forge" ;; esac
-[[ $repo =~ ^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$ ]] || refuse "repo must be owner/name, not $repo"
+[[ $repo =~ ^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$ && ${repo%%/*} != .. && ${repo%%/*} != . \
+  && ${repo#*/} != .. && ${repo#*/} != . ]] || refuse "repo must be owner/name, not $repo"
 [[ $pr =~ ^[0-9]+$ ]] || refuse "pr must be digits, not $pr"
 [[ $tip =~ ^[0-9a-fA-F]{7,64}$ ]] || refuse "tip must be 7 to 64 hex digits, not $tip"
 errf=$(mktemp "${TMPDIR:-/tmp}/forge-wait.XXXXXX") || refuse "no scratch file"

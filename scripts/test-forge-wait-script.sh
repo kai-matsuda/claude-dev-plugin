@@ -211,6 +211,9 @@ refuses() { # <label> <forge> <repo> <pr> <tip>
 }
 refuses "repo without owner" gh r 7 $tip
 refuses "repo with a path" gh ../r/x/y 7 $tip
+refuses "repo with a ../ owner" gh ../r 7 $tip
+refuses "repo with a . name" gh org/. 7 $tip
+refuses "repo with a .. name" gh org/.. 7 $tip
 refuses "repo with a space" gh "org/r x" 7 $tip
 refuses "repo on tea too" tea r 7 $tip
 refuses "pr not digits" gh org/r 7a $tip

@@ -184,6 +184,11 @@ fx_check "the printed rules match the script with its five arguments" fw_hit "$f
 fx_check "the printed rules match the script with the tea forge" fw_hit "$fw_real /x/owner tea o/r 3 abc1234"
 fx_check "the printed rules miss a ../ path to the same script" fw_miss "${fw_real%/scripts/forge-wait.sh}/scripts/../scripts/forge-wait.sh /x gh a/b 1 c"
 fx_check "the printed rules miss a ../ path out of the plugin cache" fw_miss "$HOME/.claude/plugins/cache/claude-dev-plugin/dev/../../../../src/x/scripts/forge-wait.sh /x gh a/b 1 c"
+# contrast: the earlier rule, with home spelled out, matches the ../ path out of the cache that the
+# printed rule misses
+fw_old_home="$HOME/.claude/plugins/cache/claude-dev-plugin/dev/*/scripts/forge-wait.sh *"
+fw_dotdot="$HOME/.claude/plugins/cache/claude-dev-plugin/dev/../../../../src/x/scripts/forge-wait.sh /x gh a/b 1 c"
+fx_check "the earlier wildcard rule matches a ../ path out of the plugin cache" fw_rule_match "$fw_old_home" "$fw_dotdot"
 fx_check "the printed rules miss another file named forge-wait.sh" fw_miss "/home/owner/src/x/scripts/forge-wait.sh /x gh a/b 1 c"
 fx_check "the printed rules miss a compound command after the five arguments" fw_miss "$fw_real /x gh a/b 1 c && touch /x/y"
 fx_check "the printed rules miss a command chained with ;" fw_miss "$fw_real /x gh a/b 1 c; rm -rf /x"
@@ -219,10 +224,17 @@ fx_check "full machine changes nothing" test "$(snapshot)" = "$before"
 ln -s "$repo_root" "$work/lnk"
 prereqs_at=$work/lnk/skills/setup/check-prereqs.sh run full; prereqs_at=
 fx_check "a symlinked install prints the script's real path" prints_baseline full
-mkdir -p "$work/a&b/scripts"; cp -R "$skill" "$work/a&b/skills-setup"
-mkdir -p "$work/a&b/skills"; mv "$work/a&b/skills-setup" "$work/a&b/skills/setup"; cp "$script_fw" "$work/a&b/scripts/forge-wait.sh"
+mkdir -p "$work/a&b/scripts" "$work/a&b/skills"
+cp -R "$skill" "$work/a&b/skills/setup"; cp "$script_fw" "$work/a&b/scripts/forge-wait.sh"
 prereqs_at=$work/a\&b/skills/setup/check-prereqs.sh run 'amp&home'; prereqs_at=
 fx_check "an install path holding & is written into the forge-wait rules as it is" prints_baseline 'amp&home' "$(cd "$work/a&b/scripts" && pwd -P)/forge-wait.sh"
+# an install with no scripts/ beside skills/ has no forge-wait.sh to name: the helper says so and
+# exits non-zero rather than printing a rule for a path that is not there
+mkdir -p "$work/noscripts/skills"; cp -R "$skill" "$work/noscripts/skills/setup"
+prereqs_at=$work/noscripts/skills/setup/check-prereqs.sh run full; prereqs_at=
+fx_check "an install with no scripts/ beside skills/ reports it missing" grep -q '^missing: the plugin.s scripts/ directory' <<<"$out"
+fx_check "an install with no scripts/ beside skills/ exits non-zero" test "$rc" != 0
+fx_check "an install with no scripts/ beside skills/ prints no forge-wait rule" bash -c '! grep -q "forge-wait" <<<"$1"' _ "$out"
 run tea
 fx_check "tea satisfies the forge prerequisite" test "$rc" = 0
 run nobd
