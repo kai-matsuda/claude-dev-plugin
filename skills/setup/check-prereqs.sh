@@ -47,7 +47,11 @@ else echo "confirm: Atlassian MCP (claude.ai connector or mcpServers entry; chec
 # the stub and the baseline are always printed, for the owner to paste
 here=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 echo; echo "=== paste into ~/.claude/CLAUDE.md ==="; cat "$here/claude-md-stub.md"
-echo; echo "=== merge into ~/.claude/settings.json (merge the arrays; do not replace) ==="; cat "$here/baseline-settings.json"
+echo; echo "=== merge into ~/.claude/settings.json (merge the arrays; do not replace) ==="; baseline=$(cat "$here/baseline-settings.json")
+# the forge-wait rules are anchored to the plugin cache root, written here with this machine's
+# home, since a Bash permission or exclusion pattern is matched against the command string
+# and nothing says it expands ~ (dev-tt2l, INFRA-44); the file keeps ~ so it stays one text
+echo "${baseline//\~\/.claude\/plugins\/cache/$HOME/.claude/plugins/cache}"
 # the commit-msg hook: a machine setup tool installs the shipped script rather than vendoring
 # it, again after each plugin update, since $here names the installed version
 lint_dest='~/.config/git/commit-lint.sh'

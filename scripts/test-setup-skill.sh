@@ -27,7 +27,7 @@ fx_check "baseline asks on destructive git and bd dolt push" jq -e '
 fx_check "baseline ask entries take any argument, bare commands included" jq -e '
   .permissions.ask | map(select(test("git reset --hard|git clean|bd dolt push"))) | all(endswith("*)") and (endswith(" *)") | not))' "$snippet"
 fx_check "baseline excluded commands take any argument, bare commands included" jq -e '
-  .sandbox.excludedCommands | all(endswith("*") and (endswith(" *") | not))' "$snippet"
+  .sandbox.excludedCommands | map(select(test("forge-wait") | not)) | all(endswith("*") and (endswith(" *") | not))' "$snippet"
 fx_check "baseline denies Read and Edit alike on every secret path" jq -e '
   .permissions.deny | (map(select(startswith("Read("))|.[5:-1]) | sort) == (map(select(startswith("Edit("))|.[5:-1]) | sort)' "$snippet"
 fx_check "every destructive-git ask and excluded git entry has a git -C form too" jq -e '
@@ -55,16 +55,40 @@ fx_check "the implementer's reset with -C matches no ask rule" no_ask_match "$sn
 fx_check "the implementer's plain reset matches no ask rule" no_ask_match "$snippet" 'git reset --keep feat/x'
 ask_matches() { ! no_ask_match "$@"; }
 fx_check "the ask rule still catches a hard reset" ask_matches "$snippet" 'git reset --hard feat/x'
-# the forge-check wait (INFRA-44): one narrow rule pair covers the plugin's forge-wait.sh at any
-# installed version, so the plain-first run needs neither the unsandboxed rerun nor a prompt
-fw_pat='*/plugins/cache/claude-dev-plugin/dev/*/scripts/forge-wait.sh*'
+# the forge-check wait (dev-tt2l, INFRA-44): one narrow rule pair covers the plugin's forge-wait.sh at
+# any installed version, so the plain-first run needs neither the unsandboxed rerun nor a prompt
+fw_pat='~/.claude/plugins/cache/claude-dev-plugin/dev/*/scripts/forge-wait.sh *'
 fx_check "baseline excludes forge-wait.sh at any plugin version from the sandbox" jq -e --arg p "$fw_pat" '
   .sandbox.excludedCommands | index($p) != null' "$snippet"
 fx_check "baseline allows forge-wait.sh at any plugin version without a prompt" jq -e --arg p "Bash($fw_pat)" '
   .permissions.allow | index($p) != null' "$snippet"
 fx_check "baseline exempts no forge CLI and no other script, only forge-wait.sh" jq -e '
   (.sandbox.excludedCommands + .permissions.allow)
-  | map(select(test("gh|tea|forge|scripts"))) | length == 2 and all(test("scripts/forge-wait\\.sh\\*"))' "$snippet"
+  | map(select(test("gh|tea|forge|scripts"))) | length == 2 and all(test("scripts/forge-wait\\.sh \\*"))' "$snippet"
+fx_check "every exclusion and allow entry other than bd is anchored, none starts with a wildcard" jq -e '
+  (.sandbox.excludedCommands + .permissions.allow) | map(sub("^Bash\\("; "")) | all(startswith("*") | not)' "$snippet"
+# what the rules match, as a shell glob over the command string (the same reading as no_ask_match):
+# the printed rule has the owner's home in place of ~, so the checks use a fixed home
+fw_home=/home/owner
+fw_rule_match() { # <command>: matches the allow rule and the exclusion, home spelled out
+  local pat
+  for pat in "$(jq -r '.sandbox.excludedCommands[] | select(test("forge-wait"))' "$snippet")" \
+             "$(jq -r '.permissions.allow[] | select(test("forge-wait")) | sub("^Bash\\("; "") | sub("\\)$"; "")' "$snippet")"; do
+    pat=${pat/#\~/$fw_home}
+    [[ $1 == $pat ]] || return 1
+  done
+}
+fw_rule_miss() { ! fw_rule_match "$1"; }
+fw_dir=$fw_home/.claude/plugins/cache/claude-dev-plugin/dev
+fx_check "the rules match forge-wait.sh at an installed version, with its arguments" fw_rule_match "$fw_dir/0.4.1/scripts/forge-wait.sh /x/owner gh a/b 12 abc123"
+fx_check "the rules match forge-wait.sh at another version" fw_rule_match "$fw_dir/1.0.0/scripts/forge-wait.sh /x/owner tea o 3 abc"
+fx_check "the rules miss a gh command carrying the script path as an argument" fw_rule_miss "gh pr merge $fw_dir/0.4.1/scripts/forge-wait.sh x"
+fx_check "the rules miss a tea command" fw_rule_miss "tea pr list --repo /x"
+fx_check "the rules miss a script outside the plugin cache root" fw_rule_miss "/tmp/plugins/cache/claude-dev-plugin/dev/0.4.1/scripts/forge-wait.sh a gh b 1 c"
+fx_check "the rules miss another user's cache root" fw_rule_miss "/home/other/.claude/plugins/cache/claude-dev-plugin/dev/0.4.1/scripts/forge-wait.sh a gh b 1 c"
+fx_check "the rules miss a script named forge-wait.sh2" fw_rule_miss "$fw_dir/0.4.1/scripts/forge-wait.sh2 a gh b 1 c"
+fx_check "the rules miss another script of the plugin" fw_rule_miss "$fw_dir/0.4.1/scripts/other.sh a gh b 1 c"
+fx_check "the rules miss another plugin's forge-wait.sh" fw_rule_miss "$fw_home/.claude/plugins/cache/other/dev/0.4.1/scripts/forge-wait.sh a gh b 1 c"
 no_org() { ! jq -c '[.. | strings]' "$1" |
   grep -Eiq 'cargo|rustup|crates|npm|pip|gh |tea |github|gitea|mice'; }
 fx_check "baseline carries no toolchain, registry or forge line" no_org "$snippet"
@@ -142,7 +166,11 @@ run full
 fx_check "full machine exits 0" test "$rc" = 0
 fx_check "full machine says all prerequisites are present" grep -q '^all prerequisites present' <<<"$out"
 fx_check "full machine prints the CLAUDE.md stub" bash -c '[[ $1 == *"$(cat "$2")"* ]]' _ "$out" "$stub"
-fx_check "full machine prints the baseline snippet" bash -c '[[ $1 == *"$(cat "$2")"* ]]' _ "$out" "$snippet"
+prints_baseline() { # <machine>: $out holds the snippet, ~ in the forge-wait rules written as that machine's home
+  local want; want=$(cat "$snippet"); want=${want//\~\/.claude\/plugins\/cache/$work/$1/home/.claude/plugins/cache}
+  [[ $out == *"$want"* ]]
+}
+fx_check "full machine prints the baseline snippet, the forge-wait rules with its home" prints_baseline full
 fx_check "full machine names the shipped commit-lint.sh to install" grep -qF "$lint" <<<"$out"
 fx_check "full machine says commit-lint.sh goes to ~/.config/git" grep -qF '~/.config/git/commit-lint.sh' <<<"$out"
 fx_check "full machine prints the commit-msg hook config" bash -c '
@@ -195,7 +223,7 @@ for p in bd "gh or tea" mattpocock-skills; do
 done
 fx_check "empty machine asks to confirm Atlassian, not missing" bash -c 'grep -q "^confirm: Atlassian" <<<"$1" && ! grep -q "^missing: Atlassian" <<<"$1"' _ "$out"
 fx_check "empty machine still prints the CLAUDE.md stub" bash -c '[[ $1 == *"$(cat "$2")"* ]]' _ "$out" "$stub"
-fx_check "empty machine still prints the baseline snippet" bash -c '[[ $1 == *"$(cat "$2")"* ]]' _ "$out" "$snippet"
+fx_check "empty machine still prints the baseline snippet" prints_baseline empty
 
 # commit-lint.sh, the commit-msg hook machine setup installs (dev-clo): run in a throwaway repo
 # on message files, as git's hook would

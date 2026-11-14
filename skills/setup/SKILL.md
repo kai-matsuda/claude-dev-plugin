@@ -34,11 +34,23 @@ edits `~/.claude` or any file outside the repo it runs in, and the check itself 
 The baseline is org-neutral: it denies reads of secret files, asks before destructive git
 and `bd dolt push`, allows `bd`, and enables the sandbox with the beads and Dolt
 directories writable and push, fetch and pull excluded. `~/.config/bd` is writable too,
-because `bd` writes its user-level config there. One rule is plugin-specific: the plugin's
-own `scripts/forge-wait.sh`, at any installed version (the `plugins/cache/claude-dev-plugin/dev/*/`
-path), is both excluded from the sandbox and allowed. Without it the delivery's forge-check
-wait fails on the forge CLI's config error inside the sandbox and needs an unsandboxed rerun
-with a permission prompt, which an unattended story orchestrator cannot answer (INFRA-44).
-It matches that one script, so no `gh` or `tea` command is exempted. A `--plugin-dir`
-checkout runs from outside the cache path and is not covered. Toolchain, registry and
+because `bd` writes its user-level config there. One rule pair is plugin-specific: the plugin's own
+`scripts/forge-wait.sh`, run with its arguments from the installed cache
+(`~/.claude/plugins/cache/claude-dev-plugin/dev/*/scripts/forge-wait.sh *`, the `*` after
+`dev/` standing for the plugin version), is both excluded from the sandbox
+(`sandbox.excludedCommands`) and allowed (`permissions.allow`). The printed snippet has the
+owner's home spelled out in place of `~`, because a Bash pattern is matched against the
+command string and nothing confirms the matchers expand `~`; the file in the plugin keeps `~`.
+Without the pair the delivery's forge-check wait fails on the forge CLI's config error
+inside the sandbox and, in a permission mode that prompts for an unlisted command (the
+default; ADR 0009), needs an unsandboxed rerun with a permission prompt, which an
+unattended story orchestrator cannot answer (dev-tt2l, INFRA-44). The pattern starts at the
+cache root, so a `gh` or `tea` command carrying that path as an argument does not match, and
+the space before the trailing `*` rules out `forge-wait.sh2`. Residual breadth: the version
+`*` can span `/`, so any file named `forge-wait.sh` under `scripts/` below `dev/` in the
+plugin cache matches (the cache is not sandbox-writable); and whether
+`sandbox.excludedCommands` reads the space before `*` as a word boundary is not verified, so
+if it does not, `forge-wait.sh2` is excluded there too. A fork installed under another
+marketplace name and a `--plugin-dir` checkout run from outside that path and are not
+covered. Toolchain, registry and
 forge-CLI entries are the owner's own to add.
