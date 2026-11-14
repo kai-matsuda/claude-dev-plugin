@@ -20,6 +20,12 @@ on it. There is no foreground spawn. A child's report reaches its parent only as
 the Agent tool's completion notification, and only while the parent is still waiting on
 work it spawned; so after spawning, the orchestrator ends its turn, the notification
 resumes it with the report, and the epic orchestrator never has to relay a report by `SendMessage`.
+The subagent hand-back tool, `SubagentHandback`, is an orchestrator's final call: it ends the
+run, and its caller acts on the hand-back at once. So an orchestrator calls it only once every
+child it spawned has reported; while a child is live, the orchestrator ends its turn without a
+hand-back and the child's report resumes it. A task orchestrator that handed back `failed` two
+seconds after spawning its implementer left that implementer running with no orchestrator to
+gate it, which cost a retry and a merge fix-up (INFRA-45, dev-shzk).
 A batch is the same: spawn every call in one message, end the turn, and act on each
 report as its notification arrives. An orchestrator never polls: not in a Bash loop,
 foreground or background, on `bd show` of the task's status, on `sleep` or on the
