@@ -22,20 +22,22 @@ sec	the forge CLI takes the repo by --repo, tea by its absolute path	the repo's 
 sec	the forge is decided once	Decide **once** which forge fronts the repo
 sec	the forge is pre-checked on the origin URL	Pre-check `git -C <owner> remote get-url origin`
 sec	every forge command names its repo	every forge command names its repo
-sec	the forge is proved outside the sandbox	run each forge command with the sandbox disabled
+sec	the forge runs plain first	**Plain first:** run each forge command
+sec	the forge rerun is limited to the config error and a sandbox denial	Only a plain call that fails with the forge CLI's `unable to get or create config file` (not a missing login) or with a sandbox denial is rerun
+sec	any other forge failure is no reason to rerun	any other failure is not a reason to rerun
 sec	the Gitignore commit is keyed on a dirty file	git -C <owner> status --porcelain -- .gitignore
 sec	the Gitignore commit counts the rule's four entries	is one of the rule's four entries and no line is removed
 sec	the Gitignore commit follows the Commits rule	commit it as the harness doc's Commits rule says
 sec	the Gitignore commit goes through a message file	`git -C <owner> commit -F <owner>/.tmp/commit-msg`
 sec	a user edit in .gitignore is a failed: line, not absorbed	failed: <owner>/.gitignore has uncommitted edits	has uncommitted edits
-sec	the merge guard runs the forge query sandbox-disabled	with the sandbox disabled, as `/dev:close-story`'s "The forge shows MERGED" section does
+sec	the merge guard runs the forge query as the Forge decision says	as the Forge decision says (plain first), as `/dev:close-story`'s "The forge shows MERGED" section does
 sec	the merge guard's GitHub query	gh pr view <url> --json state
 sec	the merge guard's Forgejo query names the repo	tea api --repo <owner> repos/{owner}/{repo}/pulls/<n>
 sec	the merge guard refuses a MERGED PR	MERGED: refuse
 sec	the merge guard refuses a PR closed unmerged	CLOSED unmerged: refuse
 sec	the merge guard: OPEN continues on the branch: note's branch and delivers again	OPEN: continue on the `branch:` note's branch and deliver again
 sec	the merge guard decides the branch form locally first	is decided locally first, then asked: `git -C <owner> fetch origin`
-sec	the merge guard skips the fetch with no origin	(skipped with no `origin`)
+sec	the merge guard skips the fetch with no origin	skipped with no `origin`)
 sec	the merge guard compares by ancestry	`git -C <owner> merge-base --is-ancestor <tip SHA> origin/<default branch>`	merge-base --is-ancestor <tip SHA>
 sec	the merge guard maps each ancestry exit and a failed fetch	(exit 0: as MERGED; exit 1: as OPEN; a failed fetch of an existing origin or any other exit: it cannot decide (ask))
 sec	the merge guard compares against the local default branch with no origin	with the local `<default branch>` in place of `origin/<default branch>` when there is no `origin`

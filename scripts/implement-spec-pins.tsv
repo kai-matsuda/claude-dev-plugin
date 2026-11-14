@@ -62,7 +62,7 @@ has	epic notes beside implement-story's lines	which `/dev:implement-story` ignor
 has	pending-checks stall resume command	checks are pending, end with the resume command
 # epic review 3 (dev-9k5.1.8): the minors (its review-set rule is pinned below, dev-47z)
 has	tea landed test reads the landed field	never its `state` alone
-has	every forge read sandbox-disabled	every forge command of this step run with the sandbox disabled
+has	every forge read plain first	every forge command of this step run as the orchestration doc's Repo plumbing and Cut-off probe says in its Forge decision (plain first)
 has	step 6 writes epic review 1 on an invocation's first review	epic review 1: <tip SHA> <verdict line>
 has	the review <k> is this invocation's ordinal	this invocation's ordinal for that story
 has	the epic round start marker is written once per invocation, before step 5 and any review	Once per invocation, before step 5 spawns anything and before any review, write a marker on every open story of the epic

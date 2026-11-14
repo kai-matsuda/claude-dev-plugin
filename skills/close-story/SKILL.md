@@ -66,9 +66,9 @@ the intro says every forge command does, `.` when no path was given; without it 
 whichever repo the shell sits in), require `"merged": true` (its `state` reads `closed` for
 merged and unmerged alike). Open or closed unmerged → `<id> refused: PR is <state>`.
 
-Forge CLIs keep their tokens outside the sandbox and fail inside it with a config error
-that is not a missing login, so run the one forge command with the sandbox disabled. A
-`no available login` outside the sandbox is real. A failing forge command is an error:
+Run the forge command as the orchestration doc's Forge decision says: plainly first,
+and rerun with the sandbox disabled only on its config error or a sandbox denial. A `no available
+login` outside the sandbox is real. A failing forge command is an error:
 report it as `<id> refused: forge check failed: <error>`, never as "no forge".
 
 "No forge" means the origin host is neither GitHub nor Forgejo/Gitea, or there is no

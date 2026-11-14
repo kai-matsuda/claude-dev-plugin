@@ -206,7 +206,7 @@ rather than treating the call as failed, or reach for `jq` when the input is JSO
 **Nothing else goes under `/tmp` or the inherited `$TMPDIR`.** A subagent's file-edit
 permissions are scoped to the session's working directories, so a worktree there
 `git worktree add`s fine and then every Write inside it is denied. It looks like a
-permissions bug on the path, not a location mistake. The same goes for a file handed to a command that runs with the sandbox disabled
+permissions bug on the path, not a location mistake. The same goes for a file handed to a command that may run outside the sandbox
 (`gh pr edit --body-file`): the sandboxed and unsandboxed runs see
 different `$TMPDIR`s, so the file is written under `.spec-notes/` or the command fails with
 "no such file or directory" (seen in INFRA-28's PR #5).
