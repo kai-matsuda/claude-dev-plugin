@@ -31,7 +31,7 @@
 #      tracker doc's out-of-scope cases (git tag or ssh URL, several crates in one story);
 #      add mode on a feature whose stories exist (the refusal only when every story is
 #      closed, never the unconditional "stories exist"), its story states, its additions
-#      answering failed twice: notes, one sandbox-disabled forge query per finished story it
+#      answering failed twice: notes, one forge query per finished story it
 #      touches with the MERGED, OPEN and no-forge paths, and its additions-only publish
 #      with the dependent's body rewritten and Jira untouched (chezmoi-9v4.1.7), and its home
 #      database checked with bd where after the user's bd init, refused when none was made
@@ -1441,7 +1441,8 @@ sec_has "## Delivery" "Delivery's stray-commit check runs the stray-commit scrip
 sec_has "## Delivery" "Delivery's stray-commit failed: line" 'failed: stray commit <sha> <subject>'
 sec_has "## Delivery" "Delivery's push command" 'git -C <owner> push -u origin <branch>'
 sec_has "## Delivery" "Delivery's refused push is a failed: line" 'failed: push <command>: <error>'
-sec_has "## Delivery" "Delivery's push runs as every forge command does, and only an error that outlasts the rerun outside the sandbox is a refused push" 'The push runs as every forge command does (the Forge decision'"'"'s plain-first rule); only an error that outlasts the rerun outside the sandbox is a refused push'
+sec_has "## Delivery" "Delivery's push runs as every forge command does, and a plain error outside the rerun cases or one that outlasts the rerun is a refused push" 'a plain error that is not a rerun case, or one that outlasts the rerun outside the sandbox, is a refused push'
+sec_has "## Delivery" "Delivery's push reads an ssh publickey denial inside the sandbox as a sandbox denial" 'an ssh `Permission denied (publickey)` inside the sandbox is a sandbox denial, so it reruns'
 sec_has "## Delivery" "Delivery's PR body is written by mattpocock-skills:pr" 'the Skill tool with `mattpocock-skills:pr` to write the body'
 sec_has "## Delivery" "Delivery's PR body is written with a forge" '3. **PR body.** With a forge, call the Skill tool'
 row_phrase implement-spec-pins "tea fallback evidence" && sec_has "## Delivery" "Delivery's Evidence is the delivered tip's check record" "its Evidence $row_text"
@@ -2437,6 +2438,9 @@ lacks "refusal without the label" 'open tasks <child> <status>, \.\.\.'
 # command and as /implement-story's merge guard does; without --repo, a workspace session
 # reads whichever repo the shell sits in (dev-hac)
 hasc "Forgejo/Gitea query names the repo" 'tea api --repo <path> repos/{owner}/{repo}/pulls/<n>'
+# the forge command runs as the orchestration doc's Forge decision says, rerun only on its config error or
+# a sandbox denial, never on any failure (dev-aosb)
+hasc "forge command runs plainly first, rerun only on the config error or a sandbox denial" "and rerun with the sandbox disabled only on its config error or a sandbox denial."
 lacks "Forgejo/Gitea query without --repo" "$pin_tea_api_without_repo"
 
 fi
