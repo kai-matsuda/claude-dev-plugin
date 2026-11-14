@@ -2,7 +2,11 @@
 status: accepted
 ---
 
-# Row plumbing that runs git ships as scripts
+# Row plumbing ships as scripts
+
+Amended (dev-bveq, INFRA-44): the rule covers forge plumbing too, not only git. The Forge-check
+wait was an inline compound shell call run with the sandbox disabled, which no narrow exemption
+could match; as `scripts/forge-wait.sh` it is one plain command.
 
 The orchestrators' plumbing was prose: each skill spelled out the git commands an agent
 types, and the lint pinned their wording. A pin proves a phrase is there, not that the
@@ -13,18 +17,21 @@ and the two skills' failure lines drifted apart.
 
 ## Decision
 
-- **A step of row plumbing that runs git and decides from what it reads ships as a script**
-  under `scripts/`, with a usage line, one-line outcomes and exit codes, and a test that runs
-  it on a throwaway git repo in `make check`. The rules doc introduces each script once; the
+- **A step of row plumbing that runs git or a forge CLI (`gh`, `tea`) and decides from what
+  it reads ships as a script** under `scripts/`, with a usage line, one-line outcomes and exit
+  codes, and a test in `make check`: a git script's test runs it on a throwaway git repo; a
+  forge script's test runs it against stub `gh` and `tea` on `PATH`, since no test may reach
+  a live forge. The rules doc introduces each script once; the
   skills cite it by name and keep only what they do with each outcome.
 - **What needs an agent stays in the skills**: spawning, briefing, counting retries, bead
-  notes and closes. A script touches only git and its own records.
+  notes and closes. A script touches only git, the forge CLI and its own records.
 - **The lint pins that the skills cite each script and bans inline copies of its
   commands**; what the script does is proven by its test.
 
 Examples: `scripts/check.sh`, the Check record script (881626a), and `scripts/land.sh`, the
 Land script, with `scripts/stray-commit.sh`, the stray-commit check that the landing and
-Delivery share.
+Delivery share, and `scripts/forge-wait.sh`, the forge-check wait of Delivery step 4, the
+first forge script, tested with stub CLIs.
 
 ## Considered options
 

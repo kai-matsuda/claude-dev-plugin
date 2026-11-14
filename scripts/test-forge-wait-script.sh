@@ -3,7 +3,9 @@
 # script: run against stub gh and tea on PATH (FORGE_WAIT_SLEEP=0), reading its output lines and
 # exit status. Covers, for gh and for tea: the forge CLI's config error (exit 1 at once), a head
 # not yet at the tip, checks registered then passing, and checks failing (both exit 0 with
-# "checks finished": the checks' verdict is read by Delivery step 4, not here). Also a wrong usage.
+# "checks finished": the checks' verdict is read by Delivery step 4, not here), a gh watch that fails
+# for another reason (exit 1 unless no check is pending), a head read failing for another reason
+# (retried) and a wrong usage.
 # Each stub answers from a file of lines (one per call, the last one repeating) and counts its calls.
 # Usage: scripts/test-forge-wait-script.sh
 set -uo pipefail
@@ -20,16 +22,20 @@ mkdir -p "$bin" "$st"
 cat > "$bin/next" <<'EOF'
 #!/usr/bin/env bash
 f=$ST/$1; echo x >> "$f.calls"
-head -n 1 "$f"; [ "$(wc -l < "$f")" -gt 1 ] && sed -i.bak 1d "$f" && rm -f "$f.bak"
-exit 0
+line=$(head -n 1 "$f"); [ "$(wc -l < "$f")" -gt 1 ] && sed -i.bak 1d "$f" && rm -f "$f.bak"
+case $line in "!"*) echo "${line#!}"; exit 1 ;; esac
+echo "$line"
 EOF
-# gh: `pr view` prints the next head line; `pr checks --json` prints the next probe line and fails
-# unless the line is a JSON list;`pr checks --watch` prints the next watch line
+# A line starting with "!" makes the stub print the rest and exit 1. gh: `pr view` prints the next
+# head line; `pr checks --json name` prints the next probe line and fails unless the line is a JSON
+# list; `pr checks --watch` prints the next watch line; `pr checks --json bucket` prints the next
+# recheck line (the count of pending checks)
 cat > "$bin/gh" <<'EOF'
 #!/usr/bin/env bash
 case "$*" in
   *"pr view"*) "$ST/../bin/next" head ;;
   *"--watch"*) "$ST/../bin/next" watch ;;
+  *"--json bucket"*) "$ST/../bin/next" recheck ;;
   *"--json name"*) out=$("$ST/../bin/next" probe); echo "$out"; case $out in "["*) ;; *) exit 1 ;; esac ;;
 esac
 EOF
@@ -39,7 +45,7 @@ cat > "$bin/tea" <<'EOF'
 EOF
 chmod +x "$bin/next" "$bin/gh" "$bin/tea"
 
-# setup <name> <content>...: write the answer file of a stub, one line per argument; clear the counts
+# put <name> <content>...: write the answer file of a stub, one line per argument; clear the counts
 put() { local n=$1; shift; printf '%s\n' "$@" > "$st/$n"; rm -f "$st/$n.calls"; }
 calls() { [ -f "$st/$1.calls" ] && wc -l < "$st/$1.calls" | tr -d ' ' || echo 0; }
 run() { out=$(PATH="$bin:$PATH" ST=$st FORGE_WAIT_SLEEP=0 "$script" "$@" 2>&1); rc=$?; }
@@ -80,10 +86,33 @@ fx_check "gh registered then passing: probed twice" fx_eq "$(calls probe)" 2
 fx_check "gh registered then passing: watched once" fx_eq "$(calls watch)" 1
 
 # gh: the watch ends on failing checks; the wait is still over
-put head $tip; put probe '[{"name":"x"}]'; put watch "x fail"
+put head $tip; put probe '[{"name":"x"}]'; put watch "!x fail"; put recheck 0
 run /o gh org/r 7 $tip
 fx_check "gh checks failing: exits 0" fx_eq "$rc" 0
 fx_check "gh checks failing: finished line only" fx_eq "$out" "checks finished"
+
+# gh: the watch fails for another reason and checks are still pending, or cannot be read
+put head $tip; put probe '[{"name":"x"}]'; put watch "!dial tcp: operation not permitted"; put recheck 2
+run /o gh org/r 7 $tip
+fx_check "gh watch failed, checks pending: exits 1" fx_eq "$rc" 1
+fx_check "gh watch failed, checks pending: names the watch output" fx_eq "$out" "forge error: dial tcp: operation not permitted"
+put recheck "!dial tcp: operation not permitted"
+run /o gh org/r 7 $tip
+fx_check "gh watch failed, recheck failed: exits 1" fx_eq "$rc" 1
+fx_check "gh watch failed, recheck failed: no finished line" fx_eq "$out" "forge error: dial tcp: operation not permitted"
+
+# gh: config error from the watch
+put watch "!$cfg"
+run /o gh org/r 7 $tip
+fx_check "gh config error on watch: exits 1" fx_eq "$rc" 1
+fx_check "gh config error on watch: names it" fx_eq "$out" "forge error: $cfg"
+
+# gh: a head read that fails for a non-config reason is retried
+put head "!dial tcp: operation not permitted" $tip; put probe '[{"name":"x"}]'; put watch ok
+run /o gh org/r 7 $tip
+fx_check "gh head read failed: exits 0" fx_eq "$rc" 0
+fx_check "gh head read failed: finished line" fx_eq "$out" "checks finished"
+fx_check "gh head read failed: read the head twice" fx_eq "$(calls head)" 2
 
 # tea: config error
 put status "$cfg"

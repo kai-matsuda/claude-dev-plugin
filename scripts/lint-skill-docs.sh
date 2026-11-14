@@ -647,8 +647,8 @@ pin_cite_one_test='the one test'
 pin_cite_preflight='"Working-directory preflight"'
 pin_conflict_resolutions='conflict resolutions'
 pin_forge_decision='its Forge decision'
+pin_forge_wait_script='forge-wait.sh'
 pin_frontmatter_disable_model_invocation='disable-model-invocation: true'
-pin_gh_checks_watch='gh pr checks <n> --repo <forge-slug> --watch'
 pin_gitignore_commit='its Gitignore commit'
 pin_literal_owner_git_path='<owner>/\.git/'
 pin_mktemp_template='mktemp -d <worktree>/.tmp/<name>.XXXXXX'
@@ -1475,6 +1475,9 @@ sec_has "## Delivery" "the forge-wait script waits for the head at the tip and t
 sec_has "## Delivery" "the forge-wait script's finished line and exit 0 (dev-bveq)" 'It prints `checks finished` and exits 0 once no check is pending, a red check included'
 sec_has "## Delivery" "the forge-wait script stops at once on the forge CLI's config error, exit 1 (dev-bveq)" 'it prints `forge error: <text>` and exits 1 at once on the forge CLI'"'"'s config error'
 sec_has "## Delivery" "the forge-wait script's config error ends the delivery on a failed line (dev-bveq)" 'failed: forge check forge-wait.sh: <text>'
+sec_has "## Delivery" "a plain forge-wait run's config error reruns once unsandboxed, only the rerun's ends the delivery (dev-bveq)" "a plain run's \`forge error\` that is the config error reruns the script once with the sandbox disabled, and only the rerun's \`forge error\` ends the delivery"
+sec_has "## Delivery" "the tea checks read's config error reruns once unsandboxed (dev-bveq)" "its config error reruns that one call once with the sandbox disabled"
+sec_has "## Delivery" "the forge-wait script's unused tea arguments are both named (dev-bveq)" '`<forge-slug>` and `<n>` are unused on `tea`'
 sec_has "## Delivery" "the forge-wait script refuses a wrong usage with exit 2 (dev-bveq)" 'it prints `refused: <reason>` and exits 2 on a wrong usage'
 sec_has "## Delivery" "the gh merge read and its UNKNOWN re-reads are plain forge commands (dev-bveq)" 'The `gh` merge read and its `UNKNOWN` re-reads (below) are plain forge commands and run plain first'
 sec_has "## Delivery" "the UNKNOWN re-reads are plain calls with a sleep call between (dev-bveq)" 'a `sleep 10` call between reads, at most six reads, each a plain call'
@@ -2134,7 +2137,7 @@ line_has '^8\. ' "step 8 cites the stray-commit script by name" 'run through the
 line_has '^8\. ' "step 8 opens the draft itself" 'open the draft after the push if step 3 could not'
 line_has '^8\. ' "step 8 appends the sibling line" 'append the sibling line (rebuilt as in step 3)'
 line_has '^8\. ' "step 8 runs the sibling refresh" "only then run step 3's sibling refresh"
-line_lacks '^8\. ' "a second copy of the forge-check wait in step 8" "$pin_gh_checks_watch"
+line_lacks '^8\. ' "a second copy of the forge-check wait in step 8" "$pin_forge_wait_script"
 line_lacks '^8\. ' "a second copy of the stray-commit check in step 8" '--no-merges --format='
 row_sweep implement-spec-pins "mark ready with gh" && line_lacks '^8\. ' "the deliver step marking the PR ready" "$row_text"
 row_sweep implement-spec-pins "mark ready with tea" && line_lacks '^8\. ' "the deliver step marking the PR ready with tea" "$row_text"
