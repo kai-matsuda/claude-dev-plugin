@@ -361,16 +361,18 @@ pushed tip, before the delivery is recorded: a red check is a `failed: forge che
 no checks delivers with a `checks: skipped` line. The one long shell wait the Idle rule
 allows (the merge-state re-read adds only bounded `sleep 10` calls). The forge-wait script,
 `scripts/forge-wait.sh <owner> <gh|tea> <repo> <pr> <tip SHA>`, is the wait as one plain
-command: it prints `checks finished` (exit 0), `forge error: <text>` on the forge CLI's
-config error, a `gh` watch that failed with checks still pending or unreadable, or a `gh`
-head that moved off the tip during the wait (exit 1; on `gh`, `checks finished` is for the
-tip's checks as of the head's second read, and a failed head read other than the config
-error is retried), or `refused: <reason>` on a wrong usage, a forge other than `gh` or `tea`, a repo not
-`owner/name`, a PR number not digits, a tip not 7 to 64 hex digits or `tea` without `jq` (exit 2); the setup baseline exempts the script, by the installed path the setup check prints, from the sandbox and allows it, so
-on a machine whose pasted pair matches the installed version (re-pasted after each plugin update; a fork or
-`--plugin-dir` copy once its own printed pair is pasted) the plain run should need no rerun (the harness's matcher for the
-exclusion is unverified), and a plain run's config error (a machine without the matching pair) is rerun once with the sandbox disabled, and the
-step reads the checks afterwards.
+command: it prints `checks finished` (exit 0), `forge error: <text>` on the forge CLI's config
+error, a `gh` watch that failed with checks still pending or unreadable, or a `gh` head that
+moved off the tip during the wait (exit 1; on `gh`, `checks finished` is for the tip's checks as
+of the head's second read, and a failed head read other than the config error is retried), or
+`refused: <reason>` on a wrong usage, a forge other than `gh` or `tea`, a repo not `owner/name`,
+a PR number not digits, a tip not 7 to 64 hex digits or `tea` without `jq` (exit 2); the setup
+baseline exempts the script, by the installed path the setup check prints, from the sandbox and
+allows it, so on a machine whose pasted pair matches the installed version (re-pasted after each
+plugin update; a fork or `--plugin-dir` copy once its own printed pair is pasted) the plain run
+should need no rerun (the harness's matcher for the exclusion is unverified), and a plain run's
+config error (a machine without the matching pair) is rerun once with the sandbox disabled, and
+the step reads the checks afterwards.
 _Avoid_: CI wait, check poll
 
 **Cut-off**:

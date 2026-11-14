@@ -180,8 +180,8 @@ fw_printed=$(fw_rules "$(cat "$snippet")")
 fw_hit() { fw_rule_match "$fw_printed" "$1"; }
 fw_miss() { ! fw_hit "$1"; }
 fx_check "the printed rules are two, one exclusion and one allow" test "$(grep -c . <<<"$fw_printed")" = 2
-fx_check "the printed rules match the script with its five arguments" fw_hit "$fw_real /x/owner gh a/b 12 abc123"
-fx_check "the printed rules match the script with the tea forge" fw_hit "$fw_real /x/owner tea o/r 3 abc"
+fx_check "the printed rules match the script with its five arguments" fw_hit "$fw_real /x/owner gh a/b 12 abc1234"
+fx_check "the printed rules match the script with the tea forge" fw_hit "$fw_real /x/owner tea o/r 3 abc1234"
 fx_check "the printed rules miss a ../ path to the same script" fw_miss "${fw_real%/scripts/forge-wait.sh}/scripts/../scripts/forge-wait.sh /x gh a/b 1 c"
 fx_check "the printed rules miss a ../ path out of the plugin cache" fw_miss "$HOME/.claude/plugins/cache/claude-dev-plugin/dev/../../../../src/x/scripts/forge-wait.sh /x gh a/b 1 c"
 fx_check "the printed rules miss another file named forge-wait.sh" fw_miss "/home/owner/src/x/scripts/forge-wait.sh /x gh a/b 1 c"
@@ -198,7 +198,8 @@ fx_check "the printed rules miss the script with three arguments" fw_miss "$fw_r
 # known limit: a glob cannot stop the whole-string match, so if the matcher does not split a
 # compound command, the five * words span "a b c d e && touch /x/y" and the rule matches it; the
 # script's own argument checks and a matcher that splits are what stop it, not the glob
-fx_check "known limit: unsplit, the printed rules match a compound command whose first part has five words" fw_whole_match "$fw_printed" "$fw_real /x gh a/b 1 c && touch /x/y"fx_check "the printed rules miss the script with no arguments" fw_miss "$fw_real"
+fx_check "known limit: unsplit, the printed rules match a compound command whose first part has five words" fw_whole_match "$fw_printed" "$fw_real /x gh a/b 1 c && touch /x/y"
+fx_check "the printed rules miss the script with no arguments" fw_miss "$fw_real"
 fx_check "the printed rules miss a script named forge-wait.sh2" fw_miss "${fw_real}2 /x gh a/b 1 c"
 fx_check "the printed rules miss a gh command carrying the script path as an argument" fw_miss "gh pr merge $fw_real x y z w"
 fx_check "the printed rules miss a tea command" fw_miss "tea pr list --repo /x"

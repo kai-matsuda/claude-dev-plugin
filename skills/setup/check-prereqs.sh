@@ -49,9 +49,9 @@ here=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)
 echo; echo "=== paste into ~/.claude/CLAUDE.md ==="; cat "$here/claude-md-stub.md"
 echo; echo "=== merge into ~/.claude/settings.json (merge the arrays; do not replace; again after a plugin update) ==="; baseline=$(cat "$here/baseline-settings.json")
 # the forge-wait rules name this installed copy of the script, resolved to its real path with no
-# wildcard before the script name, so a ../ path or another file of that name matches neither the
-# permission rule nor the sandbox exclusion; a Bash pattern is matched against the command string
-# (dev-6xui, INFRA-44). The path is the installed version's, so the owner pastes again after each
+# wildcard before the script name, so a ../ path or another file of that name does not match the
+# permission rule, and does not match the sandbox exclusion if its matcher compares the command
+# string the same way (unverified; skills/setup/SKILL.md) (dev-6xui, INFRA-44). The path is the installed version's, so the owner pastes again after each
 # plugin update. bash 5.2 reads an & in a substitution's replacement as the matched text, and a
 # path may hold one, so that option is switched off (older bash has no such option, hence the
 # 2>/dev/null)
