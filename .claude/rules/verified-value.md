@@ -1,12 +1,11 @@
-# Coding standards
+---
+paths:
+  - "scripts/**"
+  - "hooks/**"
+  - "skills/**/*.sh"
+---
 
-Rules the reviewer applies to every diff in this repo, in addition to the dev plugin's
-defaults (`docs/agents/coding-standards.md`): the Standards axis of
-`mattpocock-skills:code-review` reads this file. Anything a linter, test or hook can
-enforce belongs in that tool, not here. Rules are judgement calls unless their heading
-is tagged *hard*.
-
-## A verified value is the value every later step uses
+# A verified value is the value every later step uses
 
 In a shipped script, once a guard verifies a value (a SHA, a path, a branch state), every
 later step acts on that verified value, never on the name it was resolved from. A name

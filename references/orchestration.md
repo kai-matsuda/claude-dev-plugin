@@ -174,6 +174,13 @@ the task row; the conflict resolutions, the coherence across tasks and the story
 since each task's diff was reviewed at its own row; nothing at the epic row, where the axis
 is skipped. So no line is read for standards twice (ADR 0014 in the plugin repo).
 
+**Standards scope.** The plugin ships no coding standards; they are the user's, the personal
+standards and the repo standards, and every brief names them by path, so none depends on what
+Claude Code loads into a subagent (ADR 0018 in the plugin repo).
+Every implementer brief at the task row and the story row, a fix-up's and a conflict resolution's included, reads the coding standards in `~/.claude/rules/` and `<owner>/.claude/rules/` (the repo's win where the two conflict; a missing or empty folder is not an error; a rule applies only where its own text or path scope says it does).
+The standards axis of the review at those rows is read against the coding standards in `~/.claude/rules/` and `<owner>/.claude/rules/`, with `<owner>`'s root `CODING_STANDARDS.md` or `CONTRIBUTING.md` where it has one counted with the repo's (the repo's win where the two conflict; a missing or empty folder is not an error; a rule applies only where its own text or path scope says it does), plus `GLOSSARY.md` and `docs/adr/` in `<owner>` where they exist, each breach reported as the rule's heading, the file and line, and the reader who would be misled or broken.
+The epic row's review names no standards: it runs the spec axis only.
+
 **Check scope.** Every tree is checked once green. A check is one run of the check command through the Check record script
 on a tree, named by the tip's tree SHA, and a tree with a green check record (`exit=0`) counts as checked at
 any row, whichever orchestrator wrote it, so a later agent spends no check run on it.
@@ -211,10 +218,10 @@ commit that first, so no task branch carries scratch files. The entries and thei
 are the story orchestrator's alone (the Gitignore commit in Repo plumbing and Cut-off probe): no earlier stage
 adds a line, and an edit of the user's beside them is never committed.
 
-**Plugin root.** These rules docs, the runbook (`docs/WORKFLOW.md`) and the hooks ship in
+**Plugin root.** These reference docs, the runbook (`docs/WORKFLOW.md`) and the hooks ship in
 the dev plugin, so every skill reaches them through the plugin root, `<plugin root>`, the
 directory the harness names in its plugin-root variable `CLAUDE_PLUGIN_ROOT`. A skill
-resolves it once per session: its text writes `${CLAUDE_PLUGIN_ROOT}/docs/agents/<doc>.md`,
+resolves it once per session: its text writes `${CLAUDE_PLUGIN_ROOT}/references/<doc>.md`,
 which the harness fills in with the absolute path when it loads the skill (as it fills in
 `hooks/hooks.json`'s `guard-rm.sh` command). Bash never has the variable, in the
 session or a subagent, so only if the text still shows it does the session fall back to the
@@ -222,14 +229,14 @@ session or a subagent, so only if the text still shows it does the session fall 
 that path is `<plugin root>/skills/<skill>`, so the root is two levels up (under
 `claude --plugin-dir .` it is that checkout). With neither, it ends with
 `failed: plugin root unresolved` rather than guessing a path. From then on the session
-spells the absolute rules-doc path literally in every brief,
-`<plugin root>/docs/agents/orchestration.md` with `<plugin root>` replaced by the path it
+spells the absolute orchestration doc path literally in every brief,
+`<plugin root>/references/orchestration.md` with `<plugin root>` replaced by the path it
 resolved, as the TMPDIR rule in `harness.md` spells `<worktree>`: never `$CLAUDE_PLUGIN_ROOT`, never a `~/`
 path. A subagent's Bash has no such variable (unset in this rule's own task run,
 2026-10-24) and the worktree guard refuses a path
 built from one (Literal paths in `harness.md`), so a brief that names a variable sends its subagent to a
 doc it cannot open. Every pointer a brief carries, "the harness doc's TMPDIR rule" or "the
-harness doc's Idle rule", names that doc by its own absolute path, `<plugin root>/docs/agents/harness.md`.
+harness doc's Idle rule", names that doc by its own absolute path, `<plugin root>/references/harness.md`.
 
 ## Complexity tier
 

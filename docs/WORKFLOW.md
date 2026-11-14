@@ -4,7 +4,8 @@ How a feature moves from idea to merged code using the Matt Pocock engineering s
 Jira, and beads. The commands below are user-typed; the agent cannot invoke them on its
 own. `/dev:implement-story` and `/dev:close-story` are also invoked by
 `/dev:implement-spec` and `/dev:close-epic`, so you type them yourself only in the Variants cases.
-The agent-side rules these commands rely on live in the dev plugin's `docs/agents/`. Bold
+The reference docs these commands rely on (the orchestration doc, the harness doc and the
+tracker doc) live in the dev plugin's `references/` folder. Bold
 terms (epic, story and task orchestrator, text blocker, human stop, finished story) are
 defined in the plugin's `GLOSSARY.md`, and the ADRs this runbook cites for the why are the
 plugin's `docs/adr/`. Both live in the plugin repo (`kai-matsuda/claude-dev-plugin`):
@@ -26,7 +27,7 @@ where it is in the flow and what to type next.
 ## Prerequisites (once per repo)
 
 - `.beads/` exists (`bd init --non-interactive --agents-file CLAUDE.md`, then prune the
-  Codex/Cursor extras it generates; see `docs/agents/issue-tracker.md`).
+  Codex/Cursor extras it generates; see `references/issue-tracker.md`).
 - The repo's `CLAUDE.md` has an `## Agent skills` block naming the Jira project key.
 - Atlassian MCP connected (Jira access is through MCP, not a CLI).
 
@@ -217,6 +218,12 @@ The tier table above sets *subagent* models; this sets what your own session run
 
 ## Where things live
 
+Coding standards are yours; the plugin ships none. They live in two layers: your personal
+standards in `~/.claude/rules/` and a repo's standards in a repo's `.claude/rules/`. Implementers
+and reviewers read both, and the repo's win; the reviewer counts a root `CODING_STANDARDS.md` or
+`CONTRIBUTING.md` with the repo's, and a rule applies only where its own text or path scope says it
+does. `/dev:setup` and `/dev:setup-repo` create no rules folder and write no starter rule.
+
 | Artifact | Place |
 |---|---|
 | Spec | Jira epic description (long ones also `docs/specs/<slug>.md` in the home) |
@@ -228,7 +235,7 @@ The tier table above sets *subagent* models; this sets what your own session run
 | Exploration notes | `<repo>/.spec-notes/<epic-id>/` |
 | A worktree agent's temp files | `<worktree>/.tmp/`, where the TMPDIR line points `TMPDIR` (gitignored as `/.tmp/`) |
 | Human status and discussion | the Jira epic |
-| Agent-side rules | `docs/agents/*.md` in the dev plugin repo (`kai-matsuda/claude-dev-plugin`; the installed copy serves every repo), repo `CLAUDE.md` (overrides) |
+| Reference docs and repo overrides | `references/*.md` in the dev plugin repo (`kai-matsuda/claude-dev-plugin`; the installed copy serves every repo), repo `CLAUDE.md` (overrides) |
 | Which repo owns a file or crate | `repos.yaml` at the workspace root (the repo manifest) |
 | Decisions that span repos | `docs/adr/` at the workspace root |
 | Retro inbox | the home's beads, label `needs-triage`; closed ones record where each item went |

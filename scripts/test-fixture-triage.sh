@@ -33,7 +33,7 @@ Add a check to a CI workflow outside this repo. layer: check. file: ../lib/.gith
 consumer, 2026-10-20
 T
   echo "seeded $out/consumer"
-  echo "brief: the session repo is $out/consumer alone; follow $skill and the branch's tracker doc $repo_root/docs/agents/issue-tracker.md (this repo's skills/ loaded as the plugin: claude --plugin-dir $repo_root, the skill typed dev:triage); answer step 4 with accept; plain bd only, never bd -C; save the skill's final report, verbatim, to $out/report.txt"
+  echo "brief: the session repo is $out/consumer alone; follow $skill and the branch's tracker doc $repo_root/references/issue-tracker.md (this repo's skills/ loaded as the plugin: claude --plugin-dir $repo_root, the skill typed dev:triage); answer step 4 with accept; plain bd only, never bd -C; save the skill's final report, verbatim, to $out/report.txt"
   echo "if the subagent's cwd is elsewhere, point plain bd at consumer: BEADS_DIR=$out/consumer/.beads bd <args> (verified with this bd)"
 }
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Regression tests for scripts/lint-skill-docs.sh against a scratch copy of the plugin's own tree
-# (skills/, docs/, CLAUDE.md, GLOSSARY.md), plus the sample skill and agent doc under
+# (skills/, references/, docs/, CLAUDE.md, GLOSSARY.md), plus the sample skill and reference doc under
 # scripts/fixtures/lint-skill-docs and a stand-in plugin dir holding every mattpocock-skills name
 # the tree references. The clean copy passes; every section has seeded copies that fail it and
 # it alone (the "== <n>. " header the lint prints over its FAIL lines tells which section
@@ -85,9 +85,10 @@ plugin_names=$(grep -rhoE 'mattpocock-skills:[a-z-]+' "$repo_root/skills" "$repo
 # the pristine tree, built once: every fresh copy is one cp of it
 pristine=$jobs/pristine
 mkdir "$pristine"
-cp -R "$repo_root/skills" "$repo_root/docs" "$repo_root/CLAUDE.md" "$repo_root/GLOSSARY.md" "$pristine/"
+cp -R "$repo_root/skills" "$repo_root/references" "$repo_root/docs" "$repo_root/CLAUDE.md" "$repo_root/GLOSSARY.md" "$pristine/"
+mkdir -p "$pristine/.claude" && cp -R "$repo_root/.claude/rules" "$pristine/.claude/"
 cp -R "$fixtures/skills/sample" "$pristine/skills/"
-cp "$fixtures/agents/sample.md" "$pristine/docs/agents/"
+cp "$fixtures/references/sample.md" "$pristine/references/"
 (cd "$pristine" && sort -u <<<"$plugin_names" | sed 's|^|plugin/|' | xargs mkdir -p)
 # tree_listing <tree>: every entry under <tree>, a dir as "D <path>", a file as its cksum line
 # ("<crc> <size> <path>"), anything else as "O <path>"
@@ -159,8 +160,8 @@ lint_scratch() {
   # a seeded hang swaps in a lint that never returns
   cmd=("$lint")
   [ "${LINT_TEST_SEED:-}" != "hang:$njobs" ] || cmd=(/bin/sh -c 'sleep 86400' sh)
-  out=$(SKILLS_DIR=${skills_dir:-$scratch/skills} AGENT_DOCS=${agent_docs:-$scratch/docs/agents} DOCS_DIR=$scratch/docs \
-    USER_CLAUDE_MD=${claude_md:-$scratch/CLAUDE.md} GLOSSARY_MD=${glossary_md:-$scratch/GLOSSARY.md} \
+  out=$(SKILLS_DIR=${skills_dir:-$scratch/skills} REFERENCES_DIR=${references_dir:-$scratch/references} DOCS_DIR=$scratch/docs RULES_DIR=$scratch/.claude/rules \
+    USER_CLAUDE_MD=${claude_md:-$scratch/CLAUDE.md} HOOKS_DIR=$scratch/hooks README_MD=$scratch/README.md GLOSSARY_MD=${glossary_md:-$scratch/GLOSSARY.md} \
     LINT_PINS_DIR=${pins_dir:-$repo_root/scripts} PLUGIN_SKILLS=$scratch/plugin VERSION_BUMP_REPO=${bump_repo_dir:-$scratch/no-repo} \
     LINT_UNCHANGED=${unchanged_list:-} bounded "$case_timeout" "${cmd[@]}" "$@" 2>&1)
   rc=$?
@@ -306,7 +307,7 @@ expect() {
     # says so; a case that died before its verdict gets one
     trap '[ -e "$dir.out" ] || echo "FAIL $d (its run died before judging it)" > "$dir.out"
       [ "${LINT_TEST_SEED:-}" = "drop:$njobs" ] || { printf x >&3; : > "$dir.freed"; }' EXIT
-    for v in skills_dir agent_docs claude_md glossary_md pins_dir bump_repo_dir; do
+    for v in skills_dir references_dir claude_md glossary_md pins_dir bump_repo_dir; do
       [ -z "${!v:-}" ] || eval "$v=\${$v//\"\$scratch\"/\"\$dir\"}"
     done
     batch_scratch=$scratch
@@ -319,7 +320,7 @@ expect() {
       a1=${args[0]:-} a2=${args[1]:-}
       [ "$a1" != "$dir/skills/implement-spec/SKILL.md" ] || a1=
       [ "$a2" != "$dir/docs/WORKFLOW.md" ] || a2=
-      printf '%s\n' "$a1" "$a2" "${skills_dir:-}" "${agent_docs:-}" "${claude_md:-}" "${glossary_md:-}" > "$dir.roles"
+      printf '%s\n' "$a1" "$a2" "${skills_dir:-}" "${references_dir:-}" "${claude_md:-}" "${glossary_md:-}" > "$dir.roles"
       unchanged_files "$dir" | awk 'NR == FNR { if ($0 != "") role[$0]; next }
         { for (r in role) if ($0 == r || $0 == r "/" || index($0, r "/") == 1) next; print }' \
         "$dir.roles" - > "$dir.same"
@@ -433,7 +434,7 @@ expect "an explicit runbook path that does not exist fails" 1 "missing document:
 fresh
 sec=1 expect "an unchanged skill passed as the implement-spec skill fails section 1" 1 "" "$scratch/skills/workflow/SKILL.md"
 
-for var in skills_dir agent_docs claude_md glossary_md pins_dir; do
+for var in skills_dir references_dir claude_md glossary_md pins_dir; do
   fresh
   eval "$var=$scratch/nope"
   expect "a set override ($var) naming a missing path fails" 1 "no such"
@@ -447,24 +448,24 @@ expect "retired phrase in a non-md file under a skill dir fails" 1 "retired phra
 fresh
 ban_nth ban_spec_slug "retired phrase in $scratch/skills/sample/SKILL.md" 1
 ban_nth ban_story_cut_md "retired phrase in $scratch/skills/sample/SKILL.md" 2
-echo "retired wording: $ban_spec_slug" > "$scratch/docs/agents/notes.yaml"
-expect "retired placeholder in a non-md file under the agent docs fails" 1 "retired phrase in $scratch/docs/agents/notes.yaml"
+echo "retired wording: $ban_spec_slug" > "$scratch/references/notes.yaml"
+expect "retired placeholder in a non-md file under the reference docs fails" 1 "retired phrase in $scratch/references/notes.yaml"
 
 fresh
 echo "cut one" >> "$scratch/skills/sample/SKILL.md"
 expect "retired phrase in a md file still fails" 1 "retired phrase in $scratch/skills/sample/SKILL.md"
 
 fresh
-echo "see $ban_story_cut_md" >> "$scratch/docs/agents/sample.md"
-expect "the retired story-cut file name in an agent doc fails" 1 "retired phrase in $scratch/docs/agents/sample.md"
+echo "see $ban_story_cut_md" >> "$scratch/references/sample.md"
+expect "the retired story-cut file name in a reference doc fails" 1 "retired phrase in $scratch/references/sample.md"
 
 fresh
-echo "the rules doc's Story plumbing" >> "$scratch/docs/agents/sample.md"
-expect "the old Story plumbing section name in an agent doc fails" 1 "retired phrase in $scratch/docs/agents/sample.md"
+echo "the orchestration doc's Story plumbing" >> "$scratch/references/sample.md"
+expect "the old Story plumbing section name in a reference doc fails" 1 "retired phrase in $scratch/references/sample.md"
 
 fresh
-echo "the rules doc's story plumbing" >> "$scratch/docs/agents/sample.md"
-expect "the old section name in lowercase in an agent doc fails" 1 "retired phrase in $scratch/docs/agents/sample.md"
+echo "the orchestration doc's story plumbing" >> "$scratch/references/sample.md"
+expect "the old section name in lowercase in a reference doc fails" 1 "retired phrase in $scratch/references/sample.md"
 
 fresh
 ban ban_run_in_background "foreground spawn instruction in $scratch/skills/sample/SKILL.md"
@@ -476,10 +477,10 @@ printf 'a shortcut one exists\nthe cut ones stay\n' >> "$scratch/skills/sample/S
 expect "words containing the retired phrase do not false-fail" 0
 
 # namespace rule: our skills are dev:<skill>, mattpocock's are mattpocock-skills:<skill>; a bare
-# /<skill> or any other namespace fails in a skill doc, an agent doc, the runbook, the project
+# /<skill> or any other namespace fails in a skill doc, a reference doc, the runbook, the project
 # CLAUDE.md or the root glossary (dev-9np)
 ns_msg="bare or unknown skill namespace"
-for target in skills/sample/SKILL.md docs/agents/sample.md docs/WORKFLOW.md CLAUDE.md GLOSSARY.md; do
+for target in skills/sample/SKILL.md references/sample.md docs/WORKFLOW.md CLAUDE.md GLOSSARY.md; do
   fresh
   echo "run /story-to-tasks next" >> "$scratch/$target"
   expect "a bare /<skill> in $target fails with the namespace message" 1 "$ns_msg in $scratch/$target"
@@ -591,25 +592,25 @@ expect "a skill under a category directory resolves" 0
 # when no skill has shipped
 fresh
 mkdir -p "$scratch/noskills"
-echo "run /dev:nope" >> "$scratch/docs/agents/sample.md"
+echo "run /dev:nope" >> "$scratch/references/sample.md"
 skills_dir=$scratch/noskills expect "an unknown /dev:<x> fails while no skill has shipped" 1 "/dev:nope names no skill"
 fresh
 mkdir -p "$scratch/noskills"
-echo "run /dev:setup-repo" >> "$scratch/docs/agents/sample.md"
+echo "run /dev:setup-repo" >> "$scratch/references/sample.md"
 skills_dir=$scratch/noskills expect "a /dev:<x> for one of the plugin's skills fails when its dir is gone" 1 "/dev:setup-repo names no skill"
 fresh
-echo "run /dev:no-such-skill" >> "$scratch/docs/agents/sample.md"
+echo "run /dev:no-such-skill" >> "$scratch/references/sample.md"
 expect "a /dev:<x> naming no skill dir fails while other skills have shipped" 1 "/dev:no-such-skill names no skill"
 
 # a renamed skill turns every reference to its old name red, and its new name resolves (dev-89o)
 # (a throwaway skill, since renaming one a section reads fails that section too)
 fresh
 mkdir "$scratch/skills/old-guide"; mv "$scratch/skills/old-guide" "$scratch/skills/guide"
-echo "run /dev:old-guide" >> "$scratch/docs/agents/sample.md"
+echo "run /dev:old-guide" >> "$scratch/references/sample.md"
 expect "a /dev:<x> for a renamed skill's old name fails" 1 "/dev:old-guide names no skill"
 fresh
 mkdir "$scratch/skills/old-guide"; mv "$scratch/skills/old-guide" "$scratch/skills/guide"
-echo "run /dev:guide" >> "$scratch/docs/agents/sample.md"
+echo "run /dev:guide" >> "$scratch/references/sample.md"
 expect "a /dev:<x> for a renamed skill's new name passes" 0
 # a skills or plugin dir laid out anew drops out of LINT_UNCHANGED, so the namespace rule rereads
 # the docs it lists, which name the skill byte for byte as before
@@ -622,42 +623,85 @@ expect "a dropped plugin skill fails the unchanged docs naming it" 1 "/mattpococ
 
 fresh
 mkdir -p "$scratch/skills/new-skill"; touch "$scratch/skills/new-skill/SKILL.md"
-echo "run /dev:new-skill" >> "$scratch/docs/agents/sample.md"
+echo "run /dev:new-skill" >> "$scratch/references/sample.md"
 expect "a shipped /dev:<x> passes" 0
 fresh
 mkdir -p "$scratch/noskills"
-echo "run /close-story" >> "$scratch/docs/agents/sample.md"
-skills_dir=$scratch/noskills expect "a bare /<skill> fails while no skill has shipped" 1 "$ns_msg in $scratch/docs/agents/sample.md: /close-story"
+echo "run /close-story" >> "$scratch/references/sample.md"
+skills_dir=$scratch/noskills expect "a bare /<skill> fails while no skill has shipped" 1 "$ns_msg in $scratch/references/sample.md: /close-story"
 fresh
 mkdir -p "$scratch/noskills"
-echo "run /mattpocock-skills:nope" >> "$scratch/docs/agents/sample.md"
+echo "run /mattpocock-skills:nope" >> "$scratch/references/sample.md"
 skills_dir=$scratch/noskills expect "/mattpocock-skills:<missing> fails while no skill has shipped" 1 "/mattpocock-skills:nope names no skill"
 
 # the docs ship in the plugin: a path into the dotfiles deployment or the chezmoi source fails
 # in any doc under docs/ and in the runbook
-for path in '~/.claude/docs/agents/orchestration.md' '~/.claude/hooks/guard-rm.sh' '~/.local/share/chezmoi/GLOSSARY.md'; do
+for path in '~/.claude/references/orchestration.md' '~/.claude/hooks/guard-rm.sh' '~/.local/share/chezmoi/GLOSSARY.md'; do
   fresh
   echo "see \`$path\`" >> "$scratch/docs/adr/0001.md"
   expect "a dotfiles deployment path ($path) under docs/ fails" 1 "dotfiles deployment path in $scratch/docs/adr/0001.md"
 done
 fresh
-echo 'see `~/.claude/docs/agents/*.md`' >> "$scratch/docs/WORKFLOW.md"
+echo 'see `~/.claude/references/*.md`' >> "$scratch/docs/WORKFLOW.md"
 expect "a dotfiles deployment path in the runbook fails" 1 "dotfiles deployment path in $scratch/docs/WORKFLOW.md"
-# and in the skills, the agent docs and the project CLAUDE.md, in the $HOME/ spelling too
+# and in the skills, the reference docs and the project CLAUDE.md, in the $HOME/ spelling too
 fresh
-echo 'read `~/.claude/docs/agents/orchestration.md`' >> "$scratch/skills/sample/SKILL.md"
+echo 'read `~/.claude/references/orchestration.md`' >> "$scratch/skills/sample/SKILL.md"
 expect "a dotfiles deployment path in a skill fails" 1 "dotfiles deployment path in $scratch/skills/sample/SKILL.md"
 fresh
-echo 'read `~/.claude/docs/agents/orchestration.md`' >> "$scratch/docs/agents/sample.md"
-expect "a dotfiles deployment path in an agent doc fails" 1 "dotfiles deployment path in $scratch/docs/agents/sample.md"
+echo 'read `~/.claude/references/orchestration.md`' >> "$scratch/references/sample.md"
+expect "a dotfiles deployment path in a reference doc fails" 1 "dotfiles deployment path in $scratch/references/sample.md"
 fresh
-echo 'rules: `~/.claude/docs/agents/`' >> "$scratch/CLAUDE.md"
+echo 'rules: `~/.claude/references/`' >> "$scratch/CLAUDE.md"
 expect "a dotfiles deployment path in the project CLAUDE.md fails" 1 "dotfiles deployment path in $scratch/CLAUDE.md"
-for path in '$HOME/.claude/docs/agents/orchestration.md' '${HOME}/.claude/hooks/guard-rm.sh' '$HOME/.local/share/chezmoi/GLOSSARY.md'; do
+for path in '$HOME/.claude/references/orchestration.md' '${HOME}/.claude/hooks/guard-rm.sh' '$HOME/.local/share/chezmoi/GLOSSARY.md'; do
   fresh
   echo "see \`$path\`" >> "$scratch/docs/WORKFLOW.md"
   expect "a dotfiles deployment path in the \$HOME spelling ($path) fails" 1 "dotfiles deployment path in $scratch/docs/WORKFLOW.md"
 done
+
+# the reference docs live in references/: a path naming one under the old docs/agents/ folder fails
+# in a skill and in a doc, naming the file; the two docs that stay there are no reference docs
+for doc in orchestration harness issue-tracker; do
+  fresh
+  echo "read \`<plugin root>/docs/agents/$doc.md\`" >> "$scratch/skills/sample/SKILL.md"
+  expect "a skill naming $doc under docs/agents fails" 1 "reference doc under the old folder in $scratch/skills/sample/SKILL.md"
+  fresh
+  echo "see docs/agents/$doc.md" >> "$scratch/docs/WORKFLOW.md"
+  expect "a doc naming $doc under docs/agents fails" 1 "reference doc under the old folder in $scratch/docs/WORKFLOW.md"
+done
+for doc in domain triage-labels; do
+  fresh
+  echo "read docs/agents/$doc.md" >> "$scratch/skills/sample/SKILL.md"
+  echo "see docs/agents/$doc.md" >> "$scratch/docs/WORKFLOW.md"
+  expect "a path to docs/agents/$doc.md is not flagged" 0
+done
+# accepted ADRs and past specs keep their old paths
+fresh
+mkdir -p "$scratch/docs/specs"
+echo "see docs/agents/orchestration.md" >> "$scratch/docs/adr/0001.md"
+echo "see docs/agents/harness.md" > "$scratch/docs/specs/past.md"
+expect "an ADR and a spec keeping an old path pass" 0
+# the sweep's other inputs fail too, naming the file (dev-7mkq.1.3)
+old_msg="reference doc under the old folder in"
+for rel in GLOSSARY.md CLAUDE.md README.md references/sample.md docs/agents/domain.md hooks/sample.sh; do
+  fresh
+  mkdir -p "$scratch/hooks" "$scratch/$(dirname "$rel")"
+  echo "see docs/agents/harness.md" >> "$scratch/$rel"
+  expect "$rel naming harness under docs/agents fails" 1 "$old_msg $scratch/$rel"
+done
+# the pattern ends at a word boundary: a longer name passes, the bare name at line end fails
+fresh
+printf '%s\n' "see docs/agents/harness-notes.md and docs/agents/orchestration_x.md" >> "$scratch/docs/WORKFLOW.md"
+expect "a longer name after docs/agents/harness passes" 0
+fresh
+printf '%s\n' "see docs/agents/harness" >> "$scratch/docs/WORKFLOW.md"
+expect "the bare name at line end fails" 1 "$old_msg $scratch/docs/WORKFLOW.md"
+# a near-miss folder (docs/adr-notes) is still swept; only docs/adr and docs/specs are pruned
+fresh
+mkdir -p "$scratch/docs/adr-notes"
+echo "see docs/agents/harness.md" > "$scratch/docs/adr-notes/n.md"
+expect "docs/adr-notes is still swept" 1 "$old_msg $scratch/docs/adr-notes/n.md"
 
 # the brief rule (dev-rc9): a brief block (a markdown quote, indented or not) that names the
 # plugin-root variable fails with the skill and line named; the variable in a step outside a
@@ -665,19 +709,19 @@ done
 brief_msg="plugin-root variable in a brief in"
 pin_phrase "the harness's plugin-root variable"; plugin_root_var=$pinned_phrase
 fresh
-printf '%s\n' "> Read the rules doc, \`\${$plugin_root_var}/docs/agents/orchestration.md\`, before step 1." >> "$scratch/skills/sample/SKILL.md"
+printf '%s\n' "> Read the orchestration doc, \`\${$plugin_root_var}/references/orchestration.md\`, before step 1." >> "$scratch/skills/sample/SKILL.md"
 n=$(grep -n "$plugin_root_var" "$scratch/skills/sample/SKILL.md" | cut -d: -f1)
 expect "the plugin-root variable in a brief block fails with the skill and line named" 1 "$brief_msg $scratch/skills/sample/SKILL.md:$n"
 fresh
-printf '1. Spawn the runner:\n   > You are the runner. Read $%s/docs/agents/orchestration.md first.\n' "$plugin_root_var" >> "$scratch/skills/sample/SKILL.md"
+printf '1. Spawn the runner:\n   > You are the runner. Read $%s/references/orchestration.md first.\n' "$plugin_root_var" >> "$scratch/skills/sample/SKILL.md"
 n=$(grep -n "$plugin_root_var" "$scratch/skills/sample/SKILL.md" | cut -d: -f1)
 expect "the bare variable in an indented brief block fails with the skill and line named" 1 "$brief_msg $scratch/skills/sample/SKILL.md:$n"
 fresh
-printf '> You are the runner. Read the rules doc,\n${%s}/docs/agents/orchestration.md, before step 1.\n' "$plugin_root_var" >> "$scratch/skills/sample/SKILL.md"
+printf '> You are the runner. Read the orchestration doc,\n${%s}/references/orchestration.md, before step 1.\n' "$plugin_root_var" >> "$scratch/skills/sample/SKILL.md"
 n=$(grep -n "$plugin_root_var" "$scratch/skills/sample/SKILL.md" | cut -d: -f1)
 expect "the variable on a wrapped brief line that drops the > still fails" 1 "$brief_msg $scratch/skills/sample/SKILL.md:$n"
 fresh
-printf '> Read the rules doc at the absolute path above.\n\n1. Read `${%s}/docs/agents/issue-tracker.md` before step 2.\n' "$plugin_root_var" >> "$scratch/skills/sample/SKILL.md"
+printf '> Read the orchestration doc at the absolute path above.\n\n1. Read `${%s}/references/issue-tracker.md` before step 2.\n' "$plugin_root_var" >> "$scratch/skills/sample/SKILL.md"
 expect "the plugin-root variable in a step outside a brief passes" 0
 
 # rewrite <file under scratch> <command...>: replaces the file with the command's output on it
@@ -740,6 +784,22 @@ drop_last() {
       p = ENVIRON["p"]; last = 0; pos = 0; rest = $0
       while ((k = index(rest, p))) { pos += k; last = pos; rest = substr(rest, k + length(p)); pos += length(p) - 1 }
       if (last) $0 = substr($0, 1, last - 1) substr($0, last + length(p))
+    }
+    print }'
+}
+# drop_first <file under scratch> <anchor regex> <phrase>: on the lines matching the anchor, take
+# out the first occurrence of the phrase and leave the others
+drop_first() {
+  an="$2" p="$3" rewrite "$1" awk '{
+    if ($0 ~ ENVIRON["an"] && (i = index($0, ENVIRON["p"]))) $0 = substr($0, 1, i - 1) substr($0, i + length(ENVIRON["p"]))
+    print }'
+}
+# drop_second <file under scratch> <anchor regex> <phrase>: on the lines matching the anchor, take
+# out the second occurrence of the phrase and leave the others
+drop_second() {
+  an="$2" p="$3" rewrite "$1" awk '{
+    if ($0 ~ ENVIRON["an"] && (i = index($0, ENVIRON["p"])) && (k = index(substr($0, i + 1), ENVIRON["p"]))) {
+      j = i + k; $0 = substr($0, 1, j - 1) substr($0, j + length(ENVIRON["p"]))
     }
     print }'
 }
@@ -840,7 +900,7 @@ section_case() {
 }
 ban ban_cross_repo "stale wording"
 ban ban_rerun_hint "rerun hint covering an already cut dependent"
-ban ban_profile_push "profile-gated push in the rules doc"
+ban ban_profile_push "profile-gated push in the orchestration doc"
 ban ban_three_entries "Gitignore step counts three entries"
 ban ban_tea_no_repo "Forgejo/Gitea query without --repo"
 ban ban_only_lines "story cut's lines contradict step 2"
@@ -853,14 +913,14 @@ section_case 2 docs/WORKFLOW.md "each $ban_cross_repo gets its own PR" "a runboo
 section_case 3 skills/spec-to-stories/SKILL.md "then $ban_resync the stories" "/spec-to-stories with a re-sync"
 section_case 4 skills/spec-to-tasks/SKILL.md "then $ban_rerun_hint" "/spec-to-tasks with the retired rerun hint"
 section_case 5 skills/sample/SKILL.md 'cut one' "a retired phrase in a skill"
-section_case 6 docs/agents/orchestration.md "push $ban_profile_push" "an orchestration doc gating the push on the profile"
+section_case 6 references/orchestration.md "push $ban_profile_push" "an orchestration doc gating the push on the profile"
 section_case 7 skills/story-to-tasks/SKILL.md "read the notes under $ban_notes_file" "/story-to-tasks reading an owner-repo notes file"
 section_case 8 skills/implement-story/SKILL.md "$ban_three_entries" "/implement-story counting three Gitignore entries"
 section_case 9 skills/close-story/SKILL.md "query \`$ban_tea_no_repo{owner}/{repo}/pulls/1\`" "/close-story with a Forgejo query naming no repo"
-section_case 10 docs/agents/issue-tracker.md "$ban_only_lines" "a tracker doc whose story cut writes two forms only"
+section_case 10 references/issue-tracker.md "$ban_only_lines" "a tracker doc whose story cut writes two forms only"
 section_case 11 skills/sample/SKILL.md 'run /story-to-tasks next' "a bare /<skill>"
 section_case 12 skills/retro/SKILL.md "$ban_bare_grep" "/retro with the bare grep instruction"
-section_case 13 skills/sample/SKILL.md "> read \${$plugin_root_var}/docs/agents/orchestration.md" "the plugin-root variable in a brief"
+section_case 13 skills/sample/SKILL.md "> read \${$plugin_root_var}/references/orchestration.md" "the plugin-root variable in a brief"
 # the inline landing merge, banned from task-orchestrator (section 16) and every skill (section 5);
 # also seeds the @merge@ derivation below
 landing_merge='`git -C <owner> merge <task branch>`'
@@ -887,7 +947,7 @@ printf '%s\n' 'run it as `/dev:close-story` step' '4. Do it' >> "$scratch/skills
 sec=5 expect "a step wrapped onto a list-item line passes section 5 (documented limit)" 0
 # section 1: the Merge guard carve-out is exactly the phrase, case and spelling included
 fresh
-pin_phrase "merge guard cites the rules doc's Repo plumbing and Cut-off probe for its mechanism"
+pin_phrase "merge guard cites the orchestration doc's Repo plumbing and Cut-off probe for its mechanism"
 printf '%s\n' "$pinned_phrase, then merge it" >> "$scratch/skills/implement-spec/SKILL.md"
 sec=1 expect "the carve-out phrase beside a real merge step fails section 1" 1 "present: merge steps"
 fresh
@@ -901,17 +961,17 @@ fresh
 printf '%s\n' 'Read `/dev:close-story` for the merge guard, then go on to step 4.' \
   'This skill has steps 1 to 4, and /dev:sample step 2 is its own.' >> "$scratch/skills/sample/SKILL.md"
 sec=5 expect "own steps and a step-free skill name pass section 5" 0
-# a rules doc is swept too: a skill's step number cited there fails (dev-90up)
+# a reference doc is swept too: a skill's step number cited there fails (dev-90up)
 fresh
-printf '%s\n' 'the forge query, as `/dev:close-story` step 4 does' >> "$scratch/docs/agents/sample.md"
-sec=5 expect "a rules doc citing a skill's step number fails section 5 with its message" 1 "another skill's step number cited in $scratch/docs/agents/sample.md"
+printf '%s\n' 'the forge query, as `/dev:close-story` step 4 does' >> "$scratch/references/sample.md"
+sec=5 expect "a reference doc citing a skill's step number fails section 5 with its message" 1 "another skill's step number cited in $scratch/references/sample.md"
 
-# a section's document gone: the section fails naming it, never skips; a rules doc that two
+# a section's document gone: the section fails naming it, never skips; a reference doc that two
 # sections read fails both
 for case in '1 skills/implement-spec/SKILL.md' '2 skills/workflow/SKILL.md' '2 docs/WORKFLOW.md' \
-  '3 skills/spec-to-stories/SKILL.md' '4 skills/spec-to-tasks/SKILL.md' '6 10 docs/agents/orchestration.md' \
-  '6 docs/agents/harness.md' '6 10 docs/agents/issue-tracker.md' '6 skills/setup-repo/SKILL.md' '7 skills/story-to-tasks/SKILL.md' '8 skills/implement-story/SKILL.md' \
-  '9 skills/close-story/SKILL.md' '6 skills/triage/SKILL.md' '12 skills/retro/SKILL.md' '16 skills/task-orchestrator/SKILL.md' '17 skills/implement-task/SKILL.md' '18 docs/agents/coding-standards.md' '0 CLAUDE.md' '0 GLOSSARY.md'; do
+  '3 skills/spec-to-stories/SKILL.md' '4 skills/spec-to-tasks/SKILL.md' '6 10 references/orchestration.md' \
+  '6 references/harness.md' '6 10 references/issue-tracker.md' '6 skills/setup-repo/SKILL.md' '7 skills/story-to-tasks/SKILL.md' '8 skills/implement-story/SKILL.md' \
+  '9 skills/close-story/SKILL.md' '6 skills/triage/SKILL.md' '12 skills/retro/SKILL.md' '16 skills/task-orchestrator/SKILL.md' '17 skills/implement-task/SKILL.md' '18 .claude/rules/cross-skill-cites.md' '0 CLAUDE.md' '0 GLOSSARY.md'; do
   doc=${case##* }
   fresh
   rm "$scratch/$doc"
@@ -920,14 +980,20 @@ for case in '1 skills/implement-spec/SKILL.md' '2 skills/workflow/SKILL.md' '2 d
   sec=${case% *} expect "a missing $doc fails naming it" 1 "$msg"
 done
 
-# a renamed skill or rules doc turns the lint red naming the document its section reads, rather
+# a renamed skill or reference doc turns the lint red naming the document its section reads, rather
 # than turning that section off
 fresh
 mv "$scratch/skills/retro" "$scratch/skills/retrospective"
 expect "a renamed skill directory fails naming its missing document" 1 "missing document: $scratch/skills/retro/SKILL.md"
 fresh
-mv "$scratch/docs/agents/orchestration.md" "$scratch/docs/agents/orchestrator.md"
-expect "a renamed rules doc fails naming its missing document" 1 "missing document: $scratch/docs/agents/orchestration.md"
+mv "$scratch/references/orchestration.md" "$scratch/references/orchestrator.md"
+expect "a renamed reference doc fails naming its missing document" 1 "missing document: $scratch/references/orchestration.md"
+# a reference doc back in the old folder is no reference doc: the lint reads references/ alone
+for doc in orchestration harness issue-tracker; do
+  fresh
+  mv "$scratch/references/$doc.md" "$scratch/docs/agents/$doc.md"
+  expect "a reference doc under docs/agents and not references/ fails as a missing document" 1 "missing document: $scratch/references/$doc.md"
+done
 
 # --- hand-written cases of absent phrases and rules; the drop case of each pinned phrase is derived below ---
 sec=one
@@ -954,6 +1020,33 @@ ban ban_medium_high_only "the runbook's task review limited to medium and high"
 echo "at the task $ban_medium_high_only on both axes" >> "$scratch/docs/WORKFLOW.md"
 expect "runbook copy limiting the task review to medium and high fails" 1 "the runbook's task review limited to medium and high"
 
+# every implementer and reviewer brief at the task and story rows names both rules folders, the
+# personal ~/.claude/rules/ and the repo's .claude/rules/ (ADR 0018, dev-7mkq.1.6): one brief
+# missing either folder fails its own pin and no sibling brief's on its line (the ;-list of
+# descriptions after the folder). drop_first, drop_second and drop_last take the folder out of
+# the first, second or last brief on the anchored line, where the task row's step 3 holds the
+# spec reviewer's, the standards reviewer's and then a fix-up's brief
+spec_d='the task spec reviewer brief leaves both rules folders to the standards reviewer'
+std_d='the task standards reviewer brief names both rules folders and the breach form'
+fix_d='the task fix-up brief names both rules folders'
+srev_d='the story review brief names both rules folders and the breach form'
+sfix_d='the story fix-up brief names both rules folders'
+for folder in '`~/.claude/rules/`' '`<owner>/.claude/rules/`'; do
+  for c in "first|$spec_d|task-orchestrator|$std_d;$fix_d" \
+    "second|$std_d|task-orchestrator|$spec_d;$fix_d" \
+    "last|$fix_d|task-orchestrator|$spec_d;$std_d" \
+    "last|the task implementer brief names both rules folders|task-orchestrator|" \
+    "first|$srev_d|implement-story|$sfix_d" \
+    "last|$sfix_d|implement-story|$srev_d" \
+    "last|the conflict implementer brief names both rules folders|implement-story|"; do
+    IFS='|' read -r which desc skill siblings <<<"$c"
+    pin_anchor "$desc"
+    fresh
+    "drop_$which" "skills/$skill/SKILL.md" "$pinned_anchor" "$folder"
+    must_not_print=${siblings//;/$'\n'} expect "$skill: a brief without $folder fails '$desc'" 1 "$desc"
+  done
+done
+
 # one has-a-database rule: .beads/ exists and bd where names it, stated once in the tracker doc
 # and cited by every gate; a gate testing only that .beads/ exists fails the sweep (dev-e87)
 fresh
@@ -965,8 +1058,8 @@ printf '%s\n' '   owner other than `<home>` with no `.beads/` → say so.' 'No `
 sec=5 expect "a gate worded as a missing .beads fails" 1 "present: an existence-only beads database gate in $scratch/skills/triage/SKILL.md"
 
 fresh
-printf '%s\n' 'in every manifest repo with `.beads/` (the same guard)' >> "$scratch/docs/agents/issue-tracker.md"
-sec=5 expect "a sweep guarded on .beads alone fails" 1 "present: an existence-only beads database gate in $scratch/docs/agents/issue-tracker.md"
+printf '%s\n' 'in every manifest repo with `.beads/` (the same guard)' >> "$scratch/references/issue-tracker.md"
+sec=5 expect "a sweep guarded on .beads alone fails" 1 "present: an existence-only beads database gate in $scratch/references/issue-tracker.md"
 
 fresh
 ban ban_cannot_take_c "the retired bd init -C wording in $scratch/skills/sample/SKILL.md"
@@ -974,7 +1067,7 @@ echo "\`bd init\` $ban_cannot_take_c, so give the user the command." >> "$scratc
 expect "a skill saying bd init cannot take -C fails" 1 "the retired bd init -C wording"
 
 # the Land script and the stray-commit script own the landing's merge and the stray-commit git log
-# (ADR 0017), so no skill doc types either inline (dev-skn5.1.5); the rules docs may name them
+# (ADR 0017), so no skill doc types either inline (dev-skn5.1.5); the reference docs may name them
 for typed in '`git -C <owner> merge --no-edit <task branch>`' '`git -C <owner> merge --ff-only <task branch>`' '`git merge <task branch>`' '`git merge <task-branch>`'; do
   fresh
   echo "Then merge it with $typed." >> "$scratch/skills/sample/SKILL.md"
@@ -986,8 +1079,8 @@ expect "a skill typing the stray-commit git log fails" 1 "the inline stray-commi
 fresh
 echo "The Land script runs git merge <task branch> for you, and git log <branch>..<task branch> its check." >> "$scratch/skills/sample/SKILL.md"
 echo "Done when \`git -C <owner> merge-base --is-ancestor <task branch> <branch>\` exits 0; \`git -C <owner> merge --abort\` first." >> "$scratch/skills/sample/SKILL.md"
-echo 'A `git merge <task branch>` that applies is a command, and `git -C <owner> log <branch>..<task branch>` its check.' >> "$scratch/docs/agents/sample.md"
-expect "merge-base and merge --abort in a skill, and the typed commands in the rules docs, pass" 0
+echo 'A `git merge <task branch>` that applies is a command, and `git -C <owner> log <branch>..<task branch>` its check.' >> "$scratch/references/sample.md"
+expect "merge-base and merge --abort in a skill, and the typed commands in the reference docs, pass" 0
 
 # the two-wave cap is a pattern with an optional word: its instances, as the skill might word them
 for phrase in 'in at most two dependency waves' 'in at most two waves'; do
@@ -1027,7 +1120,7 @@ echo 'Evidence is recorded by `/dev:implement-story` step 7.' >> "$scratch/skill
 sec=5 expect "implement-spec pointing at /dev:implement-story step 7 fails" 1 "another skill's step number cited in"
 
 fresh
-echo 'The wait is `/dev:implement-story` step 8.' >> "$scratch/docs/agents/harness.md"
+echo 'The wait is `/dev:implement-story` step 8.' >> "$scratch/references/harness.md"
 sec=5 expect "harness doc pointing at /dev:implement-story step 8 fails" 1 "another skill's step number cited in"
 
 fresh
@@ -1038,36 +1131,36 @@ expect "implement-story step 3 pointing at step 8's stray-commit check fails" 1 
 
 fresh
 pin_phrase "the heredoc failure"
-swap_phrase docs/agents/harness.md "$pinned_phrase" 'here-document'
-printf '\nA %s elsewhere in the doc.\n' "$pinned_phrase" >> "$scratch/docs/agents/harness.md"
+swap_phrase references/harness.md "$pinned_phrase" 'here-document'
+printf '\nA %s elsewhere in the doc.\n' "$pinned_phrase" >> "$scratch/references/harness.md"
 expect "harness doc whose TMPDIR rule names no heredoc fails" 1
 
-section_case 6 docs/agents/orchestration.md 'At the epic row it is `failed: <story-id> checks failed after three fix-ups`' "a Check gate allowing a third epic-row fourth-failure line"
+section_case 6 references/orchestration.md 'At the epic row it is `failed: <story-id> checks failed after three fix-ups`' "a Check gate allowing a third epic-row fourth-failure line"
 
 fresh
-swap_phrase docs/agents/orchestration.md '`/.worktrees/`, `/.spec-notes/` and `/.tmp/`' '`/.tmp/`, `/.worktrees/` and `/.spec-notes/`'
+swap_phrase references/orchestration.md '`/.worktrees/`, `/.spec-notes/` and `/.tmp/`' '`/.tmp/`, `/.worktrees/` and `/.spec-notes/`'
 expect "orchestration doc listing /.tmp/ first among the Gitignore entries passes" 0
 
 fresh
 pin_phrase "commit example: the Bead trailer line"
-line=$pinned_phrase rewrite docs/agents/harness.md awk '{ print } $0 == ENVIRON["line"] { print "" }'
+line=$pinned_phrase rewrite references/harness.md awk '{ print } $0 == ENVIRON["line"] { print "" }'
 expect "harness doc whose commit example has a blank line among its trailers fails" 1 "no blank line between the commit example's trailers"
 
 fresh
-mv "$scratch/docs/agents/harness.md" "$scratch/docs/agents/harness-gone.md"
-expect "a missing harness doc fails naming it" 1 "missing document: $scratch/docs/agents/harness.md"
+mv "$scratch/references/harness.md" "$scratch/references/harness-gone.md"
+expect "a missing harness doc fails naming it" 1 "missing document: $scratch/references/harness.md"
 
 # the tracker and orchestration docs speak of the story DAG and the human gate task, and
 # no longer say a feature has one text blocker or that chains are out of scope (ADR 0011)
 for doc in issue-tracker orchestration; do
   fresh
-  printf 'Chains (A depends on B depends on C) are also\nout of scope.\n' >> "$scratch/docs/agents/$doc.md"
+  printf 'Chains (A depends on B depends on C) are also\nout of scope.\n' >> "$scratch/references/$doc.md"
   expect "$doc doc putting chains out of scope across a line break fails" 1
   # the match is bounded, so "chains" and an unrelated "out of scope" paragraphs apart pass
   fresh
   printf '%s\n\n%s\n%s\n' 'Chains of stories are cut in one topological pass' \
     '- every story is created after each story it waits on, in its owner repo database' \
-    '- a dependency pinned by git tag is out of scope' >> "$scratch/docs/agents/$doc.md"
+    '- a dependency pinned by git tag is out of scope' >> "$scratch/references/$doc.md"
   expect "$doc doc with chains and an unrelated out of scope paragraphs apart passes" 0
 done
 
@@ -1075,7 +1168,7 @@ done
 # tasks; the story cut writes a story line or a publish placeholder, never a gate task id
 fresh
 pin_phrase "task cut ordered per story"
-swap_phrase docs/agents/issue-tracker.md "$pinned_phrase" "${pinned_phrase% *}"
+swap_phrase references/issue-tracker.md "$pinned_phrase" "${pinned_phrase% *}"
 expect "tracker doc whose task cut pass is not per story fails" 1
 
 # the stories are listed with the dependent after the dependency, not dependency first
@@ -1288,7 +1381,7 @@ fx_check "no derived case takes to running alone (under one in a hundred)" \
 
 # the sweeps' files, expected by this test and not read back from the lint: a pin list that
 # lacks a file from a sweep would derive no case for it, so the list is checked against the files
-# the sweeps are documented to read (section 5: every file under the agent docs and the skills,
+# the sweeps are documented to read (section 5: every file under the reference docs, docs/agents and the skills,
 # CLAUDE.md, the runbook and the sequence diagrams, GLOSSARY.md also for the two-gate pins). A
 # w/W description that names one of the three top-level files is a sweep, and sweeps_gaps prints
 # one line for each file of the expected set it lacks, or that it reads beyond it. It sees only the
@@ -1296,7 +1389,7 @@ fx_check "no derived case takes to running alone (under one in a hundred)" \
 # step-number sweeps) is checked by loop_gaps below
 # sweeps_gaps <pin list>
 sweeps_gaps() {
-  { (cd "$pristine" && find docs/agents skills -type f; printf '%s\n' CLAUDE.md docs/WORKFLOW.md docs/SEQUENCES.md) | sed 's/^/E\t/'
+  { (cd "$pristine" && find references docs/agents skills -type f; printf '%s\n' CLAUDE.md docs/WORKFLOW.md docs/SEQUENCES.md) | sed 's/^/E\t/'
     awk -F '\t' -v pre="$scratch/" '$1 == "w" || $1 == "W" {
       f = substr($2, length(pre) + 1); d = $3; s = " in " $2
       if (substr(d, length(d) - length(s) + 1) == s) d = substr(d, 1, length(d) - length(s))
@@ -1309,7 +1402,7 @@ sweeps_gaps() {
       for (k in got) { split(k, p, SUBSEP); if (p[1] == d && !(p[2] in want) && p[2] != "GLOSSARY.md") print "FAIL sweep \"" d "\" names " p[2] } } }'
 }
 sweeps=$(sweeps_gaps "$jobs/pins.list")
-fx_check "every sweep names every file under the agent docs and the skills, CLAUDE.md, the runbook and the sequence diagrams" test -z "$sweeps"
+fx_check "every sweep names every file under the reference docs, docs/agents and the skills, CLAUDE.md, the runbook and the sequence diagrams" test -z "$sweeps"
 # pin_list_report <gaps function> <pins file> [<suffix>]: prints what the gaps function reports for
 # the pin list the lint writes to <pins file> on a fresh tree (its argument is <pins file><suffix>)
 pin_list_report() {
@@ -1368,15 +1461,15 @@ loop_facts() {
   loop_sed_sub='s#| sort -u | drop_unchanged)$#| grep -v "/@DROPPED@" | sort -u | drop_unchanged)#'
   case $1 in
     step)
-      loop_files=$(cd "$pristine" && find docs/agents skills -type f | sort -u)
+      loop_files=$(cd "$pristine" && find references docs/agents skills -type f | sort -u)
       loop_seed='See /dev:@OTHER_SKILL@ step 3.'
       loop_message="another skill's step number cited in $scratch/@FILE@"
       loop_sed_addr='/SEQUENCES.md" "${1:-}"/' ;;
     dotfiles)
-      loop_files=$(cd "$pristine" && { find docs -type f -name '*.md'; find docs/agents skills -type f; echo CLAUDE.md; } | sort -u)
+      loop_files=$(cd "$pristine" && { find docs -type f -name '*.md'; find references docs/agents skills -type f; echo CLAUDE.md; } | sort -u)
       loop_seed='Install to ~/.claude/docs.'
       loop_message="dotfiles deployment path in $scratch/@FILE@"
-      loop_sed_addr='/echo "$runbook"; } | grep/' ;;
+      loop_sed_addr='/done < <(sweep_files | grep/' ;;
     ns)
       loop_files=$(cd "$pristine" && { find docs skills -type f -name '*.md'; echo CLAUDE.md; echo GLOSSARY.md; } | sort -u)
       loop_seed='Run /story-to-tasks.'
@@ -1385,7 +1478,7 @@ loop_facts() {
       loop_sed_sub='s#| grep \. | sort -u \\$#| grep . | grep -v "/@DROPPED@" | sort -u \\#' ;;
     brief)
       loop_files=$(cd "$pristine" && find skills -type f -name '*.md' | sort -u)
-      loop_seed='> read ${CLAUDE_PLUGIN_ROOT}/docs/agents/orchestration.md'
+      loop_seed='> read ${CLAUDE_PLUGIN_ROOT}/references/orchestration.md'
       loop_message="plugin-root variable in a brief in $scratch/@FILE@:"
       loop_sed_addr='/unchanged_file || brief_files+=/'
       loop_sed_sub='s#unchanged_file || brief_files+=("$f")#unchanged_file || [ "${f%/@DROPPED@}" != "$f" ] || brief_files+=("$f")#' ;;
@@ -1395,11 +1488,10 @@ loop_facts() {
       loop_message="a semicolon in a mermaid block in $scratch/@FILE@"
       loop_sed_addr='/echo "$glossary_md"; } | sort/' ;;
     cite)
-      loop_files=$(cd "$pristine" && { find docs/agents -maxdepth 1 -type f -name '*.md'; find skills -mindepth 2 -maxdepth 2 -name SKILL.md; } \
-        | grep -v '^docs/agents/coding-standards\.md$' | sort -u)
+      loop_files=$(cd "$pristine" && { find references docs/agents -maxdepth 1 -type f -name '*.md'; find skills -mindepth 2 -maxdepth 2 -name SKILL.md; } | sort -u)
       loop_seed='As the @HEADING@ step of `/dev:@OTHER_SKILL@` says.'
       loop_message="a bare cite of /dev:@OTHER_SKILL@ in $scratch/@FILE@"
-      loop_sed_addr='\#for f in "$agents"/\*.md#'
+      loop_sed_addr='\#for f in "$refs"/\*.md#'
       loop_sed_sub='s#"$skills"/\*/SKILL.md; do$#"$skills"/*/SKILL.md; do [ "${f%/@DROPPED@}" = "$f" ] || continue#' ;;
   esac
   loop_sed_sub=${loop_sed_sub//@DROPPED@/${drop_file#skills/}}
@@ -1592,6 +1684,11 @@ fresh
 pins_dir=$scratch/no-such-pins
 sec="0 1 6" expect "a missing pins directory fails" 1 "no such directory: $scratch/no-such-pins"
 unset pins_dir
+# and so does a docs dir without docs/agents, this repo's mattpocock-skills configuration
+# (the domain and triage-labels docs live there)
+fresh
+rm -rf "$scratch/docs/agents"
+sec="0" expect "a docs dir without docs/agents fails" 1 "no such directory: $scratch/docs/agents"
 
 # pin_row_case <rename|reword> <table>: the one case of a pin table's rows that the lint reads by
 # their description (rename: a row the lint's own calls name, renamed so the lint must name it) or
@@ -1631,7 +1728,7 @@ done
 fresh
 no_target="a repo with no check target fails the run with the setup line, before any task orchestrator starts"
 pin_phrase "$no_target"
-drop_phrase docs/agents/orchestration.md "${pinned_phrase##*, }"
+drop_phrase references/orchestration.md "${pinned_phrase##*, }"
 expect "orchestration doc whose no check target line lacks its closing clause fails" 1 ": $no_target ("
 
 # section 1 lints the implement-spec file it is handed, so the cases below edit a scratch copy of it
@@ -1667,7 +1764,7 @@ expect "implement-spec with a reworded fix-up count fails" 1 "an epic-row fourth
 pins_copy
 pin_phrase "red-check budget failure line"
 slashed="$pinned_phrase/x"
-for doc in pins/implement-spec-pins.tsv skills/implement-spec/SKILL.md docs/agents/orchestration.md; do
+for doc in pins/implement-spec-pins.tsv skills/implement-spec/SKILL.md references/orchestration.md; do
   swap_phrase "$doc" "$pinned_phrase" "$slashed"
 done
 printf '\n%s\n' 'report `failed: <story-id> epic gate not clean after three fix-ups`' >> "$scratch/skills/implement-spec/SKILL.md"
@@ -1792,13 +1889,13 @@ done
 
 fresh
 pin_phrase "a routed bead of type chore"
-printf '\n%s\n' "$pinned_phrase" >> "$scratch/docs/agents/issue-tracker.md"
+printf '\n%s\n' "$pinned_phrase" >> "$scratch/references/issue-tracker.md"
 sec=6 expect "a routed bead of type chore fails" 1 "a routed bead of type chore"
 
 # the capture runs its inbox search before bd create (dev-0o8z): a copy with the search block
 # moved after the create block fails naming the pin
 fresh
-rewrite docs/agents/issue-tracker.md awk '
+rewrite references/issue-tracker.md awk '
   /^bd search "<title words>" --status open -l needs-triage$/ { held = $0; next }
   held != "" && /^  \[--external-ref / { print; print held; held = ""; next }
   { print }'
@@ -1806,7 +1903,7 @@ sec=6 expect "a capture that creates before it searches fails" 1 "out of order: 
 
 # a capture with no inbox search at all fails as missing, naming the pin
 fresh
-rewrite docs/agents/issue-tracker.md sed 's/^bd search "<title words>".*$/bd list/'
+rewrite references/issue-tracker.md sed 's/^bd search "<title words>".*$/bd list/'
 sec=6 expect "a capture with no inbox search fails" 1 "missing in the"
 
 fresh
@@ -1824,7 +1921,7 @@ for text in 'a flat epic of tasks' 'the legacy flat shape' 'The flat-epic refusa
   'run /mattpocock-skills:to-tickets now' \
   'the upstream engineering to-tickets skill' \
   "the $ban_implement_chore skill" "the $ban_chore_orchestrator" "on branch ${ban_chore_branch}<id>"; do
-  for file in skills/sample/SKILL.md docs/agents/issue-tracker.md docs/WORKFLOW.md skills/implement-story/SKILL.md; do
+  for file in skills/sample/SKILL.md references/issue-tracker.md docs/WORKFLOW.md skills/implement-story/SKILL.md; do
     fresh
     echo "$text" >> "$scratch/$file"
     sec=5 expect "$file saying '$text' fails section 5" 1 "$route_desc $scratch/$file"
@@ -1839,7 +1936,7 @@ echo "The spec names a flat epic, ${ban_chore_branch}<id> and the small-bug path
 expect "an ADR and a spec keeping the retired route words pass" 0
 
 # the retired vocabulary (dev-9k5.1.10, dev-9k5.1.11): every retired word or phrase seeded
-# together into each file section 5 sweeps (skills, agent docs, the project CLAUDE.md, the
+# together into each file section 5 sweeps (skills, reference docs, the project CLAUDE.md, the
 # runbook, the sequence diagrams) fails by section 5 alone, the output naming each phrase's
 # check, one lint run per file; the glossary and docs/adr/ are not swept
 ban ban_builtin_review_claude "the built-in code-review named in $scratch/CLAUDE.md"
@@ -1855,7 +1952,7 @@ Exit on the review marker.|the retired review marker
 Run $ban_lint_command, then the tip.|the retired lint command
 Name the test seams as checks.|the retired test seams as checks"
 for file in skills/sample/SKILL.md skills/workflow/SKILL.md skills/close-epic/SKILL.md skills/spec-to-stories/SKILL.md \
-  skills/spec-to-tasks/SKILL.md docs/agents/issue-tracker.md docs/agents/triage-labels.md CLAUDE.md docs/WORKFLOW.md docs/SEQUENCES.md; do
+  skills/spec-to-tasks/SKILL.md references/issue-tracker.md docs/agents/triage-labels.md CLAUDE.md docs/WORKFLOW.md docs/SEQUENCES.md; do
   fresh
   msgs=
   while IFS= read -r case; do
@@ -1896,8 +1993,8 @@ done
 # section 10's wider chains wording leaves section 5's phrase to section 5
 for doc in issue-tracker orchestration; do
   fresh
-  ban_alt ban_chains "retired story-DAG wording in $scratch/docs/agents/$doc.md" chains
-  echo "$ban_chains." >> "$scratch/docs/agents/$doc.md"
+  ban_alt ban_chains "retired story-DAG wording in $scratch/references/$doc.md" chains
+  echo "$ban_chains." >> "$scratch/references/$doc.md"
   sec=5 expect "$doc doc saying the section 10 chains wording fails section 5 alone" 1 "retired story-DAG wording"
 done
 
@@ -1913,27 +2010,27 @@ fresh_spec
 echo "Then the $ban_evidence_run checks the tip." >> "$spec"
 sec=5 expect "implement-spec passed as \$1 with a retired phrase fails section 5" 1 "retired two-gate wording in $spec" "$spec" "$scratch/docs/WORKFLOW.md"
 
-# a rule that moved to harness.md, cited at the rules doc in either form, fails section 5 alone,
-# wrapped included; a rule the rules doc still holds, and the harness doc's citation, pass (dev-zra)
-for case in "skills/implement-story/SKILL.md|as the rules doc's Scratch space says (Literal paths)" \
-  "skills/sample/SKILL.md|the rules doc's Cut-off agents" \
-  "docs/agents/issue-tracker.md|see orchestration.md's TMPDIR rule" \
+# a rule that moved to harness.md, cited at the orchestration doc in either form, fails section 5 alone,
+# wrapped included; a rule the orchestration doc still holds, and the harness doc's citation, pass (dev-zra)
+for case in "skills/implement-story/SKILL.md|as the orchestration doc's Scratch space says (Literal paths)" \
+  "skills/sample/SKILL.md|the orchestration doc's Cut-off agents" \
+  "references/issue-tracker.md|see orchestration.md's TMPDIR rule" \
   "docs/agents/triage-labels.md|(\`orchestration.md\`, Commits)" \
-  "skills/sample/SKILL.md|re-add it as the rules doc's fallback says" \
-  "skills/sample/SKILL.md|as the rules doc's Scratch space (Literal paths) says" \
-  "skills/sample/SKILL.md|hand-rolled, as the rules doc's worktree fallback says" \
+  "skills/sample/SKILL.md|re-add it as the orchestration doc's fallback says" \
+  "skills/sample/SKILL.md|as the orchestration doc's Scratch space (Literal paths) says" \
+  "skills/sample/SKILL.md|hand-rolled, as the orchestration doc's worktree fallback says" \
   "skills/spec-to-tasks/SKILL.md|as the \"Waiting\" rule of \`orchestration.md\` says" \
-  "docs/agents/triage-labels.md|the idle rule in the rules doc" \
+  "docs/agents/triage-labels.md|the idle rule in the orchestration doc" \
   "docs/agents/triage-labels.md|see \`orchestration.md\`'s TMPDIR rule" \
-  "docs/WORKFLOW.md|the rules doc's\nWorktrees"; do
+  "docs/WORKFLOW.md|the orchestration doc's\nWorktrees"; do
   fresh
   printf '%b\n' "${case#*|}" >> "$scratch/${case%%|*}"
-  sec=5 expect "${case%%|*} citing '${case#*|}' fails section 5" 1 "a moved harness rule cited at the rules doc in $scratch/${case%%|*}"
+  sec=5 expect "${case%%|*} citing '${case#*|}' fails section 5" 1 "a moved harness rule cited at the orchestration doc in $scratch/${case%%|*}"
 done
 fresh
-printf "%s\n" "the rules doc's Scratch space (Gitignore)" "the harness doc's Scratch space says (Literal paths)" \
-  "(\`orchestration.md\`, Trust rules, rule 2)" "the rules doc's Frontier (waiting tasks stay open)" >> "$scratch/skills/sample/SKILL.md"
-expect "the rules doc's own rule and the harness doc's citation pass section 5" 0
+printf "%s\n" "the orchestration doc's Scratch space (Gitignore)" "the harness doc's Scratch space says (Literal paths)" \
+  "(\`orchestration.md\`, Trust rules, rule 2)" "the orchestration doc's Frontier (waiting tasks stay open)" >> "$scratch/skills/sample/SKILL.md"
+expect "the orchestration doc's own rule and the harness doc's citation pass section 5" 0
 
 # a semicolon ends a mermaid statement, so one inside a ```mermaid block fails; the same ';' in prose passes
 fresh
@@ -1945,33 +2042,33 @@ echo 'Prose may keep a semicolon; one, two.' >> "$scratch/docs/SEQUENCES.md"
 expect "a semicolon outside a mermaid block passes" 0
 
 # another skill's rule is cited in one form (dev-q47w): a heading cited bare after a
-# possessive fails in any rules doc or SKILL.md but the coding standards, which show the wrong
+# possessive fails in any reference doc or SKILL.md but the cite rule file and the coding standards doc, which show the wrong
 # form
 fresh
-printf '%s\n' "As \`/dev:task-orchestrator\`'s Two entries says." >> "$scratch/docs/agents/orchestration.md"
-sec=18 expect "a bare heading cite of a skill in a rules doc fails section 18" 1 "present: an unquoted heading cite of a skill in $scratch/docs/agents/orchestration.md"
+printf '%s\n' "As \`/dev:task-orchestrator\`'s Two entries says." >> "$scratch/references/orchestration.md"
+sec=18 expect "a bare heading cite of a skill in a reference doc fails section 18" 1 "present: an unquoted heading cite of a skill in $scratch/references/orchestration.md"
 
 fresh
-printf '%s\n' "As \`/dev:task-orchestrator\`'s" "Two entries says." >> "$scratch/docs/agents/orchestration.md"
-sec=18 expect "a bare heading cite split across a line break fails section 18" 1 "present: an unquoted heading cite of a skill in $scratch/docs/agents/orchestration.md"
+printf '%s\n' "As \`/dev:task-orchestrator\`'s" "Two entries says." >> "$scratch/references/orchestration.md"
+sec=18 expect "a bare heading cite split across a line break fails section 18" 1 "present: an unquoted heading cite of a skill in $scratch/references/orchestration.md"
 
 fresh
-printf '%s\n' "As \`/dev:task-orchestrator\`'s" "own brief says." >> "$scratch/docs/agents/orchestration.md"
+printf '%s\n' "As \`/dev:task-orchestrator\`'s" "own brief says." >> "$scratch/references/orchestration.md"
 expect "a possessive followed by a lowercase word on the next line passes section 18" 0
 
 fresh
-printf '%s\n' "As \`/dev:task-orchestrator\`'s \"Two entries\" says, and \`/dev:implement-story\`'s **Story gate**." >> "$scratch/docs/agents/orchestration.md"
+printf '%s\n' "As \`/dev:task-orchestrator\`'s \"Two entries\" says, and \`/dev:implement-story\`'s **Story gate**." >> "$scratch/references/orchestration.md"
 expect "a quoted heading cite and a bold step cite pass section 18" 0
 
 # a section 18 FAIL line names the skill name that matched, not the skill's whole list of names,
 # and shows hits a name, so wrong cites of four names of one skill show four FAIL lines (dev-j9i5)
 fresh
 printf '%s\n' "As the Landing section of \`/dev:implement-story\` says." "As the Clean up sweep of \`/dev:implement-story\` says." \
-  "As the Story gate step of \`/dev:implement-story\` says." "As the Re-evaluate the frontier step of \`/dev:implement-story\` says." >> "$scratch/docs/agents/orchestration.md"
-sec=18 expect "wrong cites of four names of one skill each get a FAIL line naming the name" 1 "present: a bare cite of /dev:implement-story in $scratch/docs/agents/orchestration.md (Landing)
-present: a bare cite of /dev:implement-story in $scratch/docs/agents/orchestration.md (Clean up)
-present: a bare cite of /dev:implement-story in $scratch/docs/agents/orchestration.md (Story gate)
-present: a bare cite of /dev:implement-story in $scratch/docs/agents/orchestration.md (Re-evaluate the frontier)
+  "As the Story gate step of \`/dev:implement-story\` says." "As the Re-evaluate the frontier step of \`/dev:implement-story\` says." >> "$scratch/references/orchestration.md"
+sec=18 expect "wrong cites of four names of one skill each get a FAIL line naming the name" 1 "present: a bare cite of /dev:implement-story in $scratch/references/orchestration.md (Landing)
+present: a bare cite of /dev:implement-story in $scratch/references/orchestration.md (Clean up)
+present: a bare cite of /dev:implement-story in $scratch/references/orchestration.md (Story gate)
+present: a bare cite of /dev:implement-story in $scratch/references/orchestration.md (Re-evaluate the frontier)
 As the Landing section of \`/dev:implement-story\` says.
 As the Clean up sweep of \`/dev:implement-story\` says.
 As the Story gate step of \`/dev:implement-story\` says.
@@ -1980,7 +2077,7 @@ As the Re-evaluate the frontier step of \`/dev:implement-story\` says."
 # one name with four wrong cites shows its first three hits and not the fourth
 fresh
 printf '%s\n' "First Landing section of \`/dev:implement-story\` says." "Second Landing section of \`/dev:implement-story\` says." \
-  "Third Landing section of \`/dev:implement-story\` says." "Fourth Landing section of \`/dev:implement-story\` says." >> "$scratch/docs/agents/orchestration.md"
+  "Third Landing section of \`/dev:implement-story\` says." "Fourth Landing section of \`/dev:implement-story\` says." >> "$scratch/references/orchestration.md"
 must_not_print="Fourth Landing section of" sec=18 expect "a name with four wrong cites shows three hits and not the fourth" 1 "(Landing)
 First Landing section of
 Second Landing section of
@@ -1989,18 +2086,18 @@ Third Landing section of"
 # an unquoted heading cite of one skill, its FAIL line names that skill and not the alternation of
 # every skill's name (dev-pwbz, the retro of dev-j9i5)
 fresh
-printf '%s\n' "As \`/dev:task-orchestrator\`'s Two entries says." >> "$scratch/docs/agents/orchestration.md"
-must_not_print='/dev:(' sec=18 expect "an unquoted heading cite of one skill names that skill in its FAIL line, not the alternation" 1 "present: an unquoted heading cite of a skill in $scratch/docs/agents/orchestration.md (/dev:task-orchestrator)"
+printf '%s\n' "As \`/dev:task-orchestrator\`'s Two entries says." >> "$scratch/references/orchestration.md"
+must_not_print='/dev:(' sec=18 expect "an unquoted heading cite of one skill names that skill in its FAIL line, not the alternation" 1 "present: an unquoted heading cite of a skill in $scratch/references/orchestration.md (/dev:task-orchestrator)"
 
 # the other wrong forms the rule names (dev-mnz6): a step name in quotes, a heading in bold and a
-# bare cite in the "of /dev:x" word order, each failing in a rules doc but the coding standards
-orch=docs/agents/orchestration.md
-# Section 18's cases seed a line of prose, and a lint run over a rules doc pays for that doc's every
+# bare cite in the "of /dev:x" word order, each failing in a reference doc but the cite rule file and the coding standards doc
+orch=references/orchestration.md
+# Section 18's cases seed a line of prose, and a lint run over a reference doc pays for that doc's every
 # check, so they share their runs (dev-xier): cite_case keeps each case's text for a doc of its own,
-# docs/agents/cite-<n>.md, in one tree per $prep, and cite_flush lints each tree once. A case's own
+# references/cite-<n>.md, in one tree per $prep, and cite_flush lints each tree once. A case's own
 # doc says what the same text appended to <file> would: a check reads /dev:<skill> and a name
 # together, so a text holding them passes the file's filter on its own, and a text without them
-# fires nothing in <file> either. The cases above, on the rules doc itself, stand as the witnesses.
+# fires nothing in <file> either. The cases above, on the orchestration doc itself, stand as the witnesses.
 cite_n=0 ncbatches=0 ncretried=0
 # cite_case <want: 1 fails, 0 passes> <file under scratch> <description> <message> <line>...: the
 # lines are the text; $no_nl drops the last newline
@@ -2027,11 +2124,11 @@ judge_cites() {
       if (/^== /) { sect = $0; sub(/^== /, "", sect); sub(/\..*/, "", sect) }
       else if (/^FAIL/) {
         F[++nf] = $0
-        if (sect != "18" || !index($0, dir "/docs/agents/cite-")) foreign = 1
+        if (sect != "18" || !index($0, dir "/references/cite-")) foreign = 1
       }
       next }
     {
-      doc = dir "/docs/agents/cite-" $2 ".md"
+      doc = dir "/references/cite-" $2 ".md"
       msg = $6; p = base "/" $4
       if ((i = index(msg, p))) msg = substr(msg, 1, i - 1) doc substr(msg, i + length(p))
       hit = 0
@@ -2050,7 +2147,7 @@ cite_flush() {
     tree=${spec##*/} tree=${tree%.spec}
     fresh
     [ "$tree" = plain ] || "$tree"
-    cp "${spec%.spec}"/* "$scratch/docs/agents/"
+    cp "${spec%.spec}"/* "$scratch/references/"
     ncbatches=$((ncbatches+1))
     sec= batch=$spec judge_fn=judge_cites expect "cite batch $tree" 1
   done
@@ -2194,6 +2291,11 @@ prep=zed_step cite_seeds 1 $orch "$bt_msg" "a name of kind both in backticks" \
   "As /dev:implement-story's \`Zed gate\` says." \
   "As \`/dev:implement-story\`'s \`Zed gate\` says."
 
+# the cite rule file needs its heading (dev-7mkq.1.5): without it section 18 fails naming it
+fresh
+sed -i.bak "s/^# Another skill's rule is cited in one form/# Another rule/" "$scratch/.claude/rules/cross-skill-cites.md" && rm "$scratch/.claude/rules/cross-skill-cites.md.bak"
+sec=18 expect "the cite rule file without its heading fails section 18" 1 "missing: the cross-skill cite rule heading"
+
 # the cite rule binds a skill doc too (dev-xyrl): a wrong cite of another skill's rule in a
 # SKILL.md fails section 18 in the bare and quoted forms, and the right forms pass
 fresh
@@ -2304,7 +2406,7 @@ cite_seeds 1 $orch "$bt_msg" "a marked name in backticks beside a bare skill" \
 
 # punctuation between the closing backtick and an outer mark, and between an inner mark and the
 # closing backtick, fails in all three orders, the skill backticked or bare
-cite_seeds 1 docs/agents/seed.md "$bt_msg" "a name in backticks with punctuation among the marks" \
+cite_seeds 1 references/seed.md "$bt_msg" "a name in backticks with punctuation among the marks" \
   "As the \`Story gate\`**.** step of \`/dev:implement-story\` says." \
   "As the \"\`Two entries\`,\" heading of \`/dev:task-orchestrator\` says." \
   "As the \`Story gate\`**.** step of $SK says." \
@@ -2347,7 +2449,7 @@ cite_seeds 1 $orch "$cite_msg" "a semicolon after the closing backtick of a bare
 
 # a bare skill beside a known name fails when only the prefilter could pass it: a doc that names the
 # skill bare, never in backticks
-cite_seeds 1 docs/agents/sample.md "$bare_msg" "a doc naming a skill only bare" \
+cite_seeds 1 references/sample.md "$bare_msg" "a doc naming a skill only bare" \
   "As $SK's \"Story gate\" and /dev:task-orchestrator's \"Two entries\" say."
 
 # a name of kind both beside a bare skill fails in each right mark
@@ -2529,13 +2631,13 @@ cite_pairs $orch "bare-skill prose spelling a known name" \
 # the file edges of the bare skill's regexes: a cite ending the file with no final newline (the
 # of/in order's end-of-line alternative), and one opening the file (the skill's start-of-line
 # alternative), each alone in a new doc
-# each text, written with no final newline to a new rules doc, fails section 18 with the message beside it
-no_nl=1 cite_pairs docs/agents/seed.md "a bare skill ending a doc with no final newline" \
+# each text, written with no final newline to a new reference doc, fails section 18 with the message beside it
+no_nl=1 cite_pairs references/seed.md "a bare skill ending a doc with no final newline" \
   "$bare_msg" "As the **Clean up** sweep of $SK" \
   "$bare_msg" "As the **Story gate** step of $SK" \
   "$cite_msg" "As the Story gate step of $SK" \
   "$q_msg" "As the \"Story gate\" step of $SK"
-cite_seeds 1 docs/agents/seed.md "$bare_msg" "a bare skill opening a doc" \
+cite_seeds 1 references/seed.md "$bare_msg" "a bare skill opening a doc" \
   "$SK's **Story gate** says." \
   "$SK **Story gate** says."
 # the right marking beside a bare skill fails only for a name of the bare skill: the cited name is
@@ -2619,32 +2721,32 @@ cite_case 0 $orch "the right marking skill-first passes section 18" "" "As \`/de
 
 # review 1 of dev-wh65: a case-changed cite fails in a doc lacking the name's first word in its
 # original case (the prefilter reads the file case-insensitively)
-cite_case 1 docs/agents/seed.md "a case-changed step name in quotes fails in a doc without the original-case word" "present: a step name cited in quotes of /dev:implement-story in $scratch/docs/agents/seed.md" "As \`/dev:implement-story\`'s \"story gate\" says."
+cite_case 1 references/seed.md "a case-changed step name in quotes fails in a doc without the original-case word" "present: a step name cited in quotes of /dev:implement-story in $scratch/references/seed.md" "As \`/dev:implement-story\`'s \"story gate\" says."
 
-cite_case 1 docs/agents/seed.md "a case-changed heading in bold fails in a doc without the original-case word" "present: a heading cited in bold of /dev:task-orchestrator in $scratch/docs/agents/seed.md" "As the **two entries** section of \`/dev:task-orchestrator\` says."
+cite_case 1 references/seed.md "a case-changed heading in bold fails in a doc without the original-case word" "present: a heading cited in bold of /dev:task-orchestrator in $scratch/references/seed.md" "As the **two entries** section of \`/dev:task-orchestrator\` says."
 
 # a bare name in another case, in every order
-cite_case 1 docs/agents/seed.md "a lower-case bare name after the possessive fails section 18" "present: a bare cite after a possessive and step or section of /dev:implement-story in $scratch/docs/agents/seed.md" "As \`/dev:implement-story\`'s story gate says."
+cite_case 1 references/seed.md "a lower-case bare name after the possessive fails section 18" "present: a bare cite after a possessive and step or section of /dev:implement-story in $scratch/references/seed.md" "As \`/dev:implement-story\`'s story gate says."
 
-cite_case 1 docs/agents/seed.md "a lower-case bare name before 'of' fails section 18" "present: a bare cite of /dev:implement-story in $scratch/docs/agents/seed.md" "As the check gate of \`/dev:implement-story\` says, and the story gate of \`/dev:implement-story\`."
+cite_case 1 references/seed.md "a lower-case bare name before 'of' fails section 18" "present: a bare cite of /dev:implement-story in $scratch/references/seed.md" "As the check gate of \`/dev:implement-story\` says, and the story gate of \`/dev:implement-story\`."
 
-cite_case 1 docs/agents/seed.md "a bare skill-first step name fails section 18" "present: a bare skill-first cite of /dev:implement-story in $scratch/docs/agents/seed.md" "As \`/dev:implement-story\` Story gate says."
+cite_case 1 references/seed.md "a bare skill-first step name fails section 18" "present: a bare skill-first cite of /dev:implement-story in $scratch/references/seed.md" "As \`/dev:implement-story\` Story gate says."
 
-cite_case 1 docs/agents/seed.md "a bare skill-first heading after a comma fails section 18" "present: a bare skill-first cite of /dev:task-orchestrator in $scratch/docs/agents/seed.md" "As \`/dev:task-orchestrator\`, Two entries says."
+cite_case 1 references/seed.md "a bare skill-first heading after a comma fails section 18" "present: a bare skill-first cite of /dev:task-orchestrator in $scratch/references/seed.md" "As \`/dev:task-orchestrator\`, Two entries says."
 
 # a lower-case word straight after a skill reads as prose (the real "`/dev:story-to-tasks` re-cut adds"),
 # so a bare skill-first cite is caught in the name's own case only
-cite_case 0 docs/agents/seed.md "a lower-case bare skill-first heading passes section 18" "" "As \`/dev:task-orchestrator\` two entries says."
+cite_case 0 references/seed.md "a lower-case bare skill-first heading passes section 18" "" "As \`/dev:task-orchestrator\` two entries says."
 
 # a skill-first marked cite with another separator or a link word
-cite_seeds 1 docs/agents/seed.md "present: a step name cited in quotes of /dev:implement-story in $scratch/docs/agents/seed.md" "a skill-first step in quotes" \
+cite_seeds 1 references/seed.md "present: a step name cited in quotes of /dev:implement-story in $scratch/references/seed.md" "a skill-first step in quotes" \
   "As \`/dev:implement-story\`: \"Story gate\" says." \
   "As \`/dev:implement-story\` step \"Story gate\" says." \
   "As \`/dev:implement-story\` the \"Story gate\" step says." \
   "As \`/dev:implement-story\`; \"Story gate\" says." \
   "As \`/dev:implement-story\` - \"Story gate\" says." \
   "As \`/dev:implement-story\` \"story gate\" says."
-cite_seeds 1 docs/agents/seed.md "present: a heading cited in bold of /dev:task-orchestrator in $scratch/docs/agents/seed.md" "a skill-first heading in bold" \
+cite_seeds 1 references/seed.md "present: a heading cited in bold of /dev:task-orchestrator in $scratch/references/seed.md" "a skill-first heading in bold" \
   "As \`/dev:task-orchestrator\` section **Two entries** says." \
   "As \`/dev:task-orchestrator\` — **Two entries** says." \
   "As \`/dev:task-orchestrator\`: **Two entries** says." \
@@ -2653,7 +2755,7 @@ cite_seeds 1 docs/agents/seed.md "present: a heading cited in bold of /dev:task-
   "As \`/dev:task-orchestrator\` **two entries** says."
 
 # a bare skill-first name after a colon, "the", "step", a semicolon or a hyphen
-cite_seeds 1 docs/agents/seed.md "present: a bare skill-first cite of /dev:implement-story in $scratch/docs/agents/seed.md" "a bare skill-first step name" \
+cite_seeds 1 references/seed.md "present: a bare skill-first cite of /dev:implement-story in $scratch/references/seed.md" "a bare skill-first step name" \
   "As \`/dev:implement-story\`: Story gate says." \
   "As \`/dev:implement-story\` the Story gate says." \
   "As \`/dev:implement-story\` step Story gate says." \
@@ -2663,14 +2765,14 @@ cite_seeds 1 docs/agents/seed.md "present: a bare skill-first cite of /dev:imple
 # a step and a heading differing only in case are one name of kind both: the right markings pass
 fresh
 printf '%s\n' "## Story Gate" >> "$scratch/skills/implement-story/SKILL.md"
-printf '%s\n' "As \`/dev:implement-story\`'s **Story gate** and \`/dev:implement-story\`'s \"Story Gate\" say." > "$scratch/docs/agents/seed.md"
+printf '%s\n' "As \`/dev:implement-story\`'s **Story gate** and \`/dev:implement-story\`'s \"Story Gate\" say." > "$scratch/references/seed.md"
 expect "a step and a heading differing in case take either marking in section 18" 0
 
-# a skill gaining a name makes an unchanged rules doc's text a wrong cite (the doc's line 'sweep of
+# a skill gaining a name makes an unchanged reference doc's text a wrong cite (the doc's line 'sweep of
 # /dev:implement-story' reads bare once the skill has a heading 'sweep')
 fresh
 printf '%s\n' "## sweep" >> "$scratch/skills/implement-story/SKILL.md"
-sec=18 expect "a skill gaining a heading re-reads an unchanged rules doc in section 18" 1 "present: a bare cite of /dev:implement-story in $scratch/$orch"
+sec=18 expect "a skill gaining a heading re-reads an unchanged reference doc in section 18" 1 "present: a bare cite of /dev:implement-story in $scratch/$orch"
 
 # a bold label opening a list item (- **Owner** in /dev:triage) names no step, so it is no cite target
 cite_case 0 $orch "a list label or a bare bold label is no step name in section 18" "" "The Owner of \`/dev:triage\` and the Alone of \`/dev:story-to-tasks\` are words."
@@ -2708,12 +2810,12 @@ printf '%s\n' "As \`/dev:implement-story\`'s \"Zed middle\" says." >> "$scratch/
 expect "a mid-line bold term is no step name in section 18" 0
 
 fresh
-printf '%s\n' "The wrong form: \`/dev:task-orchestrator\`'s Two entries." >> "$scratch/docs/agents/coding-standards.md"
-expect "a bare heading cite in the coding standards passes section 18" 0
+printf '%s\n' "The wrong form: \`/dev:task-orchestrator\`'s Two entries." >> "$scratch/.claude/rules/cross-skill-cites.md"
+expect "a bare heading cite in the cross-skill cite rule file passes section 18" 0
 
 fresh
-printf '%s\n' "The wrong forms: \`/dev:close-story\`'s **The forge shows MERGED**, \`/dev:implement-story\`'s \"Merge guard\" and the Landing section of \`/dev:implement-story\`." >> "$scratch/docs/agents/coding-standards.md"
-expect "the other wrong forms in the coding standards pass section 18" 0
+printf '%s\n' "The wrong forms: \`/dev:close-story\`'s **The forge shows MERGED**, \`/dev:implement-story\`'s \"Merge guard\" and the Landing section of \`/dev:implement-story\`." >> "$scratch/.claude/rules/cross-skill-cites.md"
+expect "the other wrong forms in the cross-skill cite rule file pass section 18" 0
 
 # every section 18 case kept above runs here
 cite_flush
@@ -2734,17 +2836,17 @@ printf '%s\t%s\t%s\t%s\t%s\t%s\n' \
   1 3 plain a.md 'fires another check' 'present: x in /s/a.md' \
   0 4 plain a.md 'passes' '' \
   0 11 plain a.md 'named' '' > "$jobs/judged.cites"
-printf '%s\n' '== 5. retired phrases' '== 18. cross-skill cites: /d/docs/agents/coding-standards.md' \
-  'FAIL: present: x in /d/docs/agents/cite-1.md (p)' '1:text' \
-  'FAIL: present: y in /d/docs/agents/cite-3.md (p)' 'FAIL: present: y in /d/docs/agents/cite-11.md (p)' > "$jobs/judged.lint"
+printf '%s\n' '== 5. retired phrases' '== 18. cross-skill cites: /d/.claude/rules/cross-skill-cites.md' \
+  'FAIL: present: x in /d/references/cite-1.md (p)' '1:text' \
+  'FAIL: present: y in /d/references/cite-3.md (p)' 'FAIL: present: y in /d/references/cite-11.md (p)' > "$jobs/judged.lint"
 fx_check "a cite batch vouches for a doc's own message and a quiet doc, and retries the rest" \
   judge_cites_gives 'fires|passes' 'silent|fires another check|named' 1
 fx_check "a cite batch whose lint timed out vouches for nothing" \
   judge_cites_gives '' 'fires|silent|fires another check|passes|named' 124
-printf '%s\n' 'FAIL: present: z in /d/docs/agents/orchestration.md (p)' >> "$jobs/judged.lint"
+printf '%s\n' 'FAIL: present: z in /d/references/orchestration.md (p)' >> "$jobs/judged.lint"
 fx_check "a cite batch with a FAIL off its docs vouches for nothing" \
   judge_cites_gives '' 'fires|silent|fires another check|passes|named' 1
-printf '%s\n' '== 5. retired phrases' 'FAIL: present: z in /d/docs/agents/cite-1.md (p)' '== 18. x' > "$jobs/judged.lint"
+printf '%s\n' '== 5. retired phrases' 'FAIL: present: z in /d/references/cite-1.md (p)' '== 18. x' > "$jobs/judged.lint"
 fx_check "a cite batch with a FAIL outside section 18 vouches for nothing" \
   judge_cites_gives '' 'fires|silent|fires another check|passes|named' 1
 
@@ -2757,12 +2859,12 @@ pin_anchor "task row: three fix-ups"
 an=$pinned_anchor tb=$pinned_phrase sb=$story_budget rewrite "$orch" awk '$0 ~ ENVIRON["an"] && (i = index($0, ENVIRON["tb"])) {
   $0 = substr($0, 1, i - 1) ENVIRON["sb"] substr($0, i + length(ENVIRON["tb"])) } { print }'
 sec=6 expect "orchestration doc's Task row regaining the conflict resolutions fails" 1 "present: task row: a conflict resolution budget"
-# a red check record counted as checked, seeded back in the rules doc (dev-6qi)
+# a red check record counted as checked, seeded back in the orchestration doc (dev-6qi)
 fresh
 ban ban_any_record "a red check record counted as checked"
 printf '\nA %s.\n' "$ban_any_record" >> "$scratch/$orch"
 sec=6 expect "orchestration doc counting any check record as checked fails" 1 "present: a red check record counted as checked"
-# a fix-up that commits nothing re-reading the red record, seeded back in the rules doc (dev-vnf)
+# a fix-up that commits nothing re-reading the red record, seeded back in the orchestration doc (dev-vnf)
 fresh
 ban ban_rereads_red "a fix-up that commits nothing re-reading the red record"
 printf '\nSo %s.\n' "$ban_rereads_red" >> "$scratch/$orch"
@@ -2863,7 +2965,7 @@ rm -r "$scratch/skills/implement-task"
 sec="11 17" expect "a missing implement-task skill dir fails the namespace rule" 1 "/dev:implement-task names no skill"
 
 fresh
-printf '%s\n' '| **Standalone task** | story orchestrator | one task orchestrator |' >> "$scratch/docs/agents/orchestration.md"
+printf '%s\n' '| **Standalone task** | story orchestrator | one task orchestrator |' >> "$scratch/references/orchestration.md"
 sec=6 expect "orchestration with a fourth table row fails" 1 "present: a fourth row in the table"
 
 # the checks named after the review on step 7's line: the order pin fails; the phrase comes from
@@ -2946,7 +3048,7 @@ unset sec
 # a DOCS_DIR override must exist
 expect_flush all
 fresh
-out=$(VERSION_BUMP_REPO=$scratch/no-repo VERSION_BUMP_BASE=HEAD DOCS_DIR=/typo-no-such-dir SKILLS_DIR=$scratch/skills AGENT_DOCS=$scratch/docs/agents USER_CLAUDE_MD=$scratch/CLAUDE.md PLUGIN_SKILLS=$scratch/plugin "$lint" "" "$scratch/docs/WORKFLOW.md" 2>&1; echo "rc=$?")
+out=$(VERSION_BUMP_REPO=$scratch/no-repo VERSION_BUMP_BASE=HEAD DOCS_DIR=/typo-no-such-dir SKILLS_DIR=$scratch/skills REFERENCES_DIR=$scratch/references USER_CLAUDE_MD=$scratch/CLAUDE.md PLUGIN_SKILLS=$scratch/plugin "$lint" "" "$scratch/docs/WORKFLOW.md" 2>&1; echo "rc=$?")
 fx_check "a DOCS_DIR that does not exist fails" grep -qF "no such directory: /typo-no-such-dir" <<<"$out"
 
 # docs/specs: the namespace rule applies, the existence check does not
@@ -3014,7 +3116,8 @@ expect_keep() {
   scratch_entries
   mkdir "$kept" && cp -R "${entries[@]}" "$kept/" || { echo "FAIL keep the tree for the next case"; exit 1; }
   expect "$@"
-  mv "$kept"/* "$scratch/" && rmdir "$kept"
+  # dotglob: the tree holds .claude (the rule file section 18 reads), which a bare * leaves behind
+  (shopt -s dotglob nullglob; mv "$kept"/* "$scratch/") && rmdir "$kept"
   handed=0
 }
 
@@ -3039,7 +3142,7 @@ grep -v '^has	epic review spec axis	' "$repo_root/scripts/implement-spec-pins.ts
 list_unchanged "$scratch"/pins/*.tsv
 fx_check "a doc LINT_UNCHANGED lists, with every pin table, has its section skipped whole" \
   eval 'result_is 0 "" "$(pins_dir=$scratch/pins unchanged_list=$jobs/unchanged lint_scratch)"'
-grep -vxF "$scratch/docs/agents/orchestration.md" "$jobs/unchanged" > "$jobs/unchanged.less"
+grep -vxF "$scratch/references/orchestration.md" "$jobs/unchanged" > "$jobs/unchanged.less"
 fx_check "the same doc unlisted runs its section" \
   eval 'result_is 1 "no row '\''epic review spec axis'\'' in implement-spec-pins.tsv" "$(pins_dir=$scratch/pins unchanged_list=$jobs/unchanged.less lint_scratch)"'
 list_unchanged
@@ -3074,7 +3177,7 @@ pin_run=$(pin_list_run "$jobs/pins.seeded")
 fx_check "a pin list run on a seeded tree runs none of its queued checks" bash -c '! grep -q "retired phrase in" <<<"$1"' _ "$pin_run"
 # an empty list skips nothing, the sweeps over many files included
 fresh
-printf '```mermaid\nA->>B: one; two\n```\n' >> "$scratch/docs/agents/sample.md"
+printf '```mermaid\nA->>B: one; two\n```\n' >> "$scratch/references/sample.md"
 : > "$jobs/unchanged"
 fx_check "an empty LINT_UNCHANGED skips no sweep" \
   eval 'result_is 1 "semicolon in a mermaid block" "$(unchanged_list=$jobs/unchanged lint_scratch)"'
@@ -3083,14 +3186,14 @@ fx_check "an empty LINT_UNCHANGED skips no sweep" \
 # base the same edit re-reads it (the skill gaining a heading, above, is the base that no longer
 # matches)
 fresh
-printf '%s\n' "See \`/dev:close-story\`'s Some rule." >> "$scratch/docs/agents/orchestration.md"
+printf '%s\n' "See \`/dev:close-story\`'s Some rule." >> "$scratch/references/orchestration.md"
 echo "a line that names no step or heading" >> "$scratch/skills/sample/SKILL.md"
-list_unchanged "$scratch/docs/agents/orchestration.md"
+list_unchanged "$scratch/references/orchestration.md"
 unchanged_tables >> "$jobs/unchanged"
 fx_check "a changed SKILL.md that moves no cite name leaves a listed doc unread in section 18" \
   eval 'result_is 0 "" "$(unchanged_list=$jobs/unchanged lint_scratch)"'
 fx_check "with no cite base a changed SKILL.md re-reads a listed doc in section 18" \
-  eval 'result_is 1 "an unquoted heading cite of a skill in $scratch/docs/agents/orchestration.md" "$(LINT_CITE_BASE= unchanged_list=$jobs/unchanged lint_scratch)"'
+  eval 'result_is 1 "an unquoted heading cite of a skill in $scratch/references/orchestration.md" "$(LINT_CITE_BASE= unchanged_list=$jobs/unchanged lint_scratch)"'
 
 # a failed init commits nothing, here or in the enclosing checkout
 expect_flush all
@@ -3116,6 +3219,15 @@ bump_repo feat
 echo two > "$bump_repo_dir/docs/a.md"
 echo '{"name":"dev","version":"0.2.0"}' > "$bump_repo_dir/.claude-plugin/plugin.json"; bump_commit "docs change and bump"
 expect "a docs change with a version bump passes" 0
+
+bump_repo feat
+mkdir -p "$bump_repo_dir/references"; echo r > "$bump_repo_dir/references/r.md"; bump_commit "reference change"
+expect "a references change without a version bump fails" 1 "version bump"
+
+bump_repo feat
+mkdir -p "$bump_repo_dir/references"; echo r > "$bump_repo_dir/references/r.md"
+echo '{"name":"dev","version":"0.2.0"}' > "$bump_repo_dir/.claude-plugin/plugin.json"; bump_commit "reference change and bump"
+expect "a references change with a version bump passes" 0
 
 bump_repo feat
 mkdir -p "$bump_repo_dir/skills/x"; echo s > "$bump_repo_dir/skills/x/SKILL.md"; bump_commit "skill change"

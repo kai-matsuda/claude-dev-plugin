@@ -19,6 +19,16 @@ status: accepted
 > runs every `make ci` step and the fixture tests in one side-by-side pool, so the steps share
 > the runner's cores.
 
+> Amended 2026-11-09 (dev-7mkq, INFRA-45): the three docs the skills share (`orchestration.md`, `harness.md` and
+> `issue-tracker.md`) move from `docs/agents/` to `references/` at the plugin root and are
+> addressed as `${CLAUDE_PLUGIN_ROOT}/references/...`. They are called reference docs, not
+> `rules docs`, because a rule now means a file in a Claude Code rules folder (ADR 0018,
+> `docs/adr/0018-the-plugin-ships-no-coding-standards.md`). They stay a folder the skills
+> read by path, not a skill that other skills load. `docs/agents/` keeps `domain.md` and
+> `triage-labels.md`, this repo's own configuration for the mattpocock-skills. Vendoring
+> those skills is still not done; if it is, their configuration joins `references/`. The
+> text below keeps the words of its day.
+
 # The feature workflow ships as a Claude Code plugin, not as dotfiles
 
 The feature workflow lived in the chezmoi source of `vangogh500/dotfiles` and reached a machine with `make apply`.

@@ -6,6 +6,8 @@ into stories and tasks, implement them AFK through story orchestrators and task
 orchestrators, review, open the PR, and close the loop with retro and triage.
 
 Skills are addressed as `/dev:<skill>`. Start with `/dev:workflow` for the runbook.
+The reference docs the skills share live in `references/` at the plugin root (the
+orchestration doc, the harness doc and the tracker doc).
 
 ## Install
 
@@ -69,6 +71,12 @@ ones your machine uses:
   }
 }
 ```
+
+## Coding standards
+
+Coding standards are yours; the plugin ships none. They live in two layers, `~/.claude/rules/`
+and a repo's `.claude/rules/`, and the repo's win. The runbook's "Where things live"
+(`docs/WORKFLOW.md`) says how implementers and reviewers read them.
 
 ## Developing
 

@@ -50,7 +50,7 @@ Bash call (INFRA-30's run: two `make lint` calls
 were backgrounded that way, and one agent went looking for its own process with `ps`).
 This is the mechanism behind the no-polling rule above, and why INFRA-29's until-loops
 and Monitors woke agents with stale state. The one long shell wait is the story orchestrator's
-forge-check wait (the rules doc's Delivery section): one
+forge-check wait (the orchestration doc's Delivery section): one
 foreground Bash call that waits for the PR's forge checks on the pushed tip, bounded by its
 `timeout: 600000` and run again while a check is still pending, at most six calls (its
 merge-state re-read before it, `sleep 10` between at most six reads, is a short compound call too).
@@ -115,7 +115,7 @@ claim outlives the orchestrator, and `bd ready` excludes an `in_progress` task, 
 orchestrator `bd -C <owner> unclaim <task-id>`s it before the next frontier read. A
 fresh task orchestrator at the claim entry has its implementer reset the worktree onto the
 integration branch tip with `git reset --keep <branch>` (the task orchestrator's step 2 names the command), so what a cut-off implementer left unmerged there is lost and the task
-starts over; one at the gate entry (`/dev:task-orchestrator`'s "Two entries"), sent when the rules doc's Cut-off probe finds commits, gates them instead. What reached the integration branch stays.
+starts over; one at the gate entry (`/dev:task-orchestrator`'s "Two entries"), sent when the orchestration doc's Cut-off probe finds commits, gates them instead. What reached the integration branch stays.
 
 ## Scratch space
 

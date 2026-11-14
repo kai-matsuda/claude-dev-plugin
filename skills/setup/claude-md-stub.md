@@ -2,7 +2,7 @@
 
 Apply in every repo unless the repo's own CLAUDE.md overrides a section.
 
-The feature workflow comes from the `dev` plugin; its rules docs live under `docs/agents/`
+The feature workflow comes from the `dev` plugin; its reference docs live under `references/`
 in the plugin and its skills read them, so none is restated here.
 
 - Jira is for humans (one Epic per feature, holding the spec); beads (`bd`) is for AI task

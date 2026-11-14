@@ -20,7 +20,7 @@ has	add-mode stall hint without an external ref	/dev:spec-to-stories <epic-id>
 has	final report waiting: names a finished story	a finished story not yet closed
 hasc	report template shows the story-closure human: line	human:   <owner repo> <story-id> <pr url>
 hasc	epic orchestrator role	**epic orchestrator**
-has	harness doc cited	docs/agents/harness.md
+has	harness doc cited	references/harness.md
 has	epic review, one PR at a time	one PR at a time
 has	epic review diff	the diff from the default branch to the integration branch
 has	epic review spec axis	the Jira Epic's spec
@@ -34,7 +34,7 @@ has	fix-up: the story re-run in add mode	in add mode
 has	fix-up budget	three per story
 # the story orchestrator brief names the harness doc's Commits rule, as that rule asks of every
 # brief to an agent that commits or merges (story dev-9k5.1 review)
-has	the story orchestrator brief names the Commits rule	commit under the Commits rule of `<plugin root>/docs/agents/harness.md`
+has	the story orchestrator brief names the Commits rule	commit under the Commits rule of `<plugin root>/references/harness.md`
 has	fix-up budget's fourth	the fourth is `failed`
 hasc	report template's epic review line	review:  <verdict line>
 has	Done needs a clean epic review	epic review clean
@@ -86,7 +86,7 @@ has	replaced reviewer's stop sweep	the stop sweep, then spawn a fresh one
 has	end state reads step 6's forge reads	step 6's forge reads
 has	red-check budget failure line	failed: <story-id> checks red after three fix-ups
 has	blocking-verdict budget failure line	failed: <story-id> epic review not clean after three fix-ups
-has	the budget failure line is the Check gate's	report the rules doc's Check gate line for the last failure
+has	the budget failure line is the Check gate's	report the orchestration doc's Check gate line for the last failure
 has	pending checks re-polled after a fix-up batch	any whose checks were pending
 has	end state's checks pending outcome	clean with checks pending
 hasc	waiting rule pointer	the harness doc's Waiting

@@ -2,7 +2,7 @@
 
 The dev plugin's default for every repo. The repo's CLAUDE.md supplies `<KEY>`, the Jira
 project key; if it is missing, ask once and record it in the repo's `## Agent skills`
-block. The human-facing runbook for the whole flow is `../WORKFLOW.md` (`/dev:workflow` in
+block. The human-facing runbook for the whole flow is `../docs/WORKFLOW.md` (`/dev:workflow` in
 a session).
 
 Issues live in two places with distinct roles:
@@ -126,10 +126,11 @@ repo already had `core.hooksPath` set, chain the old hook from the new one in
 - Specs are written as markdown in the Jira epic description. Long specs may also be
   checked in under `docs/specs/<feature-slug>.md` and linked from the epic. Specs are
   plans of work, not decision records: when a spec settles an architectural decision,
-  extract it into a numbered ADR at `docs/adr/NNNN-<slug>.md` (see `domain.md`) and
-  link the ADR from the spec. Never put specs in `docs/adr/`.
-- Triage state is a Jira label on the epic (see `triage-labels.md`). Mirror it on the
-  epic bead with `bd label add <id> <label>`.
+  extract it into a numbered ADR at `docs/adr/NNNN-<slug>.md` (see `docs/agents/domain.md`
+  in the repo being worked on) and link the ADR from the spec. Never put specs in
+  `docs/adr/`.
+- Triage state is a Jira label on the epic (see `docs/agents/triage-labels.md` in the repo
+  being worked on). Mirror it on the epic bead with `bd label add <id> <label>`.
 - Every task carries exactly one `complexity:<tier>` label (see "Complexity labels").
 - Human-facing comments and decisions go to the Jira epic (`addCommentToJiraIssue`);
   `bd note` is for agent-local progress that nobody else needs to read.

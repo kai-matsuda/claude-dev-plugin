@@ -1,7 +1,7 @@
 #!/bin/sh
 # commit-lint: checks a commit message against the "Commit messages" rules in
 # ~/.claude/CLAUDE.md (the stub beside this file) and the trailer rules in
-# docs/agents/issue-tracker.md. Shipped here, in the dev plugin, for machine setup
+# references/issue-tracker.md. Shipped here, in the dev plugin, for machine setup
 # to install as ~/.config/git/commit-lint.sh (check-prereqs.sh prints where and
 # how); edit it here, never the installed copy. The global hook.commitlint in
 # ~/.gitconfig runs it on commit-msg in every repo, with the message file as $1;
