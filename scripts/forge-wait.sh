@@ -23,9 +23,11 @@
 # (`gh pr checks --json bucket`) tells them apart, so `checks finished` prints only when the recheck
 # reads and counts none pending; a config error or a recheck that fails or counts one pending
 # prints `forge error: <watch output>` and exits 1. gh reads checks by PR number, so the head is
-# verified at <tip SHA> before the probe and read again after the watch and recheck: a head that is
-# no longer the tip (a push to the PR meanwhile) or cannot be read prints `forge error: head moved:
-# the PR head is <head>, not the verified tip <tip SHA>` and exits 1, never `checks finished`.
+# verified at <tip SHA> before the probe and read again after the watch and recheck (a failed read
+# of it is retried like the first, a config error exits 1): a head that is no longer the tip (a push
+# to the PR meanwhile) prints `forge error: head moved: the PR head is <head>, not the verified tip
+# <tip SHA>` and exits 1, never `checks finished`. So `checks finished` is for the tip's checks as
+# of that second head read; Delivery step 4's later read of the checks is by PR number again.
 # tea: loops on the pushed tip's commit status
 # every FORGE_WAIT_SLEEP seconds (default 30) until it has a status and none is pending; needs jq on PATH (refused: exit 2 without it).
 # <repo> is gh's owner/name slug and <pr> its PR number: tea uses neither (it finds its repo from
@@ -63,9 +65,13 @@ case $forge in
     fi
     # gh pr checks reads by PR number, so the checks just waited on are the tip's only if the head is
     # still the verified tip
-    h=$(gh pr view "$pr" --repo "$repo" --json headRefOid -q .headRefOid 2>"$errf"); cfg_err "$h"
+    while :; do
+      h=$(gh pr view "$pr" --repo "$repo" --json headRefOid -q .headRefOid 2>"$errf"); rc=$?; cfg_err "$h"
+      [ "$rc" = 0 ] && break
+      sleep "$nap"
+    done
     if [ "$h" != "$tip" ]; then
-      echo "forge error: head moved: the PR head is ${h:-unreadable}, not the verified tip $tip"; exit 1
+      echo "forge error: head moved: the PR head is $h, not the verified tip $tip"; exit 1
     fi
     ;;
   tea)

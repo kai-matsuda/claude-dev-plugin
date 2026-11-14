@@ -149,6 +149,13 @@ fx_check "gh head read failed: exits 0" fx_eq "$rc" 0
 fx_check "gh head read failed: finished line" fx_eq "$out" "checks finished"
 fx_check "gh head read failed: read the head twice, then once after the watch" fx_eq "$(calls head)" 3
 
+# gh: a head re-read after the watch that fails for a non-config reason is retried, not read as a moved head
+put head $tip "!dial tcp: operation not permitted" $tip; put probe '[{"name":"x"}]'; put watch ok
+run /o gh org/r 7 $tip
+fx_check "gh head re-read failed: exits 0" fx_eq "$rc" 0
+fx_check "gh head re-read failed: finished line" fx_eq "$out" "checks finished"
+fx_check "gh head re-read failed: read the head three times" fx_eq "$(calls head)" 3
+
 # tea: config error
 put status "$cfg"
 run /o tea /o 7 $tip
