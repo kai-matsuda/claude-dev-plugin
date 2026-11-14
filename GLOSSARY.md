@@ -222,6 +222,18 @@ checked again, and a sibling landing, a conflict resolution or a fix-up's commit
 tree that is checked again; a fix-up that commits nothing makes none.
 _Avoid_: pre-flight, verification step
 
+**Fixture case**:
+A case in a fixture test (a `scripts/test-fixture-*.sh` that ends in `run_phases`),
+whose seam is a live subagent run: `seed <case>`, the skill run, then `assert <case>`. The
+check skips one that was never run, so the task gate runs every case its diff adds or
+changes, and a new or changed case with no assert record is a blocking finding.
+_Avoid_: fixture test case, live case
+
+**Assert record**:
+The output of a fixture case's `assert`, which the task orchestrator keeps beside the
+check record (`<owner>/.tmp/checks/<tree>/assert-<case>`) and notes on the task bead.
+_Avoid_: assert log, fixture result
+
 **Seam run**:
 An implementer's own run of the tests at its unit's test seams (its touched modules, for a
 task that names none), or of a failing test script a fix-up brief names, as many times as

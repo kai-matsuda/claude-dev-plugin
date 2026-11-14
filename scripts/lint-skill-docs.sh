@@ -2258,6 +2258,13 @@ line_has "$G3" "the loop step cites the orchestration doc's loop" "as the orches
 line_has "$G3" "a red starts the loop over from the checks" 'A red spawns a fresh implementer on the fix-up and the loop starts over from the checks'
 line_has "$G3" "a blocking verdict starts the loop over from the checks, never straight to the reviewers" 'a blocking verdict spawns a fresh implementer on the fix-up and the loop starts over from the checks, never straight to the reviewers'
 line_has "$G3" "a clean verdict exits the loop" '**Clean** exits the loop'
+# a new or changed fixture case runs end to end at the gate, since the check skips an unrun
+# one: seed, one subagent at the seed's brief, assert, the assert record kept beside the check
+# record; the spec reviewer's blocking list counts a case with no assert record (dev-lf9v, INFRA-45)
+line_has "$G3" "the gate seeds, runs a subagent on and asserts each new or changed fixture case" 'when the task'"'"'s diff adds or changes a case in one, then on the green tip, for each such case, in the task'"'"'s worktree, you run its test script'"'"'s `seed <case>`, spawn one subagent at the tier'"'"'s implementation model to follow the brief the seed prints'
+line_has "$G3" "the gate records the assert beside the check record" 'keep the assert'"'"'s output as the case'"'"'s **assert record** beside the check record'
+line_has "$G3" "the spec reviewer brief names each fixture case and its assert record" "the spec reviewer's brief names each such case and the assert record's path"
+line_has "$G3" "a fixture case with no assert record is a blocking finding" 'a new or changed fixture case with no assert record (a missing test, whatever the check'"'"'s green)'
 line_has "$G3" "the check gate runs before step 3's reviewer" "go to step 4; for \`medium\` and \`high\`, $pin_spawn_two_reviewers"
 unchanged_file || ! grep -E "$G3" "$f" | sed 's/Green: .*//' | grep -qF -- "$pin_spawn_two_reviewers" || bad "present: task orchestrator step 3 spawns a reviewer ahead of the checks' green"
 # one reviewer per axis, combined into one verdict line (dev-bzd)

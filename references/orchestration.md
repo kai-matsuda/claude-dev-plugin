@@ -285,6 +285,7 @@ The call that writes a record is `<plugin root>/scripts/check.sh <worktree path>
 **Check gate.** At every row the gate exits when the checks are green on the tip the review called clean.
 Each pass runs the Check record script on the tip, unless its tree has a green record, then the review.
 A `low` task's gate is the checks alone, with no review.
+At the task row, a case the task's diff adds or changes in a fixture test (seed, subagent run, assert) is run end to end on the green tip, since the check skips an unrun one, and its assert record is kept beside the check record; a new or changed case with no assert record is a blocking finding (dev-lf9v).
 A red or a blocking verdict goes to a fresh implementer by pointer brief and the loop starts over
 (at the epic row, to `ready-for-agent` tasks under the story, The epic row above);
 three such fix-ups per unit (at the epic row, three per story), and the fourth is `failed`,
