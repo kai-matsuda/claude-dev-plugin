@@ -2210,9 +2210,9 @@ line_has '^3\. ' "task orchestrator step 3's brief carries the plain-command lin
 line_has "$anchor_task_orchestrator_header" "the task orchestrator header carries the plain-command line" "$plain_command"
 line_has '^2\. ' "task orchestrator step 2's brief names the bare pwd step" "$pwd_step"
 line_has '^2\. ' "task orchestrator step 2's brief spells the path literally in later exports" "$spelled"
-# the order of each brief, the TMPDIR line then the plain-command line; step 3 holds two briefs
+# the order of each brief, the TMPDIR line then the plain-command line; step 3 holds three briefs
 line_hase '^2\. ' "task orchestrator step 2's brief puts the TMPDIR line ahead of the plain-command line" "$tmpdir_then_plain"
-line_hase '^3\. ' "task orchestrator step 3's two briefs each put the TMPDIR line ahead of the plain-command line" "$tmpdir_then_plain.*$tmpdir_then_plain"
+line_hase '^3\. ' "task orchestrator step 3's three briefs each put the TMPDIR line ahead of the plain-command line" "$tmpdir_then_plain.*$tmpdir_then_plain.*$tmpdir_then_plain"
 line_hase "$anchor_task_orchestrator_header" "the task orchestrator header puts the TMPDIR line ahead of the plain-command line" "$tmpdir_then_plain"
 line_hase '^2\. ' "task orchestrator step 2's brief puts the TMPDIR line, the bare pwd step and the spelled path in order" "$tmpdir_line.*$tmpdir_pwd_spelled"
 # the reviewer brief carries the two tags and the verdict line, and step 3 points at the
@@ -2262,6 +2262,8 @@ line_has "$G3" "a clean verdict exits the loop" '**Clean** exits the loop'
 # one: seed, one subagent at the seed's brief, assert, the assert record kept beside the check
 # record; the spec reviewer's blocking list counts a case with no assert record (dev-lf9v, INFRA-45)
 line_has "$G3" "the gate seeds, runs a subagent on and asserts each new or changed fixture case" 'when the task'"'"'s diff adds or changes a case in one, then on the green tip, for each such case, in the task'"'"'s worktree, you run its test script'"'"'s `seed <case>`, spawn one subagent at the tier'"'"'s implementation model to follow the brief the seed prints'
+line_has "$G3" "the gate runs the assert in one foreground call with the long timeout" 'run `assert <case>` in one foreground Bash call with `timeout: 600000`'
+line_has "$G3" "the fixture subagent brief starts with the TMPDIR line and the plain-command line and points at the Shell commands section" 'spawn one subagent at the tier'"'"'s implementation model to follow the brief the seed prints, its own brief starting with the TMPDIR line, then the plain-command line, one plain `git` or `bd` command per Bash call, every path spelled out, and pointing at the Shell commands section of `<plugin root>/references/harness.md`'
 line_has "$G3" "the gate records the assert beside the check record" 'keep the assert'"'"'s output as the case'"'"'s **assert record** beside the check record'
 line_has "$G3" "the spec reviewer brief names each fixture case and its assert record" "the spec reviewer's brief names each such case and the assert record's path"
 line_has "$G3" "a fixture case with no assert record is a blocking finding" 'a new or changed fixture case with no assert record (a missing test, whatever the check'"'"'s green)'

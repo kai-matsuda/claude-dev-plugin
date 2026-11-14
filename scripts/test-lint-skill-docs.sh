@@ -3006,7 +3006,7 @@ order_case $task_orch "task orchestrator step 2's brief starts with the TMPDIR l
 order_case $task_orch "task orchestrator step 2's brief names the bare pwd step" "task orchestrator step 2's brief spells the path literally in later exports" \
   "task orchestrator step 2's brief puts the TMPDIR line, the bare pwd step and the spelled path in order"
 order_case $task_orch "task orchestrator step 3's brief starts with the TMPDIR line" "task orchestrator step 3's brief carries the plain-command line" \
-  "task orchestrator step 3's two briefs each put the TMPDIR line ahead of the plain-command line"
+  "task orchestrator step 3's three briefs each put the TMPDIR line ahead of the plain-command line"
 # the header's brief holds the plain-command line after its TMPDIRs: swapped with the first, it stands ahead
 fresh
 pin_phrase "task orchestrator step 2's brief starts with the TMPDIR line"; first=$pinned_phrase
@@ -3014,17 +3014,17 @@ pin_phrase "the task orchestrator header carries the plain-command line"; second
 pin_anchor "the task orchestrator header carries the plain-command line"
 swap_two $task_orch "$pinned_anchor" "$first" "$second"
 expect "the task orchestrator header with its TMPDIR line behind the plain-command line fails" 1 "missing: the task orchestrator header puts the TMPDIR line ahead of the plain-command line"
-# step 3 holds two briefs: the second one cut short, or opening without its TMPDIR line, fails
+# step 3 holds three briefs: the second one cut short, or opening without its TMPDIR line, fails
 fresh
 pin_phrase "task orchestrator step 3's brief carries the plain-command line"
 pin_anchor "task orchestrator step 3's brief carries the plain-command line"
 drop_last $task_orch "$pinned_anchor" "$pinned_phrase"
-expect "task orchestrator step 3 with its second brief lacking the plain-command line fails" 1 "missing: task orchestrator step 3's two briefs each put the TMPDIR line ahead of the plain-command line"
+expect "task orchestrator step 3 with its last brief lacking the plain-command line fails" 1 "missing: task orchestrator step 3's three briefs each put the TMPDIR line ahead of the plain-command line"
 fresh
 pin_phrase "task orchestrator step 3's brief starts with the TMPDIR line"
 pin_anchor "task orchestrator step 3's brief starts with the TMPDIR line"
 drop_last $task_orch "$pinned_anchor" "$pinned_phrase"
-expect "task orchestrator step 3 with its second brief lacking the TMPDIR line fails" 1 "missing: task orchestrator step 3's two briefs each put the TMPDIR line ahead of the plain-command line"
+expect "task orchestrator step 3 with its last brief lacking the TMPDIR line fails" 1 "missing: task orchestrator step 3's three briefs each put the TMPDIR line ahead of the plain-command line"
 
 # the retired landing agent seeded back on step 7's line fails section 5 alone (the retired role is a pattern)
 fresh

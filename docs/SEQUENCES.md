@@ -36,6 +36,9 @@ sequenceDiagram
 
     loop the checks, then the review on green, three fix-ups per unit (the epic row, three per story)
         O->>O: run the check command on the tip unless its tree has a green record, and write the record (the epic row reads the forge's status on the PR tip)
+        opt task row, the diff adds or changes a fixture case
+            O->>O: seed the case, one subagent follows the seed's brief, assert it and keep the assert record (a failing assert is a red)
+        end
         alt the checks are red
             O->>BD: note the failing command and its log
             O->>F: fix-up by pointer brief
