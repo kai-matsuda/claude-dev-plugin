@@ -142,6 +142,22 @@ fx_check "stray author: the line" fx_eq "$out" "refused: stray commit $stray fea
 fx_check "stray author: main unmoved" fx_eq "$(sha main)" "$base"
 fx_check "stray author: clean checkout" fx_eq "$(status)" ""
 
+# a stray merge: the task branch carries a merge that adds a path of its own
+reset
+git -C "$r" checkout -q -b side "$base" && commit sd.txt sd "feat: side" "" "Bead: x-5"
+git -C "$r" checkout -q task
+git -C "$r" merge -q --no-ff --no-commit side >/dev/null 2>&1
+echo smuggled > "$r/smuggled.txt" && git -C "$r" add smuggled.txt
+git -C "$r" commit -q -m "merge side"
+sm=$(sha task); tip=$sm
+git -C "$r" checkout -q main
+git -C "$r" branch -q -D side
+run main task "$tip"
+fx_check "stray merge: exits 2" fx_eq "$rc" 2
+fx_check "stray merge: the line" fx_eq "$out" "refused: stray merge $sm changes smuggled.txt"
+fx_check "stray merge: main unmoved" fx_eq "$(sha main)" "$base"
+fx_check "stray merge: clean checkout" fx_eq "$(status)" ""
+
 # missing Bead: trailer
 reset
 git -C "$r" checkout -q task && commit n.txt n "fix: no trailer"

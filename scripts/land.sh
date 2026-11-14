@@ -10,7 +10,7 @@
 #   conflict                          exit 1, after the script's own merge --abort left the checkout clean
 #   refused: <reason>                 exit 2, nothing merged; reasons: not on <branch>,
 #                                     owner checkout dirty: <files>, <task branch> moved past <tip>,
-#                                     stray commit <sha> <subject> (or stray merge <sha> adds <path>), diverged (only under --ff-only),
+#                                     stray commit <sha> <subject> (or stray merge <sha> changes <path>), diverged (only under --ff-only),
 #                                     or a wrong usage, an owner that is not a git checkout, a merge
 #                                     that failed without a conflict (merge failed), a merge that
 #                                     failed and left the checkout dirty (the one refusal that can
@@ -38,7 +38,7 @@ fi
   || refuse "$task moved past $tip"
 
 if ! stray=$("$here/stray-commit.sh" "$owner" "$branch..$tip"); then
-  case $stray in "refused: "*) echo "$stray"; exit 2 ;; "stray commit "*) refuse "$stray" ;; *) refuse "${stray:-stray-commit.sh failed}" ;; esac
+  case $stray in "refused: "*) echo "$stray"; exit 2 ;; "stray commit "*|"stray merge "*) refuse "$stray" ;; *) refuse "${stray:-stray-commit.sh failed}" ;; esac
 fi
 
 if git -C "$owner" merge-base --is-ancestor "$tip" "$branch"; then
