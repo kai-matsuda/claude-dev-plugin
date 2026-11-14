@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(bd *)"
+      "Bash(bd *)",
+      "Bash(~/.claude/plugins/cache/claude-dev-plugin/dev/*/scripts/forge-wait.sh *)"
     ],
     "ask": [
       "Bash(git reset --hard*)",
@@ -49,7 +50,8 @@
       "git pull*",
       "git -C * pull*",
       "bd dolt push*",
-      "bd dolt pull*"
+      "bd dolt pull*",
+      "~/.claude/plugins/cache/claude-dev-plugin/dev/*/scripts/forge-wait.sh *"
     ],
     "filesystem": {
       "allowWrite": [
