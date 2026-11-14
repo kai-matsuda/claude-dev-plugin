@@ -1128,7 +1128,9 @@ retired_loop='evidence run|a later run reviews the fix|a third round of either k
 retired_gate='review-only|no check command|with(out)? a check command'
 # a forge command runs plainly first and is rerun with the sandbox disabled only when it fails with the
 # forge CLI's config error or a sandbox denial, a rule the orchestration doc's Forge decision states once
-# and the rest cite (dev-aosb): no doc tells an agent to disable the sandbox for a forge command up front
+# and the rest cite (dev-aosb): no doc tells an agent to disable the sandbox for a simple forge command up
+# front; the one exception is a compound or $(...) call wrapping a forge command, such as the forge-check
+# wait, which Delivery step 4 runs with the sandbox disabled (dev-urom)
 retired_forge_sandbox='the mode the Forge decision.s proof|run in that same mode|run each forge command with the sandbox disabled|run the one forge command with the sandbox disabled|forge command of this step run with the sandbox disabled|with the sandbox disabled as every forge command is|push runs with the sandbox disabled|with the sandbox disabled, as the push is|run with the sandbox disabled, as `/dev:close-story`|with the sandbox disabled, as forge commands do|Run that one forge command with the sandbox disabled'
 # a rule that moved to harness.md (dev-9k5.1.2) cited at the orchestration doc, doc first as "the
 # orchestration doc's Worktrees", "the orchestration doc's worktree fallback", "the orchestration doc's Scratch space says
@@ -1449,7 +1451,7 @@ sec_has "## Delivery" "Delivery's PR body is written with a forge" '3. **PR body
 row_phrase implement-spec-pins "tea fallback evidence" && sec_has "## Delivery" "Delivery's Evidence is the delivered tip's check record" "its Evidence $row_text"
 sec_has "## Delivery" "Delivery waits for the forge checks" '4. **Forge-check wait**, before the delivery is recorded'
 sec_has "## Delivery" "Delivery watches the gh checks" "$pin_gh_checks_watch"
-sec_has "## Delivery" "Delivery waits on the tea commit status" 'tea api --repo <owner> repos/{owner}/{repo}/commits/<tip SHA>/status | jq -e'
+sec_has "## Delivery" "Delivery waits on the tea commit status" 'tea api --repo <owner> repos/{owner}/{repo}/commits/<tip SHA>/status 2>&1); case'
 sec_has "## Delivery" "Delivery's gh wait waits for the pushed tip as the PR head" '[ "$h" = <tip SHA> ]'
 sec_has "## Delivery" "Delivery treats a failing forge read as an error, not a skip" 'is a forge error, never a skip'
 sec_has "## Delivery" "Delivery reads the merge state on every forge PR, ahead of the workflows read" 'Read whether the PR can merge on every forge PR, ahead of the workflows read'
@@ -1471,8 +1473,13 @@ sec_has "## Delivery" "Delivery's conflict fix is the human's" 'resolve the conf
 sec_has "## Delivery" "Delivery's conflict does not spend the wait's timeout" 'the wait is not entered and its `timeout` is not spent'
 sec_has "## Delivery" "Delivery bounds the forge-check wait" 'at most six calls in all'
 sec_has "## Delivery" "the forge-check wait runs with the sandbox disabled because an exemption matches a plain forge command, not one inside a compound command (dev-urom)" 'run with the sandbox disabled, because a sandbox exemption such as `sandbox.excludedCommands` matches a plain forge command but not one inside a compound command'
-sec_has "## Delivery" "any compound or \$(...) call wrapping a forge command runs with the sandbox disabled too (dev-urom)" 'so does any other compound or `$(...)` call that wraps a forge command'
-sec_has "## Delivery" "the forge-check wait stops at once on the forge CLI's config error instead of looping to its timeout (dev-urom)" 'stops at once on `unable to get or create config file` or `failed to read configuration`'
+sec_has "## Delivery" "any other compound or \$(...) call wrapping a forge command runs with the sandbox disabled too (dev-urom)" 'any other compound or `$(...)` call that wraps a forge command runs with the sandbox disabled too'
+sec_has "## Delivery" "the forge-check wait stops at once on the forge CLI's config error instead of looping to its timeout (dev-urom)" 'stops at once on the forge CLI'"'"'s config error (defined in the Forge decision)'
+sec_has "## Delivery" "the gh wait loop exits on the config error from either gh read (dev-urom)" "case \"\$h\" in *'unable to get or create config file'*|*'failed to read configuration'*) echo \"\$h\"; exit 1;; esac"
+sec_has "## Delivery" "the gh wait loop exits on the config error from the checks-registered probe (dev-urom)" "case \"\$c\" in *'unable to get or create config file'*|*'failed to read configuration'*) echo \"\$c\"; exit 1;; esac"
+sec_has "## Delivery" "the tea wait loop exits on the config error too (dev-urom)" "case \"\$s\" in *'unable to get or create config file'*|*'failed to read configuration'*) echo \"\$s\"; exit 1;; esac"
+sec_has "## Repo plumbing and Cut-off probe" "the Forge decision defines the forge CLI's config error once (dev-urom)" "the forge CLI's config error: \`unable to get or create config file\` or \`failed to read configuration\`"
+sec_has "## Repo plumbing and Cut-off probe" "the Forge decision's plain-first rule points to the compound-call exception (dev-urom)" 'The one exception is a compound call wrapping a forge command, which a sandbox exemption does not match and so runs with the sandbox disabled, as Delivery step 4 says'
 sec_has "## Repo plumbing and Cut-off probe" "the Merge guard decides and runs its forge query as the Forge decision says, once" 'decided and run as the Forge decision says (plain first)'
 sec_has "## Repo plumbing and Cut-off probe" "the Merge guard's branch-form fetch runs as the Forge decision says" 'git -C <owner> fetch origin` (run as the Forge decision says, skipped with no `origin`)'
 sec_has "## Repo plumbing and Cut-off probe" "git push and fetch are reached by sandbox.excludedCommands only when a pattern matching them is listed" 'git push` and `git fetch` are reached when a pattern matching them (the baseline'"'"'s `git push*`, `git fetch*`) is listed there, else their ssh `Permission denied (publickey)` is a sandbox denial and reruns'
