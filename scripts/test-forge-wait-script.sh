@@ -202,27 +202,29 @@ fx_check "unknown forge: exits 2" fx_eq "$rc" 2
 fx_check "unknown forge: refused line" fx_eq "$out" "refused: forge must be gh or tea, not hub"
 
 # the argument shapes the permission rule cannot pin: each wrong shape is refused before any forge call
-refuses() { # <label> <forge> <repo> <pr> <tip>
+refuses() { # <label> <refusal text after "refused: "> <forge> <repo> <pr> <tip>
   put head $tip; put probe '[{"name":"x"}]'; put watch ok; put status "$green"
-  run /o "$2" "$3" "$4" "$5"
+  run /o "$3" "$4" "$5" "$6"
   fx_check "$1: exits 2" fx_eq "$rc" 2
-  fx_check "$1: refused line" bash -c '[[ $1 == "refused: "* ]]' _ "$out"
+  fx_check "$1: refused line" fx_eq "$out" "refused: $2"
   fx_check "$1: no forge call made" fx_eq "$(calls head)$(calls status)" 00
 }
-refuses "repo without owner" gh r 7 $tip
-refuses "repo with a path" gh ../r/x/y 7 $tip
-refuses "repo with a ../ owner" gh ../r 7 $tip
-refuses "repo with a . name" gh org/. 7 $tip
-refuses "repo with a .. name" gh org/.. 7 $tip
-refuses "repo with a space" gh "org/r x" 7 $tip
-refuses "repo on tea too" tea r 7 $tip
-refuses "pr not digits" gh org/r 7a $tip
-refuses "pr with a flag shape" gh org/r --watch $tip
-refuses "tip not hex" gh org/r 7 abc12g
-refuses "tip with a command" tea org/r 7 'abc;rm'
-refuses "tip shorter than 7 hex digits" gh org/r 7 abc123
-refuses "tip longer than 64 hex digits" gh org/r 7 "$(printf 'a%.0s' $(seq 65))"
+long=$(printf 'a%.0s' $(seq 65))
+refuses "repo without owner" "repo must be owner/name, not r" gh r 7 $tip
+refuses "repo with a path" "repo must be owner/name, not ../r/x/y" gh ../r/x/y 7 $tip
+refuses "repo with a ../ owner" "repo must be owner/name, not ../r" gh ../r 7 $tip
+refuses "repo with a . name" "repo must be owner/name, not org/." gh org/. 7 $tip
+refuses "repo with a .. name" "repo must be owner/name, not org/.." gh org/.. 7 $tip
+refuses "repo with a space" "repo must be owner/name, not org/r x" gh "org/r x" 7 $tip
+refuses "repo on tea too" "repo must be owner/name, not r" tea r 7 $tip
+refuses "pr not digits" "pr must be digits, not 7a" gh org/r 7a $tip
+refuses "pr with a flag shape" "pr must be digits, not --watch" gh org/r --watch $tip
+refuses "tip not hex" "tip must be 7 to 64 hex digits, not abc12g" gh org/r 7 abc12g
+refuses "tip with a command" "tip must be 7 to 64 hex digits, not abc;rm" tea org/r 7 'abc;rm'
+refuses "tip shorter than 7 hex digits" "tip must be 7 to 64 hex digits, not abc123" gh org/r 7 abc123
+refuses "tip longer than 64 hex digits" "tip must be 7 to 64 hex digits, not $long" gh org/r 7 "$long"
 run /o gh org/r 7 $tip extra
 fx_check "six args: exits 2" fx_eq "$rc" 2
+fx_check "six args: refused line" fx_eq "$out" "refused: usage: forge-wait.sh <owner> <gh|tea> <repo> <pr> <tip SHA>"
 
 fx_report_fails

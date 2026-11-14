@@ -10,8 +10,9 @@
 #                                     read in the loop or the watch, never looped on to the caller's
 #                                     timeout; or a gh watch that failed with checks still pending;
 #                                     or a gh head that moved off the tip during the wait
-#   refused: <reason>                 exit 2, a wrong usage, a forge other than gh or tea, a <repo> not
-#                                     owner/name, a <pr> not digits, a <tip SHA> not 7 to 64 hex digits, or tea without jq
+#   refused: <reason>                 exit 2, a wrong usage, a forge other than gh or tea, a <repo>
+#                                     not owner/name, a <pr> not digits, a <tip SHA> not 7 to 64
+#                                     hex digits, or tea without jq
 # gh and tea stderr is kept apart from the compared head SHA and the JSON, but scanned for the config
 # error, so a stray warning never keeps the head from equalling the tip.
 # A wait that outlasts its caller's `timeout` is killed by it and prints nothing: the caller reads
@@ -30,7 +31,8 @@
 # <tip SHA>` and exits 1, never `checks finished`. So `checks finished` is for the tip's checks as
 # of that second head read; Delivery step 4's later read of the checks is by PR number again.
 # tea: loops on the pushed tip's commit status
-# every FORGE_WAIT_SLEEP seconds (default 30) until it has a status and none is pending; needs jq on PATH (refused: exit 2 without it).
+# every FORGE_WAIT_SLEEP seconds (default 30) until it has a status and none is pending; needs jq
+# on PATH (refused: exit 2 without it).
 # <repo> is gh's owner/name slug and <pr> its PR number: tea uses neither (it finds its repo from
 # <owner>, the checkout's absolute path, and reads the status by <tip SHA>).
 # Usage: scripts/forge-wait.sh <owner> <gh|tea> <repo> <pr> <tip SHA>

@@ -190,6 +190,8 @@ fw_old_home="$HOME/.claude/plugins/cache/claude-dev-plugin/dev/*/scripts/forge-w
 fw_dotdot="$HOME/.claude/plugins/cache/claude-dev-plugin/dev/../../../../src/x/scripts/forge-wait.sh /x gh a/b 1 c"
 fx_check "the earlier wildcard rule matches a ../ path out of the plugin cache" fw_rule_match "$fw_old_home" "$fw_dotdot"
 fx_check "the printed rules miss another file named forge-wait.sh" fw_miss "/home/owner/src/x/scripts/forge-wait.sh /x gh a/b 1 c"
+# note: fw_rule_match splits a compound command first, so the next four checks would also pass under
+# the earlier free-trailing-* rule; the whole-string check below is what tells the two rules apart
 fx_check "the printed rules miss a compound command after the five arguments" fw_miss "$fw_real /x gh a/b 1 c && touch /x/y"
 fx_check "the printed rules miss a command chained with ;" fw_miss "$fw_real /x gh a/b 1 c; rm -rf /x"
 fx_check "the printed rules miss a piped command" fw_miss "$fw_real /x gh a/b 1 c | sh"
@@ -235,6 +237,12 @@ prereqs_at=$work/noscripts/skills/setup/check-prereqs.sh run full; prereqs_at=
 fx_check "an install with no scripts/ beside skills/ reports it missing" grep -q '^missing: the plugin.s scripts/ directory' <<<"$out"
 fx_check "an install with no scripts/ beside skills/ exits non-zero" test "$rc" != 0
 fx_check "an install with no scripts/ beside skills/ prints no forge-wait rule" bash -c '! grep -q "forge-wait" <<<"$1"' _ "$out"
+# a scripts/ directory without forge-wait.sh in it is just as missing
+mkdir -p "$work/nofw/scripts" "$work/nofw/skills"; cp -R "$skill" "$work/nofw/skills/setup"
+prereqs_at=$work/nofw/skills/setup/check-prereqs.sh run full; prereqs_at=
+fx_check "an install whose scripts/ lacks forge-wait.sh reports it missing" grep -q '^missing: the plugin.s scripts/forge-wait.sh' <<<"$out"
+fx_check "an install whose scripts/ lacks forge-wait.sh exits non-zero" test "$rc" != 0
+fx_check "an install whose scripts/ lacks forge-wait.sh prints no forge-wait rule" bash -c '! grep -q "FORGE_WAIT_PATH\|forge-wait.sh \*" <<<"$1"' _ "$out"
 run tea
 fx_check "tea satisfies the forge prerequisite" test "$rc" = 0
 run nobd
