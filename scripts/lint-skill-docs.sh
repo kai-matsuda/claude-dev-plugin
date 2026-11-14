@@ -1451,7 +1451,7 @@ sec_has "## Delivery" "Delivery's PR body is written with a forge" '3. **PR body
 row_phrase implement-spec-pins "tea fallback evidence" && sec_has "## Delivery" "Delivery's Evidence is the delivered tip's check record" "its Evidence $row_text"
 sec_has "## Delivery" "Delivery waits for the forge checks" '4. **Forge-check wait**, before the delivery is recorded'
 sec_has "## Delivery" "Delivery watches the gh checks" "$pin_gh_checks_watch"
-sec_has "## Delivery" "Delivery waits on the tea commit status" 'tea api --repo <owner> repos/{owner}/{repo}/commits/<tip SHA>/status 2>&1); case'
+sec_has "## Delivery" "Delivery waits on the tea commit status" 'tea api --repo <owner> repos/{owner}/{repo}/commits/<tip SHA>/status 2>"$TMPDIR/tea.err"); e=$(cat "$TMPDIR/tea.err"); case'
 sec_has "## Delivery" "Delivery's gh wait waits for the pushed tip as the PR head" '[ "$h" = <tip SHA> ]'
 sec_has "## Delivery" "Delivery treats a failing forge read as an error, not a skip" 'is a forge error, never a skip'
 sec_has "## Delivery" "Delivery reads the merge state on every forge PR, ahead of the workflows read" 'Read whether the PR can merge on every forge PR, ahead of the workflows read'
@@ -1477,8 +1477,11 @@ sec_has "## Delivery" "any other compound or \$(...) call wrapping a forge comma
 sec_has "## Delivery" "the forge-check wait stops at once on the forge CLI's config error instead of looping to its timeout (dev-urom)" 'stops at once on the forge CLI'"'"'s config error (defined in the Forge decision)'
 sec_has "## Delivery" "the gh wait loop exits on the config error from either gh read (dev-urom)" "case \"\$h\" in *'unable to get or create config file'*|*'failed to read configuration'*) echo \"\$h\"; exit 1;; esac"
 sec_has "## Delivery" "the gh wait loop exits on the config error from the checks-registered probe (dev-urom)" "case \"\$c\" in *'unable to get or create config file'*|*'failed to read configuration'*) echo \"\$c\"; exit 1;; esac"
-sec_has "## Delivery" "the tea wait loop exits on the config error too (dev-urom)" "case \"\$s\" in *'unable to get or create config file'*|*'failed to read configuration'*) echo \"\$s\"; exit 1;; esac"
-sec_has "## Repo plumbing and Cut-off probe" "the Forge decision defines the forge CLI's config error once (dev-urom)" "the forge CLI's config error: \`unable to get or create config file\` or \`failed to read configuration\`"
+sec_has "## Delivery" "the tea wait loop exits on the config error too, read from its stderr kept apart from the JSON fed to jq (dev-urom)" "case \"\$e\$s\" in *'unable to get or create config file'*|*'failed to read configuration'*) echo \"\$e\$s\"; exit 1;; esac"
+sec_has "## Delivery" "a pipe counts as a compound call, so the tea checks read runs with the sandbox disabled (dev-urom)" 'a pipe counts as compound, so the `tea api ... | jq` read is a compound call run with the sandbox disabled'
+sec_has "## Delivery" "the tea checks read stops on a failed tea call instead of reading empty output as none reported (dev-urom)" '|| { cat "$TMPDIR/tea.err"; exit 1; }; echo "$s" | jq -r'
+sec_has "## Delivery" "the UNKNOWN re-reads stop on the config error as the wait does (dev-urom)" 'so they run as the wait does and stop on the config error as it does'
+sec_has "## Repo plumbing and Cut-off probe" "the Forge decision defines the forge CLI's config error once (dev-urom)" "the forge CLI's config error (\`unable to get or create config file\` or \`failed to read configuration\`; not a missing login)"
 sec_has "## Repo plumbing and Cut-off probe" "the Forge decision's plain-first rule points to the compound-call exception (dev-urom)" 'The one exception is a compound call wrapping a forge command, which a sandbox exemption does not match and so runs with the sandbox disabled, as Delivery step 4 says'
 sec_has "## Repo plumbing and Cut-off probe" "the Merge guard decides and runs its forge query as the Forge decision says, once" 'decided and run as the Forge decision says (plain first)'
 sec_has "## Repo plumbing and Cut-off probe" "the Merge guard's branch-form fetch runs as the Forge decision says" 'git -C <owner> fetch origin` (run as the Forge decision says, skipped with no `origin`)'
