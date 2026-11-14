@@ -155,8 +155,10 @@ prints_baseline() { # <machine> [script path]: $out holds the snippet, the forge
   [[ $out == *"$want"* ]]
 }
 fx_check "full machine prints the baseline snippet, the forge-wait rules with the installed script's path" prints_baseline full
-# what the printed rules match, as a shell glob over each command of a compound command (permission
-# rules and the exclusion split a compound command on && || ; | & and every part must match)
+# what the printed rules match, as a shell glob. fw_rule_match models a matcher that splits a
+# compound command on && || ; | & and requires every part to match (how permission rules are
+# documented to behave; sandbox.excludedCommands doing the same is not verified, dev-6xui);
+# fw_whole_match models one that does not split and globs the whole string
 fw_rules() { # the printed rule pair, one per line
   jq -r '(.sandbox.excludedCommands[], (.permissions.allow[] | sub("^Bash\\("; "") | sub("\\)$"; ""))) | select(test("forge-wait"))' \
     <<<"${1//FORGE_WAIT_PATH/$fw_real}"
@@ -169,6 +171,10 @@ fw_rule_match() { # <command>
       [[ $seg == $pat ]] || return 1
     done < <(printf '%s\n' "$2" | sed -e 's/&&/;/g' -e 's/||/;/g' -e 's/|/;/g' -e 's/&/;/g' | tr ';' '\n')
   done <<<"$1"
+}
+fw_whole_match() { # <rules> <command>: every rule globbed against the whole command string, unsplit
+  local pat
+  while IFS= read -r pat; do [[ $2 == $pat ]] || return 1; done <<<"$1"
 }
 fw_printed=$(fw_rules "$(cat "$snippet")")
 fw_hit() { fw_rule_match "$fw_printed" "$1"; }
@@ -184,7 +190,15 @@ fx_check "the printed rules miss a command chained with ;" fw_miss "$fw_real /x 
 fx_check "the printed rules miss a piped command" fw_miss "$fw_real /x gh a/b 1 c | sh"
 fx_check "the printed rules miss a command run first" fw_miss "touch /x/y && $fw_real /x gh a/b 1 c"
 fx_check "the printed rules miss the script with four arguments" fw_miss "$fw_real /x gh a/b 1"
-fx_check "the printed rules miss the script with no arguments" fw_miss "$fw_real"
+# tells the five-* rule from a free trailing * (the earlier "<path> *"): the call with a short
+# argument list matches the old rule and misses the printed one
+fw_old_rule="$fw_real *"
+fx_check "the old free trailing * rule would match the script with three arguments" fw_rule_match "$fw_old_rule" "$fw_real /x gh a/b"
+fx_check "the printed rules miss the script with three arguments" fw_miss "$fw_real /x gh a/b"
+# known limit: a glob cannot stop the whole-string match, so if the matcher does not split a
+# compound command, the five * words span "a b c d e && touch /x/y" and the rule matches it; the
+# script's own argument checks and a matcher that splits are what stop it, not the glob
+fx_check "known limit: unsplit, the printed rules match a compound command whose first part has five words" fw_whole_match "$fw_printed" "$fw_real /x gh a/b 1 c && touch /x/y"fx_check "the printed rules miss the script with no arguments" fw_miss "$fw_real"
 fx_check "the printed rules miss a script named forge-wait.sh2" fw_miss "${fw_real}2 /x gh a/b 1 c"
 fx_check "the printed rules miss a gh command carrying the script path as an argument" fw_miss "gh pr merge $fw_real x y z w"
 fx_check "the printed rules miss a tea command" fw_miss "tea pr list --repo /x"

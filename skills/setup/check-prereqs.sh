@@ -55,7 +55,8 @@ echo; echo "=== merge into ~/.claude/settings.json (merge the arrays; do not rep
 # plugin update. bash 5.2 reads an & in a substitution's replacement as the matched text, and a
 # path may hold one, so that option is switched off (older bash has no such option, hence the
 # 2>/dev/null)
-forge_wait=$(cd "$here/../../scripts" && pwd -P)/forge-wait.sh
+forge_wait_dir=$(cd "$here/../../scripts" && pwd -P) || { echo "missing: the plugin's scripts/ directory beside skills/ ($here/../../scripts)"; exit 1; }
+forge_wait=$forge_wait_dir/forge-wait.sh
 shopt -u patsub_replacement 2>/dev/null
 echo "${baseline//FORGE_WAIT_PATH/$forge_wait}"
 # the commit-msg hook: a machine setup tool installs the shipped script rather than vendoring

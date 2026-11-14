@@ -41,19 +41,24 @@ file in the plugin holds the placeholder `FORGE_WAIT_PATH`; the printed snippet 
 place the installed script's real path (resolved with `pwd -P`), with no wildcard before the
 script name, and ends in five `*` words: `<path> * * * * *`. The path names the installed
 plugin version, so the owner pastes the printed snippet again after each plugin update, as
-for the commit-msg hook. A Bash pattern is matched against the command string and nothing confirms the matchers expand `~`, so the snippet is printed, never copied from the file; the owner (or a setup tool such as chezmoi) pastes the printed one.
+for the commit-msg hook. The file's `FORGE_WAIT_PATH` is filled in only by `check-prereqs.sh`, so the snippet is printed, never copied from the file; the owner (or a setup tool such as chezmoi) pastes the printed one.
 Without the pair the delivery's forge-check wait fails on the forge CLI's config error
 inside the sandbox and, in a permission mode that prompts for an unlisted command (the
 default; ADR 0009), needs an unsandboxed rerun with a permission prompt, which an
 unattended story orchestrator cannot answer (dev-tt2l, INFRA-44). The pattern is the exact path, so a `../` path, a script of the same name elsewhere, a
 `forge-wait.sh2` and a `gh` or `tea` command carrying the path as an argument do not match,
-and a compound command (`<path> a b c d e && other`) is split into its parts, as permission
-rules do, and `other` matches no rule. What it does not pin: a glob has no argument count or
-shape, so `<path> * * * * *` also matches a call with more than five words, and `*` may hold
-spaces; `forge-wait.sh` itself refuses (exit 2) a forge other than `gh` or `tea`, a repo not
-`owner/name`, a PR number that is not digits and a tip that is not hex. Whether
-`sandbox.excludedCommands` splits a compound command as permission rules do is not verified
-(dev-6xui). Before the owner pastes the printed pair no machine has it, so the plain run is
-still rerun with the sandbox disabled. A fork installed under another marketplace name and a
-`--plugin-dir` checkout run from a different path and are covered only by pasting the pair
-that checkout's own `check-prereqs.sh` prints. Toolchain, registry and forge-CLI entries are the owner's own to add.
+and the five `*` words stand for the script's five arguments, so a call with fewer than five
+words does not match (a free trailing `*` would have matched it). What a glob cannot pin: a
+`*` matches any text, spaces included, so read as one whole string `<path> * * * * *` also
+matches `<path> a b c d e && other`. A compound command stays out of the rule only where the
+matcher splits it into its parts and tests each, as permission rules are documented to do;
+whether `sandbox.excludedCommands` splits a compound command is not verified (dev-6xui), and a
+matcher that does not split lets such a command ride the exclusion. `forge-wait.sh` itself
+refuses (exit 2) a forge other than `gh` or `tea`, a repo not `owner/name`, a PR number that
+is not digits and a tip that is not 7 to 64 hex digits, which bounds what the script does with
+its own five arguments but not what follows an `&&` after them. Before the owner pastes the
+printed pair no machine has it, so the plain run is still rerun with the sandbox disabled, and
+the pair printed for one plugin version matches only that version's path, so after a plugin
+update the plain run is rerun until the owner pastes the new pair. A fork installed under
+another marketplace name and a `--plugin-dir` checkout run from a different path and are
+covered once the owner pastes the pair that checkout's own `check-prereqs.sh` prints. Toolchain, registry and forge-CLI entries are the owner's own to add.

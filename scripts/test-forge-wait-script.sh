@@ -54,7 +54,7 @@ put() { local n=$1; shift; printf '%s\n' "$@" > "$st/$n"; rm -f "$st/$n.calls"; 
 calls() { [ -f "$st/$1.calls" ] && wc -l < "$st/$1.calls" | tr -d ' ' || echo 0; }
 run() { out=$(PATH="$bin:$PATH" ST=$st FORGE_WAIT_SLEEP=0 "$script" "$@" 2>&1); rc=$?; }
 cfg='unable to get or create config file: permission denied'
-tip=abc123
+tip=abc1234
 pend='{"total_count":1,"statuses":[{"status":"pending"}]}'
 none='{"total_count":0,"statuses":[]}'
 red='{"total_count":1,"statuses":[{"status":"failure"}]}'
@@ -217,6 +217,8 @@ refuses "pr not digits" gh org/r 7a $tip
 refuses "pr with a flag shape" gh org/r --watch $tip
 refuses "tip not hex" gh org/r 7 abc12g
 refuses "tip with a command" tea org/r 7 'abc;rm'
+refuses "tip shorter than 7 hex digits" gh org/r 7 abc123
+refuses "tip longer than 64 hex digits" gh org/r 7 "$(printf 'a%.0s' $(seq 65))"
 run /o gh org/r 7 $tip extra
 fx_check "six args: exits 2" fx_eq "$rc" 2
 

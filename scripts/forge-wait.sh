@@ -11,7 +11,7 @@
 #                                     timeout; or a gh watch that failed with checks still pending;
 #                                     or a gh head that moved off the tip during the wait
 #   refused: <reason>                 exit 2, a wrong usage, a forge other than gh or tea, a <repo> not
-#                                     owner/name, a <pr> not digits, a <tip SHA> not hex, or tea without jq
+#                                     owner/name, a <pr> not digits, a <tip SHA> not 7 to 64 hex digits, or tea without jq
 # gh and tea stderr is kept apart from the compared head SHA and the JSON, but scanned for the config
 # error, so a stray warning never keeps the head from equalling the tip.
 # A wait that outlasts its caller's `timeout` is killed by it and prints nothing: the caller reads
@@ -43,7 +43,7 @@ owner=$1 forge=$2 repo=$3 pr=$4 tip=$5
 case $forge in gh|tea) ;; *) refuse "forge must be gh or tea, not $forge" ;; esac
 [[ $repo =~ ^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$ ]] || refuse "repo must be owner/name, not $repo"
 [[ $pr =~ ^[0-9]+$ ]] || refuse "pr must be digits, not $pr"
-[[ $tip =~ ^[0-9a-fA-F]+$ ]] || refuse "tip must be hex, not $tip"
+[[ $tip =~ ^[0-9a-fA-F]{7,64}$ ]] || refuse "tip must be 7 to 64 hex digits, not $tip"
 errf=$(mktemp "${TMPDIR:-/tmp}/forge-wait.XXXXXX") || refuse "no scratch file"
 trap 'rm -f "$errf"' EXIT
 # cfg_err <stdout>: exit 1 with the text when stdout or the stderr of the last call (in $errf) holds
