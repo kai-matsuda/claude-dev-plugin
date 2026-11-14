@@ -359,7 +359,10 @@ pushed tip, before the delivery is recorded: a red check is a `failed: forge che
 <run URL>` line and leaves the story unfinished; a PR git cannot merge, read first, is a
 `failed: merge conflict <PR URL>` line and leaves it unfinished too; a repo with no forge or
 no checks delivers with a `checks: skipped` line. The one long shell wait the Idle rule
-allows (the merge-state re-read adds only a bounded `sleep 10` loop).
+allows (the merge-state re-read adds only bounded `sleep 10` calls). The forge-wait script,
+`scripts/forge-wait.sh <owner> <gh|tea> <repo> <pr> <tip SHA>`, is the wait as one plain
+command: it prints `checks finished` (exit 0), or `forge error: <text>` on the forge CLI's
+config error (exit 1), and the step reads the checks afterwards.
 _Avoid_: CI wait, check poll
 
 **Cut-off**:
