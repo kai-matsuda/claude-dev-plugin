@@ -2,6 +2,10 @@
 status: accepted
 ---
 
+> Amended 2026-11-15 (dev-gc8c, INFRA-45): the orchestration doc cited below as
+> `docs/agents/orchestration.md` now lives at `references/orchestration.md` at the plugin
+> root. The text below keeps the path of its day.
+
 > Supersedes ADR 0001 (two review tools, one tier up, at two stages).
 
 > Amended by dev-6qi (INFRA-33, 2026-10-27): only a green check record (`exit=0`) counts as

@@ -2,6 +2,10 @@
 status: accepted
 ---
 
+> Amended 2026-11-15 (dev-gc8c, INFRA-45): the orchestration doc cited below as
+> `docs/agents/orchestration.md` now lives at `references/orchestration.md` at the plugin
+> root. The text below keeps the path of its day.
+
 > Amended 2026-11-02 (dev-9x6c.1.3, INFRA-41): one permitted extension of the one-command
 > decision: a repo whose forge needs steps it cannot run locally may add a `ci` target whose
 > first prerequisite is `check` plus those steps, and its workflow then runs `make ci`.
