@@ -4,9 +4,10 @@
 # The first non-merge commit of the range whose author is not the repo's user.email, or that has no
 # Bead: trailer, is one "stray commit <sha> <subject>" line and exit 1; a clean or empty range
 # prints nothing and exits 0; a two-parent merge commit passes unless it changes a path the merge of
-# its parents does not, outside its conflicted paths (one "stray merge <sha> changes <path>" line,
-# exit 1); an octopus merge (more than two parents), a merge whose parents git merge-tree cannot merge
-# and a failed diff-tree are each one refusal line, exit 2, as is a wrong usage.
+# its parents does not, outside its conflicted paths and the paths derived from a file/directory
+# conflict's side path (one "stray merge <sha> changes <path>" line, exit 1); an octopus merge
+# (more than two parents), a merge whose parents git merge-tree cannot merge, a failed diff-tree
+# and no scratch directory to make are each one refusal line, exit 2, as is a wrong usage.
 # Usage: scripts/test-stray-commit-script.sh
 set -uo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
@@ -31,6 +32,24 @@ commit() {
 }
 sha() { git -C "$r" rev-parse "$1"; }
 run() { out=$("$script" "$r" "$1" 2>&1); rc=$?; }
+# dd_conflict <branch> <file|dir> <side bead> <main bead>: from base, branch <branch> holds dd as a file
+# (or as a directory with dd/f) and main holds the other, then main merges the branch, leaving the
+# file/directory conflict unresolved in the work tree
+dd_conflict() {
+  local side=$2
+  git -C "$r" reset -q --hard "$base"
+  git -C "$r" checkout -q -b "$1"
+  if [ "$side" = file ]; then
+    commit dd "side file" "" "Bead: $3"
+    git -C "$r" checkout -q main
+    mkdir -p "$r/dd" && commit dd/f "main file in dir" "" "Bead: $4"
+  else
+    mkdir -p "$r/dd" && commit dd/f "side file in dir" "" "Bead: $3"
+    git -C "$r" checkout -q main
+    commit dd "main file" "" "Bead: $4"
+  fi
+  git -C "$r" merge --no-ff "$1" >/dev/null 2>&1
+}
 
 commit base.txt base "" "Bead: x-1"
 base=$(sha HEAD)
@@ -114,6 +133,125 @@ cmerge=$(sha HEAD)
 run "$base..HEAD"
 fx_check "conflict resolution plus extra: exits 1" fx_eq "$rc" 1
 fx_check "conflict resolution plus extra: names the merge and the extra path" fx_eq "$out" "stray merge $cmerge changes extra.txt"
+
+# a file/directory conflict (main has dd/f, side5 has a file dd) resolved by keeping the file: git lists only
+# the side path dd~<sha>, and the resolution removes it, adds dd and removes dd/f, all derived from the conflict
+git -C "$r" reset -q --hard "$base"
+git -C "$r" checkout -q -b side5
+commit dd "side file" "" "Bead: x-16"
+git -C "$r" checkout -q main
+mkdir -p "$r/dd" && commit dd/f "main file in dir" "" "Bead: x-17"
+# resolve_keep_file <extra file>: after the conflicted merge, keep the file dd and commit with the extra file
+resolve_keep_file() {
+  git -C "$r" merge --no-ff side5 >/dev/null 2>&1
+  git -C "$r" rm -q -r -f dd >/dev/null
+  mv "$r"/dd~* "$r/dd"
+  if [ -n "$1" ]; then echo smuggled > "$r/$1"; fi
+  git -C "$r" add -A && git -C "$r" commit -q -m "merge side five"
+}
+resolve_keep_file ""
+run "$base..HEAD"
+fx_check "file/dir resolution: exits 0" fx_eq "$rc" 0
+fx_check "file/dir resolution: prints nothing" fx_eq "$out" ""
+
+# the same resolution plus an unrelated path is still stopped
+git -C "$r" reset -q --hard HEAD^
+resolve_keep_file extra5.txt
+fmerge=$(sha HEAD)
+run "$base..HEAD"
+fx_check "file/dir resolution plus extra: exits 1" fx_eq "$rc" 1
+fx_check "file/dir resolution plus extra: names the extra path" fx_eq "$out" "stray merge $fmerge changes extra5.txt"
+
+# a conflicted path git would quote (non-ASCII) resolves cleanly
+git -C "$r" reset -q --hard "$base"
+git -C "$r" checkout -q -b side6
+commit "é.txt" "side version" "" "Bead: x-18"
+git -C "$r" checkout -q main
+commit "é.txt" "main version" "" "Bead: x-19"
+git -C "$r" merge --no-ff side6 >/dev/null 2>&1
+echo resolved > "$r/é.txt" && git -C "$r" add -A
+git -C "$r" commit -q -m "merge side six"
+run "$base..HEAD"
+fx_check "quoted path resolution: exits 0" fx_eq "$rc" 0
+fx_check "quoted path resolution: prints nothing" fx_eq "$out" ""
+
+# a stray path git would quote is reported by its raw name, which only a -z read of the changed paths gives
+git -C "$r" reset -q --hard "$base"
+git -C "$r" checkout -q -b side7
+commit s7.txt "feat: side seven" "" "Bead: x-20"
+git -C "$r" checkout -q main
+commit m7.txt "feat: main seven" "" "Bead: x-21"
+git -C "$r" merge -q --no-ff --no-commit side7 >/dev/null 2>&1
+echo smuggled > "$r/é-stray.txt" && git -C "$r" add é-stray.txt
+git -C "$r" commit -q -m "merge side seven"
+qmerge=$(sha HEAD)
+run "$base..HEAD"
+fx_check "stray quoted path: exits 1" fx_eq "$rc" 1
+fx_check "stray quoted path: names the raw path" fx_eq "$out" "stray merge $qmerge changes é-stray.txt"
+
+# a conflict on a path containing ~ exempts only that path: a smuggled backup/evil.txt is still stopped
+git -C "$r" reset -q --hard "$base"
+git -C "$r" checkout -q -b side8
+commit "backup~1.txt" "side version" "" "Bead: x-22"
+git -C "$r" checkout -q main
+commit "backup~1.txt" "main version" "" "Bead: x-23"
+git -C "$r" merge --no-ff side8 >/dev/null 2>&1
+echo resolved > "$r/backup~1.txt"
+mkdir -p "$r/backup" && echo smuggled > "$r/backup/evil.txt"
+git -C "$r" add -A && git -C "$r" commit -q -m "merge side eight"
+tmerge=$(sha HEAD)
+run "$base..HEAD"
+fx_check "conflict on a ~ path plus smuggled sibling: exits 1" fx_eq "$rc" 1
+fx_check "conflict on a ~ path plus smuggled sibling: names the sibling" fx_eq "$out" "stray merge $tmerge changes backup/evil.txt"
+
+# the same file/directory conflict resolved by keeping the directory: the side path dd~<sha> is dropped (derived,
+# so exempt), but a path added under dd/ is content, not a deletion, and is stopped
+dd_conflict side9 file x-24 x-25
+rm -f "$r"/dd~*
+echo smuggled > "$r/dd/evil.txt"
+git -C "$r" add -A && git -C "$r" commit -q -m "merge side nine"
+emerge=$(sha HEAD)
+fx_check "keep-directory fixture: dd/f survives the merge" fx_eq "$(git -C "$r" ls-tree --name-only -r HEAD | tr '\n' ' ')" "base.txt dd/evil.txt dd/f "
+run "$base..HEAD"
+fx_check "keep-directory resolution plus a path under it: exits 1" fx_eq "$rc" 1
+fx_check "keep-directory resolution plus a path under it: names the path" fx_eq "$out" "stray merge $emerge changes dd/evil.txt"
+
+# the reverse direction: the first parent has the file dd, the side has dd/f, so the displaced path is dd~<p1>
+# (the side path of the first parent); keeping the file dd passes
+dd_conflict side10 dir x-26 x-27
+git -C "$r" rm -q -r -f dd >/dev/null 2>&1
+mv "$r"/dd~* "$r/dd"
+git -C "$r" add -A && git -C "$r" commit -q -m "merge side ten"
+fx_check "reverse fixture: the merge keeps the file dd" fx_eq "$(git -C "$r" ls-tree --name-only -r HEAD | tr '\n' ' ')" "base.txt dd "
+run "$base..HEAD"
+fx_check "reverse file/dir resolution: exits 0" fx_eq "$rc" 0
+fx_check "reverse file/dir resolution: prints nothing" fx_eq "$out" ""
+
+# a conflict on a ~ path whose suffix is no parent's SHA does not exempt a change to the path before the ~
+git -C "$r" reset -q --hard "$base"
+git -C "$r" checkout -q -b side11
+commit "backup~1.txt" "side version" "" "Bead: x-28"
+git -C "$r" checkout -q main
+commit "backup~1.txt" "main version" "" "Bead: x-29"
+git -C "$r" merge --no-ff side11 >/dev/null 2>&1
+echo resolved > "$r/backup~1.txt"
+echo smuggled > "$r/backup"
+git -C "$r" add -A && git -C "$r" commit -q -m "merge side eleven"
+bmerge=$(sha HEAD)
+run "$base..HEAD"
+fx_check "conflict on a ~ path plus its prefix path: exits 1" fx_eq "$rc" 1
+fx_check "conflict on a ~ path plus its prefix path: names the prefix path" fx_eq "$out" "stray merge $bmerge changes backup"
+
+# no scratch directory to make (TMPDIR names a missing directory) with a merge in range: one refusal line
+git -C "$r" reset -q --hard "$base"
+git -C "$r" checkout -q -b side12
+commit s12.txt "feat: side twelve" "" "Bead: x-30"
+git -C "$r" checkout -q main
+commit m12.txt "feat: main twelve" "" "Bead: x-31"
+git -C "$r" merge -q --no-ff -m "merge side twelve" side12 >/dev/null
+out=$(TMPDIR="$scratch/missing" "$script" "$r" "$base..HEAD" 2>&1); rc=$?
+fx_check "no scratch directory: exits 2" fx_eq "$rc" 2
+fx_check "no scratch directory: the refusal line" fx_eq "$out" "refused: cannot make a scratch directory"
 
 # an octopus merge is refused, not passed unread
 git -C "$r" reset -q --hard "$base"
