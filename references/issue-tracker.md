@@ -18,7 +18,7 @@ Issues live in two places with distinct roles:
 
 Jira access is through the Atlassian MCP tools (`createJiraIssue`, `getJiraIssue`,
 `searchJiraIssuesUsingJql`, `editJiraIssue`, `addCommentToJiraIssue`, `transitionJiraIssue`);
-there is no `jira` CLI installed. Cloud ID: `288d178c-1d1d-485a-83f6-4b8aaa46f1ef`.
+there is no `jira` CLI installed. The `cloudId` to pass to them is `micelabs.atlassian.net`.
 
 Repos are checked out as siblings inside a **workspace** under `~/src/<org>/`, itself a
 repo holding `repos.yaml`, the repo manifest. Which of the two sessions below a session
@@ -405,7 +405,7 @@ and `<id>`, the prefix of its refusals (empty for `/dev:spec-to-stories`). The s
 first of these that applies:
 
 1. The spec already in the conversation context.
-2. With a key, the Jira epic, fetched with `getJiraIssue` (cloud ID above): its full
+2. With a key, the Jira epic, fetched with `getJiraIssue` (`cloudId` above): its full
    description and comments. When Jira answers that no such issue exists (a fixture key
    such as `FIX-1`), say `<KEY>-<n> is not in Jira (a 404 can also be a permission
    denial)` and go to 3. Any other Jira failure (auth, network, the Atlassian tools

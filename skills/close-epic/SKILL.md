@@ -55,7 +55,7 @@ A story's **pr value** is the one on its outcome line (`closed: <pr value>`); fo
 closed`, the last `pr:` line of `bd -C <owner> show <story-id> --json` (`.[0].notes`).
 
 1. `bd close <epic-id> --reason "<each story's pr value>"`.
-2. The epic bead has no external ref, or `getJiraIssue` on it finds no such issue → report
+2. The epic bead has no external ref, or `getJiraIssue` (its `cloudId` as the opening Jira line of `${CLAUDE_PLUGIN_ROOT}/references/issue-tracker.md` states) on it finds no such issue → report
    the Jira steps as skipped, and why. Any other Jira error → report it; don't treat it as
    a missing issue.
 3. `addCommentToJiraIssue` on `<KEY>-<n>`: every story's pr value once, and a one-paragraph
