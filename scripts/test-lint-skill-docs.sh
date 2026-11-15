@@ -1008,6 +1008,18 @@ echo 'git -C <owner> commit -m "chore: x" --trailer "Bead: <story-id>"' >> "$scr
 expect "implement-story committing with --trailer fails" 1
 
 fresh
+echo 'then `tea api --repo <workspace>/<repo> repos/{owner}/{repo}/pulls/<n> | jq -r .body` and write it back' >> "$scratch/skills/implement-story/SKILL.md"
+expect "the sibling refresh's piped tea body read (dev-91mt) fails" 1 "the sibling refresh's piped tea body read (dev-91mt)"
+
+fresh
+echo 'then `tea api --repo <workspace>/<repo> repos/{owner}/{repo}/pulls/<n> | jq -r '"'"'.body'"'"'` and write it back' >> "$scratch/skills/implement-story/SKILL.md"
+expect "the sibling refresh's piped quoted tea body read (dev-91mt) fails" 1 "the sibling refresh's piped tea body read (dev-91mt)"
+
+fresh
+echo 'a pipe such as `tea api ... | jq` is never used on a forge call' >> "$scratch/skills/implement-story/SKILL.md"
+expect "naming a tea api pipe without the body read passes" 0
+
+fresh
 echo 'a commit never takes `--trailer`; the message file carries the trailers' >> "$scratch/skills/implement-story/SKILL.md"
 expect "implement-story naming --trailer in prose passes" 0
 
