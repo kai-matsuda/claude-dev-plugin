@@ -361,8 +361,8 @@ two-parent merge commit is not read for author or trailer; it is compared with t
 its parents, and one that changes a path that merge does not, bar its conflicted paths,
 carries content no commit has a trailer for, and is stray too (dev-bxtw). A file/directory
 conflict also exempts its side path `<path>~<parent>`, where `<parent>` is the parent's SHA
-as passed to `git merge-tree`. It exempts `<path>` itself and a path under `<path>/` only
-where the merge removed them. Both path lists are read NUL-separated, so a quoted path
+as passed to `git merge-tree`. It exempts `<path>` itself whatever the merge did to it, and a path under `<path>/`
+only where the merge commit no longer has it. Both path lists are read NUL-separated, so a quoted path
 compares byte for byte.
 That holds for a merge made with git's default `ort` strategy and default options; a merge
 made otherwise (`-X`, `-s recursive`, a different `merge.renames` or rename limit) can show
