@@ -1773,6 +1773,10 @@ hasc "/triage hands a standalone task to implement-task" "$pin_implement_task_id
 hasc "/triage creates a standalone task" 'a standalone task (`--type task`'
 hasc "/triage writes the body in story-to-tasks' issue template" 'the issue template in `/dev:story-to-tasks`'
 lacks "/triage citing the retired to-tickets template" 'to-tickets` issue template'
+# the Layer test sends a judgement call to the rules folders the implementer and reviewer both read
+# (INFRA-45 retro, dev-s08l), not to the reviewer's standards
+hasc "/triage Layer test names both rules folders" 'a judgement call in a rule file in `~/.claude/rules/` or the repo'"'"'s `.claude/rules/`'
+lacks "/triage Layer test no longer says the reviewer's standards" "the reviewer's standards"
 fi
 # ADR 0014 records the one loop and supersedes ADR 0001, which keeps its text and points at it
 if doc 6 "ADR 0014" "$docs/adr/0014-one-loop-at-three-rows.md"; then

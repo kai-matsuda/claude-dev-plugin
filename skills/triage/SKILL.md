@@ -49,8 +49,7 @@ in seconds:
 - **Recurrence**: how many moments it has gathered (notes from `/dev:retro`, duplicates from
   step 2). One is a candidate; two is a pattern.
 - **Layer**: check, standard, pointer, skill, or access, and whether that is the right
-  layer for the violation. A mechanical violation belongs in a check; a judgement call in
-  the reviewer's standards; a line in `CLAUDE.md` only when it is a pointer.
+  layer for the violation. A mechanical violation belongs in a check; a judgement call in a rule file in `~/.claude/rules/` or the repo's `.claude/rules/`, which the implementer and the reviewer both read; a line in `CLAUDE.md` only when it is a pointer.
 - **Blast radius**: blocks every commit, or stays local to the agent's environment.
 - **Owner**: in a workspace session, the repo from the `target:` label, confirmed against
   the manifest (`target:<home name>` needs no entry: the workspace root owns it);
