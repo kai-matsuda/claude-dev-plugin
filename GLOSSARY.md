@@ -359,14 +359,14 @@ whose author is not the repo's `user.email`, or that has no `Bead:` trailer, cam
 the run (a test whose throwaway repo failed to init commits into the enclosing checkout). A
 two-parent merge commit is not read for author or trailer; it is compared with the merge of
 its parents, and one that changes a path that merge does not (bar its conflicted paths and,
-for a file/directory conflict's side path `<path>~<parent>`, `<path>` itself and a path
-under `<path>/` that the merge removed; both path lists are read NUL-separated, so a
-quoted path compares byte for byte) carries content no commit has a trailer for, and is
-stray too (dev-bxtw). That holds for a
-merge made with git's default `ort` strategy and default options; a merge made otherwise
-(`-X`, `-s recursive`, a different `merge.renames` or rename limit) can show its auto-merged
-paths as `stray merge`. An octopus merge (more than
-two parents) cannot be compared, so the check refuses it.
+for a file/directory conflict's side path `<path>~<parent>`, `<parent>` being the
+parent's SHA as passed to `git merge-tree`: `<path>` itself and a path under `<path>/`
+that the merge removed; both path lists are read NUL-separated, so a quoted path compares
+byte for byte) carries content no commit has a trailer for, and is stray too (dev-bxtw).
+That holds for a merge made with git's default `ort` strategy and default options; a merge
+made otherwise (`-X`, `-s recursive`, a different `merge.renames` or rename limit) can show
+its auto-merged paths as `stray merge`. An octopus merge (more than two parents) cannot be
+compared, so the check refuses it.
 The stray-commit script, `scripts/stray-commit.sh <repo> <range>`, is that read as one call.
 The story orchestrator runs it before every merge and every push (a trust rule): before
 each landing of a reviewed branch onto the integration branch, and before each push of it;

@@ -4,13 +4,14 @@
 # has no Bead: trailer, is printed as "stray commit <sha> <subject>" and the script exits 1. Then
 # each merge commit of <range> is compared with the merge of its parents (git merge-tree): a path
 # the merge changed that the parents' merge did not report as conflicted is printed as
-# "stray merge <sha> changes <path>" and the script exits 1. The one path exempted besides the
-# listed ones comes from a file/directory conflict's side path <path>~<parent>: <path> itself, and
-# a path under <path>/ that the merge removed. Merges are not checked for author or Bead:
-# trailer. A clean or empty range prints nothing and exits 0. A wrong usage, a non-repo, no
-# user.email, an unreadable range, no scratch directory to make, an octopus merge (more than two
-# parents, which git merge-tree cannot compare), a merge whose parents git merge-tree cannot
-# merge, or a failed git diff-tree is one refusal line and exit 2.
+# "stray merge <sha> changes <path>" and the script exits 1. The paths exempted besides the
+# listed ones come from a file/directory conflict's side path <path>~<parent>, <parent> being the
+# parent's SHA as passed to merge-tree: <path> itself, and a path under <path>/ that the merge
+# removed. Merges are not checked for author or Bead: trailer. A clean or empty range prints
+# nothing and exits 0. A wrong usage, a non-repo, no user.email, an unreadable range, no scratch
+# directory to make, an octopus merge (more than two parents, which git merge-tree cannot
+# compare), a merge whose parents git merge-tree cannot merge, or a failed git diff-tree is one
+# refusal line and exit 2.
 # Usage: scripts/stray-commit.sh <repo> <range>
 set -uo pipefail
 [ "$#" = 2 ] || { echo "refused: usage: stray-commit.sh <repo> <range>"; exit 2; }
@@ -38,12 +39,13 @@ fi
 
 # A merge made with git's default ort strategy and default options adds nothing of its own: its
 # tree equals the merge of its parents, bar the paths that merge reported as conflicted and those
-# derived from a side path (is_conflicted). Any other differing path is content no commit carries (dev-bxtw). A merge made otherwise (-X, -s recursive,
-# a different merge.renames or rename limit) can differ from merge-tree on auto-merged paths, and
-# those show as "stray merge". Only two-parent merges are compared (git merge-tree takes two
-# parents), so an octopus merge is refused.
+# derived from a side path (is_conflicted). Any other differing path is content no commit carries
+# (dev-bxtw). A merge made otherwise (-X, -s recursive, a different merge.renames or rename
+# limit) can differ from merge-tree on auto-merged paths, and those show as "stray merge". Only
+# two-parent merges are compared (git merge-tree takes two parents), so an octopus merge is
+# refused.
 [ -n "$merges" ] || exit 0
-work=$(mktemp -d "${TMPDIR:-/tmp}/stray-commit.XXXXXX") || { echo "refused: cannot make a scratch directory"; exit 2; }
+work=$(mktemp -d "${TMPDIR:-/tmp}/stray-commit.XXXXXX" 2>/dev/null) || { echo "refused: cannot make a scratch directory"; exit 2; }
 trap 'rm -rf "$work"' EXIT
 # A path is conflicted when merge-tree listed it, or when it is derived from a listed side path.
 # For a file/directory conflict git lists only the displaced side <path>~<parent>, <parent> being

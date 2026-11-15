@@ -186,6 +186,66 @@ run "$base..HEAD"
 fx_check "conflict on a ~ path plus smuggled sibling: exits 1" fx_eq "$rc" 1
 fx_check "conflict on a ~ path plus smuggled sibling: names the sibling" fx_eq "$out" "stray merge $tmerge changes backup/evil.txt"
 
+# the same file/directory conflict resolved by keeping the directory: the side path dd~<sha> is dropped (derived,
+# so exempt), but a path added under dd/ is content, not a deletion, and is stopped
+git -C "$r" reset -q --hard "$base"
+git -C "$r" checkout -q -b side9
+commit dd "side file" "" "Bead: x-24"
+git -C "$r" checkout -q main
+mkdir -p "$r/dd" && commit dd/f "main file in dir" "" "Bead: x-25"
+git -C "$r" merge --no-ff side9 >/dev/null 2>&1
+rm -f "$r"/dd~*
+echo smuggled > "$r/dd/evil.txt"
+git -C "$r" add -A && git -C "$r" commit -q -m "merge side nine"
+emerge=$(sha HEAD)
+fx_check "keep-directory fixture: dd/f survives the merge" fx_eq "$(git -C "$r" ls-tree --name-only -r HEAD | tr '\n' ' ')" "base.txt dd/evil.txt dd/f "
+run "$base..HEAD"
+fx_check "keep-directory resolution plus a path under it: exits 1" fx_eq "$rc" 1
+fx_check "keep-directory resolution plus a path under it: names the path" fx_eq "$out" "stray merge $emerge changes dd/evil.txt"
+
+# the reverse direction: the first parent has the file dd, the side has dd/f, so the displaced path is dd~<p1>
+# (the side path of the first parent); keeping the file dd passes
+git -C "$r" reset -q --hard "$base"
+git -C "$r" checkout -q -b side10
+mkdir -p "$r/dd" && commit dd/f "side file in dir" "" "Bead: x-26"
+git -C "$r" checkout -q main
+commit dd "main file" "" "Bead: x-27"
+git -C "$r" merge --no-ff side10 >/dev/null 2>&1
+git -C "$r" rm -q -r -f dd >/dev/null 2>&1
+mv "$r"/dd~* "$r/dd"
+git -C "$r" add -A && git -C "$r" commit -q -m "merge side ten"
+fx_check "reverse fixture: the merge keeps the file dd" fx_eq "$(git -C "$r" ls-tree --name-only -r HEAD | tr '
+' ' ')" "base.txt dd "
+run "$base..HEAD"
+fx_check "reverse file/dir resolution: exits 0" fx_eq "$rc" 0
+fx_check "reverse file/dir resolution: prints nothing" fx_eq "$out" ""
+
+# a conflict on a ~ path whose suffix is no parent's SHA does not exempt a change to the path before the ~
+git -C "$r" reset -q --hard "$base"
+git -C "$r" checkout -q -b side11
+commit "backup~1.txt" "side version" "" "Bead: x-28"
+git -C "$r" checkout -q main
+commit "backup~1.txt" "main version" "" "Bead: x-29"
+git -C "$r" merge --no-ff side11 >/dev/null 2>&1
+echo resolved > "$r/backup~1.txt"
+echo smuggled > "$r/backup"
+git -C "$r" add -A && git -C "$r" commit -q -m "merge side eleven"
+bmerge=$(sha HEAD)
+run "$base..HEAD"
+fx_check "conflict on a ~ path plus its prefix path: exits 1" fx_eq "$rc" 1
+fx_check "conflict on a ~ path plus its prefix path: names the prefix path" fx_eq "$out" "stray merge $bmerge changes backup"
+
+# no scratch directory to make (TMPDIR names a missing directory) with a merge in range: one refusal line
+git -C "$r" reset -q --hard "$base"
+git -C "$r" checkout -q -b side12
+commit s12.txt "feat: side twelve" "" "Bead: x-30"
+git -C "$r" checkout -q main
+commit m12.txt "feat: main twelve" "" "Bead: x-31"
+git -C "$r" merge -q --no-ff -m "merge side twelve" side12 >/dev/null
+out=$(TMPDIR="$scratch/missing" "$script" "$r" "$base..HEAD" 2>&1); rc=$?
+fx_check "no scratch directory: exits 2" fx_eq "$rc" 2
+fx_check "no scratch directory: the refusal line" fx_eq "$out" "refused: cannot make a scratch directory"
+
 # an octopus merge is refused, not passed unread
 git -C "$r" reset -q --hard "$base"
 for b in o1 o2 o3; do
