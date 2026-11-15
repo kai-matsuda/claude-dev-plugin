@@ -2,6 +2,10 @@
 status: superseded by ADR 0014
 ---
 
+> Amended 2026-11-15 (dev-gc8c, INFRA-45): the orchestration doc cited below as
+> `docs/agents/orchestration.md` now lives at `references/orchestration.md` at the plugin
+> root. The text below keeps the path of its day.
+
 > Superseded by ADR 0014 (`docs/adr/0014-one-loop-at-three-rows.md`): one review tool, its
 > axes set per row, replaces the two tools below. The text is kept as the record of
 > what was decided and why at the time.
