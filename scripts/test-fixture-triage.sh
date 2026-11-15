@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Test /triage in a repo session (chezmoi-gfu.1.5, INFRA-28) against the fixture workspace.
-# The seam is a subagent run, which a script cannot spawn, so the test has phases:
+# The seam is a subagent run, which a script cannot spawn, so the test has steps (seed, then assert):
 #   scripts/test-fixture-triage.sh seed triage   build the fixture, seed a retro:foreign inbox bead in
 #                                            consumer, print the brief: run /triage per the skill
 #                                            file in consumer alone (no manifest in that session),

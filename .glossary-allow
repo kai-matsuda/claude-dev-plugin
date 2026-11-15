@@ -1,8 +1,10 @@
 # Senses the glossary permits, one per line: "<path> <term>  # reason". The lint
 # (skills/glossary-lint/glossary-lint.sh) allows the term everywhere in that file, so
-# a line goes here only for prose that is not reworded: an ADR, which is a record and
-# keeps the words of its day (a name it rejected, a name replaced since, a sense the
-# glossary has narrowed since), and the Beads block bd writes into CLAUDE.md.
+# a line goes here only for a file that must name the term and cannot reword it: an ADR,
+# which is a record and keeps the words of its day (a name it rejected, a name replaced
+# since, a sense the glossary has narrowed since); the Beads block bd writes into
+# CLAUDE.md; and a script or test that names a retired term to reject, seed or explain it.
+# Plain-sense words are reworded or put in a code span instead.
 CLAUDE.md todo  # bd's managed Beads block
 CLAUDE.md handoff  # bd's managed Beads block
 docs/adr/0002-single-repo-manifest.md current repo  # written before the session repo was named
@@ -62,3 +64,18 @@ docs/adr/0013-feature-workflow-ships-as-a-plugin.md rules doc  # the reference d
 docs/adr/0015-every-owner-repo-has-a-check-target.md rules doc  # the reference docs in the words of their day, before the name "reference doc"
 docs/adr/0016-the-story-row-lands-its-tasks.md rules doc  # the reference docs in the words of their day, before the name "reference doc"
 docs/adr/0017-row-plumbing-ships-as-scripts.md rules doc  # the reference docs in the words of their day, before the name "reference doc"
+docs/adr/0002-single-repo-manifest.md repo list  # the line-wrapped form of the same words of its day
+docs/adr/0014-one-loop-at-three-rows.md check and review loop  # the hyphenated form of the loop this ADR retires, in the words of its day
+scripts/lint-skill-docs.sh cut one  # names the retired term the lint rejects
+scripts/lint-skill-docs.sh cut two  # names the retired term the lint rejects
+scripts/lint-skill-docs.sh flat epic  # names the retired term the lint rejects
+scripts/lint-skill-docs.sh human task  # names the retired term the lint rejects
+scripts/lint-skill-docs.sh merger  # names the retired term the lint rejects
+scripts/lint-skill-docs.sh lint command  # names the retired term the lint rejects
+scripts/lint-skill-docs.sh review marker  # names the retired term the lint rejects
+scripts/lint-skill-docs.sh ticket  # names the retired term the lint rejects
+scripts/lint-skill-docs.sh walk-up  # names the retired term the lint rejects
+scripts/test-glossary-lint.sh rules doc  # the avoided term the test seeds
+scripts/test-lint-skill-docs.sh human task  # seeds the retired term the lint rejects
+scripts/test-lint-skill-docs.sh review marker  # seeds the retired term the lint rejects
+skills/glossary-lint/glossary-lint.sh rules doc  # the example term of the header comment

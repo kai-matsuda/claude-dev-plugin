@@ -79,18 +79,18 @@ fx_check "lib ready --parent lists exactly one lib task (the unblocked one)" fx_
 # a dead runner's claim hides its task from bd ready; the orchestrator's unclaim brings it back (chezmoi-jvc)
 fx_bdj lib update "$lt1" --claim >/dev/null
 fx_check "a claimed lib task leaves ready --parent" fx_eq "$(fx_bdj lib ready --parent "$lstory" --json | jq length)" 0
-# a needs-triage child filed under the story (a review deferral, INFRA-27) is listed by bd ready like
+# a `needs-triage` bead filed under the story (a review deferral, INFRA-27) is listed by bd ready like
 # any other open child; the Frontier rule admits ready-for-agent tasks only, so with lt1 still
 # claimed the rule's filter yields nothing to run (chezmoi-wgi)
 frontier() { # <repo> <story-id>   the Frontier rule's read: bd ready --parent, ready-for-agent tasks only
   fx_bdj "$1" ready --parent "$2" --json | jq -r '[.[] | select(.labels // [] | index("ready-for-agent"))] | map(.id) | join(",")'
 }
 triage_child=$(fx_bdj lib create --silent --parent "$lstory" --no-inherit-labels --labels needs-triage "Deferred: review note with nothing to implement")
-fx_check "bd ready --parent lists the needs-triage child" fx_eq "$(fx_bdj lib ready --parent "$lstory" --json | jq -r 'map(.id)|join(",")')" "$triage_child"
+fx_check "bd ready --parent lists the needs-triage bead" fx_eq "$(fx_bdj lib ready --parent "$lstory" --json | jq -r 'map(.id)|join(",")')" "$triage_child"
 fx_check "the frontier (ready-for-agent only) yields nothing to run" fx_eq "$(frontier lib "$lstory")" ""
 fx_bdj lib unclaim "$lt1" >/dev/null
 fx_check "unclaim returns it to ready --parent, open and unassigned" fx_eq "$(fx_bdj lib ready --parent "$lstory" --json | jq -r 'map(select(.id == "'"$lt1"'") | .id + " " + .status + " " + (.assignee // "-"))|join(",")')" "$lt1 open -"
-fx_check "the frontier is then exactly the unclaimed task, the needs-triage child still off it" fx_eq "$(frontier lib "$lstory")" "$lt1"
+fx_check "the frontier is then exactly the unclaimed task, the needs-triage bead still off it" fx_eq "$(frontier lib "$lstory")" "$lt1"
 fx_bdj lib close "$triage_child" --reason "test teardown" >/dev/null
 
 # 6. gap 2: a plain git worktree of the consumer checkout builds (path dep resolves from both)

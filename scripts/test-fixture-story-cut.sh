@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Test the story cut (/spec-to-stories) in both session modes (chezmoi-gfu.1, INFRA-28) against
 # the fixture workspace. The seam is a subagent run, which a script cannot spawn, so the test has
-# phases, one fixture per case under .fixtures/test-story-cut-<case>:
+# steps (seed, then assert), one fixture per case under .fixtures/test-story-cut-<case>:
 #   scripts/test-fixture-story-cut.sh seed <case>     build the fixture, seed the spec and the epic
 #                                                     bead in the case's home, print the brief
 #   scripts/test-fixture-story-cut.sh assert <case>   check the bead state and the saved end block

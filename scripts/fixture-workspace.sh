@@ -160,7 +160,7 @@ cat > "$out/repos.yaml" <<'T'
 #
 # Read by any skill that must route a file, crate, or module to the repo that owns it,
 # and so to the beads database a task belongs in: retro items aimed at a dependency,
-# cross-repo tasks in /implement-spec. Why one file at the workspace root and not
+# stories in /implement-spec. Why one file at the workspace root and not
 # one per repo: README.md beside this file.
 #
 # Resolution, in order. Stop at the first hit.
@@ -168,7 +168,7 @@ cat > "$out/repos.yaml" <<'T'
 #   2. A path under $HOME outside any checkout: `chezmoi source-path <file>` succeeds,
 #      so the chezmoi repo owns it.
 #   3. A crate or module name: the repo whose `packages` lists it.
-#   4. Nothing matched: file in the current repo with label `retro:foreign` and the
+#   4. Nothing matched: file in the session repo with label `retro:foreign` and the
 #      intended target in the body. Never drop the item.
 # Then `bd -C <repo path> create ...`. A repo without `.beads/` is a finding of its own:
 # run `bd init` there first (see issue-tracker.md, "First time in a repo").

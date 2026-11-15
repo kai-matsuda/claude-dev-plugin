@@ -72,11 +72,11 @@ for alt in 'git -C' 'bd -C' 'make -C' 'absolute path' 'Edit'; do
   fx_check "the refusal names $alt" grep -qF "$alt" <<<"$msg"
 done
 
-# suggestion_line <command>: the hook's Suggestion line for that Bash command, empty when none
+# suggestion_line <command>: the hook's `Suggestion:` line for that Bash command, empty when none
 suggestion_line() {
   refusal_msg "$1" | grep -F 'Suggestion' || true
 }
-# expect_suggestion <command> <expected Suggestion line, empty for none>
+# expect_suggestion <command> <expected `Suggestion:` line, empty for none>
 expect_suggestion() {
   fx_check "the suggestion for '$1' is '$2'" fx_eq "$(suggestion_line "$1")" "$2"
 }
@@ -109,7 +109,7 @@ fx_scratch_dir guard-cd
 d=$scratch
 mkdir -p "$d/sub" "$d/scripts"
 touch "$d/a.txt" "$d/b.md" "$d/run.py" "$d/run.sh" "$d/sub/c.txt" "$d/scripts/foo.sh"
-# expect_no_rewrite <command>: no Suggestion line, and the refusal says so
+# expect_no_rewrite <command>: no `Suggestion:` line, and the refusal says so
 expect_no_rewrite() {
   expect_suggestion "$1" ''
   fx_check "the refusal for '$1' says no rewrite is suggested" grep -qF 'no rewrite suggested' <<<"$(refusal_msg "$1")"
@@ -118,7 +118,7 @@ expect_no_rewrite() {
 touch "$d/all" "$d/show"
 expect_suggestion "cd $d && makefoo all" "Suggestion: makefoo $d/all"
 expect_suggestion "cd $d && bdx show" "Suggestion: bdx $d/show"
-# no relative argument: the command would act on the current directory, so no suggestion
+# no relative argument: the command would act on the current directory, so no rewrite
 for word in "cd $d && gitk" "cd $d && ls" "cd $d && ls -la /etc"; do
   expect_no_rewrite "$word"
 done
