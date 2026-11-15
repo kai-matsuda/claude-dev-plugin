@@ -61,15 +61,20 @@ fx_check "a non-Bash tool with cd passes" fx_eq "$(hook_rc Edit 'cd /tmp')" 0
 fx_check "input without a command passes" fx_eq "$(hook_json '{"tool_name":"Bash","tool_input":{}}')" 0
 fx_check "unreadable input passes" fx_eq "$(hook_json 'not json')" 0
 
+# refusal_msg <command>: the hook's whole stderr for that Bash command
+refusal_msg() {
+  "$hook" <<<"$(jq -cn --arg c "$1" '{tool_name: "Bash", tool_input: {command: $c}}')" 2>&1 >/dev/null
+}
+
 # the refusal names the alternatives
-msg=$("$hook" <<<"$(jq -cn '{tool_name: "Bash", tool_input: {command: "cd /tmp && ls"}}')" 2>&1 >/dev/null)
+msg=$(refusal_msg 'cd /tmp && ls')
 for alt in 'git -C' 'bd -C' 'make -C' 'absolute path' 'Edit'; do
   fx_check "the refusal names $alt" grep -qF "$alt" <<<"$msg"
 done
 
 # suggestion_line <command>: the hook's Suggestion line for that Bash command, empty when none
 suggestion_line() {
-  "$hook" <<<"$(jq -cn --arg c "$1" '{tool_name: "Bash", tool_input: {command: $c}}')" 2>&1 >/dev/null | grep -F 'Suggestion' || true
+  refusal_msg "$1" | grep -F 'Suggestion' || true
 }
 # expect_suggestion <command> <expected Suggestion line, empty for none>
 expect_suggestion() {
@@ -104,10 +109,6 @@ fx_scratch_dir guard-cd
 d=$scratch
 mkdir -p "$d/sub" "$d/scripts"
 touch "$d/a.txt" "$d/b.md" "$d/run.py" "$d/run.sh" "$d/sub/c.txt" "$d/scripts/foo.sh"
-# refusal_msg <command>: the hook's whole stderr for that Bash command
-refusal_msg() {
-  "$hook" <<<"$(jq -cn --arg c "$1" '{tool_name: "Bash", tool_input: {command: $c}}')" 2>&1 >/dev/null
-}
 # expect_no_rewrite <command>: no Suggestion line, and the refusal says so
 expect_no_rewrite() {
   expect_suggestion "$1" ''
@@ -152,6 +153,10 @@ expect_no_rewrite "cd $d && wc a.txt # b.md"
 for unsafe in "cd $d && for f in *.md; do wc \"\$f\"; done" "cd $d && if true; then ls a.txt; fi" "cd $d && wc \"a b.md\"" "cd $d && cat \$HOME/a" "cd $d && wc a.txt > out" "cd $d && FOO=1 wc a.txt" "cd $d && ! wc a.txt" "cd $d && { wc a.txt; }" "cd $d && cd sub"; do
   expect_no_rewrite "$unsafe"
 done
+# the refusal names a negation, since a ! command word is one of the cases that get no rewrite
+fx_check "the refusal for a ! command names a negation" grep -qF 'a negation' <<<"$(refusal_msg "cd $d && ! wc a.txt")"
+# a <dir> written with ~ is tested as written, never expanded, so it gets no rewrite
+expect_no_rewrite "cd ~ && cat a.txt"
 
 hooks_json=$repo_root/hooks/hooks.json
 fx_check "hooks.json runs guard-cd on Bash before tool use, through the plugin root" jq -e '

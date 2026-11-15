@@ -9,9 +9,10 @@
 # any other command the Suggestion line prefixes a relative word of the args (and a command
 # word holding a /, as ./run.sh) with <dir>/ only when <dir>/<word> exists when the hook runs
 # or the word is a glob matching under <dir> (a relative <dir> is read from the hook's own
-# directory); flags, absolute paths and ~ words stay as written. No Suggestion line is printed,
-# and the refusal says "no rewrite suggested", for a compound body (for, if, ...), an
-# environment prefix, a group, a cd, quotes, expansions, redirects or a # comment in the args,
+# directory); flags, absolute paths and ~ words stay as written. A <dir> written with ~ is
+# tested as written, never expanded, so its words are not found and get no rewrite. No
+# Suggestion line is printed, and the refusal says "no rewrite suggested", for a compound body
+# (for, if, ...), an environment prefix, a negation (!), a group, a cd, quotes, expansions, redirects or a # comment in the args,
 # a word that is no file or glob under <dir> (a pattern, a number), or no file argument at all.
 # The args are cut at the first ;, |, & (so also &&, || and an &> redirect) outside quotes, so
 # only the first command is rewritten; a >& redirect (2>&1) stays in them. Quotes are
@@ -87,7 +88,7 @@ if [ "$word" = cd ]; then
         keyword='^(for|while|until|if|case|select|function|time|cd)$|[=(){}!]'
         special="[\"'\\\$\`<>(){}#"$'\n]'
         if [[ $name =~ $keyword || $args =~ $special ]]; then
-          echo "guard-cd: no rewrite suggested, the command is compound, has an environment prefix, a group or a cd, or its args use quotes, expansions, redirects or a comment; use an absolute path for each file argument" >&2
+          echo "guard-cd: no rewrite suggested, the command is compound, has an environment prefix, a negation (!), a group or a cd,or its args use quotes, expansions, redirects or a comment; use an absolute path for each file argument" >&2
         else
           sug= found= unresolved=
           set -f # a glob argument stays a word here instead of expanding in the hook's directory
