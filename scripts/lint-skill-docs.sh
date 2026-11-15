@@ -2413,11 +2413,15 @@ hasc "a moved-past refusal names the reviewed tip" 'a `moved past <tip>` names t
 hasc "the resume path re-lands the noted tip through the Land script" 'it first calls the Land script as step 4 does, with `<branch>` as `<task branch>`, the note'"'"'s tip as `<tip SHA>` and `--ff-only`: that tip is already in `<branch>`, so the script runs its guards, merges nothing and reports `landed <sha>`'
 hasc "the resume path's refusal is the failed: line" 'a `refused: <reason>` ends the run with `failed: <task-id> <reason>`; it then goes straight to step 5'
 lacks "the resume path that goes straight to step 5" 'failed at delivery: go straight to step 5'
-# a review: note on the tip resumes at delivery only while no delivered: note names that same tip after it;
-# a delivered: note on the same tip means delivery succeeded and the task was reopened, so the run builds
-# it again from a claim entry, skipping the Cut-off probe, which would find the old commits (dev-jj4x)
-hasc "a review: note resumes at delivery only with no delivered: note on that tip" 'rev-parse <branch>`), and no `delivered:` note naming that same tip, means an earlier run landed the reviewed tip and failed at delivery'
-hasc "a delivered: note on the review: note's tip is a reopened task built again" 'A last `delivered:` note naming the same tip as the last `review:` note means delivery already succeeded and the task was reopened for more work: the run does not re-deliver, skips the Cut-off probe (the old commits would hit it) and spawns a task orchestrator at the claim entry'
+# a task is reopened when its last delivered: note names the same tip as its last review: note and its
+# history shows it closed after that delivery; it is built again, the unclaim and the Cut-off probe still
+# applying, since a rebuild cut off after the reopen has commits the probe finds. A review: note on the
+# branch tip with no reopen (its last delivered: note naming another tip, none, or that tip with no close
+# after it: a run cut off before the pr: note or before the close) resumes at delivery (dev-jj4x)
+hasc "a review: note resumes at delivery only for a task not reopened" 'rev-parse <branch>`), and the task is not reopened (its last `delivered:` note names another tip or none, or names that tip with no close after it: a run cut off between the `delivered:` and `pr:` notes, or between the `pr:` note and the close), means an earlier run landed the reviewed tip and failed at delivery'
+hasc "a reopened task is one closed after its last delivered: note on the last review: note's tip" 'A task is **reopened** when its last `delivered:` note names the same tip as its last `review:` note and `bd -C <owner> history <task-id>` shows it `closed` after that delivery (step 5 closes it at delivery): it was delivered in full and wanted again for more work, so the run does not re-deliver and goes on to the unclaim and the Cut-off probe below, which a reopened task passes like any other'
+lacks "a reopened task skipping the Cut-off probe" 'skips the Cut-off probe'
+lacks "the false reason the probe would hit old commits" 'the old commits would hit it'
 hasc "a conflict landing is the failed: line" 'so it is a script fault: end the run with `failed: <task-id> conflict landing <task branch>`'
 hasc "the landed tip is noted" 'bd -C <owner> note <task-id> "review: <tip SHA>"'
 # delivery: the orchestration doc's Delivery section, the PR opened ready, the notes in order, the close
