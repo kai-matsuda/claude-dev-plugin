@@ -7,8 +7,13 @@
 #
 # Prose is tracked Markdown, minus glossaries, docs/specs/ (past plans) and any
 # .beads/ (tool-generated), plus doc comments in the languages listed in
-# doc_prefix below. Fenced blocks and `code spans` are skipped: identifiers are
-# not prose. Avoid terms match literally, as whole words with an optional s/es.
+# doc_prefix below (Rust /// and //! lines, shell # comment lines). Fenced blocks and
+# `code spans` are skipped: identifiers are not prose. Avoid terms match literally, as
+# whole words with an optional s/es. A hyphen or a line break counts as the space of a
+# multi-word term, so "rules-doc" and "rules" ending one line over "doc" starting the
+# next both match "rules doc"; the line break joins only inside one paragraph or comment
+# block (a blank line, heading, list item, table row, fence or non-comment line ends it),
+# and the hit names the line the term starts on.
 #
 # Senses a glossary permits go in .glossary-allow at the repo root, one per
 # line as "<path> <term>  # reason"; each allows the term everywhere in <path>.
@@ -28,7 +33,7 @@ if [ -z "$glossaries" ]; then
   exit 0
 fi
 
-files=$(git ls-files -- '*.md' '*.rs' \
+files=$(git ls-files -- '*.md' '*.rs' '*.sh' \
   ':!GLOSSARY.md' ':!**/GLOSSARY.md' ':!GLOSSARY-MAP.md' ':!docs/specs/' \
   ':!.beads/' ':!**/.beads/**')
 # No files would leave awk reading stdin.
@@ -41,7 +46,15 @@ exec awk -v allowfile=.glossary-allow '
 # Doc-comment line prefixes by file extension. Extend per language.
 function doc_prefix(file) {
   if (file ~ /\.rs$/) return "^[[:space:]]*//[/!] ?"
+  if (file ~ /\.sh$/) return "^[[:space:]]*# ?"
   return ""
+}
+# A hyphen or a run of whitespace is one space, so a term matches hyphenated or spread over
+# a line break; the ends are trimmed so a joined pair has exactly one space between.
+function norm(s) {
+  gsub(/[[:space:]-]+/, " ", s)
+  gsub(/^ | $/, "", s)
+  return s
 }
 # Record the terms of one _Avoid_ note (all its lines joined) for glossary dir d, entry h.
 function add_avoid(note, d, h,    n, i, t, k, parts) {
@@ -61,10 +74,12 @@ function add_avoid(note, d, h,    n, i, t, k, parts) {
 }
 # True when term t appears in s as a whole word, optionally plural (s/es). Matched with
 # index(), not a regex: a term may hold metacharacters (a.b, c++) that must match literally.
-function has_word(s, t,    i, at, rest) {
+function has_word(s, t, cut,    i, at, rest) {
   at = 0
   while ((i = index(substr(s, at + 1), t)) > 0) {
     at += i
+    # A cut > 0 is the length of the line before the join: only a match across it counts.
+    if (cut > 0 && (at > cut || at + length(t) - 1 <= cut)) continue
     rest = substr(s, at + length(t))
     if (at > 1 && substr(s, at - 1, 1) ~ /[a-z0-9_]/) continue
     if (rest ~ /^(es|s)?([^a-z0-9_]|$)/) return 1
@@ -107,27 +122,35 @@ BEGIN {
   }
   hits = 0
 }
-FNR == 1 { fence = 0; prefix = doc_prefix(FILENAME); md = FILENAME ~ /\.md$/ }
+FNR == 1 { fence = 0; prev = ""; prefix = doc_prefix(FILENAME); md = FILENAME ~ /\.md$/ }
 {
   text = $0
   if (!md) {
-    if (prefix == "" || text !~ prefix) next
+    if (prefix == "" || text !~ prefix || text ~ /^#!/) { prev = ""; next }
     sub(prefix, "", text)
   }
-  if (text ~ /^[[:space:]]*```/) { fence = !fence; next }
+  if (text ~ /^[[:space:]]*```/) { fence = !fence; prev = ""; next }
   if (fence) next
-  gsub(/`[^`]*`/, "", text)
-  lower = tolower(text)
+  # A code span leaves a mark, so the words either side of it never join into a term.
+  gsub(/`[^`]*`/, "\001", text)
+  cur = norm(tolower(text))
+  # A blank line, a heading, a list item or a table row starts a new block: nothing carries over.
+  if (cur == "" || (md && text ~ /^[[:space:]]*([-*+][[:space:]]|[0-9]+[.)][[:space:]]|#|\|)/)) prev = ""
   for (k in use) {
     split(k, p, SUBSEP)
     # A prefix test, not index(FILENAME, p[1]) == 1: awks disagree on index(s, "") for the root glossary.
     if (substr(FILENAME, 1, length(p[1])) != p[1]) continue
     if ((FILENAME, p[2]) in allow) continue
-    if (has_word(lower, p[2])) {
-      printf "%s:%d: \"%s\" is on the glossary avoid list; use %s\n", FILENAME, FNR, p[2], use[k]
+    t = norm(p[2])
+    line = 0
+    if (has_word(cur, t, 0)) line = FNR
+    else if (prev != "" && has_word(prev " " cur, t, length(prev))) line = FNR - 1
+    if (line) {
+      printf "%s:%d: \"%s\" is on the glossary avoid list; use %s\n", FILENAME, line, p[2], use[k]
       hits++
     }
   }
+  prev = cur
 }
 END {
   if (hits) { printf "glossary-lint: %d violation(s)\n", hits; exit 1 }

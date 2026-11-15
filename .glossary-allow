@@ -62,3 +62,46 @@ docs/adr/0013-feature-workflow-ships-as-a-plugin.md rules doc  # the reference d
 docs/adr/0015-every-owner-repo-has-a-check-target.md rules doc  # the reference docs in the words of their day, before the name "reference doc"
 docs/adr/0016-the-story-row-lands-its-tasks.md rules doc  # the reference docs in the words of their day, before the name "reference doc"
 docs/adr/0017-row-plumbing-ships-as-scripts.md rules doc  # the reference docs in the words of their day, before the name "reference doc"
+docs/adr/0002-single-repo-manifest.md repo list  # the line-wrapped form of the same words of its day
+docs/adr/0014-one-loop-at-three-rows.md check and review loop  # the hyphenated form of the loop this ADR retires, in the words of its day
+hooks/guard-cd.sh suggestion  # the "Suggestion:" line the hook prints, not a retro item
+scripts/fixture-phases.sh driver  # a script that drives a fixture run, not the epic orchestrator
+scripts/fixture-phases.sh phase  # a seed/assert step of a fixture run, not a feature stage
+scripts/fixture-test-lib.sh phase  # a seed/assert step of a fixture run, not a feature stage
+scripts/fixture-workspace.sh cross-repo task  # names the retired concept the fixture stories replace
+scripts/fixture-workspace.sh current repo  # the repo a fixture command runs in, in its plain sense
+scripts/forge-wait.sh pr check  # the forge's checks of a PR, in the gh command's words
+scripts/forge-wait.sh timeout  # a call's time bound, not a cut-off
+scripts/lint-skill-docs.sh check and review loop  # names the retired term the lint rejects
+scripts/lint-skill-docs.sh cut one  # names the retired term the lint rejects
+scripts/lint-skill-docs.sh cut two  # names the retired term the lint rejects
+scripts/lint-skill-docs.sh driver  # names the retired term the lint rejects
+scripts/lint-skill-docs.sh flat epic  # names the retired term the lint rejects
+scripts/lint-skill-docs.sh human task  # names the retired term the lint rejects
+scripts/lint-skill-docs.sh lint command  # names the retired term the lint rejects
+scripts/lint-skill-docs.sh main session  # names the retired term the lint rejects
+scripts/lint-skill-docs.sh merger  # names the retired term the lint rejects
+scripts/lint-skill-docs.sh needs-triage child  # names the retired term the lint rejects
+scripts/lint-skill-docs.sh re-entry  # names the retired term the lint rejects
+scripts/lint-skill-docs.sh review marker  # names the retired term the lint rejects
+scripts/lint-skill-docs.sh ticket  # names the retired term the lint rejects
+scripts/lint-skill-docs.sh timeout  # names the retired term the lint rejects, and a call's time bound
+scripts/lint-skill-docs.sh walk-up  # names the retired term the lint rejects
+scripts/test-fixture-retro.sh phase  # a seed/assert step of a fixture run, not a feature stage
+scripts/test-fixture-stories.sh needs-triage child  # names the retired term the fixture checks for
+scripts/test-fixture-story-cut.sh phase  # a seed/assert step of a fixture run, not a feature stage
+scripts/test-fixture-story-cutter.sh phase  # a seed/assert step of a fixture run, not a feature stage
+scripts/test-fixture-triage.sh phase  # a seed/assert step of a fixture run, not a feature stage
+scripts/test-glossary-lint.sh rules doc  # the avoided term the test seeds
+scripts/test-guard-cd.sh suggestion  # the "Suggestion:" line the hook prints, not a retro item
+scripts/test-lint-skill-docs.sh check and review loop  # seeds the retired term the lint rejects
+scripts/test-lint-skill-docs.sh hang  # a command that hangs, in its plain sense
+scripts/test-lint-skill-docs.sh human task  # seeds the retired term the lint rejects
+scripts/test-lint-skill-docs.sh kill  # a process killed, in its plain sense
+scripts/test-lint-skill-docs.sh phase  # seeds the retired term the lint rejects
+scripts/test-lint-skill-docs.sh review marker  # seeds the retired term the lint rejects
+scripts/test-lint-skill-docs.sh timeout  # a call's time bound, not a cut-off
+scripts/test-phases.sh driver  # a script that drives a fixture run, not the epic orchestrator
+scripts/test-phases.sh phase  # a seed/assert step of a fixture run, not a feature stage
+scripts/test-setup-repo-skill.sh lint command  # the plain sense, a command that lints
+skills/glossary-lint/glossary-lint.sh rules doc  # the example term of the header comment

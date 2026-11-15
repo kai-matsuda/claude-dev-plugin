@@ -6,8 +6,9 @@ disable-model-invocation: true
 
 `glossary-lint.sh` in this skill's directory is the check. It reads every tracked
 `GLOSSARY.md`, applies each to the files under its own directory, and flags prose
-(Markdown and doc comments, minus code) that uses a word the glossary lists under
-`_Avoid_:`. Repos opt in by calling this one copy from their gates (step 3); a repo adds
+(Markdown, Rust doc comments and shell `#` comments, minus code) that uses a word the
+glossary lists under `_Avoid_:`, also when a hyphen or a line break inside one paragraph or
+comment block splits it. Repos opt in by calling this one copy from their gates (step 3); a repo adds
 a `.glossary-allow` only for words it cannot reword.
 The script's header comment is the reference for scope, allowlist format and exit
 codes.
