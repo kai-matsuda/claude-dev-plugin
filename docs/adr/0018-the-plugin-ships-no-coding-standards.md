@@ -2,6 +2,11 @@
 status: accepted
 ---
 
+> Amended 2026-11-15 (dev-l5vv, INFRA-45): `/dev:retro` files a finding located at the rule
+> file of the layer that owns the rule, the repo's `.claude/rules/` file or the
+> `~/.claude/rules/` file, and writes no rule file itself, as the retro skill says. The
+> Decision bullet below keeps its day's wording, "writes to the layer".
+
 # The plugin ships no coding standards; they live in the user's rules folders
 
 The plugin shipped a default set of coding standards, `docs/agents/coding-standards.md`,
