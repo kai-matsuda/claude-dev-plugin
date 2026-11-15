@@ -201,11 +201,12 @@ _Avoid_: done story, finished repo, touched repo, sealed story (that is a merged
 
 **Reopened**:
 A standalone task that was delivered in full and then wanted again for more work: its last
-`delivered:` note names the same tip as its last `review:` note, and `bd history <task-id>
---events` lists a `closed` event later than the update that added that `delivered:` note.
-`/dev:implement-task` builds it again through a task orchestrator (the Cut-off probe picks
-the entry) instead of delivering the old tip; a task cut off before its close is not
-reopened and goes straight to delivery.
+`delivered:` note names the same tip as its last `review:` note, and `bd -C <owner> history
+<task-id> --events` lists a `closed` event above the lowest `updated` event whose New notes
+carry that `delivered:` line. `/dev:implement-task` builds it again through a task
+orchestrator (the Cut-off probe picks the entry) instead of delivering the old tip; a task
+cut off before its close is not reopened and, when its last `review:` note names the branch
+tip, goes straight to delivery.
 _Avoid_: redelivered task, resumed task
 
 **Merge guard**:

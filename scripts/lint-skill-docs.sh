@@ -2414,13 +2414,18 @@ hasc "the resume path re-lands the noted tip through the Land script" 'it first 
 hasc "the resume path's refusal is the failed: line" 'a `refused: <reason>` ends the run with `failed: <task-id> <reason>`; it then goes straight to step 5'
 lacks "the resume path that goes straight to step 5" 'failed at delivery: go straight to step 5'
 # a task is reopened when its last delivered: note names the same tip as its last review: note and its
-# `bd history <task-id> --events` lists a closed event after the updated event whose New notes first carry
-# that delivered: line (plain bd history shows no notes, so it cannot order the two); it is built again, the unclaim and the Cut-off probe still
-# applying, since a rebuild cut off after the reopen has commits the probe finds. A review: note on the
-# branch tip with no reopen (its last delivered: note naming another tip, none, or that tip with no close
-# after it: a run cut off before the pr: note or before the close) resumes at delivery (dev-jj4x)
-hasc "a review: note resumes at delivery only for a task not reopened" 'its last `review:` note names `<branch>`'"'"'s tip (`git -C <owner> rev-parse <branch>`), and the task is not reopened (its last `delivered:` note names another tip or none, or names that tip with no close after it: a run cut off between the `delivered:` and `pr:` notes, or between the `pr:` note and the close, as when a reopened task rebuilt to tip B is cut off after `delivered: B` before the close, whose only close event is the older one), that means an earlier run landed the reviewed tip and failed at delivery'
-hasc "a reopened task is one closed after its last delivered: note on the last review: note's tip" 'A task is **reopened** when its last `delivered:` note names the same tip as its last `review:` note and `bd -C <owner> history <task-id> --events` lists a `closed` event above (later than) the `updated` event whose New notes first carry that `delivered:` line (step 5 closes it at delivery; plain `bd history` shows no notes and cannot order the two): it was delivered in full and wanted again for more work, so the run does not re-deliver the old tip and goes on to the unclaim and the Cut-off probe below, which a reopened task passes like any other'
+# `bd history <task-id> --events` (newest first, every notes update carrying the whole notes so far)
+# lists a closed event above the lowest updated event whose New notes carry that delivered: line (the one
+# whose Old notes lack it), so a later notes update above the old close does not hide it; plain bd history
+# shows no notes, so it cannot order the two. A closed event's New: line is the close reason, not the
+# notes. It is built again, the unclaim and the Cut-off probe still applying, since a rebuild cut off after
+# the reopen has commits the probe finds. A review: note on the branch tip with no reopen (its last
+# delivered: note naming another tip, none, or that tip with no close after it: a run cut off before the
+# pr: note or before the close) resumes at delivery (dev-jj4x)
+hasc "a review: note resumes at delivery only for a task not reopened" 'its last `review:` note names `<branch>`'"'"'s tip (`git -C <owner> rev-parse <branch>`), and the task is not reopened (its last `delivered:` note names another tip or none, or names that tip with no close after it: a run cut off between the `delivered:` and `pr:` notes, or between the `pr:` note and the close, as when a reopened task rebuilt to tip B is cut off after `delivered: B` before the close, whose only `closed` event predates `delivered: B`), that means an earlier run landed the reviewed tip and failed at delivery'
+hasc "a reopened task is one closed after its last delivered: note on the last review: note's tip" 'A task is **reopened** when its last `delivered:` note names the same tip as its last `review:` note and `bd -C <owner> history <task-id> --events` (newest first, every notes update carrying the whole notes so far; a `closed` event'"'"'s `New:` line is the close reason, `delivered: <pr url>`, not the notes) lists a `closed` event above (later than) the lowest `updated` event whose New notes carry that `delivered:` line, the one whose Old notes lack it (step 5 closes it at delivery; plain `bd history` shows no notes and cannot order the two): it was delivered in full and wanted again for more work, so the run does not re-deliver the old tip and goes on to the unclaim and the Cut-off probe below, which a reopened task passes like any other'
+lacks "the ambiguous first-carry wording for the updated event" 'New notes first carry'
+hasc "the merge guard's open PR builds and delivers again" 'OPEN: the Merge guard'"'"'s outcome, and build and deliver again (steps 2 to 5 once more, on it)'
 lacks "a reopened task skipping the Cut-off probe" 'skips the Cut-off probe'
 lacks "the false reason the probe would hit old commits" 'the old commits would hit it'
 hasc "a conflict landing is the failed: line" 'so it is a script fault: end the run with `failed: <task-id> conflict landing <task branch>`'
