@@ -344,13 +344,21 @@ guards and the merge as one call.
 _Avoid_: land step, task merge
 
 **Stray-commit check**:
-The read of every commit a push or a merge would carry but merges, before it runs: one whose
-author is not the repo's `user.email`, or that has no `Bead:` trailer, came from outside the
-run (a test whose throwaway repo failed to init commits into the enclosing checkout).
+The read of every commit a push or a merge would carry, before it runs. A non-merge commit
+whose author is not the repo's `user.email`, or that has no `Bead:` trailer, came from outside
+the run (a test whose throwaway repo failed to init commits into the enclosing checkout). A
+two-parent merge commit is not read for author or trailer; it is compared with the merge of
+its parents, and one that changes a path that merge does not (bar its conflicted paths)
+carries content no commit has a trailer for, and is stray too (dev-bxtw). That holds for a
+merge made with git's default `ort` strategy and default options; a merge made otherwise
+(`-X`, `-s recursive`, a different `merge.renames` or rename limit) can show its auto-merged
+paths as `stray merge`. An octopus merge (more than
+two parents) cannot be compared, so the check refuses it.
 The stray-commit script, `scripts/stray-commit.sh <repo> <range>`, is that read as one call.
 The story orchestrator runs it before every merge and every push (a trust rule): before
 each landing of a reviewed branch onto the integration branch, and before each push of it;
-a hit stops the merge or push with `failed: stray commit <sha> <subject>`.
+a hit stops the merge or push with `failed: stray commit <sha> <subject>` (`failed: stray
+merge <sha> changes <path>` for a stray merge).
 _Avoid_: push guard, stray check
 
 **Forge-check wait**:
