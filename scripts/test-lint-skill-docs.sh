@@ -1009,7 +1009,11 @@ expect "implement-story committing with --trailer fails" 1
 
 fresh
 echo 'then `tea api --repo <workspace>/<repo> repos/{owner}/{repo}/pulls/<n> | jq -r .body` and write it back' >> "$scratch/skills/implement-story/SKILL.md"
-expect "the sibling refresh's piped tea body read (dev-91mt) fails" 1
+expect "the sibling refresh's piped tea body read (dev-91mt) fails" 1 "the sibling refresh's piped tea body read (dev-91mt)"
+
+fresh
+echo 'then `tea api --repo <workspace>/<repo> repos/{owner}/{repo}/pulls/<n> | jq -r '"'"'.body'"'"'` and write it back' >> "$scratch/skills/implement-story/SKILL.md"
+expect "the sibling refresh's piped quoted tea body read (dev-91mt) fails" 1 "the sibling refresh's piped tea body read (dev-91mt)"
 
 fresh
 echo 'a pipe such as `tea api ... | jq` is never used on a forge call' >> "$scratch/skills/implement-story/SKILL.md"
