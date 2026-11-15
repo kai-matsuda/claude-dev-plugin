@@ -32,6 +32,24 @@ commit() {
 }
 sha() { git -C "$r" rev-parse "$1"; }
 run() { out=$("$script" "$r" "$1" 2>&1); rc=$?; }
+# dd_conflict <branch> <file|dir> <side bead> <main bead>: from base, branch <branch> holds dd as a file
+# (or as a directory with dd/f) and main holds the other, then main merges the branch, leaving the
+# file/directory conflict unresolved in the work tree
+dd_conflict() {
+  local side=$2
+  git -C "$r" reset -q --hard "$base"
+  git -C "$r" checkout -q -b "$1"
+  if [ "$side" = file ]; then
+    commit dd "side file" "" "Bead: $3"
+    git -C "$r" checkout -q main
+    mkdir -p "$r/dd" && commit dd/f "main file in dir" "" "Bead: $4"
+  else
+    mkdir -p "$r/dd" && commit dd/f "side file in dir" "" "Bead: $3"
+    git -C "$r" checkout -q main
+    commit dd "main file" "" "Bead: $4"
+  fi
+  git -C "$r" merge --no-ff "$1" >/dev/null 2>&1
+}
 
 commit base.txt base "" "Bead: x-1"
 base=$(sha HEAD)
@@ -188,12 +206,7 @@ fx_check "conflict on a ~ path plus smuggled sibling: names the sibling" fx_eq "
 
 # the same file/directory conflict resolved by keeping the directory: the side path dd~<sha> is dropped (derived,
 # so exempt), but a path added under dd/ is content, not a deletion, and is stopped
-git -C "$r" reset -q --hard "$base"
-git -C "$r" checkout -q -b side9
-commit dd "side file" "" "Bead: x-24"
-git -C "$r" checkout -q main
-mkdir -p "$r/dd" && commit dd/f "main file in dir" "" "Bead: x-25"
-git -C "$r" merge --no-ff side9 >/dev/null 2>&1
+dd_conflict side9 file x-24 x-25
 rm -f "$r"/dd~*
 echo smuggled > "$r/dd/evil.txt"
 git -C "$r" add -A && git -C "$r" commit -q -m "merge side nine"
@@ -205,17 +218,11 @@ fx_check "keep-directory resolution plus a path under it: names the path" fx_eq 
 
 # the reverse direction: the first parent has the file dd, the side has dd/f, so the displaced path is dd~<p1>
 # (the side path of the first parent); keeping the file dd passes
-git -C "$r" reset -q --hard "$base"
-git -C "$r" checkout -q -b side10
-mkdir -p "$r/dd" && commit dd/f "side file in dir" "" "Bead: x-26"
-git -C "$r" checkout -q main
-commit dd "main file" "" "Bead: x-27"
-git -C "$r" merge --no-ff side10 >/dev/null 2>&1
+dd_conflict side10 dir x-26 x-27
 git -C "$r" rm -q -r -f dd >/dev/null 2>&1
 mv "$r"/dd~* "$r/dd"
 git -C "$r" add -A && git -C "$r" commit -q -m "merge side ten"
-fx_check "reverse fixture: the merge keeps the file dd" fx_eq "$(git -C "$r" ls-tree --name-only -r HEAD | tr '
-' ' ')" "base.txt dd "
+fx_check "reverse fixture: the merge keeps the file dd" fx_eq "$(git -C "$r" ls-tree --name-only -r HEAD | tr '\n' ' ')" "base.txt dd "
 run "$base..HEAD"
 fx_check "reverse file/dir resolution: exits 0" fx_eq "$rc" 0
 fx_check "reverse file/dir resolution: prints nothing" fx_eq "$out" ""
