@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Helpers shared by the fixture tests (scripts/test-fixture-*.sh, test-lint-skill-docs.sh,
-# test-guard-rm.sh, test-guard-cd.sh, test-phases.sh, test-glossary-lint.sh, test-setup-skill.sh,
+# test-guard-rm.sh, test-guard-cd.sh, `test-phases.sh`, test-glossary-lint.sh, test-setup-skill.sh,
 # test-setup-repo-skill.sh, test-ci-workflow.sh, test-readme.sh, test-check-target.sh,
 # test-check-script.sh).
 # Every helper is fx_-prefixed, so it neither shadows nor is shadowed by a sourcing script's own
@@ -58,7 +58,7 @@ fx_build_fixture() { fx_cache_drop; "${repo_root:?}/scripts/fixture-workspace.sh
 # by the lib's EXIT trap: one per run, so concurrent runs (parallel review subagents) do not
 # race on the same fixture; under .fixtures/, never $TMPDIR, because the sandbox scopes a
 # subagent's file edits to the session's working directories (chezmoi-66n, chezmoi-3ev). A caller that rebuilds its fixture builds it inside $scratch, so the
-# mktemp name is never free for another run to draw. The phased tests (fixture-phases.sh's
+# mktemp name is never free for another run to draw. The seed-then-assert tests (`fixture-phases.sh`'s
 # callers, test-fixture-triage.sh) keep their fixed per-case paths on purpose: seed and assert
 # are separate processes with a briefed skill run between them, and a person drives them one
 # at a time.

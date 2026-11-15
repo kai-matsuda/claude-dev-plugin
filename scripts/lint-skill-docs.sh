@@ -192,7 +192,7 @@
 #      task/<id> with a branch: note), one task orchestrator with the short brief, the landing by
 #      the Land script with --ff-only, the orchestration doc's Delivery with the PR opened ready and never a draft,
 #      delivered: before pr: and the close at delivery, no forge's pushed branch and skipped-checks
-#      line, the merge guard and the gate re-entry on a rerun, and the report minus the story lines
+#      line, the merge guard and the gate entry on a rerun, and the report minus the story lines
 #      ending on resume:. Section 6 pins the orchestration doc's one paragraph on it (the table keeps three
 #      rows) and the no-seam-test case skipping a standalone task without ## Test seams.
 #  18. the cross-skill cite rule (dev-q47w): the cross-skill cite rule file states it, and
@@ -207,7 +207,7 @@
 #      point there); a changed SKILL.md has every reference doc and SKILL.md re-read.
 #  19. the forge CLI's config-error strings (dev-42ag): the Forge decision's list in orchestration.md
 #      and the config-error case pattern of forge-wait.sh name the same strings, each way; a string
-#      on one side only fails here, since the wait would loop to its timeout on the other.
+#      on one side only fails here, since the wait would loop to its `timeout` on the other.
 # Usage: scripts/lint-skill-docs.sh [implement-spec SKILL.md [WORKFLOW.md]]
 # A section whose doc is missing fails naming it ("missing document: <path>") rather than being
 # skipped, so a renamed skill or reference doc cannot turn its checks off (dev-dov); each section
@@ -778,7 +778,7 @@ anchor_task_step_2_implementer='^2\. Spawn the \*\*implementer\*\*'
 anchor_owner_repo_bullet="starts with the \\*\\*$tmpdir_line\\*\\*"
 anchor_task_orchestrator_header="^You are the ${pin_task_orchestrator_bold//\*/\\*}"
 # the dirs and the docs no section owns must exist, a default as much as an override; the
-# driver ($1) and the runbook ($2) are their sections' documents
+# skill ($1) and the runbook ($2) are their sections' documents
 section "0. paths"
 for given in "$skills" "$refs" "$docs" "$agents" "$pins_dir"; do
   [ -d "$given" ] || bad "no such directory: $given"
@@ -1616,7 +1616,7 @@ hasc "run_in_background is a JSON boolean" '`run_in_background` is a JSON boolea
 hasc "idle rule" "$head_idle_rule"
 hasc "Bash in the foreground only below the epic orchestrator" 'in the foreground only'
 # the Bash tool backgrounds a call that outlives its 120 s default, which is the idle state the
-# rule forbids, so lint and test runs pass timeout: 600000 (dev-7k0, INFRA-30)
+# rule forbids, so lint and test runs pass `timeout: 600000` (dev-7k0, INFRA-30)
 hasc "the 120-second default backgrounds a longer call" "$pin_120_second_default"
 hasc "lint and test runs carry the ten-minute timeout" "$pin_timeout_600000"
 lacks "a foreground spawn" "$pin_retired_foreground_spawn"
@@ -2219,7 +2219,7 @@ lacks "the task closed by the task orchestrator" "$pin_bd_close"
 # spawning ends the turn, Bash in the foreground only (chezmoi-p4q)
 hasc "task orchestrator's spawn ends the turn" 'then end your turn: its report'
 hasc "the skill names the harness doc's Idle rule" "The $cite_harness_idle_rule binds you too"
-# the implementer and fix-up briefs give check and test runs an explicit ten-minute timeout
+# the implementer and fix-up briefs give check and test runs an explicit ten-minute `timeout`
 # (dev-7k0, INFRA-30)
 for step in 2 3; do
   line_has "^$step\. " "the task orchestrator's step $step: check and test timeout" "$pin_timeout_600000"
@@ -2460,7 +2460,7 @@ hasc "delivered: precedes pr:" 'the `delivered:` and `pr:` notes in that order'
 hasc "the task closes at delivery" "$pin_bd_close <task-id> --reason \"delivered: <pr: value>\""
 hasc "no forge: the pushed branch is the deliverable" 'the pushed branch is the deliverable'
 hasc "no forge: the skipped-checks line" "$pin_checks_skipped_no_forge"
-# a rerun: the merge guard on the pr: note, and a gate re-entry on a failed run's commits
+# a rerun: the merge guard on the pr: note, and a gate entry on a failed run's commits
 hasc "the merge guard" '**Merge guard.**'
 hasc "the merge guard's merged refusal" "\`<task-id> $pin_refused_pr_already_merged"
 hasc "the merge guard's closed-unmerged refusal" "\`<task-id> $pin_refused_pr_closed_unmerged\`"
@@ -2679,7 +2679,7 @@ fi
 
 # ---- 13. the brief rule: no plugin-root variable inside a brief block ----
 # a brief spells the plugin root literally (the orchestration doc's Plugin root rule): Bash never has
-# CLAUDE_PLUGIN_ROOT, in the main session or a subagent; the harness fills it in only in the
+# CLAUDE_PLUGIN_ROOT, in the epic orchestrator's session or a subagent; the harness fills it in only in the
 # skill text it loads, which a brief's subagent never sees, so a brief naming the variable sends
 # it to a doc it cannot open. A brief block is a markdown quote: it opens on a line starting with
 # `>`, indented or not (implement-spec's sits inside a list item), and runs to the next blank

@@ -5,13 +5,13 @@
 # lives in the harness doc and every worktree brief, yet fix-up agents broke it 24 times in
 # INFRA-41's run (dev-6hgz). Only the first word is checked: a cd later in the command, in an
 # argument or in a path runs. For cd <dir> && git|bd|make <args> the refusal adds a
-# "Suggestion:" line with the rewrite using the command's own flag (git -C <dir> <args>). For
-# any other command the Suggestion line prefixes a relative word of the args (and a command
+# `Suggestion:` line with the rewrite using the command's own flag (git -C <dir> <args>). For
+# any other command the `Suggestion:` line prefixes a relative word of the args (and a command
 # word holding a /, as ./run.sh) with <dir>/ only when <dir>/<word> exists when the hook runs
 # or the word is a glob matching under <dir> (a relative <dir> is read from the hook's own
 # directory); flags, absolute paths and ~ words stay as written. A <dir> written with ~ is
 # tested as written, never expanded, so its words are not found and get no rewrite. No
-# Suggestion line is printed, and the refusal says "no rewrite suggested", for a compound body
+# `Suggestion:` line is printed, and the refusal says "no rewrite suggested", for a compound body
 # (for, if, ...), an environment prefix, a negation (!), a group, a cd, quotes, expansions, redirects or a # comment in the args,
 # a word that is no file or glob under <dir> (a pattern, a number), or no file argument at all.
 # The args are cut at the first ;, |, & (so also &&, || and an &> redirect) outside quotes, so

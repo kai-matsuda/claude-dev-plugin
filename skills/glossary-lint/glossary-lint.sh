@@ -7,12 +7,15 @@
 #
 # Prose is tracked Markdown, minus glossaries, docs/specs/ (past plans) and any
 # .beads/ (tool-generated), plus doc comments in the languages listed in
-# doc_prefix below (Rust /// and //! lines, shell # comment lines). Fenced blocks and
+# doc_prefix below (Rust /// and //! lines, shell # comment lines). A shell line counts
+# when it starts with #, so a heredoc body line starting with # is linted and a trailing
+# "cmd # comment" is not; doc_prefix is the knob. Fenced blocks and
 # `code spans` are skipped: identifiers are not prose. Avoid terms match literally, as
 # whole words with an optional s/es. A hyphen or a line break counts as the space of a
 # multi-word term, so "rules-doc" and "rules" ending one line over "doc" starting the
 # next both match "rules doc"; the line break joins only inside one paragraph or comment
-# block (a blank line, heading, list item, table row, fence or non-comment line ends it),
+# block (a blank line, heading, list item, table row, fence or non-comment line ends it;
+# a list item can still start a join with its own continuation line),
 # and the hit names the line the term starts on.
 #
 # Senses a glossary permits go in .glossary-allow at the repo root, one per
@@ -135,7 +138,9 @@ FNR == 1 { fence = 0; prev = ""; prefix = doc_prefix(FILENAME); md = FILENAME ~ 
   gsub(/`[^`]*`/, "\001", text)
   cur = norm(tolower(text))
   # A blank line, a heading, a list item or a table row starts a new block: nothing carries over.
-  if (cur == "" || (md && text ~ /^[[:space:]]*([-*+][[:space:]]|[0-9]+[.)][[:space:]]|#|\|)/)) prev = ""
+  # A heading or table row also carries nothing into the next line (brk), though it can itself start one.
+  brk = (md && text ~ /^[[:space:]]*(#|\|)/)
+  if (cur == "" || brk || (md && text ~ /^[[:space:]]*([-*+][[:space:]]|[0-9]+[.)][[:space:]])/)) prev = ""
   for (k in use) {
     split(k, p, SUBSEP)
     # A prefix test, not index(FILENAME, p[1]) == 1: awks disagree on index(s, "") for the root glossary.
@@ -150,7 +155,7 @@ FNR == 1 { fence = 0; prev = ""; prefix = doc_prefix(FILENAME); md = FILENAME ~ 
       hits++
     }
   }
-  prev = cur
+  prev = brk ? "" : cur
 }
 END {
   if (hits) { printf "glossary-lint: %d violation(s)\n", hits; exit 1 }

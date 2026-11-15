@@ -23,7 +23,7 @@ step() { awk -v n="$2" '$0 ~ "^" n "\\. \\*\\*"{p=1; print; next} /^[0-9]+\. \*\
 # with, the present and confirm steps name the proposed recipe, the write step always adds
 # `check` (creating the Makefile, never an empty or `true` recipe), and the skill names
 # `make check` as the repo's check command, which every owner repo has (ADR 0015). It names no
-# lint-command alternative, no CLAUDE.md note in place of the target and no review-only gate.
+# alternative command that lints, no CLAUDE.md note in place of the target and no review-only gate.
 pin_explore_makefile() { step "$1" 2 | grep -q 'GNUmakefile' && step "$1" 2 | grep -q '`check` target'; }
 # it asks make's database, never a grep of the Makefile (dev-b3p); test-check-target.sh runs the query
 pin_explore_make_db() { step "$1" 2 | grep -q 'never grep a Makefile: `make -pRrq :'; }

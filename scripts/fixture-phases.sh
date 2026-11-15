@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Seed/assert phase driver shared by the fixture tests whose seam is a live subagent run
+# Seed/assert step runner shared by the fixture tests whose seam is a live subagent run
 # (test-fixture-retro.sh, test-fixture-story-cut.sh, test-fixture-story-cutter.sh,
 # test-fixture-triage.sh). The caller sets $repo_root and $cases and defines fixture <case>
 # (the case's fixture path), home_of <case> (its session repo, relative to the fixture root,

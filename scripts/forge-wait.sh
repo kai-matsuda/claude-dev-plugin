@@ -8,7 +8,7 @@
 #   forge error: <text>               exit 1, at once: the forge CLI's config error (`unable to get or
 #                                     create config file` or `failed to read configuration`) from a
 #                                     read in the loop or the watch, never looped on to the caller's
-#                                     timeout; or a gh watch that failed with checks still pending;
+#                                     `timeout`; or a gh watch that failed with checks still pending;
 #                                     or a gh head that moved off the tip during the wait
 #   refused: <reason>                 exit 2, a wrong usage, a forge other than gh or tea, a <repo>
 #                                     not owner/name, a <pr> not digits, a <tip SHA> not 7 to 64
@@ -76,7 +76,7 @@ case $forge in
       p=$(gh pr checks "$pr" --repo "$repo" --json bucket -q '[.[] | select(.bucket == "pending")] | length' 2>"$errf"); cfg_err "$p"
       if [ "$p" != 0 ]; then echo "forge error: $w"; exit 1; fi
     fi
-    # gh pr checks reads by PR number, so the checks just waited on are the tip's only if the head is
+    # `gh pr checks` reads by PR number, so the checks just waited on are the tip's only if the head is
     # still the verified tip
     while :; do
       h=$(head); rc=$?; cfg_err "$h"

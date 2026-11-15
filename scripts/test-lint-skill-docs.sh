@@ -34,14 +34,14 @@
 # conditions set out above the batch loop. Section 18's cases share runs too, each in a small doc of
 # its own (cite_case, cite_flush, judge_cites), and one its run cannot vouch for runs alone as well.
 # Each part of the run prints its wall and CPU seconds and the pool's slot count on a "timing:"
-# line (phase), for the CI log.
+# line (the `phase` function), for the CI log.
 # No wait in the pool is unbounded (dev-1ef): each lint run (under perl, which macOS and the
 # ubuntu runner ship) is killed, its whole process group, after LINT_CASE_TIMEOUT seconds
-# (default 120) and its case fails naming the timeout; a case's slot token goes back from an
+# (default 120) and its case fails naming the limit; a case's slot token goes back from an
 # EXIT trap, so a case that dies early, short of a SIGKILL, still frees its slot; and a wait for
-# a slot, or for every slot at the end, gives up after the case timeout plus 30 seconds, failing
+# a slot, or for every slot at the end, gives up after the case limit plus 30 seconds, failing
 # the run with the cases still holding one. For checking those bounds by hand,
-# LINT_TEST_SEED=hang:<n> (case n's lint never returns) or drop:<n> (case n keeps its token)
+# `LINT_TEST_SEED=hang:<n>` (case n's lint never returns) or drop:<n> (case n keeps its token)
 # seeds a stall; no target runs them.
 # Usage: scripts/test-lint-skill-docs.sh
 set -uo pipefail
@@ -62,14 +62,14 @@ slots_put() { local i; for ((i = 0; i < $1; i++)); do printf x >&3; done; }
 nslots=${LINT_TEST_SLOTS:-$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)}
 slots_put "$nslots"
 case_timeout=${LINT_CASE_TIMEOUT:-120}
-# a slot frees within a case timeout of being taken, plus the case's setup and judging, which
+# a slot frees within a case limit of being taken, plus the case's setup and judging, which
 # the 30 seconds over it leave room for; a longer wait means a case hung outside its lint run
 # or a token is lost
 slot_timeout=$((case_timeout + 30))
 case_desc=()   # each case's description by number, for a stall to name the cases holding a slot
-# bounded <seconds> <command...>: runs the command in its own process group and kills the group
-# after <seconds>, exiting 124 then, or else with the command's own exit code; an INT or TERM
-# to it kills the group too, since the group is out of reach of the terminal's signals
+# bounded <seconds> <command...>: runs the command in its own process group and signals the group
+# to end after <seconds>, exiting 124 then, or else with the command's own exit code; an INT or
+# TERM to it ends the group too, since the group is out of reach of the terminal's signals
 bounded() {
   perl -e 'my $t = shift; my $pid = fork; defined $pid or exit 126;
     if (!$pid) { setpgrp(0, 0); exec @ARGV or exit 127 }
@@ -158,7 +158,7 @@ lint_scratch() {
   # against, or the word "derive", which leaves it unset so the lint derives the merge-base
   if [ "${diff_base:-HEAD}" = derive ]; then unset VERSION_BUMP_BASE
   else export VERSION_BUMP_BASE=${diff_base:-HEAD}; fi
-  # a seeded hang swaps in a lint that never returns
+  # a seeded stall swaps in a lint that never returns
   cmd=("$lint")
   [ "${LINT_TEST_SEED:-}" != "hang:$njobs" ] || cmd=(/bin/sh -c 'sleep 86400' sh)
   out=$(SKILLS_DIR=${skills_dir:-$scratch/skills} REFERENCES_DIR=${references_dir:-$scratch/references} DOCS_DIR=$scratch/docs RULES_DIR=$scratch/.claude/rules \
@@ -270,7 +270,7 @@ expect_flush() {
     case "$nl$verdict" in *"$nl"FAIL*) fails=$((fails+1));; esac
   done
 }
-# phase <name>: waits for every case, then prints the wall and CPU seconds since the last phase,
+# `phase <name>`: waits for every case, then prints the wall and CPU seconds since the last call,
 # so a CI log shows each part's cost and how many cores it got (CPU over wall) beside the pool's
 # slots: this test's wall time on a host follows its CPU seconds over that host's cores
 phase_wall=0 phase_cpu=0

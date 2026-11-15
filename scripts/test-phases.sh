@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Tests for scripts/fixture-phases.sh, the seed/assert driver of the phased fixture tests, through
+# Tests for `scripts/fixture-phases.sh`, the seed/assert runner of the seed-then-assert fixture tests, through
 # a stub caller whose fixtures live in a scratch dir and need no bd (dev-24m, INFRA-31). The
 # no-argument run, the one make check calls, asserts a fixture only once its briefed skill run
 # has finished (the run saved $out/report.txt), and skips with a note one that was seeded but
 # never run, or whose seed was interrupted (no .seeded marker), so the owner checkout's stale
 # .fixtures/ cannot turn make check red. An explicit assert <case> still asserts.
-# Usage: scripts/test-phases.sh
+# Usage: `scripts/test-phases.sh`
 set -uo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 source "$repo_root/scripts/fixture-test-lib.sh"   # fails, fx_check, fx_scratch_dir, fx_report_fails

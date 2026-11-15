@@ -6,7 +6,7 @@
 # awk gives the same output; a tree with nothing to scan exits 0 without reading stdin; the
 # plugin's own tree passes; a banned synonym seeded into a copy of that tree is caught, also
 # hyphenated or split across a line break, in Markdown and in a shell # comment, unless a fence,
-# a code span, a paragraph break, a list item or .glossary-allow hides it; and make
+# a code span, a paragraph break, a heading, a list item, a table row or .glossary-allow hides it; and make
 # ci's own lint step fails on that copy and passes once .glossary-allow permits the sense.
 # Usage: scripts/test-glossary-lint.sh
 set -uo pipefail
@@ -110,8 +110,8 @@ git -C "$copy" add -A
 
 # an avoided term is caught however the prose breaks it: hyphenated, or split across a line break
 # inside one paragraph (Markdown) or one comment block (shell #); the hit names the line the term
-# starts on. Fenced blocks, code spans, the allow list, a paragraph break and a new list item
-# keep a term from being read across the break.
+# starts on. Fenced blocks, code spans, the allow list, a paragraph break, a heading, a
+# table row and a new list item keep a term from being read across the break.
 printf 'A line.\nThe rules-doc says so.\n' > "$copy/hyphen.md"
 printf 'The old rules\ndoc says so.\n' > "$copy/split.md"
 printf '#!/bin/sh\n# The rules-doc says so.\n:\n# The old rules\n# doc says so.\n' > "$copy/seeded.sh"
@@ -125,13 +125,13 @@ fx_check "the four shapes and the seeded synonym are the only hits" grep -qF 'gl
 git -C "$copy" rm -q -f --cached hyphen.md split.md seeded.sh
 rm "$copy/hyphen.md" "$copy/split.md" "$copy/seeded.sh"
 
-printf 'The rules\n\ndoc after a blank line.\nThe rules\n- doc in a list item.\nThe rules\n`doc` in a span.\n```\nrules\ndoc\nrules-doc\n```\nA `rules-doc` span.\n' > "$copy/clean.md"
+printf 'The rules\n\ndoc after a blank line.\nThe rules\n- doc in a list item.\nThe rules\n`doc` in a span.\n```\nrules\ndoc\nrules-doc\n```\nA `rules-doc` span.\n## The rules\ndoc after a heading.\n| a | The rules\ndoc after a table row.\n' > "$copy/clean.md"
 printf '# The rules\n:\n# doc across code.\n' > "$copy/clean.sh"
 printf 'The rules-doc here.\nThe old rules\ndoc here.\n' > "$copy/allowed.md"
 printf 'allowed.md rules doc  # the sense the test permits\n' >> "$copy/.glossary-allow"
 git -C "$copy" add -A
 out=$(run_lint "$copy")
-fx_check "paragraph breaks, list items, fences, code spans and the allow list flag nothing" eval '! grep -qE "(clean|allowed)\.(md|sh):" <<<"$out"'
+fx_check "paragraph breaks, headings, list items, table rows, fences, code spans and the allow list flag nothing" eval '! grep -qE "(clean|allowed)\.(md|sh):" <<<"$out"'
 git -C "$copy" rm -q -f --cached clean.md clean.sh allowed.md
 rm "$copy/clean.md" "$copy/clean.sh" "$copy/allowed.md"
 
