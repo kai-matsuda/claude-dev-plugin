@@ -4,7 +4,7 @@
 # The first non-merge commit of the range whose author is not the repo's user.email, or that has no
 # Bead: trailer, is one "stray commit <sha> <subject>" line and exit 1; a clean or empty range
 # prints nothing and exits 0; a two-parent merge commit passes unless it changes a path the merge of
-# its parents does not, outside its conflicted paths (one "stray merge <sha> changes <path>" line,
+# its parents does not, outside its conflicted paths and the paths derived from them, such as a file/directory conflict's side path (one "stray merge <sha> changes <path>" line,
 # exit 1); an octopus merge (more than two parents), a merge whose parents git merge-tree cannot merge
 # and a failed diff-tree are each one refusal line, exit 2, as is a wrong usage.
 # Usage: scripts/test-stray-commit-script.sh
@@ -114,6 +114,46 @@ cmerge=$(sha HEAD)
 run "$base..HEAD"
 fx_check "conflict resolution plus extra: exits 1" fx_eq "$rc" 1
 fx_check "conflict resolution plus extra: names the merge and the extra path" fx_eq "$out" "stray merge $cmerge changes extra.txt"
+
+# a file/directory conflict (main has dd/f, side5 has a file dd) resolved by keeping the file: git lists only
+# the side path dd~<sha>, and the resolution removes it, adds dd and removes dd/f, all derived from the conflict
+git -C "$r" reset -q --hard "$base"
+git -C "$r" checkout -q -b side5
+commit dd "side file" "" "Bead: x-16"
+git -C "$r" checkout -q main
+mkdir -p "$r/dd" && commit dd/f "main file in dir" "" "Bead: x-17"
+# resolve_keep_file <extra file>: after the conflicted merge, keep the file dd and commit with the extra file
+resolve_keep_file() {
+  git -C "$r" merge --no-ff side5 >/dev/null 2>&1
+  git -C "$r" rm -q -r -f dd >/dev/null
+  mv "$r"/dd~* "$r/dd" && [ -z "$1" ] || echo smuggled > "$r/$1"
+  git -C "$r" add -A && git -C "$r" commit -q -m "merge side five"
+}
+resolve_keep_file ""
+run "$base..HEAD"
+fx_check "file/dir resolution: exits 0" fx_eq "$rc" 0
+fx_check "file/dir resolution: prints nothing" fx_eq "$out" ""
+
+# the same resolution plus an unrelated path is still stopped
+git -C "$r" reset -q --hard HEAD^
+resolve_keep_file extra5.txt
+fmerge=$(sha HEAD)
+run "$base..HEAD"
+fx_check "file/dir resolution plus extra: exits 1" fx_eq "$rc" 1
+fx_check "file/dir resolution plus extra: names the extra path" fx_eq "$out" "stray merge $fmerge changes extra5.txt"
+
+# a conflicted path git would quote (non-ASCII) resolves cleanly
+git -C "$r" reset -q --hard "$base"
+git -C "$r" checkout -q -b side6
+commit "é.txt" "side version" "" "Bead: x-18"
+git -C "$r" checkout -q main
+commit "é.txt" "main version" "" "Bead: x-19"
+git -C "$r" merge --no-ff side6 >/dev/null 2>&1
+echo resolved > "$r/é.txt" && git -C "$r" add -A
+git -C "$r" commit -q -m "merge side six"
+run "$base..HEAD"
+fx_check "quoted path resolution: exits 0" fx_eq "$rc" 0
+fx_check "quoted path resolution: prints nothing" fx_eq "$out" ""
 
 # an octopus merge is refused, not passed unread
 git -C "$r" reset -q --hard "$base"

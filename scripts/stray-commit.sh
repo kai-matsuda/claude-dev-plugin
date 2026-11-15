@@ -3,7 +3,9 @@
 # of <range> in <repo>, oldest first; the first whose author is not the repo's user.email, or that
 # has no Bead: trailer, is printed as "stray commit <sha> <subject>" and the script exits 1. Then
 # each merge commit of <range> is compared with the merge of its parents (git merge-tree): a path
-# the merge changed that the parents' merge did not report as conflicted is printed as
+# the merge changed that the parents' merge did not report as conflicted, nor derive from a
+# conflicted path (a file/directory conflict's side path <path>~<name>, <path> itself and what
+# lies under <path>/), is printed as
 # "stray merge <sha> changes <path>" and the script exits 1. Merges are not checked for author or
 # Bead: trailer. A clean or empty range prints nothing and exits 0. A wrong usage, a non-repo, no
 # user.email, an unreadable range, an octopus merge (more than two parents, which git merge-tree
@@ -41,20 +43,40 @@ fi
 # those show as "stray merge". Only two-parent merges are compared (git merge-tree takes two
 # parents), so an octopus merge is refused.
 [ -n "$merges" ] || exit 0
+work=$(mktemp -d "${TMPDIR:-/tmp}/stray-commit.XXXXXX") || { echo "refused: cannot make a scratch directory"; exit 2; }
+trap 'rm -rf "$work"' EXIT
+# A path is conflicted when merge-tree listed it or git derived it from a listed one. For a
+# file/directory conflict git lists only the displaced side <path>~<name>, so <path> (a name that
+# may itself contain ~, which then also passes as <path>), what lies under <path>/ and any other
+# <path>~<name> count as conflicted too: resolving it removes or replaces them.
+is_conflicted() {
+  local c base
+  for c in ${conflicted[@]+"${conflicted[@]}"}; do
+    [ "$1" = "$c" ] && return 0
+    base=${c%~*}
+    [ "$base" != "$c" ] || continue
+    [ "$1" = "$base" ] && return 0
+    case $1 in "$base"/* | "$base"~*) return 0 ;; esac
+  done
+  return 1
+}
 while read -r sha p1 p2 extra; do
   [ -z "$extra" ] || { echo "refused: octopus merge $sha in $repo is not read"; exit 2; }
-  mt=$(git -C "$repo" merge-tree --write-tree --name-only "$p1" "$p2" 2>/dev/null); rc=$?
+  git -C "$repo" merge-tree --write-tree --name-only -z "$p1" "$p2" >"$work/mt" 2>/dev/null; rc=$?
   [ "$rc" = 0 ] || [ "$rc" = 1 ] || { echo "refused: cannot merge-tree $sha in $repo"; exit 2; }
-  tree=$(sed -n 1p <<<"$mt")
-  conflicted=$(sed -n '2,/^$/p' <<<"$mt")
-  [ "$rc" = 1 ] || conflicted=
-  changed=$(git -C "$repo" diff-tree -r --name-only --no-renames "$tree" "$sha" 2>/dev/null) \
+  tree= conflicted=()
+  n=0
+  while IFS= read -r -d '' field; do
+    [ "$n" != 0 ] || { tree=$field; n=1; [ "$rc" = 1 ] || break; continue; }
+    [ -n "$field" ] || break
+    conflicted+=("$field")
+  done <"$work/mt"
+  git -C "$repo" diff-tree -r -z --name-only --no-renames "$tree" "$sha" >"$work/changed" 2>/dev/null \
     || { echo "refused: cannot diff-tree $sha in $repo"; exit 2; }
-  while IFS= read -r path; do
-    [ -n "$path" ] || continue
-    grep -qxF -- "$path" <<<"$conflicted" && continue
+  while IFS= read -r -d '' path; do
+    is_conflicted "$path" && continue
     echo "stray merge $sha changes $path"
     exit 1
-  done <<<"$changed"
+  done <"$work/changed"
 done <<<"$merges"
 exit 0

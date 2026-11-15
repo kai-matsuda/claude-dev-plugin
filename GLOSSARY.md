@@ -358,8 +358,10 @@ The read of every commit a push or a merge would carry, before it runs. A non-me
 whose author is not the repo's `user.email`, or that has no `Bead:` trailer, came from outside
 the run (a test whose throwaway repo failed to init commits into the enclosing checkout). A
 two-parent merge commit is not read for author or trailer; it is compared with the merge of
-its parents, and one that changes a path that merge does not (bar its conflicted paths)
-carries content no commit has a trailer for, and is stray too (dev-bxtw). That holds for a
+its parents, and one that changes a path that merge does not (bar its conflicted paths and
+the paths git derives from them, such as a file/directory conflict's side path
+`<path>~<name>`; both path lists are read NUL-separated, so a quoted path compares byte
+for byte) carries content no commit has a trailer for, and is stray too (dev-bxtw). That holds for a
 merge made with git's default `ort` strategy and default options; a merge made otherwise
 (`-X`, `-s recursive`, a different `merge.renames` or rename limit) can show its auto-merged
 paths as `stray merge`. An octopus merge (more than
