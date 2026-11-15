@@ -428,7 +428,7 @@ spelled out literally, so `mktemp`, heredocs and the scripts that use them
 write under a gitignored directory inside the worktree instead of a temp directory the
 sandbox denies. Its two riders: the `export` is repeated at the head of every Bash call,
 since shell state does not survive one, and `mktemp -d` takes a template under `.tmp`,
-since macOS `mktemp` ignores `TMPDIR`. Stated in the orchestration rules' Scratch space.
+since macOS `mktemp` ignores `TMPDIR`. Stated in the orchestration doc's Scratch space.
 _Avoid_: tmp line, scratch export, temp rule
 
 **Story cutter**:
