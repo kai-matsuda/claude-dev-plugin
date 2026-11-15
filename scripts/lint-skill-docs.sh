@@ -841,6 +841,8 @@ has "opus" 'opus'
 has "resume command" '/dev:implement-spec <KEY>-<n>'
 has "Jira step pointer" '"the spec is done"'
 has "Jira already-made read" 'getJiraIssue'
+has "Jira cloudId pointer" 'the opening Jira line'
+lacks "implement-spec spelling the Jira site" 'micelabs.atlassian.net'
 has "no-startable path" 'No startable story'
 has "stopped state" 'stopped at <bead-id>'
 has "orchestration pointer" 'orchestration.md'
@@ -865,6 +867,8 @@ fi
 if doc 2 "/close-epic" "$skills/close-epic/SKILL.md"; then
 hasc "close-epic refuses a non-story child as a malformed epic" "$pin_cite_malformed_epic_refusal"
 lacks "close-epic restating the malformed-epic refusal" "$pin_malformed_epic_refusal_line"
+has "close-epic Jira cloudId pointer" 'the opening Jira line'
+lacks "close-epic spelling the Jira site" 'micelabs.atlassian.net'
 fi
 if doc 2 "runbook" "$runbook"; then
 # the cut skills take the feature as their one argument; the runbook has a paragraph on it and
@@ -1039,6 +1043,8 @@ fi
 if doc 4 "/spec-to-tasks" "$skills/spec-to-tasks/SKILL.md"; then
 has "frontmatter" "$pin_frontmatter_disable_model_invocation"
 has "no-stories refusal" 'refused: no stories'
+has "spec-to-tasks Jira cloudId pointer" 'the opening Jira line'
+lacks "spec-to-tasks spelling the Jira site" 'micelabs.atlassian.net'
 has "every-story-cut refusal" 'refused: every story already cut'
 has "every-story-cut remedy" 're-cut one with /dev:story-to-tasks <story-id>'
 has "preflight pointer" "$pin_cite_preflight"
