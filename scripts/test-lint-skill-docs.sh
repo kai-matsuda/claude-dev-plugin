@@ -1860,7 +1860,7 @@ fresh
 echo 'The closure chain goes through a dependency chain of stories, merged in order.' >> "$scratch/docs/WORKFLOW.md"
 expect "runbook copy mentioning a dependency chain of closures passes" 0
 
-# the check and review loop's retired two-gate wording is swept from every file kind (the banned texts are
+# the Check gate's retired two-gate wording is swept from every file kind (the banned texts are
 # seeded from the lint's list); docs/specs keeps the words
 fresh
 ban_nth ban_evidence_run "retired two-gate wording in $scratch/docs/WORKFLOW.md" 1

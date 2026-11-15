@@ -15,8 +15,10 @@
 # multi-word term, so "rules-doc" and "rules" ending one line over "doc" starting the
 # next both match "rules doc"; the line break joins only inside one paragraph or comment
 # block (a blank line, heading, list item, table row, fence or non-comment line ends it;
-# a list item can still start a join with its own continuation line),
-# and the hit names the line the term starts on.
+# a list item can still start a join with its own continuation line), and the hit names
+# the line the term starts on. A leading ">" is stripped from Markdown lines first, so a
+# blockquote's lines join. Not handled: a Rust "///" line starting with "#" is read as a
+# doc comment line, not a heading, so it does not end a join (headings are Markdown-only).
 #
 # Senses a glossary permits go in .glossary-allow at the repo root, one per
 # line as "<path> <term>  # reason"; each allows the term everywhere in <path>.
@@ -58,6 +60,12 @@ function norm(s) {
   gsub(/[[:space:]-]+/, " ", s)
   gsub(/^ | $/, "", s)
   return s
+}
+# True when a Markdown line opens a block of its own: a heading or a table row, and with
+# list_too a list item as well.
+function block_start(t, list_too) {
+  if (t ~ /^[[:space:]]*(#|\|)/) return 1
+  return list_too && t ~ /^[[:space:]]*([-*+]|[0-9]+[.)])[[:space:]]/
 }
 # Record the terms of one _Avoid_ note (all its lines joined) for glossary dir d, entry h.
 function add_avoid(note, d, h,    n, i, t, k, parts) {
@@ -131,16 +139,17 @@ FNR == 1 { fence = 0; prev = ""; prefix = doc_prefix(FILENAME); md = FILENAME ~ 
   if (!md) {
     if (prefix == "" || text !~ prefix || text ~ /^#!/) { prev = ""; next }
     sub(prefix, "", text)
-  }
+  } else sub(/^[[:space:]]*>[[:space:]]?/, "", text)
   if (text ~ /^[[:space:]]*```/) { fence = !fence; prev = ""; next }
   if (fence) next
   # A code span leaves a mark, so the words either side of it never join into a term.
   gsub(/`[^`]*`/, "\001", text)
   cur = norm(tolower(text))
-  # A blank line, a heading, a list item or a table row starts a new block: nothing carries over.
-  # A heading or table row also carries nothing into the next line (brk), though it can itself start one.
-  brk = (md && text ~ /^[[:space:]]*(#|\|)/)
-  if (cur == "" || brk || (md && text ~ /^[[:space:]]*([-*+][[:space:]]|[0-9]+[.)][[:space:]])/)) prev = ""
+  # A blank line, a heading, a list item or a table row starts a new block: nothing carries
+  # over from the line before. A heading or table row also ends the join after itself (brk);
+  # a list item does not, so its continuation line still joins with it.
+  brk = md && block_start(text, 0)
+  if (cur == "" || (md && block_start(text, 1))) prev = ""
   for (k in use) {
     split(k, p, SUBSEP)
     # A prefix test, not index(FILENAME, p[1]) == 1: awks disagree on index(s, "") for the root glossary.

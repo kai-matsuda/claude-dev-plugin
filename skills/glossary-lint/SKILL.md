@@ -10,7 +10,9 @@ disable-model-invocation: true
 glossary lists under `_Avoid_:`, also when a hyphen or a line break inside one paragraph
 or comment block splits it. A shell line counts as a comment when it starts with `#`, so a
 heredoc body line starting with `#` is linted and a trailing `cmd # note` is not
-(`doc_prefix` in the script is the knob). Repos opt in by calling this one copy from their
+(`doc_prefix` in the script is the knob). A Markdown blockquote's lines join like any
+paragraph; a Rust `///` line starting with `#` is not read as a heading, so it does not end
+a join. Repos opt in by calling this one copy from their
 gates (step 3); a repo adds a `.glossary-allow` only for words it cannot reword.
 The script's header comment is the reference for scope, allowlist format and exit
 codes.

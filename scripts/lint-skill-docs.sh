@@ -56,7 +56,7 @@
 #      "workspace's inbox", the "home repo <home repo>" Parent form); no "run_in_background:
 #      false", since no foreground spawn exists (chezmoi-p4q); none of the retired story-DAG
 #      wording ("one story per repo", feat/<key>-<n>, "chains are out of scope", "only text
-#      blocker", "two waves suffice"; ADR 0011); none of the check and review loop's retired
+#      blocker", "two waves suffice"; ADR 0011); none of the Check gate's retired
 #      two-gate wording ("Evidence run", "a later run reviews the fix", "a third round of
 #      either kind", "a second red", dev-1xf.1.4), which the root GLOSSARY.md lacks too; and
 #      none of the retired vocabulary (dev-9k5.1.11): the epic, task and landing roles, the
@@ -1129,7 +1129,7 @@ walkup='nearest ancestor|walking up|walk up|one level up|the home repo included|
 # feat/<key>-<n> (now feat/<story-id>), chains out of scope and the one text blocker (now a
 # DAG), and the two-wave cap (now topological waves).
 retired_dag="one story per repo|feat/<key>-<n>|$pin_chains_out_of_scope|only text blocker|two waves suffice"
-# the check and review loop's retired two-gate wording (dev-1xf.1.4): the Evidence run, the later
+# the Check gate's retired two-gate wording (dev-1xf.1.4): the Evidence run, the later
 # run that reviews a fix, the third-round wording and the second-red stall
 retired_loop='evidence run|a later run reviews the fix|a third round of either kind|a second red'
 # the gate with no check command (ADR 0015): every owner repo has a check target, so no doc names
@@ -1275,7 +1275,7 @@ lacks "the story cut commits the /.spec-notes/ line" 'The story cut commits'
 # story orchestrator unclaims it; a human does so only when the orchestrator could not (chezmoi-jvc)
 hasc "frontier unclaim rule" '**Unclaim.**'
 # the frontier admits only ready-for-agent tasks, not merely those without ready-for-human,
-# so a needs-triage child filed under a story never gets a runner (chezmoi-wgi)
+# so a `needs-triage` bead filed under a story never gets a runner (chezmoi-wgi)
 hasc "frontier admits ready-for-agent only" 'it is labelled `ready-for-agent`'
 lacks "frontier keyed on ready-for-human alone" 'it is not labelled `ready-for-human`'
 hasc "finished story tolerates untriaged children" "$pin_needs_triage_wontfix"
@@ -2310,7 +2310,7 @@ line_has "$H" "the row's check command is the brief's" 'check command `<check co
 line_has "$H" "the skill never resolves the check command itself" 'never resolve it yourself'
 row_sweep repo-plumbing-pins "the check target is read from make's database" && line_lacks "$H" "the per-task check target lookup" "$row_text"
 line_lacks "$H" "the per-task check command by Makefile convention" "Makefile has a \`check\` target"
-# the check and review loop (step 3): checks ahead of the reviewers, each check one record call,
+# the Check gate (step 3): checks ahead of the reviewers, each check one record call,
 # a red noted, a red and a blocking verdict both to a fresh fix-up on one budget of three, a low
 # task exiting on green (dev-cq0.1.4, dev-1xf.1.2)
 G3='^3\. \*\*Check gate\*\*, every tier'
