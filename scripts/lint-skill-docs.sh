@@ -1850,6 +1850,12 @@ hasc "step 3 cites the orchestration doc's Repo plumbing and Cut-off probe" "$pl
 lacksf_row "a second copy of the Gitignore commit's user-edit failure" repo-plumbing-pins "a user edit in .gitignore is a failed: line, not absorbed"
 # the commit carries trailers, so it goes through a message file, never --trailer (dev-7gu)
 lacks "a --trailer commit" 'commit [^`]*--trailer'
+# the sibling refresh reads a sibling PR's body with one plain forge command, saved and extracted from the
+# saved output, because a pipe into jq turns a failed tea call into an empty body and the edit then
+# overwrites the sibling's PR body (dev-91mt)
+hasc "the sibling refresh's tea body read is one plain command saved to a file (dev-91mt)" 'one plain forge command with no pipe, then `jq -r .body <home>/.tmp/sibling-<repo>-<n>.json` as a call of its own'
+hasc "a failed or empty sibling body read skips that sibling's edit and the report names it (dev-91mt)" 'A read that fails, or returns an empty body (on `gh` or on `tea`), skips that sibling'"'"'s edit, so nothing is written from an empty body, and the report names the sibling'
+lacks "the sibling refresh's piped tea body read (dev-91mt)" 'tea api [^`]*[|] *jq -r \.body'
 hasc "exploration subagent reads the design field" "$pin_design_field_read"
 hasc "exploration subagent owns the notes directory" "\`<owner>/$pin_notes_dir_name/<epic-id>/\`"
 # a failed task orchestrator's task is unclaimed at once, a second failure leaves the resume pointer on
