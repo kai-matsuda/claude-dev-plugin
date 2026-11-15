@@ -1857,6 +1857,8 @@ hasc "the sibling refresh's tea body read is one plain command saved to a file (
 hasc "a failed or empty sibling body read skips that sibling's edit and the report names it (dev-91mt)" 'A read that fails (after the Forge decision'"'"'s rerun), or returns an empty body (on `gh` or on `tea`), skips that sibling'"'"'s edit, so nothing is written from an empty body, and the report names the sibling on a `failed: sibling refresh <repo> <story-id>: <reason>` line'
 hasc "the sibling refresh's failed: line is in step 9's report block (dev-91mt)" 'or sibling refresh <repo> <story-id>: <reason>'
 hasc "the sibling refresh's tea read lands in an ignored directory it creates (dev-91mt)" '(after `mkdir -p <owner>/.tmp` as a call of its own; `<owner>/.tmp/` is ignored by the Gitignore commit)'
+hasc "an empty sibling body is reported with reason empty body, one line per sibling from the last refresh (dev-91mt)" 'the `<reason>` being `empty body` for an empty read. The refresh runs at step 3 and again at step 8: the report keeps one line per sibling, from the last refresh'
+hasc "the report legend covers a sibling body read empty (dev-91mt)" 'could not read, or read empty)'
 lacks "the sibling refresh's piped tea body read (dev-91mt)" 'tea api [^`]*[|] *jq -r .?[.]body'
 hasc "exploration subagent reads the design field" "$pin_design_field_read"
 hasc "exploration subagent owns the notes directory" "\`<owner>/$pin_notes_dir_name/<epic-id>/\`"
