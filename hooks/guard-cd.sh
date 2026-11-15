@@ -6,9 +6,13 @@
 # INFRA-41's run (dev-6hgz). Only the first word is checked: a cd later in the command, in an
 # argument or in a path runs. For cd <dir> && git|bd|make <args> the refusal adds a
 # "Suggestion:" line with the rewrite using the command's own flag (git -C <dir> <args>). For
-# any other command the Suggestion line prefixes each relative word of the args with <dir>/
-# (flags and absolute paths stay); none is printed, and the refusal says so, for a compound
-# body (for, if, ...), quotes, expansions or redirects in the args, or no relative argument.
+# any other command the Suggestion line prefixes a relative word of the args (and a command
+# word holding a /, as ./run.sh) with <dir>/ only when <dir>/<word> exists when the hook runs
+# or the word is a glob matching under <dir> (a relative <dir> is read from the hook's own
+# directory); flags, absolute paths and ~ words stay as written. No Suggestion line is printed,
+# and the refusal says "no rewrite suggested", for a compound body (for, if, ...), an
+# environment prefix, a group, a cd, quotes, expansions, redirects or a # comment in the args,
+# a word that is no file or glob under <dir> (a pattern, a number), or no file argument at all.
 # The args are cut at the first ;, |, & (so also &&, || and an &> redirect) outside quotes, so
 # only the first command is rewritten; a >& redirect (2>&1) stays in them. Quotes are
 # honoured; inside "..." a backslash escapes the next character (\" does not end the span), while
@@ -81,20 +85,37 @@ if [ "$word" = cd ]; then
         # cut args are then not the command's own, and a quote, expansion, redirect or group
         # in them cannot be split on blanks, so none of these is rewritten
         keyword='^(for|while|until|if|case|select|function|time|cd)$|[=(){}!]'
-        special="[\"'\\\$\`<>(){}"$'\n]'
+        special="[\"'\\\$\`<>(){}#"$'\n]'
         if [[ $name =~ $keyword || $args =~ $special ]]; then
-          echo "guard-cd: no rewrite suggested, the command is compound or uses quotes, expansions or redirects; use an absolute path for each file argument" >&2
+          echo "guard-cd: no rewrite suggested, the command is compound, has an environment prefix, a group or a cd, or its args use quotes, expansions, redirects or a comment; use an absolute path for each file argument" >&2
         else
-          sug=$name found=
+          sug= found= unresolved=
           set -f # a glob argument stays a word here instead of expanding in the hook's directory
-          for word in $args; do
-            case $word in
-              -*|/*) sug+=" $word" ;;
-              *) sug+=" ${dir%/}/$word" found=1 ;;
+          # the command word is a file under <dir> only when it holds a / (./run.sh, scripts/x.sh)
+          words=$args
+          [[ $name != */* ]] || words="$name $args"
+          [[ $name == */* ]] || sug=$name
+          for arg in $words; do
+            case $arg in
+              -*|/*|\~*) sug+=" $arg" ;;
+              *)
+                # a word becomes <dir>/<word> only when that file exists or the glob matches under <dir>
+                if [ -e "${dir%/}/$arg" ] || compgen -G "${dir%/}/$arg" >/dev/null; then
+                  sug+=" ${dir%/}/$arg" found=1
+                else
+                  unresolved=1
+                fi ;;
             esac
           done
-          # no relative argument means the command acts on the current directory, which is not <dir>
-          [ -z "$found" ] || echo "Suggestion: $sug" >&2
+          sug=${sug# }
+          if [ -n "$unresolved" ]; then
+            echo "guard-cd: no rewrite suggested, a word is neither a flag, an absolute path nor a file or glob under $dir; use an absolute path for each file argument" >&2
+          elif [ -z "$found" ]; then
+            # no file argument means the command acts on the current directory, which is not <dir>
+            echo "guard-cd: no rewrite suggested, no word is a file or glob under $dir; use an absolute path for each file argument" >&2
+          else
+            echo "Suggestion: $sug" >&2
+          fi
         fi ;;
     esac
   fi
