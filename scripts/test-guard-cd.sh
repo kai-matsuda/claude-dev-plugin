@@ -98,9 +98,25 @@ expect_suggestion 'cd /x && git status 2>&1 | head' 'Suggestion: git -C /x statu
 # an &> redirect is cut like any &, and an unterminated quote keeps the rest
 expect_suggestion 'cd /x && git status &>/dev/null' 'Suggestion: git -C /x status'
 expect_suggestion 'cd /x && git commit -m "a; b' 'Suggestion: git -C /x commit -m "a; b'
-# a word that only starts with the command, or a command with no directory flag, gets none
-for word in 'cd /x && gitk' 'cd /x && makefoo all' 'cd /x && bdx show' 'cd /z && ls'; do
+# a word that only starts with git/bd/make is another command: no -C flag, relative args rewritten
+expect_suggestion 'cd /x && makefoo all' 'Suggestion: makefoo /x/all'
+expect_suggestion 'cd /x && bdx show' 'Suggestion: bdx /x/show'
+# no relative argument: the command would act on the current directory, so no suggestion
+for word in 'cd /x && gitk' 'cd /z && ls' 'cd /z && ls -la /etc'; do
   expect_suggestion "$word" ''
+done
+# a command with no directory flag has each relative file argument put under <dir>
+expect_suggestion 'cd /x && wc -w *.md' 'Suggestion: wc -w /x/*.md'
+expect_suggestion 'cd /x && cat a.txt sub/b.txt' 'Suggestion: cat /x/a.txt /x/sub/b.txt'
+expect_suggestion 'cd /x && python3 -u run.py --n 3 /abs/in' 'Suggestion: python3 -u /x/run.py --n /x/3 /abs/in'
+expect_suggestion 'cd /x/ && wc -l a.md' 'Suggestion: wc -l /x/a.md'
+expect_suggestion 'cd sub && wc *.md && cd -' 'Suggestion: wc sub/*.md'
+# a glob stays a word: it is not expanded in the hook's own directory
+expect_suggestion 'cd /x && wc scripts/test-*.sh' 'Suggestion: wc /x/scripts/test-*.sh'
+# a compound body, quotes, expansions or redirects get no suggestion, and the refusal says so
+for unsafe in 'cd /x && for f in *.md; do wc "$f"; done' 'cd /x && if true; then ls a; fi' 'cd /x && wc "a b.md"' 'cd /x && cat $HOME/a' 'cd /x && wc a > out' 'cd /x && FOO=1 wc a'; do
+  expect_suggestion "$unsafe" ''
+  fx_check "the refusal for '$unsafe' says no rewrite is suggested" grep -qF 'no rewrite suggested' <<<"$("$hook" <<<"$(jq -cn --arg c "$unsafe" '{tool_name: "Bash", tool_input: {command: $c}}')" 2>&1 >/dev/null)"
 done
 
 hooks_json=$repo_root/hooks/hooks.json

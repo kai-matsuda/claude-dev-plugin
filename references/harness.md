@@ -227,7 +227,12 @@ call with `zsh: no matches found: --include=*.md` when nothing matches.
 **No leading `cd`.** The plugin's PreToolUse hook `<plugin root>/hooks/guard-cd.sh` refuses a
 Bash command whose first word is `cd`, so use the command's own directory flag or an
 absolute path. For `cd <dir> && git|bd|make <args>` the refusal also prints a `Suggestion:` line
-with the rewrite, `git -C <dir> <args>`, so the retry is mechanical. The args are cut at the
+with the rewrite, `git -C <dir> <args>`, so the retry is mechanical. For any other command
+(`cd <dir> && wc -w *.md`) the `Suggestion:` line puts each relative argument under `<dir>`
+(`wc -w <dir>/*.md`) and leaves flags (words starting with `-`) and absolute paths alone; every
+non-flag word counts as a file, so an argument that is not a path is rewritten too. It prints no
+suggestion, and the refusal says so, when the body is compound (`for`, `if`, ...), the args hold
+quotes, expansions, redirects or an environment prefix, or no argument is relative. The args are cut at the
 first `;`, `|` or `&` outside quotes (so `&&`, `||` and `&>` end them too, while `2>&1` stays);
 inside double quotes a backslash escapes the next character, so `\"` does not end the span,
 while outside quotes backslash escapes are not honoured; an unterminated quote keeps the rest
