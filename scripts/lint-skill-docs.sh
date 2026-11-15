@@ -2413,6 +2413,11 @@ hasc "a moved-past refusal names the reviewed tip" 'a `moved past <tip>` names t
 hasc "the resume path re-lands the noted tip through the Land script" 'it first calls the Land script as step 4 does, with `<branch>` as `<task branch>`, the note'"'"'s tip as `<tip SHA>` and `--ff-only`: that tip is already in `<branch>`, so the script runs its guards, merges nothing and reports `landed <sha>`'
 hasc "the resume path's refusal is the failed: line" 'a `refused: <reason>` ends the run with `failed: <task-id> <reason>`; it then goes straight to step 5'
 lacks "the resume path that goes straight to step 5" 'failed at delivery: go straight to step 5'
+# a review: note on the tip resumes at delivery only while no delivered: note names that same tip after it;
+# a delivered: note on the same tip means delivery succeeded and the task was reopened, so the run builds
+# it again from a claim entry, skipping the Cut-off probe, which would find the old commits (dev-jj4x)
+hasc "a review: note resumes at delivery only with no delivered: note on that tip" 'rev-parse <branch>`), and no `delivered:` note naming that same tip, means an earlier run landed the reviewed tip and failed at delivery'
+hasc "a delivered: note on the review: note's tip is a reopened task built again" 'A last `delivered:` note naming the same tip as the last `review:` note means delivery already succeeded and the task was reopened for more work: the run does not re-deliver, skips the Cut-off probe (the old commits would hit it) and spawns a task orchestrator at the claim entry'
 hasc "a conflict landing is the failed: line" 'so it is a script fault: end the run with `failed: <task-id> conflict landing <task branch>`'
 hasc "the landed tip is noted" 'bd -C <owner> note <task-id> "review: <tip SHA>"'
 # delivery: the orchestration doc's Delivery section, the PR opened ready, the notes in order, the close
