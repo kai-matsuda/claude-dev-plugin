@@ -2063,7 +2063,7 @@ echo 'Prose may keep a semicolon; one, two.' >> "$scratch/docs/SEQUENCES.md"
 expect "a semicolon outside a mermaid block passes" 0
 
 # another skill's rule is cited in one form (dev-q47w): a heading cited bare after a
-# possessive fails in any reference doc or SKILL.md but the cite rule file and the coding standards doc, which show the wrong
+# possessive fails in any reference doc, agent doc or SKILL.md but the cite rule file and the coding standards doc, which show the wrong
 # form
 fresh
 printf '%s\n' "As \`/dev:task-orchestrator\`'s Two entries says." >> "$scratch/references/orchestration.md"
@@ -2111,7 +2111,7 @@ printf '%s\n' "As \`/dev:task-orchestrator\`'s Two entries says." >> "$scratch/r
 must_not_print='/dev:(' sec=18 expect "an unquoted heading cite of one skill names that skill in its FAIL line, not the alternation" 1 "present: an unquoted heading cite of a skill in $scratch/references/orchestration.md (/dev:task-orchestrator)"
 
 # the other wrong forms the rule names (dev-mnz6): a step name in quotes, a heading in bold and a
-# bare cite in the "of /dev:x" word order, each failing in a reference doc but the cite rule file and the coding standards doc
+# bare cite in the "of /dev:x" word order, each failing in a reference doc (or agent doc) but the cite rule file and the coding standards doc
 orch=references/orchestration.md
 # Section 18's cases seed a line of prose, and a lint run over a reference doc pays for that doc's every
 # check, so they share their runs (dev-xier): cite_case keeps each case's text for a doc of its own,

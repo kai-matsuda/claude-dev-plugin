@@ -1,13 +1,15 @@
 ---
 paths:
-  - "skills/**/SKILL.md"
+  - "skills/*/SKILL.md"
   - "references/*.md"
+  - "docs/agents/*.md"
 ---
 
 # Another skill's rule is cited in one form
 
-A sentence in a reference doc (`references/*.md`) or a skill's `SKILL.md` that cites a rule
-another skill owns names the skill and cites the rule in the form of the rule's own marking.
+A sentence in a reference doc (`references/*.md`), an agent doc (`docs/agents/*.md`) or a
+skill's `SKILL.md` that cites a rule another skill owns names the skill and cites the rule in
+the form of the rule's own marking.
 A rule the skill's `SKILL.md` marks with a bold step name is cited in bold
 (`/dev:implement-story`'s **Story gate**, the **Clean up** sweep of `/dev:implement-story`);
 a rule it marks with a heading is cited by the heading's words in quotes, the skill named
@@ -17,8 +19,8 @@ marker, opens on a letter or a backtick, and either opens a numbered item or end
 period inside the bold (`**Story gate.**`, `- **Stall.**`). A bold lead-in with no period
 that opens no numbered item (`**Owner**`, `**Alone**:`) is a label, and a bold term inside
 a sentence (the **story orchestrator**) is neither; a cite of a label or such a term is
-outside this rule, so a lead-in that another skill or a reference doc cites takes the period
-inside the bold and is cited in bold. A heading cited bare (`/dev:task-orchestrator`'s
+outside this rule, so a lead-in that another skill, a reference doc or an agent doc cites
+takes the period inside the bold and is cited in bold. A heading cited bare (`/dev:task-orchestrator`'s
 Two entries), a heading cited in bold, or a step name cited in quotes is a cite in the wrong form. A cite of a
 reference doc's own sections, or of a skill's own steps and headings, is not a cross-skill
 cite and is outside this rule.

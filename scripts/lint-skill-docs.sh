@@ -196,7 +196,8 @@
 #      ending on resume:. Section 6 pins the orchestration doc's one paragraph on it (the table keeps three
 #      rows) and the no-seam-test case skipping a standalone task without ## Test seams.
 #  18. the cross-skill cite rule (dev-q47w): the cross-skill cite rule file states it, and
-#      no other reference doc or SKILL.md cites another skill's heading bare after a possessive, even
+#      no other reference doc, agent doc (docs/agents/*.md) or SKILL.md cites another skill's heading
+#      bare after a possessive, even
 #      split across a line break. Nor does a step name of a skill in quotes, a heading in bold,
 #      either one bare before "of"/"in" /dev:x or bare after "'s step"/"'s section" (dev-mnz6),
 #      a step or heading in backticks (alone, or with the bold or quotes inside or around the
@@ -204,7 +205,9 @@
 #      from that skill's SKILL.md (numbered or ## to #### headings; bold steps, hyphens,
 #      punctuation and indents included, regex characters escaped), in the closed list of shapes
 #      section 18's "Limits" comment below states and nothing beside it (the cross-skill cite rule file
-#      point there); a changed SKILL.md has every reference doc and SKILL.md re-read.
+#      point there); a changed SKILL.md has every reference doc, agent doc and SKILL.md re-read.
+#      A FAIL can also come from the rule file's paths: frontmatter, which must name the swept sets
+#      (skills/*/SKILL.md, references/*.md, docs/agents/*.md).
 #  19. the forge CLI's config-error strings (dev-42ag): the Forge decision's list in orchestration.md
 #      and the config-error case pattern of forge-wait.sh name the same strings, each way; a string
 #      on one side only fails here, since the wait would loop to its `timeout` on the other.
@@ -2848,6 +2851,14 @@ cite_rule=$rules/cross-skill-cites.md
 # each file is read as one line (lacksw and lackswc, as section 5 does, dev-86j), so a cite
 # split across a line break fails too
 doc 18 "cross-skill cites" "$cite_rule" && has "the cross-skill cite rule heading" "# Another skill's rule is cited in one form"
+# the rule's paths: scope names every file set the sweep below reads (references/*.md,
+# docs/agents/*.md, skills/*/SKILL.md), so a reader of the rule knows every file the lint holds to
+# it (dev-67gs); a sweep that gains a set takes its paths: entry here
+if [ -f "$cite_rule" ]; then
+  has "the cite rule's paths: scope names the skills" '  - "skills/*/SKILL.md"'
+  has "the cite rule's paths: scope names references/" '  - "references/*.md"'
+  has "the cite rule's paths: scope names docs/agents/" '  - "docs/agents/*.md"'
+fi
 # the sweep reads every skill and doc, so the cite rule file being listed in LINT_UNCHANGED leaves
 # it to run
 if [ -f "$cite_rule" ]; then
@@ -2887,7 +2898,7 @@ if [ -f "$cite_rule" ]; then
     }
     END { for (x in k) { split(x, p, SUBSEP); print p[1] "\t" kind_of[p[1] SUBSEP tolower(p[2])] "\t" p[2] } }' "$skills"/*/SKILL.md | LC_ALL=C sort)
   # the checks depend on the skills' names, so a changed SKILL.md that moves one has every
-  # reference doc and SKILL.md read again, whatever LINT_UNCHANGED vouches for; one that leaves them as
+  # reference doc, agent doc and SKILL.md read again, whatever LINT_UNCHANGED vouches for; one that leaves them as
   # LINT_CITE_BASE holds them moves no verdict on a listed file
   cite_key=$skill_names$'\n'$cite_names
   [ -z "${LINT_PIN_LIST:-}" ] || printf '%s\n' "$cite_key" > "$LINT_PIN_LIST.cites"
