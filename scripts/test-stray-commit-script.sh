@@ -4,9 +4,10 @@
 # The first non-merge commit of the range whose author is not the repo's user.email, or that has no
 # Bead: trailer, is one "stray commit <sha> <subject>" line and exit 1; a clean or empty range
 # prints nothing and exits 0; a two-parent merge commit passes unless it changes a path the merge of
-# its parents does not, outside its conflicted paths and the paths derived from them, such as a file/directory conflict's side path (one "stray merge <sha> changes <path>" line,
-# exit 1); an octopus merge (more than two parents), a merge whose parents git merge-tree cannot merge
-# and a failed diff-tree are each one refusal line, exit 2, as is a wrong usage.
+# its parents does not, outside its conflicted paths and the paths derived from a file/directory
+# conflict's side path (one "stray merge <sha> changes <path>" line, exit 1); an octopus merge
+# (more than two parents), a merge whose parents git merge-tree cannot merge, a failed diff-tree
+# and no scratch directory to make are each one refusal line, exit 2, as is a wrong usage.
 # Usage: scripts/test-stray-commit-script.sh
 set -uo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
@@ -126,7 +127,8 @@ mkdir -p "$r/dd" && commit dd/f "main file in dir" "" "Bead: x-17"
 resolve_keep_file() {
   git -C "$r" merge --no-ff side5 >/dev/null 2>&1
   git -C "$r" rm -q -r -f dd >/dev/null
-  mv "$r"/dd~* "$r/dd" && [ -z "$1" ] || echo smuggled > "$r/$1"
+  mv "$r"/dd~* "$r/dd"
+  if [ -n "$1" ]; then echo smuggled > "$r/$1"; fi
   git -C "$r" add -A && git -C "$r" commit -q -m "merge side five"
 }
 resolve_keep_file ""
@@ -154,6 +156,35 @@ git -C "$r" commit -q -m "merge side six"
 run "$base..HEAD"
 fx_check "quoted path resolution: exits 0" fx_eq "$rc" 0
 fx_check "quoted path resolution: prints nothing" fx_eq "$out" ""
+
+# a stray path git would quote is reported by its raw name, which only a -z read of the changed paths gives
+git -C "$r" reset -q --hard "$base"
+git -C "$r" checkout -q -b side7
+commit s7.txt "feat: side seven" "" "Bead: x-20"
+git -C "$r" checkout -q main
+commit m7.txt "feat: main seven" "" "Bead: x-21"
+git -C "$r" merge -q --no-ff --no-commit side7 >/dev/null 2>&1
+echo smuggled > "$r/é-stray.txt" && git -C "$r" add é-stray.txt
+git -C "$r" commit -q -m "merge side seven"
+qmerge=$(sha HEAD)
+run "$base..HEAD"
+fx_check "stray quoted path: exits 1" fx_eq "$rc" 1
+fx_check "stray quoted path: names the raw path" fx_eq "$out" "stray merge $qmerge changes é-stray.txt"
+
+# a conflict on a path containing ~ exempts only that path: a smuggled backup/evil.txt is still stopped
+git -C "$r" reset -q --hard "$base"
+git -C "$r" checkout -q -b side8
+commit "backup~1.txt" "side version" "" "Bead: x-22"
+git -C "$r" checkout -q main
+commit "backup~1.txt" "main version" "" "Bead: x-23"
+git -C "$r" merge --no-ff side8 >/dev/null 2>&1
+echo resolved > "$r/backup~1.txt"
+mkdir -p "$r/backup" && echo smuggled > "$r/backup/evil.txt"
+git -C "$r" add -A && git -C "$r" commit -q -m "merge side eight"
+tmerge=$(sha HEAD)
+run "$base..HEAD"
+fx_check "conflict on a ~ path plus smuggled sibling: exits 1" fx_eq "$rc" 1
+fx_check "conflict on a ~ path plus smuggled sibling: names the sibling" fx_eq "$out" "stray merge $tmerge changes backup/evil.txt"
 
 # an octopus merge is refused, not passed unread
 git -C "$r" reset -q --hard "$base"
