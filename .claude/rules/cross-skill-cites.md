@@ -2,11 +2,13 @@
 paths:
   - "skills/**/SKILL.md"
   - "references/*.md"
+  - "docs/agents/*.md"
 ---
 
 # Another skill's rule is cited in one form
 
-A sentence in a reference doc (`references/*.md`) or a skill's `SKILL.md` that cites a rule
+A sentence in a reference doc (`references/*.md`), a repo agent doc (`docs/agents/*.md`) or a
+skill's `SKILL.md` that cites a rule
 another skill owns names the skill and cites the rule in the form of the rule's own marking.
 A rule the skill's `SKILL.md` marks with a bold step name is cited in bold
 (`/dev:implement-story`'s **Story gate**, the **Clean up** sweep of `/dev:implement-story`);

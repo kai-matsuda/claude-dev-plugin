@@ -2848,6 +2848,14 @@ cite_rule=$rules/cross-skill-cites.md
 # each file is read as one line (lacksw and lackswc, as section 5 does, dev-86j), so a cite
 # split across a line break fails too
 doc 18 "cross-skill cites" "$cite_rule" && has "the cross-skill cite rule heading" "# Another skill's rule is cited in one form"
+# the rule's paths: scope names every file set the sweep below reads (references/*.md,
+# docs/agents/*.md, skills/*/SKILL.md), so a reader of the rule knows every file the lint holds to
+# it (dev-67gs); a sweep that gains a set takes its paths: entry here
+if [ -f "$cite_rule" ]; then
+  has "the cite rule's paths: scope names the skills" '  - "skills/**/SKILL.md"'
+  has "the cite rule's paths: scope names references/" '  - "references/*.md"'
+  has "the cite rule's paths: scope names docs/agents/" '  - "docs/agents/*.md"'
+fi
 # the sweep reads every skill and doc, so the cite rule file being listed in LINT_UNCHANGED leaves
 # it to run
 if [ -f "$cite_rule" ]; then
