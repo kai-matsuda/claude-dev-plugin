@@ -227,7 +227,18 @@ call with `zsh: no matches found: --include=*.md` when nothing matches.
 **No leading `cd`.** The plugin's PreToolUse hook `<plugin root>/hooks/guard-cd.sh` refuses a
 Bash command whose first word is `cd`, so use the command's own directory flag or an
 absolute path. For `cd <dir> && git|bd|make <args>` the refusal also prints a `Suggestion:` line
-with the rewrite, `git -C <dir> <args>`, so the retry is mechanical. The args are cut at the
+with the rewrite, `git -C <dir> <args>`, so the retry is mechanical. For any other command
+(`cd <dir> && wc -w *.md`) the `Suggestion:` line puts a relative word under `<dir>`
+(`wc -w <dir>/*.md`) only when `<dir>/<word>` exists at the moment the hook runs (a relative
+`<dir>` is resolved from the hook's own working directory) or the word is a glob matching under
+`<dir>`, and leaves flags (words starting with `-`), absolute paths and `~` words alone; a
+relative command word holding a `/` (`./run.sh`) gets the same test. A `<dir>` written with `~`
+is tested as written, never expanded, so its words are not found and get no rewrite. It prints
+no `Suggestion:` line, and the refusal says "no rewrite suggested", when the body is compound
+(`for`, `if`, ...), the command word is an environment prefix (`FOO=1 wc a.txt`), a negation
+(`! wc a.txt`), a group (`{ wc a.txt; }`) or a `cd`, the args hold quotes, expansions, redirects
+or a `#` comment, a word is no file or glob under `<dir>` (`grep -r foo .`, `npm test`), or no
+word is a file. The args are cut at the
 first `;`, `|` or `&` outside quotes (so `&&`, `||` and `&>` end them too, while `2>&1` stays);
 inside double quotes a backslash escapes the next character, so `\"` does not end the span,
 while outside quotes backslash escapes are not honoured; an unterminated quote keeps the rest
