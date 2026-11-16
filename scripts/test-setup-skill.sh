@@ -332,7 +332,8 @@ trailers_msg $'fix: thing\n\nRe\\fs: A-1\n\nMore prose after the trailer.'
 fx_check "trailer hook with a backslash in a key checks that key literally" blocked
 fx_check "trailer hook error shows a backslash key literally" grep -qF '(Re\fs)' <<<"$terr"
 trailers_keys Bead Refs
-# an unreadable message file fails the hook, whatever keys are set
+# with keys set (Bead, Refs), an unreadable message file fails the hook; with no keys set it
+# exits 0 before reading the file, so this case does not cover that path
 printf '%s\n' $'fix: thing\n\nBead: dev-a' >"$trw/unreadable"
 chmod 000 "$trw/unreadable"
 fx_check "trailer hook fails on an unreadable message file" bash -c \

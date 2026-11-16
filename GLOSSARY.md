@@ -611,14 +611,17 @@ _Avoid_: bead trailer, ticket trailer, commit trailers (which include the attrib
 **Trailer hook**:
 The commit-msg hook, the plugin's `bin/commit-trailers`, that blocks a provenance trailer git
 would not read as a trailer. It reads its provenance keys from the multi-valued git config
-`dev.trailer.provenance` and does nothing when none is set.
+`dev.trailer.provenance` and does nothing when none is set. Its one rewrite of the message
+file is the join repair: provenance lines and a following attribution paragraph split by a
+blank line are joined into one trailer paragraph.
 _Avoid_: commit-lint hook, bead hook
 
 **Machine setup**:
 The per-machine part of running the dev plugin, which a plugin cannot carry: the
 user-level `CLAUDE.md` stub that points at the plugin's docs, the baseline settings, the
 trailer hook (the script, `bin/commit-trailers`, ships in the plugin; the hook config is a
-gitconfig snippet the owner pastes, with no script copy), and
+gitconfig snippet from which setup generates `git config --global` commands the owner runs,
+with no script copy), and
 the lines the runbook has the owner add by hand (the `~/src` sandbox allowlist,
 `beads.role`, `BD_EXPORT_AUTO`). `/dev:setup` checks the prerequisites and hands the owner
 the stub, the baseline and the hook's gitconfig lines, nothing more; on Kai's own machines
