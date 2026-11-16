@@ -4,7 +4,8 @@
 # prerequisite and changes nothing, and the snippet's trailer hook runs under real git
 # commits in throwaway repos. No check reads the SKILL.md body, only its frontmatter
 # structure (the spec's Testing Decisions). Driven from outside: jq on the snippet, the
-# helper run against stub binaries on a throwaway PATH.
+# helper run against stub binaries on a throwaway PATH; the real-commit cases instead run the
+# real git and the real bin/commit-trailers, and need a git that runs config hooks.
 # Usage: scripts/test-setup-skill.sh
 set -uo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
@@ -261,7 +262,9 @@ rc_refused() { # <repo name> <message> <PATH>: the commit fails and commit-trail
   local err; err=$(rc_commit "$@" 2>&1); [ $? != 0 ] && grep -q "is not in the trailer block" <<<"$err"
 }
 rc_bad_msg=$(printf 'feat: x\n\nBead: dev-1\n\nprose after it\n\nRefs: INFRA-1')
-# two repos built alike: only the PATH each commit runs with differs (the trailer hook on it or not)
+# two repos built alike: only the PATH each commit runs with differs (the trailer hook on it or not).
+# The off-PATH case would also pass if git never ran the hook; the refusal case on the same git
+# and the same build is what shows the hook runs, so keep the two repos built by one function.
 fx_check "the real-commit repo for the on-PATH cases is built" rc_repo ontrack
 fx_check "the real-commit repo for the off-PATH case is built" rc_repo offtrack
 fx_check "a real git commit with parseable Bead:/Refs: trailers succeeds with commit-trailers on PATH" \
