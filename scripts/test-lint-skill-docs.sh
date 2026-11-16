@@ -661,6 +661,27 @@ for path in '$HOME/.claude/references/orchestration.md' '${HOME}/.claude/hooks/g
   expect "a dotfiles deployment path in the \$HOME spelling ($path) fails" 1 "dotfiles deployment path in $scratch/docs/WORKFLOW.md"
 done
 
+# the plugin assumes no dotfiles tool: a skill or a reference doc that runs `chezmoi` fails, and a
+# tool-neutral mention passes (dev-a6ds)
+fresh
+echo 'a deployed file maps back when `chezmoi source-path <file>` succeeds' >> "$scratch/references/sample.md"
+expect "a reference doc running chezmoi fails" 1 "chezmoi command in $scratch/references/sample.md"
+fresh
+echo 'run `chezmoi apply` after the edit' >> "$scratch/skills/sample/SKILL.md"
+expect "a skill running chezmoi fails" 1 "chezmoi command in $scratch/skills/sample/SKILL.md"
+fresh
+echo 'then run `chezmoi update` on the machine' >> "$scratch/references/sample.md"
+expect "a reference doc running chezmoi update fails" 1 "chezmoi command in $scratch/references/sample.md"
+fresh
+echo 'tell the owner to run chezmoi init first' >> "$scratch/skills/sample/SKILL.md"
+expect "a skill telling the owner to run chezmoi init fails" 1 "chezmoi command in $scratch/skills/sample/SKILL.md"
+fresh
+echo 'a dotfiles tool such as chezmoi may map a deployed file back to its source' >> "$scratch/references/sample.md"
+expect "a reference doc naming chezmoi as an example passes" 0
+fresh
+echo 'on Kai machines chezmoi applies it, and chezmoi managed files stay put' >> "$scratch/references/sample.md"
+expect "descriptive prose about chezmoi passes" 0
+
 # the reference docs live in references/: a path naming one under the old docs/agents/ folder fails
 # in a skill and in a doc, naming the file; the two docs that stay there are no reference docs
 for doc in orchestration harness issue-tracker; do

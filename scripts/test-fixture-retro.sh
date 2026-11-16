@@ -12,7 +12,7 @@
 #   consumer  typed in consumer alone (a repo session): a fix inside consumer files as
 #             target:consumer, a fix under lib as retro:foreign with the lib path in the body
 #   personal  typed in consumer alone: a judgement rule for every repo, a finding located at a
-#             proposed ~/.claude/rules/ file that does not exist (so no chezmoi source maps it),
+#             proposed ~/.claude/rules/ file that does not exist (so no deployed-file source maps it),
 #             files as retro:foreign with that path in the body, the label a file outside the
 #             home gets
 #   reporule  typed in consumer alone: a judgement rule for the repo, a finding located at a

@@ -165,8 +165,8 @@ cat > "$out/repos.yaml" <<'T'
 #
 # Resolution, in order. Stop at the first hit.
 #   1. A path inside a git checkout: `git rev-parse --show-toplevel` on it.
-#   2. A path under $HOME outside any checkout: `chezmoi source-path <file>` succeeds,
-#      so the chezmoi repo owns it.
+#   2. A path under $HOME outside any checkout: a dotfiles tool (chezmoi, say) or a symlink maps
+#      it back to a source in a checkout, so that checkout's repo owns it.
 #   3. A crate or module name: the repo whose `packages` lists it.
 #   4. Nothing matched: file in the session repo with label `retro:foreign` and the
 #      intended target in the body. Never drop the item.
