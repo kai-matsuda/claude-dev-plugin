@@ -220,6 +220,13 @@ fx_check "full machine prints the snippet's commands, line for line" test "$(hoo
 git config --global --replace-all hook.committrailers.command 'command -v commit-trailers >/dev/null || exit 0; commit-trailers \"\$@\"'
 git config --global --replace-all dev.trailer.provenance 'Bead'
 git config --global --add dev.trailer.provenance 'Refs'"
+fx_scratch_dir interleaved; ildir=$scratch   # a copy of the skill whose snippet repeats a key non-adjacently
+cp -R "$skill/." "$ildir/"
+printf '[dev "trailer"]\n\tprovenance = Bead\n[hook "committrailers"]\n\tevent = commit-msg\n[dev "trailer"]\n\tprovenance = Refs\n' >"$ildir/commit-trailers.gitconfig"
+real_prereqs=$prereqs; prereqs=$ildir/check-prereqs.sh; run full; il_out=$out; prereqs=$real_prereqs; run full
+fx_check "a key repeated non-adjacently in the snippet is replaced once, then added" test "$(sed -n '/^=== wire the trailer hook/,/^$/p' <<<"$il_out" | sed '1d;$d')" = "git config --global --replace-all dev.trailer.provenance 'Bead'
+git config --global --replace-all hook.committrailers.event 'commit-msg'
+git config --global --add dev.trailer.provenance 'Refs'"
 fx_check "full machine prints no copy command" bash -c '! grep -qE "(^| )cp " <<<"$1"' _ "$out"
 fx_check "full machine names no commit-lint.sh" bash -c '! grep -q "commit-lint" <<<"$1"' _ "$out"
 fx_check "the plugin no longer ships commit-lint.sh" bash -c '[ ! -e "$1" ]' _ "$skill/commit-lint.sh"

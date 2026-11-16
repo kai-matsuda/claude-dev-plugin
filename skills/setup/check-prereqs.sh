@@ -56,19 +56,19 @@ echo "=== merge into ~/.claude/settings.json (merge the arrays; do not replace) 
 cat "$here/baseline-settings.json"
 # the commit-msg hook: its command names the bare `commit-trailers` from the plugin's bin/, so
 # the lines name no path or version and are pasted once. One command per entry of the shipped
-# snippet, in its order; --replace-all on a key's first value and --add on the rest, so pasting
-# them again leaves each key once.
+# snippet, in its order; --replace-all on a key's first value anywhere in the snippet and --add
+# on its later values, so pasting them again leaves each key once.
 echo; echo "=== wire the trailer hook, run on commit-msg in every repo (paste once; it holds across plugin updates) ==="
 # Plain bash reads the snippet, since git is not a prerequisite this check can count on; the
 # snippet's form is `[section "subsection"]` headers and tab-indented `name = value` entries,
 # a value in double quotes holding \" for a quote.
-prev=; section=
+seen=; section=
 while IFS= read -r line; do
   if [[ $line =~ ^\[([a-z]+)\ \"([a-z]+)\"\]$ ]]; then section=${BASH_REMATCH[1]}.${BASH_REMATCH[2]}
   elif [[ $line =~ ^[[:space:]]+([a-z]+)\ =\ (.*)$ ]]; then
     key=$section.${BASH_REMATCH[1]} val=${BASH_REMATCH[2]}
     if [[ $val == \"*\" ]]; then val=${val#\"}; val=${val%\"}; val=${val//\\\"/\"}; fi
-    flag=--replace-all; [ "$key" = "$prev" ] && flag=--add; prev=$key
+    flag=--replace-all; [[ $seen == *" $key "* ]] && flag=--add; seen+=" $key "
     echo "git config --global $flag $key '$val'"
   fi
 done <"$here/commit-trailers.gitconfig"
