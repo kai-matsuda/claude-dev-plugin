@@ -21,9 +21,9 @@ excludes `git push*` needs as well. Other scripts stay under `scripts/`.
 Amended (dev-ekcl.1.2, INFRA-47): `bin/` holds a second script, `commit-trailers`, the trailer
 hook, called by its bare name from a commit-msg hook in the owner's gitconfig. That hook command
 skips (exits 0) when the name is not on `PATH`, so a machine without the plugin's `bin/` on `PATH`
-commits as before. Hand-made commits get no further check: a hand-made commit has no
-provenance trailer to demand, so the hook asks for none and only blocks a configured key that
-git would not read as a trailer.
+commits as before. A commit made outside Claude Code's Bash tool is not checked, because
+`commit-trailers` is on `PATH` only in that tool (the plugin's `bin/`) and the hook command
+exits 0 when the name is missing.
 
 The orchestrators' plumbing was prose: each skill spelled out the git commands an agent
 types, and the lint pinned their wording. A pin proves a phrase is there, not that the

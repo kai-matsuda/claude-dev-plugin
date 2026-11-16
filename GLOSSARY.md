@@ -608,6 +608,12 @@ its diff cannot show: Bead: and Refs: with beads and Jira. Which keys are
 provenance trailers is set per machine, not by the plugin's tracker.
 _Avoid_: bead trailer, ticket trailer, commit trailers (which include the attribution lines)
 
+**Trailer hook**:
+The commit-msg hook, the plugin's `bin/commit-trailers`, that blocks a provenance trailer git
+would not read as a trailer. It reads its provenance keys from the multi-valued git config
+`dev.trailer.provenance` and does nothing when none is set.
+_Avoid_: commit-lint hook, bead hook
+
 **Machine setup**:
 The per-machine part of running the dev plugin, which a plugin cannot carry: the
 user-level `CLAUDE.md` stub that points at the plugin's docs, the baseline settings, the

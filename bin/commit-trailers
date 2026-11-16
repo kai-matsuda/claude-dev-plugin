@@ -3,15 +3,17 @@
 # message for provenance trailers and names no tracker: `commit-trailers <message file>`, run
 # from a repo as a commit-msg hook (exit 1 blocks; errors go to stderr). Machine setup wires it
 # up by a gitconfig hook entry; the plugin's bin/ puts it on the Bash tool's PATH, so it
-# is called by its bare name. A hand-made commit never reaches it, because the hook is
-# installed per machine and an agent's commit is the one that drifts.
+# is called by its bare name. `commit-trailers` is on PATH only in Claude Code's Bash tool, and
+# the hook command exits 0 when the name is missing, so a commit made in a terminal outside
+# that tool is not checked.
 #
 # The keys come from the multi-valued git config `dev.trailer.provenance` (for example Bead and
 # Refs). With none set it exits 0 and leaves the message file untouched. With keys set:
 #   - Repairs a paragraph of only provenance lines followed by a last paragraph of only
 #     Co-Authored-By:/Claude-Session: lines (any case) by joining them in the message file; this
 #     applies only when both are whole paragraphs, the attribution one is the last paragraph not
-#     counting trailing "#" comment lines, otherwise the file is untouched.
+#     counting trailing "#" comment lines, otherwise the file is untouched. The join is checked
+#     in memory and written only when the message then passes, so a blocked file stays as written.
 #   - Blocks a line starting with a configured key (spelled as configured) that
 #     `git interpret-trailers --parse` does not return: it sits in a paragraph before the last,
 #     or the last paragraph also holds prose, and git drops it from the trailers. The error
@@ -24,11 +26,14 @@ set -eu
 msg=$1
 keys=$(git config --get-all dev.trailer.provenance || :)
 [ -n "$keys" ] || exit 0
-# One regex for the keys (regex characters in a key escaped), as git reads them: "^(Bead|Refs): ".
+# One regex for the keys, "^(Bead|Refs): ", with regex characters in a key escaped. It matches
+# case-sensitively, the key spelled as configured, although git matches trailer keys in any case.
 alt=$(printf '%s\n' "$keys" | sed 's/[][\.*^$+?(){}|/]/\\&/g' | paste -sd '|' -)
 PROVENANCE="^($alt): "
+# The awk programs read it from ENVIRON: awk -v would process the backslashes the escaping added.
 export PROVENANCE
-# Repairs one shape in place (dev-qgww): see the header.
+# Repairs one shape (dev-qgww): see the header. Only `joined` holds the repair until the check passes.
+repaired=0
 joined=$(awk '
 BEGIN { provenance = ENVIRON["PROVENANCE"] }
 { line[++n] = $0 }
@@ -47,9 +52,9 @@ END {
   }
   for (i = 1; i <= n; i++) if (!(fix && i > prov_last && i <= attr_first)) print line[i]
   exit fix ? 0 : 3
-}' "$msg") && printf '%s\n' "$joined" >"$msg" || :
-parsed=$(git interpret-trailers --parse "$msg" | grep -cE "$PROVENANCE" || :)
-exec awk -v parsed="$parsed" -v keys="$(printf '%s\n' "$keys" | paste -sd ' ' -)" '
+}' "$msg") && repaired=1
+parsed=$(printf '%s\n' "$joined" | git interpret-trailers --parse | grep -cE "$PROVENANCE" || :)
+printf '%s\n' "$joined" | awk -v parsed="$parsed" -v keys="$(printf '%s\n' "$keys" | paste -sd ' ' -)" '
 BEGIN { provenance = ENVIRON["PROVENANCE"] }
 /^#/ { next }
 $0 ~ provenance { present++ }
@@ -58,4 +63,5 @@ END {
     printf "commit-trailers: error: a line starting with one of the provenance keys (%s) is not in the trailer block git parses; trailers go in the last paragraph, together with Co-Authored-By, and nothing else goes there (the dev plugin'"'"'s references/issue-tracker.md)\n", keys > "/dev/stderr"
     exit 1
   }
-}' "$msg"
+}' || exit 1
+if [ "$repaired" = 1 ]; then printf '%s\n' "$joined" >"$msg"; fi
