@@ -157,7 +157,8 @@ prints_baseline() { # <machine> [script path]: $out holds the snippet, the forge
 fx_check "full machine prints the baseline snippet, the forge-wait rules with the installed script's path" prints_baseline full
 # what the printed rules match, as a shell glob. fw_rule_match models a matcher that splits a
 # compound command on && || ; | & and requires every part to match (how permission rules are
-# documented to behave; sandbox.excludedCommands doing the same is not verified, dev-6xui);
+# documented to behave; on Claude Code 2.1.308 sandbox.excludedCommands also took no compound
+# command, dev-re7g);
 # fw_whole_match models one that does not split and globs the whole string
 fw_rules() { # the printed rule pair, one per line
   jq -r '(.sandbox.excludedCommands[], (.permissions.allow[] | sub("^Bash\\("; "") | sub("\\)$"; ""))) | select(test("forge-wait"))' \
