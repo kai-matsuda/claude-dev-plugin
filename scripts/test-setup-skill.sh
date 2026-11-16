@@ -263,7 +263,7 @@ fx_check "empty machine still prints the baseline snippet" prints_baseline empty
 # a throwaway repo on message files, as git's hook would. The keys come from the repo-local
 # dev.trailer.provenance, and global and system git config are switched off for the run, so no
 # case depends on the machine's own config.
-trw=$work/lint
+trw=$work/trailers
 fx_check "trailer hook: the throwaway repo is made" fx_git_repo "$trw/repo"
 trailers_keys() { # <key>...: the repo's provenance keys, replacing any set
   git -C "$trw/repo" config --unset-all dev.trailer.provenance
@@ -303,7 +303,17 @@ fx_check "trailer hook with key Ref.s checks a Ref.s: line" blocked
 trailers_keys 'Re\fs'
 trailers_msg $'fix: thing\n\nRe\\fs: A-1\n\nMore prose after the trailer.'
 fx_check "trailer hook with a backslash in a key checks that key literally" blocked
+fx_check "trailer hook error shows a backslash key literally" grep -qF '(Re\fs)' <<<"$terr"
 trailers_keys Bead Refs
+# an unreadable message file fails the hook, whatever keys are set
+printf '%s\n' $'fix: thing\n\nBead: dev-a' >"$trw/unreadable"
+chmod 000 "$trw/unreadable"
+fx_check "trailer hook fails on an unreadable message file" bash -c \
+  'cd "$2" && ! GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null "$1" "$3" 2>/dev/null' _ "$trailers" "$trw/repo" "$trw/unreadable"
+chmod 600 "$trw/unreadable"
+# run with no argument it prints a usage line on stderr and exits 2
+fx_check "trailer hook with no argument prints a usage line and exits 2" bash -c \
+  'cd "$2" && err=$(GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null "$1" 2>&1 >/dev/null); rc=$?; [ "$rc" = 2 ] && grep -q "^usage: commit-trailers <message file>" <<<"$err"' _ "$trailers" "$trw/repo"
 # the harness's attribution guidance splits the trailers into two paragraphs: the hook joins them
 trailers_msg $'fix: thing\n\nBody.\n\nBead: dev-qgww\nRefs: INFRA-42\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nClaude-Session: https://example.test/s'
 fx_check "trailer hook passes trailers split from the attribution lines" test "$trc" = 0

@@ -1,11 +1,13 @@
 #!/bin/sh
-# The trailer hook (glossary: Provenance trailer), `commit-trailers`. Checks an agent's commit
+# The trailer hook (glossary: Trailer hook), `commit-trailers`. Checks an agent's commit
 # message for provenance trailers and names no tracker: `commit-trailers <message file>`, run
-# from a repo as a commit-msg hook (exit 1 blocks; errors go to stderr). Machine setup wires it
-# up by a gitconfig hook entry; the plugin's bin/ puts it on the Bash tool's PATH, so it
-# is called by its bare name. `commit-trailers` is on PATH only in Claude Code's Bash tool, and
-# the hook command exits 0 when the name is missing, so a commit made in a terminal outside
-# that tool is not checked.
+# from a repo as a commit-msg hook (exit 1 blocks, 2 is a usage error; errors go to stderr).
+# Machine setup wires it up by a gitconfig hook entry (the setup snippet that ships that
+# command comes with a later task of the story (dev-ekcl.1)). While the plugin is enabled, its
+# bin/ is on the Bash tool's PATH, so the hook calls it by its bare name. `commit-trailers` is
+# on PATH only in Claude Code's Bash tool with the plugin enabled, and the hook command
+# skips (exits 0) when the name is missing, so a commit made in a terminal outside that tool, or
+# with the plugin disabled, is not checked.
 #
 # The keys come from the multi-valued git config `dev.trailer.provenance` (for example Bead and
 # Refs). With none set it exits 0 and leaves the message file untouched. With keys set:
@@ -23,15 +25,24 @@
 # Opt a repo out with `git config hook.committrailers.enabled false`; bypass once with
 # `git commit --no-verify`.
 set -eu
+if [ "$#" -ne 1 ]; then
+  echo "usage: commit-trailers <message file>" >&2
+  exit 2
+fi
 msg=$1
 keys=$(git config --get-all dev.trailer.provenance || :)
 [ -n "$keys" ] || exit 0
+if [ ! -r "$msg" ]; then
+  echo "commit-trailers: error: cannot read the message file $msg" >&2
+  exit 1
+fi
 # One regex for the keys, "^(Bead|Refs): ", with regex characters in a key escaped. It matches
 # case-sensitively, the key spelled as configured, although git matches trailer keys in any case.
 alt=$(printf '%s\n' "$keys" | sed 's/[][\.*^$+?(){}|/]/\\&/g' | paste -sd '|' -)
 PROVENANCE="^($alt): "
 # The awk programs read it from ENVIRON: awk -v would process the backslashes the escaping added.
-export PROVENANCE
+KEYS=$(printf '%s\n' "$keys" | paste -sd ' ' -)
+export PROVENANCE KEYS
 # Repairs one shape (dev-qgww): see the header. Only `joined` holds the repair until the check passes.
 repaired=0
 joined=$(awk '
@@ -54,8 +65,8 @@ END {
   exit fix ? 0 : 3
 }' "$msg") && repaired=1
 parsed=$(printf '%s\n' "$joined" | git interpret-trailers --parse | grep -cE "$PROVENANCE" || :)
-printf '%s\n' "$joined" | awk -v parsed="$parsed" -v keys="$(printf '%s\n' "$keys" | paste -sd ' ' -)" '
-BEGIN { provenance = ENVIRON["PROVENANCE"] }
+printf '%s\n' "$joined" | awk -v parsed="$parsed" '
+BEGIN { provenance = ENVIRON["PROVENANCE"]; keys = ENVIRON["KEYS"] }
 /^#/ { next }
 $0 ~ provenance { present++ }
 END {
