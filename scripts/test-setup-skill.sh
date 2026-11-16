@@ -261,7 +261,7 @@ rc_refused() { # <repo name> <message> <PATH>: the commit fails and commit-trail
   local err; err=$(rc_commit "$@" 2>&1); [ $? != 0 ] && grep -q "is not in the trailer block" <<<"$err"
 }
 rc_bad_msg=$(printf 'feat: x\n\nBead: dev-1\n\nprose after it\n\nRefs: INFRA-1')
-# two repos built alike: only the PATH each commit runs with differs (commit-trailers on it or not)
+# two repos built alike: only the PATH each commit runs with differs (the trailer hook on it or not)
 fx_check "the real-commit repo for the on-PATH cases is built" rc_repo ontrack
 fx_check "the real-commit repo for the off-PATH case is built" rc_repo offtrack
 fx_check "a real git commit with parseable Bead:/Refs: trailers succeeds with commit-trailers on PATH" \
