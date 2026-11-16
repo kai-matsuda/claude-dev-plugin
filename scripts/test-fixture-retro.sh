@@ -91,7 +91,7 @@ assert() { # <case>
       fx_check "the personal rules file was not written" test ! -e "$HOME/.claude/rules/error-messages.md" ;;
     reporule)
       rule_case "labelled target:consumer (a file under the repo's .claude/rules/)" "needs-triage,retro,target:consumer" \
-        "the body names the rules file" -e ".claude/rules/handlers.md"
+        "the body names the rules file" -e "$out/consumer/.claude/rules/handlers.md"
       fx_check "the repo rules file was not written" test ! -e "$out/consumer/.claude/rules/handlers.md" ;;
     bare)
       fx_check "no database was initialised in bare" test ! -e "$out/bare/.beads"
