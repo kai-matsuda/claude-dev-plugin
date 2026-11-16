@@ -84,7 +84,7 @@ message there and would spend a retry on it. Every brief to an agent that commit
 The message is written whole, its trailers one last paragraph with no blank line between them:
 
 ```
-docs(harness): show the trailer paragraph literally
+<subject, in the person's and the repo's style>
 
 The Commits rule shows its example message as it is written.
 
