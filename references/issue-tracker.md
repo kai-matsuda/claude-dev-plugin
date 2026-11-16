@@ -140,11 +140,9 @@ repo already had `core.hooksPath` set, chain the old hook from the new one in
   neither it nor `/dev:story-to-tasks` ever notes, updates or closes the epic bead.
 - Purely agent-internal work (wayfinding, research spikes, refactor sub-steps) stays in
   beads only and never gets a Jira issue unless a human needs to see it.
-- Commit messages are Conventional Commits, `type(scope): subject`: types feat, fix,
-  refactor, test, docs, chore; scope optional; the subject imperative, lowercase, no
-  trailing period, at most 72 characters. A body only when the why is not obvious from
-  the diff, never a bullet list restating it. Every commit carries its provenance as
-  trailers, `Bead: <bead-id>` when the work came from a bead and `Refs: <KEY>-<n>` for
+- Commit messages: the subject and body follow the person's and the repo's standards, and
+  the plugin's own fixed subjects keep the `type: subject` form. Every commit carries its
+  provenance as trailers, `Bead: <bead-id>` when the work came from a bead and `Refs: <KEY>-<n>` for
   the Jira epic the bead's `--external-ref` points at (never a per-task Jira issue),
   both when both apply. Neither is inferable from a diff, so a commit without them loses
   the link for good. They go in the last paragraph with the attribution lines and no
