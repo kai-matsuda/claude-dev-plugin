@@ -1247,8 +1247,11 @@ while IFS= read -r f; do
 done < <(sweep_files | grep . | sort -u | drop_unchanged)
 
 # the plugin assumes no dotfiles tool: no skill or reference doc runs chezmoi, so a mention reads as
-# an example (dev-a6ds)
-chezmoi_cmd='chezmoi (source-path|apply|add|diff|managed|cd|edit|re-add|status)'
+# an example (dev-a6ds). The pin catches two instruction forms, any subcommand: a backticked
+# `chezmoi <word>` and "run/runs/running/use chezmoi <word>". Its limit: an instruction in other
+# words ("have chezmoi apply it") or a bare unbackticked `chezmoi <word>` slips past, which keeps
+# descriptive prose ("chezmoi applies it", "a tool such as chezmoi") from false-failing.
+chezmoi_cmd='`chezmoi [a-z]|(^|[^a-z])(run|runs|running|use|uses|using) chezmoi [a-z]'
 while IFS= read -r f; do
   lacks "chezmoi command in $f (a dotfiles tool is an example, never a step)" "$chezmoi_cmd"
 done < <({ find "$refs" "$skills" -type f 2>/dev/null; } | grep . | sort -u | drop_unchanged)

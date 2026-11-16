@@ -609,7 +609,7 @@ commit-lint git hook (the script ships in the plugin; the hook config cannot), a
 the lines the runbook has the owner add by hand (the `~/src` sandbox allowlist,
 `beads.role`, `BD_EXPORT_AUTO`). `/dev:setup` checks the prerequisites and hands the owner
 the stub, the baseline and the hook commands, nothing more; on Kai's own machines
-a dotfiles tool (chezmoi, say) can apply all of it, and then the skill finds nothing missing.
+chezmoi applies all of it, so the skill finds nothing missing there.
 _Avoid_: bootstrap, onboarding
 
 **Repo setup**:
