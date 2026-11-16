@@ -382,19 +382,19 @@ pushed tip, before the delivery is recorded: a red check is a `failed: forge che
 `failed: merge conflict <PR URL>` line and leaves it unfinished too; a repo with no forge or
 no checks delivers with a `checks: skipped` line. The one long shell wait the Idle rule
 allows (the merge-state re-read adds only bounded `sleep 10` calls). The forge-wait script,
-`scripts/forge-wait.sh <owner> <gh|tea> <repo> <pr> <tip SHA>`, is the wait as one plain
-command: it prints `checks finished` (exit 0), `forge error: <text>` on the forge CLI's config
+`forge-wait <owner> <gh|tea> <repo> <pr> <tip SHA>` (shipped in the plugin's `bin/`, so called
+by its bare name), is the wait as one plain command: it prints `checks finished` (exit 0),
+`forge error: <text>` on the forge CLI's config
 error, a `gh` watch that failed with checks still pending or unreadable, or a `gh` head that
 moved off the tip during the wait (exit 1; on `gh`, `checks finished` is for the tip's checks as
 of the head's second read, and a failed head read other than the config error is retried), or
 `refused: <reason>` on a wrong usage, a forge other than `gh` or `tea`, a repo not `owner/name`,
 a PR number not digits, a tip not 7 to 64 hex digits or `tea` without `jq` (exit 2); the setup
-baseline exempts the script, by the installed path the setup check prints, from the sandbox and
-allows it, so on a machine whose pasted pair matches the installed version (re-pasted after each
-plugin update; a fork or `--plugin-dir` copy once its own printed pair is pasted) the plain run
-should need no rerun (seen on Claude Code 2.1.308, unverified on other versions), and a plain run's
-config error (a machine without the matching pair) is rerun once with the sandbox disabled, and
-the step reads the checks afterwards.
+baseline exempts the command, by its bare name, from the sandbox and allows it, so on a machine
+that has pasted the pair (valid across plugin updates) the plain run should need no rerun (seen
+on Claude Code 2.1.308 with the exact-path form of the pair, the bare-name form unprobed), and a
+plain run's config error (a machine without the matching pair) is rerun once with the sandbox
+disabled, and the step reads the checks afterwards.
 _Avoid_: CI wait, check poll
 
 **Cut-off**:
@@ -623,6 +623,6 @@ The settings snippet the dev plugin ships for the machine setup: the denies on s
 files, the asks on destructive git and on pushing beads, the `bd` allow, and the sandbox
 enabled with the beads and Dolt directories writable and push and fetch outside it. It
 holds nothing org-specific apart from one sandbox exclusion and one allow for the plugin's own
-`forge-wait.sh` (see Forge-check wait); toolchain, registry and forge-CLI lines are the machine
+`forge-wait` (see Forge-check wait); toolchain, registry and forge-CLI lines are the machine
 owner's.
 _Avoid_: recommended settings, the settings file

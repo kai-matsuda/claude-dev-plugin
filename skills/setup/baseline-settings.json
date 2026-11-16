@@ -2,7 +2,7 @@
   "permissions": {
     "allow": [
       "Bash(bd *)",
-      "Bash(FORGE_WAIT_PATH * * * * *)"
+      "Bash(forge-wait * * * * *)"
     ],
     "ask": [
       "Bash(git reset --hard*)",
@@ -51,7 +51,7 @@
       "git -C * pull*",
       "bd dolt push*",
       "bd dolt pull*",
-      "FORGE_WAIT_PATH * * * * *"
+      "forge-wait * * * * *"
     ],
     "filesystem": {
       "allowWrite": [

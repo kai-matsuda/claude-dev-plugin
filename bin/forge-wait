@@ -35,12 +35,14 @@
 # on PATH (refused: exit 2 without it).
 # <repo> is gh's owner/name slug and <pr> its PR number: tea uses neither (it finds its repo from
 # <owner>, the checkout's absolute path, and reads the status by <tip SHA>).
-# Usage: scripts/forge-wait.sh <owner> <gh|tea> <repo> <pr> <tip SHA>
+# Usage: forge-wait <owner> <gh|tea> <repo> <pr> <tip SHA>
+# The plugin ships it in bin/ and it is called by its bare name; skills/setup/SKILL.md states when
+# that name resolves.
 set -uo pipefail
 refuse() { echo "refused: $*"; exit 2; }
-[ "$#" = 5 ] || refuse "usage: forge-wait.sh <owner> <gh|tea> <repo> <pr> <tip SHA>"
+[ "$#" = 5 ] || refuse "usage: forge-wait <owner> <gh|tea> <repo> <pr> <tip SHA>"
 owner=$1 forge=$2 repo=$3 pr=$4 tip=$5
-# The permission rule and sandbox exclusion that cover this script match its arguments only as
+# The permission rule and sandbox exclusion that cover this command match its arguments only as
 # five * globs, each matching any text, so the shapes are pinned here, tea's unused ones too
 # (dev-6xui, INFRA-44).
 case $forge in gh|tea) ;; *) refuse "forge must be gh or tea, not $forge" ;; esac
