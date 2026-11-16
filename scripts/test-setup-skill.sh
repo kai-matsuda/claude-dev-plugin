@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Tests for skills/setup: the frontmatter is user-invoked, the baseline settings snippet is
-# valid settings JSON with nothing org-specific, and check-prereqs.sh reports each
-# prerequisite and changes nothing. No check reads the SKILL.md body, only its frontmatter
+# valid settings JSON with nothing org-specific, check-prereqs.sh reports each
+# prerequisite and changes nothing, and the snippet's trailer hook runs under real git
+# commits in throwaway repos. No check reads the SKILL.md body, only its frontmatter
 # structure (the spec's Testing Decisions). Driven from outside: jq on the snippet, the
 # helper run against stub binaries on a throwaway PATH.
 # Usage: scripts/test-setup-skill.sh
@@ -240,10 +241,11 @@ fx_check "the snippet's hook command runs commit-trailers when it is on PATH" ba
 # The same hook through a real `git commit`, so git itself builds the command line: it appends
 # its own "$@" to a config hook command, which the /bin/sh -c checks above do not reproduce
 # (dev-ekcl.1.6). The hook entries and keys are installed from the snippet file. These cases need
-# a git that runs config hooks; on one that does not, the refusal case fails.
+# a git that runs config hooks; on one that does not, the other cases still pass and only the
+# refusal case fails, so it alone proves the hook ran.
 fx_scratch_dir realcommit; rcdir=$scratch
 git_bin=$(command -v git); git_dir=$(dirname "$git_bin")
-on_path=$repo_root/bin:$git_dir:/usr/bin:/bin   # the script calls sed and paste
+on_path=$repo_root/bin:$git_dir:/usr/bin:/bin   # commit-trailers calls sed, paste, awk and grep
 rc_repo() { # <name>: a throwaway repo with the snippet's entries installed and the hook enabled
   fx_git_repo "$rcdir/$1" || return 1
   local k v
@@ -255,14 +257,19 @@ rc_repo() { # <name>: a throwaway repo with the snippet's entries installed and 
 rc_commit() { # <repo name> <message> <PATH>: an empty commit by the absolute git, PATH as given
   env -i PATH="$3" HOME="$rcdir" GIT_CONFIG_NOSYSTEM=1 "$git_bin" -C "$rcdir/$1" commit -q --allow-empty -m "$2"
 }
-rc_refused() { ! rc_commit "$@"; }
-rc_repo ontrack && rc_repo offtrack || echo "FAIL build the real-commit repos"
+rc_refused() { # <repo name> <message> <PATH>: the commit fails and commit-trailers' error says why
+  local err; err=$(rc_commit "$@" 2>&1); [ $? != 0 ] && grep -q "is not in the trailer block" <<<"$err"
+}
+rc_bad_msg=$(printf 'feat: x\n\nBead: dev-1\n\nprose after it\n\nRefs: INFRA-1')
+# two repos built alike: only the PATH each commit runs with differs (commit-trailers on it or not)
+fx_check "the real-commit repo for the on-PATH cases is built" rc_repo ontrack
+fx_check "the real-commit repo for the off-PATH case is built" rc_repo offtrack
 fx_check "a real git commit with parseable Bead:/Refs: trailers succeeds with commit-trailers on PATH" \
   rc_commit ontrack "$(printf 'feat: x\n\nBead: dev-1\nRefs: INFRA-1')" "$on_path"
 fx_check "a real git commit with a Bead: line outside the trailer block is refused" \
-  rc_refused ontrack "$(printf 'feat: x\n\nBead: dev-1\n\nprose after it\n\nRefs: INFRA-1')" "$on_path"
+  rc_refused ontrack "$rc_bad_msg" "$on_path"
 fx_check "a real git commit exits 0 when commit-trailers is not on PATH, whatever its trailers" \
-  rc_commit offtrack "$(printf 'feat: x\n\nBead: dev-1\n\nprose after it\n\nRefs: INFRA-1')" "$hookdir/empty:$git_dir"
+  rc_commit offtrack "$rc_bad_msg" "$hookdir/empty:$git_dir"
 out_line() { grep -n "$1" <<<"$out" | head -1 | cut -d: -f1; }
 stub_leads_with_command_grep() { # before the cd rule, the printed stub's first shell line (dev-5o3)
   local g c; g=$(out_line 'command grep'); c=$(out_line 'cd <repo>')
