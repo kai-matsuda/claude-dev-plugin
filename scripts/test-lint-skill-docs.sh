@@ -1525,8 +1525,8 @@ loop_facts() {
       loop_files=$(cd "$pristine" && { find references docs/agents -maxdepth 1 -type f -name '*.md'; find skills -mindepth 2 -maxdepth 2 -name SKILL.md; } | sort -u)
       loop_seed='As the @HEADING@ step of `/dev:@OTHER_SKILL@` says.'
       loop_message="a bare cite of /dev:@OTHER_SKILL@ in $scratch/@FILE@"
-      loop_sed_addr='\#for f in "$refs"/\*.md#'
-      loop_sed_sub='s#"$skills"/\*/SKILL.md; do$#"$skills"/*/SKILL.md; do [ "${f%/@DROPPED@}" = "$f" ] || continue#' ;;
+      loop_sed_addr='\#for f in "${cite_files\[@\]}"#'
+      loop_sed_sub='s#for f in "${cite_files\[@\]}"; do$#for f in "${cite_files[@]}"; do [ "${f%/@DROPPED@}" = "$f" ] || continue#' ;;
   esac
   loop_sed_sub=${loop_sed_sub//@DROPPED@/${drop_file#skills/}}
 }
@@ -2082,6 +2082,28 @@ expect "a mermaid block with a semicolon fails" 1 "a semicolon in a mermaid bloc
 fresh
 echo 'Prose may keep a semicolon; one, two.' >> "$scratch/docs/SEQUENCES.md"
 expect "a semicolon outside a mermaid block passes" 0
+
+# the cite sweep's file sets and the cite rule's paths: entries are one list (dev-nl7c): a set the
+# sweep reads with no paths: entry fails section 18, an entry no set is swept by fails it too, and
+# a copy of the lint with a set added to the sweep fails it with no entry for that set
+fresh
+sed 's#^cite_sets=("skills/\*/SKILL.md" "references/\*.md" "docs/agents/\*.md")#cite_sets=("skills/*/SKILL.md" "references/*.md" "docs/agents/*.md" "examples/*.md")#' "$lint" > "$jobs/lint-set-added.sh"
+chmod +x "$jobs/lint-set-added.sh"
+fx_check "the copy adds a file set to the cite sweep" bash -c '! cmp -s "$1" "$2"' _ "$lint" "$jobs/lint-set-added.sh"
+saved_lint=$lint
+lint=$jobs/lint-set-added.sh
+sec=18 expect "a file set added to the cite sweep with no paths: entry fails section 18" 1 "the cite rule's paths: lacks the swept set examples/*.md"
+lint=$saved_lint
+
+fresh
+awk '{ print } /^  - "docs\/agents/ { print "  - \"examples/*.md\"" }' "$scratch/.claude/rules/cross-skill-cites.md" > "$jobs/cross-skill-cites.md"
+cp "$jobs/cross-skill-cites.md" "$scratch/.claude/rules/cross-skill-cites.md"
+sec=18 expect "a paths: entry the cite sweep does not read fails section 18" 1 "the cite rule's paths: names examples/*.md, which the cite sweep does not read"
+
+fresh
+awk '!/^  - "docs\/agents/' "$scratch/.claude/rules/cross-skill-cites.md" > "$jobs/cross-skill-cites.md"
+cp "$jobs/cross-skill-cites.md" "$scratch/.claude/rules/cross-skill-cites.md"
+sec=18 expect "a set swept with its paths: entry dropped fails section 18" 1 "the cite rule's paths: lacks the swept set docs/agents/*.md"
 
 # another skill's rule is cited in one form (dev-q47w): a heading cited bare after a
 # possessive fails in any reference doc, agent doc or SKILL.md but the cite rule file and the coding standards doc, which show the wrong
