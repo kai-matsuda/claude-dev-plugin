@@ -53,8 +53,12 @@ so a call with fewer than five words does not match (a free trailing `*` would h
 What a glob cannot pin: a `*` matches any text, spaces included, so read as one whole string
 `<path> * * * * *` also matches `<path> a b c d e && other`. A compound command stays out of the
 rule only where the matcher splits it into its parts and tests each, as permission rules are
-documented to do; whether `sandbox.excludedCommands` splits a compound command is not verified
-(dev-6xui), and a matcher that does not split lets such a command ride the exclusion.
+documented to do, and a matcher that does not split would let such a command ride the exclusion.
+On Claude Code 2.1.308 neither rule took a compound command (dev-re7g): the plain five-argument
+run went through outside the sandbox, while `<path>` with its five arguments `&& touch` a file
+outside the sandbox raised a permission prompt and, once approved, ran wholly in the sandbox,
+the script itself failing on the forge CLI's config error. On another version this is unverified,
+and the probe is run again there before the pair is trusted.
 `forge-wait.sh` itself refuses (exit 2) a forge other than `gh` or `tea`, a repo not
 `owner/name`, a PR number that is not digits and a tip that is not 7 to 64 hex digits, which
 bounds what the script does with its own five arguments but not what follows an `&&` after them.

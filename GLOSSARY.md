@@ -392,7 +392,7 @@ a PR number not digits, a tip not 7 to 64 hex digits or `tea` without `jq` (exit
 baseline exempts the script, by the installed path the setup check prints, from the sandbox and
 allows it, so on a machine whose pasted pair matches the installed version (re-pasted after each
 plugin update; a fork or `--plugin-dir` copy once its own printed pair is pasted) the plain run
-should need no rerun (the harness's matcher for the exclusion is unverified), and a plain run's
+should need no rerun (seen on Claude Code 2.1.308, unverified on other versions), and a plain run's
 config error (a machine without the matching pair) is rerun once with the sandbox disabled, and
 the step reads the checks afterwards.
 _Avoid_: CI wait, check poll
