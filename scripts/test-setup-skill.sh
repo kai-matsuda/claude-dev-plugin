@@ -5,7 +5,7 @@
 # commits in throwaway repos. No check reads the SKILL.md body, only its frontmatter
 # structure (the spec's Testing Decisions). Driven from outside: jq on the snippet, the
 # helper run against stub binaries on a throwaway PATH; the real-commit cases instead run the
-# real git and the real bin/commit-trailers, and need a git that runs config hooks.
+# real git and the trailer hook's real script under bin/, and need a git that runs config hooks.
 # Usage: scripts/test-setup-skill.sh
 set -uo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
