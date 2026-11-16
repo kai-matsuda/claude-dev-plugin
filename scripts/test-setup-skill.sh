@@ -343,7 +343,7 @@ chmod 600 "$trw/unreadable"
 fx_check "trailer hook with no argument prints a usage line and exits 2" bash -c \
   'cd "$2" && err=$(GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null "$1" 2>&1 >/dev/null); rc=$?; [ "$rc" = 2 ] && grep -q "^usage: commit-trailers <message file>" <<<"$err"' _ "$trailers" "$trw/repo"
 # git runs a config hook command through `sh -c` and appends its own "$@" to the command, so the
-# snippet's command hands commit-trailers the message file twice (on git 2.56.0, dev-ekcl.1.5):
+# snippet's command hands the trailer hook the message file twice (on git 2.56.0, dev-ekcl.1.5):
 # the hook reads the first argument and tolerates the rest
 twice_cmd=$hook_cmd' "$@"'
 twice_msg() { # <message>: the snippet's command, plus git's own "$@", on a message file; sets trc, terr
