@@ -48,22 +48,10 @@ else echo "confirm: Atlassian MCP (claude.ai connector or mcpServers entry; chec
 here=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)
 echo; echo "=== paste into ~/.claude/CLAUDE.md ==="; cat "$here/claude-md-stub.md"
 echo
-echo "=== merge into ~/.claude/settings.json" \
-  "(merge the arrays; do not replace; again after a plugin update) ==="
-baseline=$(cat "$here/baseline-settings.json")
-# the forge-wait rules name this installed copy of the script, resolved to its real path with no
-# wildcard before the script name, so a ../ path or another file of that name does not match the
-# permission rule, and does not match the sandbox exclusion if its matcher compares the command
-# string the same way (unverified; skills/setup/SKILL.md) (dev-6xui, INFRA-44). The path is the
-# installed version's, so the owner pastes again after each plugin update. bash 5.2 reads an & in
-# a substitution's replacement as the matched text, and a path may hold one, so that option is
-# switched off (older bash has no such option, hence the 2>/dev/null)
-forge_wait_dir=$(cd "$here/../../scripts" && pwd -P) || {
-  echo "missing: the plugin's scripts/ directory beside skills/ ($here/../../scripts)"; exit 1; }
-forge_wait=$forge_wait_dir/forge-wait.sh
-[ -f "$forge_wait" ] || { echo "missing: the plugin's scripts/forge-wait.sh ($forge_wait)"; exit 1; }
-shopt -u patsub_replacement 2>/dev/null
-echo "${baseline//FORGE_WAIT_PATH/$forge_wait}"
+echo "=== merge into ~/.claude/settings.json (merge the arrays; do not replace) ==="
+# the forge-wait rules name the bare command the plugin's bin/ puts on PATH, so the pair names no
+# plugin version and is pasted once (dev-21sr, INFRA-44; skills/setup/SKILL.md)
+cat "$here/baseline-settings.json"
 # the commit-msg hook: a machine setup tool installs the shipped script rather than vendoring
 # it, again after each plugin update, since $here names the installed version
 lint_dest='~/.config/git/commit-lint.sh'

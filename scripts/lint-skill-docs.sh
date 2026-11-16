@@ -209,7 +209,7 @@
 #      A FAIL can also come from the rule file's paths: frontmatter, which must name exactly the file
 #      sets of cite_sets, the one list the sweep reads (dev-nl7c), each way.
 #  19. the forge CLI's config-error strings (dev-42ag): the Forge decision's list in orchestration.md
-#      and the config-error case pattern of forge-wait.sh name the same strings, each way; a string
+#      and the config-error case pattern of bin/forge-wait name the same strings, each way; a string
 #      on one side only fails here, since the wait would loop to its `timeout` on the other.
 # Usage: scripts/lint-skill-docs.sh [implement-spec SKILL.md [WORKFLOW.md]]
 # A section whose doc is missing fails naming it ("missing document: <path>") rather than being
@@ -653,7 +653,7 @@ pin_cite_one_test='the one test'
 pin_cite_preflight='"Working-directory preflight"'
 pin_conflict_resolutions='conflict resolutions'
 pin_forge_decision='its Forge decision'
-pin_forge_wait_script='forge-wait.sh'
+pin_forge_wait_script='forge-wait '
 pin_frontmatter_disable_model_invocation='disable-model-invocation: true'
 pin_gitignore_commit='its Gitignore commit'
 pin_literal_owner_git_path='<owner>/\.git/'
@@ -1491,16 +1491,16 @@ sec_has "## Delivery" "Delivery verifies the default branch ref before merge-tre
 sec_has "## Delivery" "Delivery's conflict fix is the human's" 'resolve the conflict on the branch, and a rerun pushes it again and reads the merge state again'
 sec_has "## Delivery" "Delivery's conflict does not spend the wait's timeout" 'the wait is not entered and its `timeout` is not spent'
 sec_has "## Delivery" "Delivery bounds the forge-check wait" 'at most six calls in all'
-sec_has "## Delivery" "the forge-check wait is the forge-wait script, called with the pushed tip (dev-bveq)" 'wait with the **forge-wait script**, `<plugin root>/scripts/forge-wait.sh <owner> <gh|tea> <forge-slug> <n> <tip SHA>`'
+sec_has "## Delivery" "the forge-check wait is the forge-wait script, called with the pushed tip (dev-bveq)" 'wait with the **forge-wait script**, `forge-wait <owner> <gh|tea> <forge-slug> <n> <tip SHA>`'
 sec_has "## Delivery" "the forge-wait script runs as one plain command in one foreground call, plain first (dev-bveq)" 'as one plain command in one foreground Bash call with `timeout: 600000`'
 sec_has "## Delivery" "the forge-wait script waits for the head at the tip and the checks registered, then finished (dev-bveq)" "It waits until the PR's head is \`<tip SHA>\` and its checks have registered"
 sec_has "## Delivery" "the forge-wait script's finished line and exit 0 (dev-bveq)" 'It prints `checks finished` and exits 0 once no check is pending, a red check included'
 sec_has "## Delivery" "the forge-wait script stops at once on the forge CLI's config error, exit 1 (dev-bveq)" 'it prints `forge error: <text>` and exits 1 at once on the forge CLI'"'"'s config error'
-sec_has "## Delivery" "the forge-wait script's config error ends the delivery on a failed line (dev-bveq)" 'failed: forge check forge-wait.sh: <text>'
+sec_has "## Delivery" "the forge-wait script's config error ends the delivery on a failed line (dev-bveq)" 'failed: forge check forge-wait: <text>'
 sec_has "## Delivery" "a plain forge-wait run's config error reruns once unsandboxed, only the rerun's ends the delivery (dev-bveq)" "a plain run's \`forge error\` that is the config error reruns the script once with the sandbox disabled, and only the rerun's \`forge error\` ends the delivery"
 sec_has "## Delivery" "the tea checks read's config error reruns once unsandboxed (dev-bveq)" "its config error reruns that one call once with the sandbox disabled"
 sec_has "## Delivery" "the forge-wait script's tea arguments are still checked (dev-6xui)" '`tea` finds its repo from `<owner>` and reads the status by `<tip SHA>`, but the script checks `<forge-slug>`, `<n>` and `<tip SHA>` on `tea` too'
-sec_has "## Delivery" "the forge-wait script refuses a wrong usage or argument shape, or missing jq, with exit 2, ending the delivery (dev-6xui)" 'It prints `refused: <reason>` and exits 2 on a wrong usage, a forge other than `gh` or `tea`, a `<forge-slug>` not `owner/name`, an `<n>` not digits, a `<tip SHA>` not 7 to 64 hex digits, or `tea` without `jq` on `PATH`, which ends the delivery with `failed: forge check forge-wait.sh: <reason>`, with no rerun.'
+sec_has "## Delivery" "the forge-wait script refuses a wrong usage or argument shape, or missing jq, with exit 2, ending the delivery (dev-6xui)" 'It prints `refused: <reason>` and exits 2 on a wrong usage, a forge other than `gh` or `tea`, a `<forge-slug>` not `owner/name`, an `<n>` not digits, a `<tip SHA>` not 7 to 64 hex digits, or `tea` without `jq` on `PATH`, which ends the delivery with `failed: forge check forge-wait: <reason>`, with no rerun.'
 sec_has "## Delivery" "the gh merge read and its UNKNOWN re-reads are plain forge commands (dev-bveq)" 'The `gh` merge read and its `UNKNOWN` re-reads (below) are plain forge commands and run plain first'
 sec_has "## Delivery" "the UNKNOWN re-reads are plain calls with a sleep call between (dev-bveq)" 'a `sleep 10` call between reads, at most six reads, each a plain call'
 sec_has "## Delivery" "the tea checks read is one plain tea api call, not a pipe (dev-bveq)" 'on `tea`, one plain forge command, `tea api --repo <owner> repos/{owner}/{repo}/commits/<tip SHA>/status`'
@@ -3088,24 +3088,24 @@ if [ -f "$cite_rule" ]; then
 fi
 
 # 19. the forge CLI's config-error strings: the Forge decision's list (orchestration.md) and the
-# config-error case pattern of forge-wait.sh name the same strings, each way (dev-42ag)
+# config-error case pattern of forge-wait name the same strings, each way (dev-42ag)
 section "19. forge config-error strings"
 forge_doc=$refs/orchestration.md
-forge_wait=${FORGE_WAIT_SCRIPT:-$root/scripts/forge-wait.sh}
+forge_wait=${FORGE_WAIT_SCRIPT:-$root/bin/forge-wait}
 if [ ! -f "$forge_doc" ]; then bad "missing document: $forge_doc"
 elif [ ! -f "$forge_wait" ]; then bad "missing script: $forge_wait"
 else
   doc_strings=$(grep -o 'config error (`[^;]*' "$forge_doc" | grep -o '`[^`]*`' | tr -d '`' | sort -u)
   script_strings=$(sed -n '/^cfg_err() {/,/^}/p' "$forge_wait" | grep -o "'[^']*'" | tr -d "'" | sort -u)
   [ -n "$doc_strings" ] || bad "the Forge decision names no config-error string in $forge_doc"
-  [ -n "$script_strings" ] || bad "forge-wait.sh's cfg_err names no config-error string in $forge_wait"
+  [ -n "$script_strings" ] || bad "forge-wait's cfg_err names no config-error string in $forge_wait"
   while IFS= read -r s; do
     [ -z "$s" ] || grep -qxF -- "$s" <<<"$script_strings" \
-      || bad "the Forge decision lists '$s', which forge-wait.sh's config-error pattern lacks"
+      || bad "the Forge decision lists '$s', which forge-wait's config-error pattern lacks"
   done <<<"$doc_strings"
   while IFS= read -r s; do
     [ -z "$s" ] || grep -qxF -- "$s" <<<"$doc_strings" \
-      || bad "forge-wait.sh's config-error pattern matches '$s', which the Forge decision lacks"
+      || bad "forge-wait's config-error pattern matches '$s', which the Forge decision lacks"
   done <<<"$script_strings"
 fi
 

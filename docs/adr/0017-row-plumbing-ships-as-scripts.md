@@ -8,6 +8,15 @@ Amended (dev-bveq, INFRA-44): the rule covers forge plumbing too, not only git. 
 wait was an inline compound shell call run with the sandbox disabled, which no narrow exemption
 could match; as `scripts/forge-wait.sh` it is one plain command.
 
+Amended (dev-21sr, INFRA-44): a script the sandbox exemption must match ships in the plugin's
+`bin/` and is called by its bare name, not under `scripts/` by its exact installed path. The
+exact path contained the plugin version, so the owner re-pasted the rule pair after every
+plugin update, and old version directories are deleted 14 days after one. The script is now
+`bin/forge-wait`, which Claude Code puts on the Bash tool's `PATH` while the plugin is enabled,
+and the setup pair is the bare `forge-wait * * * * *`. What pinned the file moves from the exact
+path to a condition: no sandbox-writable directory is on `PATH`, which a baseline that already
+excludes `git push*` needs as well. Other scripts stay under `scripts/`.
+
 The orchestrators' plumbing was prose: each skill spelled out the git commands an agent
 types, and the lint pinned their wording. A pin proves a phrase is there, not that the
 commands work, and a step two skills share was written out in each. The landing's
@@ -30,7 +39,7 @@ and the two skills' failure lines drifted apart.
 
 Examples: `scripts/check.sh`, the Check record script (881626a), and `scripts/land.sh`, the
 Land script, with `scripts/stray-commit.sh`, the stray-commit check that the landing and
-Delivery share, and `scripts/forge-wait.sh`, the forge-check wait of Delivery step 4, the
+Delivery share, and `bin/forge-wait`, the forge-check wait of Delivery step 4, the
 first forge script, tested with stub CLIs.
 
 ## Considered options

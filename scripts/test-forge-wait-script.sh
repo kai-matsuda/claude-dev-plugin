@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Tests for scripts/forge-wait.sh <owner> <gh|tea> <repo> <pr> <tip SHA>, the Forge-check wait
+# Tests for bin/forge-wait <owner> <gh|tea> <repo> <pr> <tip SHA>, the Forge-check wait
 # script: run against stub gh and tea on PATH (FORGE_WAIT_SLEEP=0), reading its output lines and
 # exit status. Covers, for gh and for tea: the forge CLI's config error (exit 1 at once), a head
 # not yet at the tip, checks registered then passing, and checks failing (both exit 0 with
@@ -13,7 +13,7 @@
 set -uo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 source "$repo_root/scripts/fixture-test-lib.sh"   # fx_scratch_dir, fx_check, fx_eq, fx_report_fails
-script=$repo_root/scripts/forge-wait.sh
+script=$repo_root/bin/forge-wait
 
 fx_scratch_dir forge-wait-script
 scratch=$(cd "$scratch" && pwd -P)
@@ -196,7 +196,7 @@ fx_check "tea checks failing: read twice" fx_eq "$(calls status)" 2
 # usage
 run /o gh org/r 7
 fx_check "too few args: exits 2" fx_eq "$rc" 2
-fx_check "too few args: refused line" fx_eq "$out" "refused: usage: forge-wait.sh <owner> <gh|tea> <repo> <pr> <tip SHA>"
+fx_check "too few args: refused line" fx_eq "$out" "refused: usage: forge-wait <owner> <gh|tea> <repo> <pr> <tip SHA>"
 run /o hub org/r 7 $tip
 fx_check "unknown forge: exits 2" fx_eq "$rc" 2
 fx_check "unknown forge: refused line" fx_eq "$out" "refused: forge must be gh or tea, not hub"
@@ -225,6 +225,6 @@ refuses "tip shorter than 7 hex digits" "tip must be 7 to 64 hex digits, not abc
 refuses "tip longer than 64 hex digits" "tip must be 7 to 64 hex digits, not $long" gh org/r 7 "$long"
 run /o gh org/r 7 $tip extra
 fx_check "six args: exits 2" fx_eq "$rc" 2
-fx_check "six args: refused line" fx_eq "$out" "refused: usage: forge-wait.sh <owner> <gh|tea> <repo> <pr> <tip SHA>"
+fx_check "six args: refused line" fx_eq "$out" "refused: usage: forge-wait <owner> <gh|tea> <repo> <pr> <tip SHA>"
 
 fx_report_fails

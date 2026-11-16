@@ -35,36 +35,40 @@ The baseline is org-neutral apart from one rule pair: it denies reads of secret 
 before destructive git and `bd dolt push`, allows `bd`, and enables the sandbox with the beads
 and Dolt directories writable and push, fetch and pull excluded. `~/.config/bd` is writable too,
 because `bd` writes its user-level config there. The pair is plugin-specific: the plugin's own
-`scripts/forge-wait.sh`, run with its five arguments from the installed cache, is both excluded
-from the sandbox (`sandbox.excludedCommands`) and allowed (`permissions.allow`). The file in the
-plugin holds the placeholder `FORGE_WAIT_PATH`; the printed snippet has in its place the
-installed script's real path (resolved with `pwd -P`), with no wildcard before the script name,
-and ends in five `*` words: `<path> * * * * *`. The path names the installed plugin version, so
-the owner pastes the printed snippet again after each plugin update, as for the commit-msg hook.
-Only `check-prereqs.sh` fills in the file's `FORGE_WAIT_PATH`, so the snippet is printed, never
-copied from the file; the owner (or a setup tool such as chezmoi) pastes the printed one.
+`forge-wait`, the script the plugin ships in its `bin/` directory, run with its five arguments,
+is both excluded from the sandbox (`sandbox.excludedCommands`) and allowed
+(`permissions.allow`). Claude Code puts a plugin's `bin/` on the Bash tool's `PATH` while the
+plugin is enabled, so the agent calls it by its bare name and both rules name the bare command,
+ending in five `*` words: `forge-wait * * * * *`. Neither rule holds a path or a plugin version,
+so the owner (or a setup tool such as chezmoi) pastes the pair once and it stays valid across
+plugin updates; the printed snippet is the file's text as it is.
 Without the pair the delivery's forge-check wait fails on the forge CLI's config error inside
 the sandbox and, in a permission mode that prompts for an unlisted command (the default; ADR
 0009), needs an unsandboxed rerun with a permission prompt, which an unattended story
-orchestrator cannot answer (dev-tt2l, INFRA-44). The pattern is the exact path, so a `../` path,
-a script of the same name elsewhere, a `forge-wait.sh2` and a `gh` or `tea` command carrying the
-path as an argument do not match, and the five `*` words stand for the script's five arguments,
-so a call with fewer than five words does not match (a free trailing `*` would have matched it).
+orchestrator cannot answer (dev-tt2l, INFRA-44). The pattern is the bare command name, so a
+`forge-wait2`, a path-qualified `forge-wait`, a `PATH=… forge-wait …` call (its text starts with
+`PATH=`) and a `gh` or `tea` command carrying `forge-wait` as an argument do not match, and the
+five `*` words stand for the command's five arguments, so a call with fewer than five words does
+not match (a free trailing `*` would have matched it). A bare name pins no file, so what keeps
+another `forge-wait` from riding the exclusion is that no sandbox-writable directory is on `PATH`
+(dev-21sr): an agent that could write to a `PATH` directory could already plant a `git` that rides
+the baseline's `git push*` exclusion, so the bare name adds no new class of risk, and a machine
+that puts a writable directory on `PATH` ahead of the plugin's `bin/` loses that protection for the
+baseline's git exclusions as for this pair.
 What a glob cannot pin: a `*` matches any text, spaces included, so read as one whole string
-`<path> * * * * *` also matches `<path> a b c d e && other`. A compound command stays out of the
+`forge-wait * * * * *` also matches `forge-wait a b c d e && other`. A compound command stays out of the
 rule only where the matcher splits it into its parts and tests each, as permission rules are
 documented to do, and a matcher that does not split would let such a command ride the exclusion.
 On Claude Code 2.1.308 neither rule took a compound command (dev-re7g): the plain five-argument
-run went through outside the sandbox, while `<path>` with its five arguments `&& touch` a file
+run went through outside the sandbox (probed with the exact-path form of the rules), while the
+command with its five arguments `&& touch` a file
 outside the sandbox raised a permission prompt and, once approved, ran wholly in the sandbox,
 the script itself failing on the forge CLI's config error. On another version this is unverified,
 and the probe is run again there before the pair is trusted.
-`forge-wait.sh` itself refuses (exit 2) a forge other than `gh` or `tea`, a repo not
+`forge-wait` itself refuses (exit 2) a forge other than `gh` or `tea`, a repo not
 `owner/name`, a PR number that is not digits and a tip that is not 7 to 64 hex digits, which
 bounds what the script does with its own five arguments but not what follows an `&&` after them.
 Before the owner pastes the printed pair no machine has it, so the plain run is still rerun with
-the sandbox disabled, and the pair printed for one plugin version matches only that version's
-path, so after a plugin update the plain run is rerun until the owner pastes the new pair. A
-fork installed under another marketplace name and a `--plugin-dir` checkout run from a different
-path and are covered once the owner pastes the pair that checkout's own `check-prereqs.sh`
-prints. Toolchain, registry and forge-CLI entries are the owner's own to add.
+the sandbox disabled. After it is pasted it holds across plugin updates, and a fork installed
+under another marketplace name or a `--plugin-dir` checkout is covered while it is the enabled
+plugin whose `bin/` is on `PATH`. Toolchain, registry and forge-CLI entries are the owner's own to add.

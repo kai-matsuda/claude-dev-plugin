@@ -57,10 +57,10 @@ Run it from the repo root; the flag loads that checkout in place of the installe
   `CLAUDE.md`, initialises beads, and lays out `GLOSSARY.md` and `docs/adr/`.
 
 The baseline settings are org-neutral, apart from one sandbox exclusion and one permission allow
-that let the plugin's own `forge-wait.sh`, run from the installed plugin cache (the installed
-script's real path, which the printed snippet carries with five `*` for its arguments and no
-wildcard before the script name, pasted again after each plugin update), run unsandboxed and
-without a prompt; `forge-wait.sh` refuses arguments of the wrong shape, and
+that let the plugin's own `forge-wait` command (shipped in the plugin's `bin/`, so on the Bash
+tool's `PATH` while the plugin is enabled; the rules name it bare, with five `*` for its
+arguments, and are pasted once, valid across plugin updates), run unsandboxed and
+without a prompt; `forge-wait` refuses arguments of the wrong shape, and
 `skills/setup/SKILL.md` states what the rule does and does not match. Toolchain, registry and
 forge-CLI entries are yours to add; the lines below are examples only, not part of the plugin,
 so replace them with the ones your machine uses:
