@@ -342,6 +342,21 @@ chmod 600 "$trw/unreadable"
 # run with no argument it prints a usage line on stderr and exits 2
 fx_check "trailer hook with no argument prints a usage line and exits 2" bash -c \
   'cd "$2" && err=$(GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null "$1" 2>&1 >/dev/null); rc=$?; [ "$rc" = 2 ] && grep -q "^usage: commit-trailers <message file>" <<<"$err"' _ "$trailers" "$trw/repo"
+# git runs a config hook command through `sh -c` and appends its own "$@" to the command, so the
+# snippet's command hands commit-trailers the message file twice (on git 2.56.0, dev-ekcl.1.5):
+# the hook reads the first argument and tolerates the rest
+twice_cmd=$hook_cmd' "$@"'
+twice_msg() { # <message>: the snippet's command, plus git's own "$@", on a message file; sets trc, terr
+  printf '%s\n' "$1" >"$trw/msg"
+  terr=$(cd "$trw/repo" && env GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null PATH="$(dirname "$trailers"):$PATH" \
+    /bin/sh -c "$twice_cmd" sh "$trw/msg" 2>&1 >/dev/null); trc=$?
+}
+trailers_keys Bead Refs
+twice_msg $'fix: thing\n\nBody.\n\nBead: dev-clo\nRefs: INFRA-1'
+fx_check "the snippet's hook command, given the message file twice, passes a correct message" test "$trc" = 0
+twice_msg $'fix: thing\n\nBead: dev-clo\n\nMore prose after the trailer.'
+fx_check "the snippet's hook command, given the message file twice, still blocks a bad message" bash -c \
+  '[ "$1" = 1 ] && grep -q "trailer block" <<<"$2"' _ "$trc" "$terr"
 # the harness's attribution guidance splits the trailers into two paragraphs: the hook joins them
 trailers_msg $'fix: thing\n\nBody.\n\nBead: dev-qgww\nRefs: INFRA-42\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nClaude-Session: https://example.test/s'
 fx_check "trailer hook passes trailers split from the attribution lines" test "$trc" = 0
