@@ -2,8 +2,10 @@
 # The trailer hook (glossary: Trailer hook), `commit-trailers`. Checks an agent's commit
 # message for provenance trailers and names no tracker: `commit-trailers <message file>`, run
 # from a repo as a commit-msg hook (exit 1 blocks, 2 is a usage error; errors go to stderr).
-# It reads the first argument as the message file and ignores any others, because git appends
-# its own "$@" to a config hook command, so the snippet's command passes the file twice.
+# It reads the first argument as the message file and ignores any others, because git (2.56.0
+# observed) appends its own "$@" to a config hook command, so the snippet's command passes the
+# file twice; the extra arguments are tolerated whether or not a git version appends them
+# (dev-ekcl.1.5).
 # Machine setup wires it up by a gitconfig hook entry (skills/setup/commit-trailers.gitconfig,
 # which /dev:setup prints as git config --global commands). While the plugin is enabled, its
 # bin/ is on the Bash tool's PATH, so the hook calls it by its bare name. `commit-trailers` is
