@@ -38,7 +38,9 @@ because `bd` writes its user-level config there. The pair is plugin-specific: th
 `forge-wait`, the script the plugin ships in its `bin/` directory, run with its five arguments,
 is both excluded from the sandbox (`sandbox.excludedCommands`) and allowed
 (`permissions.allow`). Claude Code puts a plugin's `bin/` on the Bash tool's `PATH` while the
-plugin is enabled, so the agent calls it by its bare name and both rules name the bare command,
+plugin is enabled (a `--plugin-dir` copy included); outside that, with the plugin disabled or
+removed, the bare call fails with `command not found`, and an unsandboxed rerun does not help,
+since the command is missing. The agent calls it by its bare name and both rules name the bare command,
 ending in five `*` words: `forge-wait * * * * *`. Neither rule holds a path or a plugin version,
 so the owner (or a setup tool such as chezmoi) pastes the pair once and it stays valid across
 plugin updates; the printed snippet is the file's text as it is.

@@ -12,8 +12,8 @@ Amended (dev-21sr, INFRA-44): a script the sandbox exemption must match ships in
 `bin/` and is called by its bare name, not under `scripts/` by its exact installed path. The
 exact path contained the plugin version, so the owner re-pasted the rule pair after every
 plugin update, and old version directories are deleted 14 days after one. The script is now
-`bin/forge-wait`, which Claude Code puts on the Bash tool's `PATH` while the plugin is enabled,
-and the setup pair is the bare `forge-wait * * * * *`. What pinned the file moves from the exact
+`bin/forge-wait`, which resolves by its bare name where `skills/setup/SKILL.md` says it does
+(Claude Code puts an enabled plugin's `bin/` on the Bash tool's `PATH`), and the setup pair is the bare `forge-wait * * * * *`. What pinned the file moves from the exact
 path to a condition: no sandbox-writable directory is on `PATH`, which a baseline that already
 excludes `git push*` needs as well. Other scripts stay under `scripts/`.
 

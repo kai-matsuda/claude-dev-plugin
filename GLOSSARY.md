@@ -383,15 +383,17 @@ pushed tip, before the delivery is recorded: a red check is a `failed: forge che
 no checks delivers with a `checks: skipped` line. The one long shell wait the Idle rule
 allows (the merge-state re-read adds only bounded `sleep 10` calls). The forge-wait script,
 `forge-wait <owner> <gh|tea> <repo> <pr> <tip SHA>` (shipped in the plugin's `bin/`, so called
-by its bare name), is the wait as one plain command: it prints `checks finished` (exit 0), `forge error: <text>` on the forge CLI's config
+by its bare name), is the wait as one plain command: it prints `checks finished` (exit 0),
+`forge error: <text>` on the forge CLI's config
 error, a `gh` watch that failed with checks still pending or unreadable, or a `gh` head that
 moved off the tip during the wait (exit 1; on `gh`, `checks finished` is for the tip's checks as
 of the head's second read, and a failed head read other than the config error is retried), or
 `refused: <reason>` on a wrong usage, a forge other than `gh` or `tea`, a repo not `owner/name`,
 a PR number not digits, a tip not 7 to 64 hex digits or `tea` without `jq` (exit 2); the setup
 baseline exempts the command, by its bare name, from the sandbox and allows it, so on a machine
-that has pasted the pair (valid across plugin updates) the plain run should need no rerun (seen on Claude Code 2.1.308, unverified on other versions), and a plain run's
-config error (a machine without the matching pair) is rerun once with the sandbox disabled, and
+that has pasted the pair (valid across plugin updates) the plain run should need no rerun (seen
+on Claude Code 2.1.308 with the exact-path form of the pair, the bare-name form unprobed), and a
+plain run's config error (a machine without the matching pair) is rerun once with the sandbox disabled, and
 the step reads the checks afterwards.
 _Avoid_: CI wait, check poll
 

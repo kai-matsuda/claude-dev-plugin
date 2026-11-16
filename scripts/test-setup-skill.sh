@@ -153,7 +153,8 @@ prints_baseline() { # <machine>: $out holds the snippet verbatim, the forge-wait
 fx_check "full machine prints the baseline snippet as the file holds it" prints_baseline full
 fx_check "full machine prints no FORGE_WAIT_PATH placeholder" bash -c '! grep -q "FORGE_WAIT_PATH" <<<"$1"' _ "$out"
 fx_check "the plugin ships forge-wait as an executable in bin/" test -x "$repo_root/bin/forge-wait"
-fx_check "the plugin no longer ships forge-wait.sh under scripts/" bash -c '[ ! -e "$1" ]' _ "$repo_root/scripts/forge-wait.sh"# what the printed rules match, as a shell glob. fw_rule_match models a matcher that splits a
+fx_check "the plugin no longer ships forge-wait.sh under scripts/" bash -c '[ ! -e "$1" ]' _ "$repo_root/scripts/forge-wait.sh"
+# what the printed rules match, as a shell glob. fw_rule_match models a matcher that splits a
 # compound command on && || ; | & and requires every part to match (how permission rules are
 # documented to behave; on Claude Code 2.1.308 sandbox.excludedCommands also took no compound
 # command, dev-re7g);

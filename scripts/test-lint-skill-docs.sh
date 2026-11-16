@@ -86,7 +86,7 @@ plugin_names=$(grep -rhoE 'mattpocock-skills:[a-z-]+' "$repo_root/skills" "$repo
 pristine=$jobs/pristine
 mkdir "$pristine"
 cp -R "$repo_root/skills" "$repo_root/references" "$repo_root/docs" "$repo_root/CLAUDE.md" "$repo_root/GLOSSARY.md" "$pristine/"
-cp "$repo_root/bin/forge-wait" "$pristine/forge-wait.sh"
+cp "$repo_root/bin/forge-wait" "$pristine/forge-wait"
 mkdir -p "$pristine/.claude" && cp -R "$repo_root/.claude/rules" "$pristine/.claude/"
 cp -R "$fixtures/skills/sample" "$pristine/skills/"
 cp "$fixtures/references/sample.md" "$pristine/references/"
@@ -164,7 +164,7 @@ lint_scratch() {
   out=$(SKILLS_DIR=${skills_dir:-$scratch/skills} REFERENCES_DIR=${references_dir:-$scratch/references} DOCS_DIR=$scratch/docs RULES_DIR=$scratch/.claude/rules \
     USER_CLAUDE_MD=${claude_md:-$scratch/CLAUDE.md} HOOKS_DIR=$scratch/hooks README_MD=$scratch/README.md GLOSSARY_MD=${glossary_md:-$scratch/GLOSSARY.md} \
     LINT_PINS_DIR=${pins_dir:-$repo_root/scripts} PLUGIN_SKILLS=$scratch/plugin VERSION_BUMP_REPO=${bump_repo_dir:-$scratch/no-repo} \
-    FORGE_WAIT_SCRIPT=$scratch/forge-wait.sh LINT_UNCHANGED=${unchanged_list:-} bounded "$case_timeout" "${cmd[@]}" "$@" 2>&1)
+    FORGE_WAIT_SCRIPT=$scratch/forge-wait LINT_UNCHANGED=${unchanged_list:-} bounded "$case_timeout" "${cmd[@]}" "$@" 2>&1)
   rc=$?
   [ "$rc" != 124 ] || out+="${out:+$nl}FAIL the lint run timed out after ${case_timeout}s"
   printf '%s\n%s\n' "$out" "$rc"
@@ -3162,7 +3162,7 @@ fresh
 swap_phrase references/orchestration.md 'failed to read configuration`; not' 'failed to read configuration`, `config file not found`; not'
 expect "a config-error string the Forge decision lists that forge-wait lacks fails" 1 "the Forge decision lists 'config file not found', which forge-wait's config-error pattern lacks"
 fresh
-rewrite forge-wait.sh sed -E "s#failed to read configuration'\*\)#failed to read configuration'*|*'cannot read forge config'*)#"
+rewrite forge-wait sed -E "s#failed to read configuration'\*\)#failed to read configuration'*|*'cannot read forge config'*)#"
 expect "a config-error string forge-wait matches that the Forge decision lacks fails" 1 "forge-wait's config-error pattern matches 'cannot read forge config', which the Forge decision lacks"
 
 phase "hand-written cases after the derived ones"

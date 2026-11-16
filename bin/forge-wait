@@ -36,8 +36,8 @@
 # <repo> is gh's owner/name slug and <pr> its PR number: tea uses neither (it finds its repo from
 # <owner>, the checkout's absolute path, and reads the status by <tip SHA>).
 # Usage: forge-wait <owner> <gh|tea> <repo> <pr> <tip SHA>
-# The plugin ships it in bin/, which Claude Code puts on the Bash tool's PATH while the plugin is
-# enabled, so it is called by its bare name.
+# The plugin ships it in bin/ and it is called by its bare name; skills/setup/SKILL.md states when
+# that name resolves.
 set -uo pipefail
 refuse() { echo "refused: $*"; exit 2; }
 [ "$#" = 5 ] || refuse "usage: forge-wait <owner> <gh|tea> <repo> <pr> <tip SHA>"
