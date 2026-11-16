@@ -13,6 +13,7 @@ snippet=$skill/baseline-settings.json
 stub=$skill/claude-md-stub.md
 prereqs=$skill/check-prereqs.sh
 lint=$skill/commit-lint.sh
+trailers=$repo_root/bin/commit-trailers
 
 fm=$(fx_front "$skill/SKILL.md")
 fx_check "frontmatter names the skill setup" grep -qx 'name: setup' <<<"$fm"
@@ -258,61 +259,80 @@ fx_check "empty machine asks to confirm Atlassian, not missing" bash -c 'grep -q
 fx_check "empty machine still prints the CLAUDE.md stub" bash -c '[[ $1 == *"$(cat "$2")"* ]]' _ "$out" "$stub"
 fx_check "empty machine still prints the baseline snippet" prints_baseline empty
 
-# commit-lint.sh, the commit-msg hook machine setup installs (dev-clo): run in a throwaway repo
-# on message files, as git's hook would
+# `commit-trailers`, the trailer hook machine setup wires as a commit-msg hook (dev-ekcl): run in
+# a throwaway repo on message files, as git's hook would. The keys come from the repo-local
+# dev.trailer.provenance, and global and system git config are switched off for the run, so no
+# case depends on the machine's own config.
 lintw=$work/lint
-fx_check "commit-lint: the throwaway repo is made" fx_git_repo "$lintw/repo"
-lint_msg() { # <message>: lint it from the repo; sets lout and lrc
-  printf '%s\n' "$1" >"$lintw/msg"
-  lout=$(cd "$lintw/repo" && sh "$lint" "$lintw/msg" 2>&1); lrc=$?
+fx_check "trailer hook: the throwaway repo is made" fx_git_repo "$lintw/repo"
+lint_keys() { # <key>...: the repo's provenance keys, replacing any set
+  git -C "$lintw/repo" config --unset-all dev.trailer.provenance
+  local k; for k in "$@"; do git -C "$lintw/repo" config --add dev.trailer.provenance "$k"; done
+  return 0
 }
-fx_check "commit-lint ships beside the stub" test -s "$lint"
-lint_msg $'feat(setup): ship commit-lint\n\nBody.\n\nBead: dev-clo\nRefs: INFRA-1'
-fx_check "commit-lint passes a Conventional Commits message with trailers" test "$lrc" = 0
-lint_msg 'Added a thing.'
-fx_check "commit-lint blocks a subject with no type" bash -c '[ "$1" = 1 ] && grep -q "error: subject is not" <<<"$2"' _ "$lrc" "$lout"
-lint_msg 'feat: Ship it'
-fx_check "commit-lint blocks a capital after the colon" bash -c '[ "$1" = 1 ] && grep -q "capital" <<<"$2"' _ "$lrc" "$lout"
-lint_msg "feat: $(printf 'x%.0s' $(seq 70))"
-fx_check "commit-lint blocks a subject over 72 characters" bash -c '[ "$1" = 1 ] && grep -q "the limit is 72" <<<"$2"' _ "$lrc" "$lout"
+lint_msg() { # <message>: run the trailer hook on it from the repo; sets lout and lrc
+  printf '%s\n' "$1" >"$lintw/msg"
+  lout=$(cd "$lintw/repo" && GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null "$trailers" "$lintw/msg" 2>&1); lrc=$?
+}
+blocked() { [ "$lrc" = 1 ] && grep -q "trailer block" <<<"$lout" && grep -q "references/issue-tracker.md" <<<"$lout"; }
+fx_check "the trailer hook ships in bin/ and is executable" test -x "$trailers"
+lint_keys Bead Refs
+lint_msg $'feat(setup): ship the trailer hook\n\nBody.\n\nBead: dev-clo\nRefs: INFRA-1'
+fx_check "trailer hook passes Bead:/Refs: lines git parses as trailers" test "$lrc" = 0
 lint_msg $'fix: thing\n\nBead: dev-clo\n\nMore prose after the trailer.'
-fx_check "commit-lint blocks a Bead: line outside the last paragraph" bash -c '[ "$1" = 1 ] && grep -q "trailer block" <<<"$2"' _ "$lrc" "$lout"
+fx_check "trailer hook blocks a Bead: line outside the last paragraph, pointing at the tracker doc" blocked
+# no keys: a no-op, even on a message that fails with keys set
+lint_keys
+lint_msg $'fix: thing\n\nBead: dev-clo\n\nMore prose after the trailer.'
+fx_check "trailer hook with no keys set exits 0 and leaves the file byte-identical" bash -c \
+  '[ "$1" = 0 ] && [ -z "$2" ] && [ "$(cat "$3")" = "$4" ]' _ "$lrc" "$lout" "$lintw/msg" $'fix: thing\n\nBead: dev-clo\n\nMore prose after the trailer.'
+lint_keys Bead Refs
 # the harness's attribution guidance splits the trailers into two paragraphs: the hook joins them
 lint_msg $'fix: thing\n\nBody.\n\nBead: dev-qgww\nRefs: INFRA-42\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nClaude-Session: https://example.test/s'
-fx_check "commit-lint passes trailers split from the attribution lines" test "$lrc" = 0
-fx_check "commit-lint joins the split trailers into one paragraph" bash -c \
+fx_check "trailer hook passes trailers split from the attribution lines" test "$lrc" = 0
+fx_check "trailer hook joins the split trailers into one paragraph" bash -c \
   '[ "$(grep -c "^$" "$1")" = 2 ]' _ "$lintw/msg"
-fx_check "commit-lint: the joined message commits" git -C "$lintw/repo" commit -q --allow-empty -F "$lintw/msg"
-fx_check "commit-lint: git parses the committed Bead trailer" bash -c \
+fx_check "trailer hook: the joined message commits" git -C "$lintw/repo" commit -q --allow-empty -F "$lintw/msg"
+fx_check "trailer hook: git parses the committed Bead trailer" bash -c \
   '[ "$(git -C "$1" log -1 --format="%(trailers:key=Bead,valueonly)" | tr -d "\n")" = dev-qgww ]' _ "$lintw/repo"
 lint_msg $'fix: thing\n\nBead: dev-qgww\n\nProse after the trailers.\nCo-Authored-By: Claude <noreply@anthropic.com>'
-fx_check "commit-lint blocks trailers followed by a prose paragraph" bash -c '[ "$1" = 1 ] && grep -q "trailer block" <<<"$2"' _ "$lrc" "$lout"
+fx_check "trailer hook blocks trailers followed by a prose paragraph" blocked
 lint_msg $'fix: thing\n\nBead: dev-qgww\n\nProse after the trailers.\n\nCo-Authored-By: Claude <noreply@anthropic.com>'
-fx_check "commit-lint blocks a mid-body Bead: before prose and attribution" bash -c '[ "$1" = 1 ] && grep -q "trailer block" <<<"$2"' _ "$lrc" "$lout"
+fx_check "trailer hook blocks a mid-body Bead: before prose and attribution" blocked
 lint_msg $'fix: thing\n\nProse line.\nBead: dev-qgww\n\nCo-Authored-By: Claude <noreply@anthropic.com>'
-fx_check "commit-lint blocks a Bead: inside a prose paragraph before attribution" bash -c '[ "$1" = 1 ] && grep -q "trailer block" <<<"$2"' _ "$lrc" "$lout"
-fx_check "commit-lint leaves a rejected message file unrewritten" bash -c \
+fx_check "trailer hook blocks a Bead: inside a prose paragraph before attribution" blocked
+fx_check "trailer hook leaves a rejected message file unrewritten" bash -c \
   '[ "$(cat "$1")" = "$2" ]' _ "$lintw/msg" $'fix: thing\n\nProse line.\nBead: dev-qgww\n\nCo-Authored-By: Claude <noreply@anthropic.com>'
 # trailing "#" comment lines (git commit -v style) do not stop the join
 lint_msg $'fix: thing\n\nBead: dev-qgww\n\nCo-Authored-By: Claude <noreply@anthropic.com>\n# Please enter the commit message\n#'
-fx_check "commit-lint joins split trailers that are followed by # comment lines" bash -c \
+fx_check "trailer hook joins split trailers that are followed by # comment lines" bash -c \
   '[ "$1" = 0 ] && [ "$(grep -c "^$" "$2")" = 1 ]' _ "$lrc" "$lintw/msg"
 # attribution keys are matched whatever their case, as git matches trailer keys
 lint_msg $'fix: thing\n\nBody.\n\nBead: dev-pf49\nRefs: INFRA-42\n\nCo-authored-by: Claude <noreply@anthropic.com>\nclaude-session: https://example.test/s'
-fx_check "commit-lint joins split trailers whose attribution keys are lowercase" bash -c \
+fx_check "trailer hook joins split trailers whose attribution keys are lowercase" bash -c \
   '[ "$1" = 0 ] && [ "$(grep -c "^$" "$2")" = 2 ]' _ "$lrc" "$lintw/msg"
 lint_msg $'fix: thing\n\nBead: dev-pf49\n\nCo-Authored-By: Claude <noreply@anthropic.com>'
-fx_check "commit-lint joins split trailers with one attribution key alone" bash -c \
+fx_check "trailer hook joins split trailers with one attribution key alone" bash -c \
   '[ "$1" = 0 ] && [ "$(grep -c "^$" "$2")" = 1 ]' _ "$lrc" "$lintw/msg"
 lint_msg $'fix: thing\n\nBead: dev-pf49\n\nCO-AUTHORED-BY: Claude <noreply@anthropic.com>\nCLAUDE-SESSION: https://example.test/s'
-fx_check "commit-lint joins split trailers whose attribution keys are all caps" bash -c \
+fx_check "trailer hook joins split trailers whose attribution keys are all caps" bash -c \
   '[ "$1" = 0 ] && [ "$(grep -c "^$" "$2")" = 1 ]' _ "$lrc" "$lintw/msg"
 # a CRLF message file
 lint_msg $'fix: thing\r\n\r\nBead: dev-qgww\r\n\r\nCo-Authored-By: Claude <noreply@anthropic.com>\r'
-fx_check "commit-lint passes split trailers in a CRLF message" test "$lrc" = 0
+fx_check "trailer hook passes split trailers in a CRLF message" test "$lrc" = 0
+fx_check "trailer hook joins the split trailers of a CRLF message" bash -c \
+  '[ "$(tr -d "\r" <"$1" | grep -c "^$")" = 1 ]' _ "$lintw/msg"
+# only the configured keys are checked
+lint_keys Ticket
+lint_msg $'fix: thing\n\nTicket: T-1\n\nMore prose after the trailer.'
+fx_check "trailer hook with only Ticket set checks a Ticket: line" blocked
+lint_msg $'fix: thing\n\nBead: dev-clo\n\nMore prose after the trailer.'
+fx_check "trailer hook with only Ticket set does not check a Bead: line" test "$lrc" = 0
+lint_keys Bead Refs
+# the subject and the blank line after it are no concern of the trailer hook
+lint_msg 'Added a thing.'
+fx_check "trailer hook passes a non-Conventional subject" test "$lrc" = 0
 lint_msg $'fix: thing\nbody right under the subject'
-fx_check "commit-lint blocks a body with no blank line after the subject" bash -c '[ "$1" = 1 ] && grep -q "no blank line" <<<"$2"' _ "$lrc" "$lout"
-lint_msg $'Merge branch \'x\''
-fx_check "commit-lint lets git's own Merge subject through" test "$lrc" = 0
+fx_check "trailer hook passes a body with no blank line after the subject" test "$lrc" = 0
 
 fx_report_fails
