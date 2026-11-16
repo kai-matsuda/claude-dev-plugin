@@ -56,6 +56,10 @@ fix-up round.
 - A user with no rule files gets no standards beyond the review skill's own baseline.
 - The Claude Code docs say a subagent loads project rules; they do not say so for
   user-level rules. That is why the briefs name both folders by path.
+- Probed 2026-11-15 on Claude Code 2.1.308 (dev-d5cg): a `general-purpose` subagent saw
+  the user-level rules with no `paths:` scope that existed at session start, and not one
+  added mid-session; no path-scoped rule reached it, and the probe did not test one after
+  it touched a matching file. The briefs still name both folders by path.
 - The widened bead id rule flags older sentences that name a bead as their reason outside
   parentheses, when they are next edited.
 - The lint's cross-skill cite section and the reviewer-brief pins name the old doc and
