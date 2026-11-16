@@ -85,7 +85,8 @@ git_init() { # <dir> <name>   git dir at OUT/.git-dirs/<name>, see "Sandbox" abo
   git -C "$1" config user.email "fixture@example.invalid"
   git -C "$1" config beads.role maintainer      # silences "beads.role not configured" when no global value
 }
-commit() { # <dir> <message>   (--no-verify: the global commit-lint hook wants a Bead: trailer)
+commit() { # <dir> <message>   (--no-verify: a machine whose global config still runs the old hook.commitlint style hook
+  # rejects these subjects and wants a Bead: trailer; the trailer hook, hook.committrailers, passes them)
   # <dir> must be its own repo's top level: git discovers upward, so an add in a dir whose init
   # failed would commit into the enclosing checkout
   [ "$(git -C "$1" rev-parse --show-toplevel)" = "$(cd "$1" && pwd -P)" ] || { echo "refusing to commit: $1 is not a repo's top level" >&2; exit 1; }

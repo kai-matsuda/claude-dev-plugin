@@ -149,8 +149,8 @@ repo already had `core.hooksPath` set, chain the old hook from the new one in
   both when both apply. Neither is inferable from a diff, so a commit without them loses
   the link for good. They go in the last paragraph with the attribution lines and no
   prose, since git parses only a last paragraph made of trailer lines as trailers. A
-  machine may enforce the mechanical parts with a commit-msg hook (the `commit-lint.sh`
-  the plugin ships in `skills/setup/`, when machine setup installed it); a commit it
+  machine may enforce the mechanical parts with a commit-msg hook (the trailer hook the
+  plugin ships as `bin/commit-trailers`, when machine setup's gitconfig lines wired it); a commit it
   rejects is fixed and retried (`harness.md`, Commits). The hook rewrites the message
   file in one case: `Bead:`/`Refs:` lines and a following `Co-Authored-By:`/`Claude-Session:`
   paragraph split by a blank line are joined into one trailer paragraph.

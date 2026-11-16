@@ -54,13 +54,24 @@ echo "=== merge into ~/.claude/settings.json (merge the arrays; do not replace) 
 # once; with the plugin disabled the command is not found (dev-21sr, INFRA-44;
 # skills/setup/SKILL.md)
 cat "$here/baseline-settings.json"
-# the commit-msg hook: a machine setup tool installs the shipped script rather than vendoring
-# it, again after each plugin update, since $here names the installed version
-lint_dest='~/.config/git/commit-lint.sh'
-echo; echo "=== install as $lint_dest, run on commit-msg in every repo (again after a plugin update) ==="
-echo "mkdir -p ~/.config/git && cp $here/commit-lint.sh $lint_dest"
-echo "git config --global hook.commitlint.event commit-msg"
-echo "git config --global hook.commitlint.command 'f=\$HOME/${lint_dest#\~/}; [ -f \"\$f\" ] || exit 0; sh \"\$f\" \"\$@\"'"
+# the commit-msg hook: its command names the bare `commit-trailers` from the plugin's bin/, so
+# the lines name no path or version and are pasted once. One command per entry of the shipped
+# snippet, in its order; --replace-all on a key's first value and --add on the rest, so pasting
+# them again leaves each key once.
+echo; echo "=== wire the trailer hook, run on commit-msg in every repo (paste once; it holds across plugin updates) ==="
+# Plain bash reads the snippet, since git is not a prerequisite this check can count on; the
+# snippet's form is `[section "subsection"]` headers and tab-indented `name = value` entries,
+# a value in double quotes holding \" for a quote.
+prev=; section=
+while IFS= read -r line; do
+  if [[ $line =~ ^\[([a-z]+)\ \"([a-z]+)\"\]$ ]]; then section=${BASH_REMATCH[1]}.${BASH_REMATCH[2]}
+  elif [[ $line =~ ^[[:space:]]+([a-z]+)\ =\ (.*)$ ]]; then
+    key=$section.${BASH_REMATCH[1]} val=${BASH_REMATCH[2]}
+    if [[ $val == \"*\" ]]; then val=${val#\"}; val=${val%\"}; val=${val//\\\"/\"}; fi
+    flag=--replace-all; [ "$key" = "$prev" ] && flag=--add; prev=$key
+    echo "git config --global $flag $key '$val'"
+  fi
+done <"$here/commit-trailers.gitconfig"
 echo
 
 if [ "$missing" != 0 ]; then exit 1

@@ -20,7 +20,7 @@ excludes `git push*` needs as well. Other scripts stay under `scripts/`.
 
 Amended (dev-ekcl.1.2, INFRA-47): `bin/` holds a second script, `commit-trailers`, the trailer
 hook, called by its bare name from a commit-msg hook in the owner's gitconfig; the setup snippet
-that ships that hook command comes with a later task of the story (dev-ekcl.1). The hook command
+`skills/setup/commit-trailers.gitconfig` ships that hook command (dev-ekcl.1.3). The hook command
 skips (exits 0) when the name is not on `PATH`, so a machine without the plugin's `bin/` on `PATH`
 commits as before. A commit made outside Claude Code's Bash tool is not checked, because
 `commit-trailers` is on `PATH` only in that tool and only while the plugin is enabled.

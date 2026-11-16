@@ -617,7 +617,8 @@ _Avoid_: commit-lint hook, bead hook
 **Machine setup**:
 The per-machine part of running the dev plugin, which a plugin cannot carry: the
 user-level `CLAUDE.md` stub that points at the plugin's docs, the baseline settings, the
-commit-lint git hook (the script ships in the plugin; the hook config cannot), and
+trailer hook (the script, `bin/commit-trailers`, ships in the plugin; the hook config is a
+gitconfig snippet the owner pastes, with no script copy), and
 the lines the runbook has the owner add by hand (the `~/src` sandbox allowlist,
 `beads.role`, `BD_EXPORT_AUTO`). `/dev:setup` checks the prerequisites and hands the owner
 the stub, the baseline and the hook commands, nothing more; on Kai's own machines

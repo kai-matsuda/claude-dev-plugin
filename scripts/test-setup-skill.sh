@@ -12,7 +12,7 @@ skill=$repo_root/skills/setup
 snippet=$skill/baseline-settings.json
 stub=$skill/claude-md-stub.md
 prereqs=$skill/check-prereqs.sh
-lint=$skill/commit-lint.sh
+hook_snippet=$skill/commit-trailers.gitconfig
 trailers=$repo_root/bin/commit-trailers
 
 fm=$(fx_front "$skill/SKILL.md")
@@ -205,11 +205,31 @@ fx_check "the printed rules miss a differently named command" fw_miss "forge-wai
 fx_check "the printed rules miss a path-qualified forge-wait" fw_miss "/home/owner/src/x/bin/forge-wait /x gh a/b 1 c"
 fx_check "the printed rules miss a gh command carrying forge-wait as an argument" fw_miss "gh pr merge forge-wait x y z w"
 fx_check "the printed rules miss a tea command" fw_miss "tea pr list --repo /x"
-fx_check "full machine names the shipped commit-lint.sh to install" grep -qF "$lint" <<<"$out"
-fx_check "full machine says commit-lint.sh goes to ~/.config/git" grep -qF '~/.config/git/commit-lint.sh' <<<"$out"
-fx_check "full machine prints the commit-msg hook config" bash -c '
-  grep -qF "git config --global hook.commitlint.event commit-msg" <<<"$1" &&
-  grep -q "git config --global hook.commitlint.command .*config/git/commit-lint.sh" <<<"$1"' _ "$out"
+# the trailer hook's gitconfig snippet (dev-ekcl.1.3, INFRA-47): the printed `git config --global`
+# commands are generated from it, one per entry in the snippet's order; a repeated key is added,
+# not replaced, so pasting the lines twice leaves each key once
+fx_check "the trailer hook snippet ships in the setup skill's directory" test -f "$hook_snippet"
+fx_check "the snippet holds the hook entry and the two provenance keys, in that order" test "$(git config -f "$hook_snippet" --list)" = 'hook.committrailers.event=commit-msg
+hook.committrailers.command=command -v commit-trailers >/dev/null || exit 0; commit-trailers "$@"
+dev.trailer.provenance=Bead
+dev.trailer.provenance=Refs'
+hook_section() { # the printed hook commands: the lines under the "wire the trailer hook" header
+  sed -n '/^=== wire the trailer hook/,/^$/p' <<<"$out" | sed '1d;$d'
+}
+fx_check "full machine prints the snippet's commands, line for line" test "$(hook_section)" = "git config --global --replace-all hook.committrailers.event 'commit-msg'
+git config --global --replace-all hook.committrailers.command 'command -v commit-trailers >/dev/null || exit 0; commit-trailers \"\$@\"'
+git config --global --replace-all dev.trailer.provenance 'Bead'
+git config --global --add dev.trailer.provenance 'Refs'"
+fx_check "full machine prints no copy command" bash -c '! grep -qE "(^| )cp " <<<"$1"' _ "$out"
+fx_check "full machine names no commit-lint.sh" bash -c '! grep -q "commit-lint" <<<"$1"' _ "$out"
+fx_check "the plugin no longer ships commit-lint.sh" bash -c '[ ! -e "$1" ]' _ "$skill/commit-lint.sh"
+hook_cmd=$(git config -f "$hook_snippet" hook.committrailers.command)
+fx_scratch_dir hookcmd; hookdir=$scratch   # outside $work, so the changes-nothing snapshot below is unaffected
+mkdir -p "$hookdir/bin" "$hookdir/empty"
+printf '#!/bin/sh\nexit 7\n' >"$hookdir/bin/commit-trailers"; chmod +x "$hookdir/bin/commit-trailers"
+fx_check "the snippet's hook command exits 0 when commit-trailers is not on PATH" env -i PATH="$hookdir/empty" /bin/sh -c "$hook_cmd" sh "$hookdir/msg"
+fx_check "the snippet's hook command runs commit-trailers when it is on PATH" bash -c \
+  'env -i PATH="$1" /bin/sh -c "$2" sh "$3"; [ $? = 7 ]' _ "$hookdir/bin" "$hook_cmd" "$hookdir/msg"
 out_line() { grep -n "$1" <<<"$out" | head -1 | cut -d: -f1; }
 stub_leads_with_command_grep() { # before the cd rule, the printed stub's first shell line (dev-5o3)
   local g c; g=$(out_line 'command grep'); c=$(out_line 'cd <repo>')
