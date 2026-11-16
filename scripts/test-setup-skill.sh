@@ -237,6 +237,32 @@ printf '#!/bin/sh\nexit 7\n' >"$hookdir/bin/commit-trailers"; chmod +x "$hookdir
 fx_check "the snippet's hook command exits 0 when commit-trailers is not on PATH" env -i PATH="$hookdir/empty" /bin/sh -c "$hook_cmd" sh "$hookdir/msg"
 fx_check "the snippet's hook command runs commit-trailers when it is on PATH" bash -c \
   'env -i PATH="$1" /bin/sh -c "$2" sh "$3"; [ $? = 7 ]' _ "$hookdir/bin" "$hook_cmd" "$hookdir/msg"
+# The same hook through a real `git commit`, so git itself builds the command line: it appends
+# its own "$@" to a config hook command, which the /bin/sh -c checks above do not reproduce
+# (dev-ekcl.1.6). The hook entries and keys are installed from the snippet file. These cases need
+# a git that runs config hooks; on one that does not, the refusal case fails.
+fx_scratch_dir realcommit; rcdir=$scratch
+git_bin=$(command -v git); git_dir=$(dirname "$git_bin")
+on_path=$repo_root/bin:$git_dir:/usr/bin:/bin   # the script calls sed and paste
+rc_repo() { # <name>: a throwaway repo with the snippet's entries installed and the hook enabled
+  fx_git_repo "$rcdir/$1" || return 1
+  local k v
+  while IFS='=' read -r k v; do
+    git -C "$rcdir/$1" config --add "$k" "$v" || return 1
+  done < <(git config -f "$hook_snippet" --list)
+  git -C "$rcdir/$1" config hook.committrailers.enabled true
+}
+rc_commit() { # <repo name> <message> <PATH>: an empty commit by the absolute git, PATH as given
+  env -i PATH="$3" HOME="$rcdir" GIT_CONFIG_NOSYSTEM=1 "$git_bin" -C "$rcdir/$1" commit -q --allow-empty -m "$2"
+}
+rc_refused() { ! rc_commit "$@"; }
+rc_repo ontrack && rc_repo offtrack || echo "FAIL build the real-commit repos"
+fx_check "a real git commit with parseable Bead:/Refs: trailers succeeds with commit-trailers on PATH" \
+  rc_commit ontrack "$(printf 'feat: x\n\nBead: dev-1\nRefs: INFRA-1')" "$on_path"
+fx_check "a real git commit with a Bead: line outside the trailer block is refused" \
+  rc_refused ontrack "$(printf 'feat: x\n\nBead: dev-1\n\nprose after it\n\nRefs: INFRA-1')" "$on_path"
+fx_check "a real git commit exits 0 when commit-trailers is not on PATH, whatever its trailers" \
+  rc_commit offtrack "$(printf 'feat: x\n\nBead: dev-1\n\nprose after it\n\nRefs: INFRA-1')" "$hookdir/empty:$git_dir"
 out_line() { grep -n "$1" <<<"$out" | head -1 | cut -d: -f1; }
 stub_leads_with_command_grep() { # before the cd rule, the printed stub's first shell line (dev-5o3)
   local g c; g=$(out_line 'command grep'); c=$(out_line 'cd <repo>')
