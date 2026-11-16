@@ -206,8 +206,8 @@
 #      punctuation and indents included, regex characters escaped), in the closed list of shapes
 #      section 18's "Limits" comment below states and nothing beside it (the cross-skill cite rule file
 #      point there); a changed SKILL.md has every reference doc, agent doc and SKILL.md re-read.
-#      A FAIL can also come from the rule file's paths: frontmatter, which must name the swept sets
-#      (skills/*/SKILL.md, references/*.md, docs/agents/*.md).
+#      A FAIL can also come from the rule file's paths: frontmatter, which must name exactly the file
+#      sets of cite_sets, the one list the sweep reads (dev-nl7c), each way.
 #  19. the forge CLI's config-error strings (dev-42ag): the Forge decision's list in orchestration.md
 #      and the config-error case pattern of forge-wait.sh name the same strings, each way; a string
 #      on one side only fails here, since the wait would loop to its `timeout` on the other.
@@ -2865,13 +2865,29 @@ cite_rule=$rules/cross-skill-cites.md
 # each file is read as one line (lacksw and lackswc, as section 5 does, dev-86j), so a cite
 # split across a line break fails too
 doc 18 "cross-skill cites" "$cite_rule" && has "the cross-skill cite rule heading" "# Another skill's rule is cited in one form"
-# the rule's paths: scope names every file set the sweep below reads (references/*.md,
-# docs/agents/*.md, skills/*/SKILL.md), so a reader of the rule knows every file the lint holds to
-# it (dev-67gs); a sweep that gains a set takes its paths: entry here
+# the cite sweep's file sets (dev-nl7c): one list, read by the sweep below and checked against the
+# rule's paths: frontmatter both ways, so a set swept with no entry there and an entry no set is
+# swept by both fail. A set's directory is the arm its name matches here, and a set with no arm fails
+cite_sets=("skills/*/SKILL.md" "references/*.md" "docs/agents/*.md")
+cite_files=()
+for cs in "${cite_sets[@]}"; do
+  case $cs in
+    skills/*/SKILL.md) cite_files+=("$skills"/*/SKILL.md) ;;
+    references/*.md) cite_files+=("$refs"/*.md) ;;
+    docs/agents/*.md) cite_files+=("$agents"/*.md) ;;
+    *) bad "no directory for the cite sweep's file set $cs" ;;
+  esac
+done
 if [ -f "$cite_rule" ]; then
-  has "the cite rule's paths: scope names the skills" '  - "skills/*/SKILL.md"'
-  has "the cite rule's paths: scope names references/" '  - "references/*.md"'
-  has "the cite rule's paths: scope names docs/agents/" '  - "docs/agents/*.md"'
+  # the rule's paths: entries are the lines of its frontmatter, between the first two --- lines
+  cite_paths=$(awk '/^---$/ { n++; next } n == 1 && /^  - "/ { s = $0; sub(/^  - "/, "", s); sub(/"$/, "", s); print s }' "$cite_rule")
+  for cs in "${cite_sets[@]}"; do
+    grep -qxF -- "$cs" <<<"$cite_paths" || bad "the cite rule's paths: lacks the swept set $cs"
+  done
+  while IFS= read -r p; do
+    [ -n "$p" ] || continue
+    printf '%s\n' "${cite_sets[@]}" | grep -qxF -- "$p" || bad "the cite rule's paths: names $p, which the cite sweep does not read"
+  done <<<"$cite_paths"
 fi
 # the sweep reads every skill and doc, so the cite rule file being listed in LINT_UNCHANGED leaves
 # it to run
@@ -2995,7 +3011,7 @@ if [ -f "$cite_rule" ]; then
   # the tail of a bare possessive cite: a backticked possessive and a capital
   poss_cap="\`'s [A-Z]"
   # every skill's SKILL.md is read too (dev-xyrl), the skills' own docs binding like a reference doc
-  for f in "$refs"/*.md "$agents"/*.md "$skills"/*/SKILL.md; do
+  for f in "${cite_files[@]}"; do
     [ "$f" = "$cite_rule" ] && continue   # the rule file shows the wrong forms as examples
     # a listed file queues nothing here, and the loop below is most of a run's cost (the pin list
     # still takes its checks)
