@@ -49,8 +49,10 @@ here=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)
 echo; echo "=== paste into ~/.claude/CLAUDE.md ==="; cat "$here/claude-md-stub.md"
 echo
 echo "=== merge into ~/.claude/settings.json (merge the arrays; do not replace) ==="
-# the forge-wait rules name the bare command the plugin's bin/ puts on PATH, so the pair names no
-# plugin version and is pasted once (dev-21sr, INFRA-44; skills/setup/SKILL.md)
+# the forge-wait rules name the bare command Claude Code puts on the Bash tool's PATH from the
+# plugin's bin/ while the plugin is enabled, so the pair names no plugin version and is pasted
+# once; with the plugin disabled the command is not found (dev-21sr, INFRA-44;
+# skills/setup/SKILL.md)
 cat "$here/baseline-settings.json"
 # the commit-msg hook: a machine setup tool installs the shipped script rather than vendoring
 # it, again after each plugin update, since $here names the installed version

@@ -128,7 +128,7 @@ mkbin "$work/mcpjson/bin" bd gh; plugin_installed mcpjson
 printf '{"mcpServers":{"atlassian":{}}}\n' >"$work/mcpjson/project-mcp.json"
 run() { # <machine> [subdir] [tools dir]: run the helper there; sets out and rc
   out=$(cd "$work/$1/cwd/${2:-}" && env -i PATH="$work/$1/bin:${3:-$work/tools}" HOME="$work/$1/home" \
-        SETUP_PLUGINS_DIR="$work/$1/plugins" SETUP_PROJECT_MCP_JSON="$work/$1/project-mcp.json" "$(command -v bash)" "${prereqs_at:-$prereqs}" 2>&1)
+        SETUP_PLUGINS_DIR="$work/$1/plugins" SETUP_PROJECT_MCP_JSON="$work/$1/project-mcp.json" "$(command -v bash)" "$prereqs" 2>&1)
   rc=$?
 }
 only_missing() { # <prerequisite>: $out names it, and only it, on a missing: line, and $rc is non-zero
@@ -240,7 +240,7 @@ fx_check "no jq: exit non-zero" test "$rc" != 0
 run subdir deep/er
 fx_check "project-scoped install counts from a subdirectory" grep -q '^present: mattpocock-skills' <<<"$out"
 ln -s "$work/subdir/cwd" "$work/subdir/link"
-out=$(cd "$work/subdir/link/deep" && env -i PATH="$work/subdir/bin:$work/tools" HOME="$work/subdir/home" SETUP_PLUGINS_DIR="$work/subdir/plugins" "$(command -v bash)" "${prereqs_at:-$prereqs}" 2>&1)
+out=$(cd "$work/subdir/link/deep" && env -i PATH="$work/subdir/bin:$work/tools" HOME="$work/subdir/home" SETUP_PLUGINS_DIR="$work/subdir/plugins" "$(command -v bash)" "$prereqs" 2>&1)
 fx_check "project-scoped install counts through a symlinked path" grep -q '^present: mattpocock-skills' <<<"$out"
 run projmcp
 fx_check "Atlassian under .projects[<path>].mcpServers is present" grep -q '^present: Atlassian' <<<"$out"

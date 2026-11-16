@@ -40,8 +40,8 @@ is both excluded from the sandbox (`sandbox.excludedCommands`) and allowed
 (`permissions.allow`). Claude Code puts a plugin's `bin/` on the Bash tool's `PATH` while the
 plugin is enabled (a `--plugin-dir` copy included); outside that, with the plugin disabled or
 removed, the bare call fails with `command not found`, and an unsandboxed rerun does not help,
-since the command is missing. The agent calls it by its bare name and both rules name the bare command,
-ending in five `*` words: `forge-wait * * * * *`. Neither rule holds a path or a plugin version,
+since the command is missing. The agent calls it by its bare name and both rules name the bare
+command, ending in five `*` words: `forge-wait * * * * *`. Neither rule holds a path or a plugin version,
 so the owner (or a setup tool such as chezmoi) pastes the pair once and it stays valid across
 plugin updates; the printed snippet is the file's text as it is.
 Without the pair the delivery's forge-check wait fails on the forge CLI's config error inside
@@ -58,19 +58,20 @@ the baseline's `git push*` exclusion, so the bare name adds no new class of risk
 that puts a writable directory on `PATH` ahead of the plugin's `bin/` loses that protection for the
 baseline's git exclusions as for this pair.
 What a glob cannot pin: a `*` matches any text, spaces included, so read as one whole string
-`forge-wait * * * * *` also matches `forge-wait a b c d e && other`. A compound command stays out of the
-rule only where the matcher splits it into its parts and tests each, as permission rules are
-documented to do, and a matcher that does not split would let such a command ride the exclusion.
-On Claude Code 2.1.308 neither rule took a compound command (dev-re7g): the plain five-argument
-run went through outside the sandbox (probed with the exact-path form of the rules), while the
-command with its five arguments `&& touch` a file
-outside the sandbox raised a permission prompt and, once approved, ran wholly in the sandbox,
-the script itself failing on the forge CLI's config error. On another version this is unverified,
-and the probe is run again there before the pair is trusted.
+`forge-wait * * * * *` also matches `forge-wait a b c d e && other`. A compound command stays out
+of the rule only where the matcher splits it into its parts and tests each, as permission rules
+are documented to do, and a matcher that does not split would let such a command ride the
+exclusion. On Claude Code 2.1.308 neither rule took a compound command (dev-re7g): the plain
+five-argument run went through outside the sandbox, while the command with its five arguments
+`&& touch` a file outside the sandbox raised a permission prompt and, once approved, ran wholly in
+the sandbox, the script itself failing on the forge CLI's config error. Both findings were probed
+with the exact-path form of the rules; the bare-name pair is unprobed on 2.1.308 and on any other
+version, and the probe is run again with it before the pair is trusted.
 `forge-wait` itself refuses (exit 2) a forge other than `gh` or `tea`, a repo not
 `owner/name`, a PR number that is not digits and a tip that is not 7 to 64 hex digits, which
 bounds what the script does with its own five arguments but not what follows an `&&` after them.
 Before the owner pastes the printed pair no machine has it, so the plain run is still rerun with
 the sandbox disabled. After it is pasted it holds across plugin updates, and a fork installed
 under another marketplace name or a `--plugin-dir` checkout is covered while it is the enabled
-plugin whose `bin/` is on `PATH`. Toolchain, registry and forge-CLI entries are the owner's own to add.
+plugin whose `bin/` is on `PATH`. Toolchain, registry and forge-CLI entries are the owner's own to
+add.
