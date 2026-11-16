@@ -560,12 +560,13 @@ a repo session it is `target:<home name>` when that file is inside `<home>`, els
 (`<plugin root>`, the Plugin root rule in `orchestration.md`) counts as the plugin repo's
 (`kai-matsuda/claude-dev-plugin`) under the rules above, wherever the plugin is installed,
 and the body names its path relative to that root. A deployed file (one under
-`~/.claude`, say) counts by its source when `chezmoi source-path <file>` maps it back:
-the body names the source path, not the deployed one. When that command fails for any
-reason (the file is not chezmoi-managed, chezmoi is absent, or the sandbox denies it its
+`~/.claude`, say) counts by its source when the session can map it back (a symlink target,
+or the source path a dotfiles tool such as chezmoi reports, when the machine has one): the
+body names the source path, not the deployed one. When no mapping is found for any reason
+(no dotfiles tool, the file is not managed by one, or the sandbox denies the tool its
 config with `Operation not permitted`), the file counts as it stands, so outside `<home>`
 it is `retro:foreign` with the deployed path in the body. `/dev:retro` can run unattended, so
-it never reruns this outside the sandbox. `<KEY>-<n>` is
+it never reruns a mapping outside the sandbox. `<KEY>-<n>` is
 the Jira epic of the spec the session implemented, when there was one. The retro files;
 `/dev:triage` decides. No Jira issue is created here.
 

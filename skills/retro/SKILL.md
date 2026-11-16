@@ -91,8 +91,9 @@ watching, straight after an unattended `/dev:implement-spec`.
    - The target label and the body's location follow the tracker doc's "capture a retro
      item": by the manifest in a workspace session, `target:<home name>` or
      `retro:foreign` in a repo session. A deployed file is labelled by its source when
-     `chezmoi source-path` maps it, and the body names the source path; when it fails,
-     the file counts as it stands. Never rerun it outside the sandbox.
+     the tracker doc's rule maps it back, and the body names the source path; when no
+     mapping is found, the file counts as it stands. Never rerun a mapping outside the
+     sandbox.
    - A repeat follows the tracker doc's "capture a retro item" search: an open inbox bead
      for the same fix is noted, not filed twice. A second moment is the recurrence
      evidence `/dev:triage` wants.

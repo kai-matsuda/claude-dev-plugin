@@ -1246,6 +1246,13 @@ while IFS= read -r f; do
   lacks "dotfiles deployment path in $f" "$deployed"
 done < <(sweep_files | grep . | sort -u | drop_unchanged)
 
+# the plugin assumes no dotfiles tool: no skill or reference doc runs chezmoi, so a mention reads as
+# an example (dev-a6ds)
+chezmoi_cmd='chezmoi (source-path|apply|add|diff|managed|cd|edit|re-add|status)'
+while IFS= read -r f; do
+  lacks "chezmoi command in $f (a dotfiles tool is an example, never a step)" "$chezmoi_cmd"
+done < <({ find "$refs" "$skills" -type f 2>/dev/null; } | grep . | sort -u | drop_unchanged)
+
 # the three reference docs live in references/, so no skill or doc names one under the old
 # docs/agents/ folder; domain.md and triage-labels.md stay there and pass. The accepted ADRs and the
 # past specs keep their old paths, so docs/adr and docs/specs are not swept. The hooks and the
