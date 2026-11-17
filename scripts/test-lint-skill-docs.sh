@@ -3323,10 +3323,19 @@ bump_repo feat
 echo two > "$bump_repo_dir/scripts/a.sh"; bump_commit "scripts change"
 expect "a scripts-only change passes" 0
 
-# the pathspec is what ships: hooks and the glossary do, the specs under docs do not
+# the pathspec is what ships: hooks, bin and the glossary do, the specs under docs do not
 bump_repo feat
 mkdir -p "$bump_repo_dir/hooks"; echo h > "$bump_repo_dir/hooks/h.sh"; bump_commit "hooks change"
 expect "a hooks-only change without a version bump fails" 1 "version bump"
+
+bump_repo feat
+mkdir -p "$bump_repo_dir/bin"; echo b > "$bump_repo_dir/bin/b"; bump_commit "bin change"
+expect "a bin-only change without a version bump fails" 1 "version bump"
+
+bump_repo feat
+mkdir -p "$bump_repo_dir/bin"; echo b > "$bump_repo_dir/bin/b"
+echo '{"name":"dev","version":"0.2.0"}' > "$bump_repo_dir/.claude-plugin/plugin.json"; bump_commit "bin change and bump"
+expect "a bin change with a version bump passes" 0
 
 bump_repo feat
 echo g > "$bump_repo_dir/GLOSSARY.md"; bump_commit "glossary change"
