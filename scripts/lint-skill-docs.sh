@@ -1467,7 +1467,9 @@ sec_has "## Delivery" "Delivery's stray-commit failed: line" 'failed: stray comm
 sec_has "## Delivery" "Delivery's push command" 'git -C <owner> push -u origin <branch>'
 sec_has "## Delivery" "Delivery's refused push is a failed: line" 'failed: push <command>: <error>'
 sec_has "## Delivery" "Delivery's push runs as every forge command does, and a plain error outside the rerun cases or one that outlasts the rerun is a refused push" 'a plain error that is not a rerun case, or one that outlasts the rerun outside the sandbox, is a refused push'
-sec_has "## Delivery" "Delivery's push reads an ssh publickey denial inside the sandbox as a sandbox denial" 'an ssh `Permission denied (publickey)` inside the sandbox is a sandbox denial, so it reruns'
+sec_has "## Delivery" "Delivery's push reads an ssh publickey denial and a refusal naming another identity inside the sandbox as sandbox denials that rerun as the Forge decision says" 'an ssh `Permission denied (publickey)` or a `Permission to <repo> denied to <account>` refusal inside the sandbox is a sandbox denial that reruns as the Forge decision says, never read as a refused push'
+sec_has "## Delivery" "Delivery's push counts only the rerun's refusal as a failed push" 'and only a refusal that outlasts the rerun is a refused push (dev-dbhs)'
+sec_has "## Repo plumbing and Cut-off probe" "the Forge decision reruns a sandboxed push refused for another identity beside the publickey denial" 'A push refused inside the sandbox with `Permission to <repo> denied to <account>` (GitHub saw another identity) is a sandbox denial like the publickey one, so that one push reruns outside the sandbox'
 sec_has "## Delivery" "Delivery's PR body is written by mattpocock-skills:pr" 'the Skill tool with `mattpocock-skills:pr` to write the body'
 sec_has "## Delivery" "Delivery's PR body is written with a forge" '3. **PR body.** With a forge, call the Skill tool'
 row_phrase implement-spec-pins "tea fallback evidence" && sec_has "## Delivery" "Delivery's Evidence is the delivered tip's check record" "its Evidence $row_text"
