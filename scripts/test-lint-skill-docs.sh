@@ -3337,6 +3337,37 @@ mkdir -p "$bump_repo_dir/bin"; echo b > "$bump_repo_dir/bin/b"
 echo '{"name":"dev","version":"0.2.0"}' > "$bump_repo_dir/.claude-plugin/plugin.json"; bump_commit "bin change and bump"
 expect "a bin change with a version bump passes" 0
 
+# a script a skill or reference calls as <plugin root>/scripts/<name> runs on an installed
+# machine, so it ships; the lint and the test scripts, which nothing cites that way, do not
+bump_repo feat
+mkdir -p "$bump_repo_dir/skills/x"; echo 'run `<plugin root>/scripts/called.sh`' > "$bump_repo_dir/skills/x/SKILL.md"
+echo one > "$bump_repo_dir/scripts/called.sh"
+git -C "$bump_repo_dir" add -A; git -C "$bump_repo_dir" commit -q -m "cite and script"
+git -C "$bump_repo_dir" checkout -q main; git -C "$bump_repo_dir" merge -q --ff-only feat
+git -C "$bump_repo_dir" update-ref refs/remotes/origin/main main; git -C "$bump_repo_dir" checkout -q feat
+echo two > "$bump_repo_dir/scripts/called.sh"; bump_commit "called script change"
+expect_keep "a change to a script a skill calls, without a version bump, fails" 1 "version bump"
+echo '{"name":"dev","version":"0.2.0"}' > "$bump_repo_dir/.claude-plugin/plugin.json"; bump_commit "bump"
+expect "a change to a script a skill calls, with a version bump, passes" 0
+
+bump_repo feat
+mkdir -p "$bump_repo_dir/references"; echo 'run `<plugin root>/scripts/called.sh`' > "$bump_repo_dir/references/r.md"
+echo one > "$bump_repo_dir/scripts/called.sh"
+git -C "$bump_repo_dir" add -A; git -C "$bump_repo_dir" commit -q -m "cite and script"
+git -C "$bump_repo_dir" checkout -q main; git -C "$bump_repo_dir" merge -q --ff-only feat
+git -C "$bump_repo_dir" update-ref refs/remotes/origin/main main; git -C "$bump_repo_dir" checkout -q feat
+echo two > "$bump_repo_dir/scripts/called.sh"; bump_commit "called script change"
+expect "a change to a script a reference calls, without a version bump, fails" 1 "version bump"
+
+bump_repo feat
+mkdir -p "$bump_repo_dir/skills/x"; echo 'run `<plugin root>/scripts/called.sh`' > "$bump_repo_dir/skills/x/SKILL.md"
+echo one > "$bump_repo_dir/scripts/called.sh"; echo one > "$bump_repo_dir/scripts/test-called.sh"
+git -C "$bump_repo_dir" add -A; git -C "$bump_repo_dir" commit -q -m "cite and scripts"
+git -C "$bump_repo_dir" checkout -q main; git -C "$bump_repo_dir" merge -q --ff-only feat
+git -C "$bump_repo_dir" update-ref refs/remotes/origin/main main; git -C "$bump_repo_dir" checkout -q feat
+echo two > "$bump_repo_dir/scripts/test-called.sh"; bump_commit "test script change"
+expect "a change to a test script next to a called script, without a version bump, passes" 0
+
 bump_repo feat
 echo g > "$bump_repo_dir/GLOSSARY.md"; bump_commit "glossary change"
 expect "a glossary-only change without a version bump fails" 1 "version bump"
