@@ -2716,9 +2716,11 @@ done < <(awk -v name="$pin_plugin_root_variable" '
   FNR == 1 {inq=0} /^[[:space:]]*>/ {inq=1} /^[[:space:]]*$/ {inq=0}
   inq && index($0, name) {print FILENAME "\t" FNR "\t" $0}' "${brief_files[@]}")
 
-# version-bump rule: a change to what the plugin ships (skills, references, docs, hooks and the glossary,
+# version-bump rule: a change to what the plugin ships (skills, references, docs, hooks, bin and the glossary,
 # less the specs under docs, which never reach an installed machine) needs a version change in
-# the plugin manifest. The base is VERSION_BUMP_BASE (a CI job sets it to the PR base) or else
+# the plugin manifest. bin/ counts because it does reach an installed machine: while the plugin is
+# enabled, Claude Code puts its bin/ on the Bash tool's PATH (dev-21sr). scripts/ is not counted
+# yet (dev-tagq). The base is VERSION_BUMP_BASE (a CI job sets it to the PR base) or else
 # the default branch's remote tracking ref, origin/HEAD or origin/main, so a detached HEAD
 # derives it as a branch does; no local branch name picks the base. The diff runs from the
 # merge-base of that base and HEAD to the working tree, untracked non-ignored files included, so
@@ -2728,7 +2730,7 @@ done < <(awk -v name="$pin_plugin_root_variable" '
 # the same value, is no bump. A no-op with a local main checked out (by name, the one place a
 # branch name counts), and in a tree that is not a git repo.
 bump_repo=${VERSION_BUMP_REPO:-$root}
-shipping=(skills references docs hooks GLOSSARY.md ':(exclude)docs/specs')
+shipping=(skills references docs hooks bin GLOSSARY.md ':(exclude)docs/specs')
 if git -C "$bump_repo" rev-parse --git-dir >/dev/null 2>&1 \
   && [ "$(git -C "$bump_repo" rev-parse --abbrev-ref HEAD 2>/dev/null)" != main ]; then
   section "14. version bump"
