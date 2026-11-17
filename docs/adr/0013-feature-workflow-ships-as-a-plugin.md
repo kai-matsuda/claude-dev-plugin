@@ -77,7 +77,9 @@ differ in one line and no Jira instance is named anywhere.
 - Machines run the cached version until an update: the semver in `plugin.json` is bumped
   on every merge to main (patch for wording, minor for a new or renamed skill, major for
   a change to the beads or Jira contract), no tags, and the lint refuses a change under
-  `skills/` or `docs/` that leaves the version alone. Development runs Claude Code in the
+  `skills/`, `references/`, `docs/` (less `docs/specs/`), `hooks/`, `bin/` or
+  `GLOSSARY.md`, or to a script a skill or reference cites as `<plugin root>/scripts/<name>`,
+  that leaves the version alone. Development runs Claude Code in the
   plugin repo with `--plugin-dir .`.
 - The cutover is hard: the dotfiles PR that enables the plugin also deletes the skills,
   docs, hook and their tests, and lands only after a fresh marketplace install works on

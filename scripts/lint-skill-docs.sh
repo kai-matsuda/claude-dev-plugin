@@ -2716,14 +2716,17 @@ done < <(awk -v name="$pin_plugin_root_variable" '
   FNR == 1 {inq=0} /^[[:space:]]*>/ {inq=1} /^[[:space:]]*$/ {inq=0}
   inq && index($0, name) {print FILENAME "\t" FNR "\t" $0}' "${brief_files[@]}")
 
-# version-bump rule: a change to what the plugin ships (skills, references, docs, hooks, bin and the glossary,
-# less the specs under docs, which never reach an installed machine) needs a version change in
+# version-bump rule: a change to what the plugin ships (skills, references, docs, hooks, bin, the
+# scripts a skill or reference calls, and the glossary, less the specs under docs, which never
+# reach an installed machine) needs a version change in
 # the plugin manifest. bin/ counts because it does reach an installed machine: while the plugin is
 # enabled, Claude Code puts its bin/ on the Bash tool's PATH (dev-21sr). So does each script a skill
 # or reference calls as <plugin root>/scripts/<name>, which runs on an installed machine; the
 # called set is read from those cites under skills/ and references/ of the repo, so no list can
-# drift, and the rest of scripts/ (the lint, the test and fixture scripts) is not counted
-# (dev-tagq). The base is VERSION_BUMP_BASE (a CI job sets it to the PR base) or else
+# drift for a script cited there, a trailing full stop dropped from the name. A script reached
+# only through another called script (land.sh running stray-commit.sh) is not cited, so it is
+# not counted until a skill or reference cites it. The rest of scripts/ (the lint, the test and
+# fixture scripts) is not counted either (dev-tagq). The base is VERSION_BUMP_BASE (a CI job sets it to the PR base) or else
 # the default branch's remote tracking ref, origin/HEAD or origin/main, so a detached HEAD
 # derives it as a branch does; no local branch name picks the base. The diff runs from the
 # merge-base of that base and HEAD to the working tree, untracked non-ignored files included, so
@@ -2737,7 +2740,7 @@ shipping=(skills references docs hooks bin GLOSSARY.md ':(exclude)docs/specs')
 while IFS= read -r called_script; do
   shipping+=("$called_script")
 done < <(command grep -rhoE '<plugin root>/scripts/[A-Za-z0-9_.-]+' "$bump_repo/skills" "$bump_repo/references" 2>/dev/null \
-  | sed 's#^<plugin root>/##' | sort -u)
+  | sed -e 's#^<plugin root>/##' -e 's#[.]*$##' | sort -u)
 if git -C "$bump_repo" rev-parse --git-dir >/dev/null 2>&1 \
   && [ "$(git -C "$bump_repo" rev-parse --abbrev-ref HEAD 2>/dev/null)" != main ]; then
   section "14. version bump"

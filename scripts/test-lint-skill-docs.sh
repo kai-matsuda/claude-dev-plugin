@@ -3359,6 +3359,16 @@ git -C "$bump_repo_dir" update-ref refs/remotes/origin/main main; git -C "$bump_
 echo two > "$bump_repo_dir/scripts/called.sh"; bump_commit "called script change"
 expect "a change to a script a reference calls, without a version bump, fails" 1 "version bump"
 
+# an unbackticked cite ending a sentence keeps its script: the full stop is not part of the name
+bump_repo feat
+mkdir -p "$bump_repo_dir/references"; echo 'Then run <plugin root>/scripts/called.sh.' > "$bump_repo_dir/references/r.md"
+echo one > "$bump_repo_dir/scripts/called.sh"
+git -C "$bump_repo_dir" add -A; git -C "$bump_repo_dir" commit -q -m "cite and script"
+git -C "$bump_repo_dir" checkout -q main; git -C "$bump_repo_dir" merge -q --ff-only feat
+git -C "$bump_repo_dir" update-ref refs/remotes/origin/main main; git -C "$bump_repo_dir" checkout -q feat
+echo two > "$bump_repo_dir/scripts/called.sh"; bump_commit "called script change"
+expect "a change to a script cited with a trailing full stop, without a version bump, fails" 1 "version bump"
+
 bump_repo feat
 mkdir -p "$bump_repo_dir/skills/x"; echo 'run `<plugin root>/scripts/called.sh`' > "$bump_repo_dir/skills/x/SKILL.md"
 echo one > "$bump_repo_dir/scripts/called.sh"; echo one > "$bump_repo_dir/scripts/test-called.sh"
