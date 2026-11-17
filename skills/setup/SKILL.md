@@ -13,17 +13,21 @@ edits `~/.claude` or any file outside the repo it runs in, and the check itself 
    `tea`, `jq` (the check reads the plugin and MCP config with it), the
    `mattpocock-skills` plugin and the Atlassian MCP, each as `present:`,
    `missing:` or `confirm:`, then prints the `CLAUDE.md` stub, the baseline settings
-   snippet and the commands that install `commit-lint.sh` as the commit-msg hook, on
-   every machine. The Atlassian MCP is `present:` only when `~/.claude.json`
+   snippet and the `git config --global` lines that wire the trailer hook as the
+   commit-msg hook, on every machine. The Atlassian MCP is `present:` only when `~/.claude.json`
    (top level or this project) or the project's `.mcp.json` lists it under `mcpServers`;
    otherwise it is `confirm:`, never `missing:`, because a claude.ai connector is in no file.
 2. Show the owner the output. Tell them the stub goes into `~/.claude/CLAUDE.md` and the
    snippet is merged into `~/.claude/settings.json` (merge the arrays; do not replace
-   existing entries), and that they run the hook commands as printed: they copy the
-   script this plugin ships to `~/.config/git/commit-lint.sh` and point git's global
-   `hook.commitlint` at it. The source path names the installed plugin version, so the
-   copy is repeated after each plugin update; a machine setup tool (chezmoi, say)
-   installs it from the plugin cache on every apply rather than keeping its own copy.
+   existing entries), and that they run the hook lines as printed: they set git's global
+   `hook.committrailers` entry and the provenance keys `dev.trailer.provenance` (`Bead` and `Refs`),
+   generated from `skills/setup/commit-trailers.gitconfig`. The hook command names the bare
+   `commit-trailers`, which Claude Code puts on the Bash tool's `PATH` from the plugin's `bin/`
+   while the plugin is enabled, and exits 0 when the name is not on `PATH`, so the lines name no
+   path or plugin version, are pasted once and stay valid across plugin updates (pasting them
+   again leaves each key once). A repo opts out with `git config hook.committrailers.enabled false`;
+   a single commit with `git commit --no-verify`. A commit made outside that Bash tool is not
+   checked.
    The output ends with `all prerequisites present` or, while Atlassian is unconfirmed,
    `all checked prerequisites present; confirm Atlassian in /mcp`; the owner may already
    hold the stub, snippet and hook, so they compare rather than paste.
@@ -56,7 +60,8 @@ another `forge-wait` from riding the exclusion is that no sandbox-writable direc
 (dev-21sr): an agent that could write to a `PATH` directory could already plant a `git` that rides
 the baseline's `git push*` exclusion, so the bare name adds no new class of risk, and a machine
 that puts a writable directory on `PATH` ahead of the plugin's `bin/` loses that protection for the
-baseline's git exclusions as for this pair.
+baseline's git exclusions as for this pair and for `commit-trailers`, which the hook runs by its
+bare name: a script planted ahead of it on `PATH` runs as the commit-msg hook.
 What a glob cannot pin: a `*` matches any text, spaces included, so read as one whole string
 `forge-wait * * * * *` also matches `forge-wait a b c d e && other`. A compound command stays out
 of the rule only where the matcher splits it into its parts and tests each, as permission rules

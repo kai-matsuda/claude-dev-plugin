@@ -602,13 +602,29 @@ The coding standards one repo sets for itself: the rule files in its `.claude/ru
 Where they conflict with the personal standards, the repo's win (ADR 0018).
 _Avoid_: project standards, local standards
 
+**Provenance trailer**:
+A commit trailer that links a commit to the tracked work it came from, which
+its diff cannot show: Bead: and Refs: with beads and Jira. Which keys are
+provenance trailers is set per machine, not by the plugin's tracker.
+_Avoid_: bead trailer, ticket trailer, commit trailers (which include the attribution lines)
+
+**Trailer hook**:
+The commit-msg hook, the plugin's `bin/commit-trailers`, that blocks a provenance trailer git
+would not read as a trailer. It reads its provenance keys from the multi-valued git config
+`dev.trailer.provenance` and does nothing when none is set. Its one rewrite of the message
+file is the join repair: provenance lines and a following attribution paragraph split by a
+blank line are joined into one trailer paragraph.
+_Avoid_: commit-lint hook, bead hook
+
 **Machine setup**:
 The per-machine part of running the dev plugin, which a plugin cannot carry: the
 user-level `CLAUDE.md` stub that points at the plugin's docs, the baseline settings, the
-commit-lint git hook (the script ships in the plugin; the hook config cannot), and
+trailer hook (the script, `bin/commit-trailers`, ships in the plugin; the hook config is a
+gitconfig snippet from which setup generates `git config --global` commands the owner runs,
+with no script copy), and
 the lines the runbook has the owner add by hand (the `~/src` sandbox allowlist,
 `beads.role`, `BD_EXPORT_AUTO`). `/dev:setup` checks the prerequisites and hands the owner
-the stub, the baseline and the hook commands, nothing more; on Kai's own machines
+the stub, the baseline and the hook's gitconfig lines, nothing more; on Kai's own machines
 chezmoi applies all of it, so the skill finds nothing missing there.
 _Avoid_: bootstrap, onboarding
 

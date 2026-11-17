@@ -1,0 +1,6 @@
+[hook "committrailers"]
+	event = commit-msg
+	command = "command -v commit-trailers >/dev/null || exit 0; commit-trailers \"$@\""
+[dev "trailer"]
+	provenance = Bead
+	provenance = Refs

@@ -7,6 +7,12 @@ status: accepted
 > `~/.claude/rules/` file, and writes no rule file itself, as the retro skill says. The
 > Decision bullet below keeps its day's wording, "writes to the layer".
 
+> Amended 2026-11-16 (dev-ekcl.1.4, INFRA-47): the commit style (Conventional Commits
+> subjects, the imperative mood, the 72-character limit) joins the rules sorted to the
+> personal standards. The plugin's docs state only the provenance trailer rules and that the
+> subject and body follow the person's and the repo's standards; the plugin's own fixed
+> subjects keep the `type: subject` form.
+
 # The plugin ships no coding standards; they live in the user's rules folders
 
 The plugin shipped a default set of coding standards, `docs/agents/coding-standards.md`,

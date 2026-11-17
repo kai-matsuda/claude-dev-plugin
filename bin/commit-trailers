@@ -1,0 +1,82 @@
+#!/bin/sh
+# The trailer hook (glossary: Trailer hook), `commit-trailers`. Checks an agent's commit
+# message for provenance trailers and names no tracker: `commit-trailers <message file>`, run
+# from a repo as a commit-msg hook (exit 1 blocks, 2 is a usage error; errors go to stderr).
+# It reads the first argument as the message file and ignores any others, because git (2.56.0
+# observed) appends its own "$@" to a config hook command, so the snippet's command passes the
+# file twice; the extra arguments are tolerated whether or not a git version appends them
+# (dev-ekcl.1.5).
+# Machine setup wires it up by a gitconfig hook entry (skills/setup/commit-trailers.gitconfig,
+# which /dev:setup prints as git config --global commands). While the plugin is enabled, its
+# bin/ is on the Bash tool's PATH, so the hook calls it by its bare name. `commit-trailers` is
+# on PATH only in Claude Code's Bash tool with the plugin enabled, and the hook command
+# skips (exits 0) when the name is missing, so a commit made in a terminal outside that tool, or
+# with the plugin disabled, is not checked.
+#
+# The keys come from the multi-valued git config `dev.trailer.provenance` (for example Bead and
+# Refs). With none set it exits 0 and leaves the message file untouched. With keys set:
+#   - Repairs a paragraph of only provenance lines followed by a last paragraph of only
+#     Co-Authored-By:/Claude-Session: lines (any case) by joining them in the message file; this
+#     applies only when both are whole paragraphs, the attribution one is the last paragraph not
+#     counting trailing "#" comment lines, otherwise the file is untouched. The join is checked
+#     in memory and written only when the message then passes, so a blocked file stays as written.
+#   - Blocks a line starting with a configured key (spelled as configured) that
+#     `git interpret-trailers --parse` does not return: it sits in a paragraph before the last,
+#     or the last paragraph also holds prose, and git drops it from the trailers. The error
+#     points at references/issue-tracker.md in the dev plugin.
+# It checks nothing about the subject or the blank line after it, and warns about neither a
+# missing provenance trailer nor "#" lines in a merge message.
+# Opt a repo out with `git config hook.committrailers.enabled false`; bypass once with
+# `git commit --no-verify`.
+set -eu
+if [ "$#" -lt 1 ]; then
+  echo "usage: commit-trailers <message file>" >&2
+  exit 2
+fi
+msg=$1
+keys=$(git config --get-all dev.trailer.provenance || :)
+[ -n "$keys" ] || exit 0
+if [ ! -r "$msg" ]; then
+  echo "commit-trailers: error: cannot read the message file $msg" >&2
+  exit 1
+fi
+# One regex for the keys, "^(Bead|Refs): ", with regex characters in a key escaped. It matches
+# case-sensitively, the key spelled as configured, although git matches trailer keys in any case.
+alt=$(printf '%s\n' "$keys" | sed 's/[][\.*^$+?(){}|/]/\\&/g' | paste -sd '|' -)
+PROVENANCE="^($alt): "
+# The awk programs read it from ENVIRON: awk -v would process the backslashes the escaping added.
+KEYS=$(printf '%s\n' "$keys" | paste -sd ' ' -)
+export PROVENANCE KEYS
+# Repairs one shape (dev-qgww): see the header. Only `joined` holds the repair until the check passes.
+repaired=0
+joined=$(awk '
+BEGIN { provenance = ENVIRON["PROVENANCE"] }
+{ line[++n] = $0 }
+END {
+  last = n
+  while (last > 0 && (line[last] ~ /^[[:space:]]*$/ || line[last] ~ /^#/)) last--
+  attr_first = last
+  while (attr_first > 0 && tolower(line[attr_first]) ~ /^(co-authored-by|claude-session): /) attr_first--
+  if (attr_first == last || attr_first == 0 || line[attr_first] !~ /^[[:space:]]*$/) fix = 0
+  else {
+    prov_last = attr_first
+    while (prov_last > 0 && line[prov_last] ~ /^[[:space:]]*$/) prov_last--
+    prov_first = prov_last
+    while (prov_first > 0 && line[prov_first] ~ provenance) prov_first--
+    fix = (prov_first < prov_last && prov_first > 0 && line[prov_first] ~ /^[[:space:]]*$/)
+  }
+  for (i = 1; i <= n; i++) if (!(fix && i > prov_last && i <= attr_first)) print line[i]
+  exit fix ? 0 : 3
+}' "$msg") && repaired=1
+parsed=$(printf '%s\n' "$joined" | git interpret-trailers --parse | grep -cE "$PROVENANCE" || :)
+printf '%s\n' "$joined" | awk -v parsed="$parsed" '
+BEGIN { provenance = ENVIRON["PROVENANCE"]; keys = ENVIRON["KEYS"] }
+/^#/ { next }
+$0 ~ provenance { present++ }
+END {
+  if (present > parsed) {
+    printf "commit-trailers: error: a line starting with one of the provenance keys (%s) is not in the trailer block git parses; trailers go in the last paragraph, together with Co-Authored-By, and nothing else goes there (the dev plugin'"'"'s references/issue-tracker.md)\n", keys > "/dev/stderr"
+    exit 1
+  }
+}' || exit 1
+if [ "$repaired" = 1 ]; then printf '%s\n' "$joined" >"$msg"; fi
