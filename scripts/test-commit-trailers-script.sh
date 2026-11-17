@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# Tests for bin/commit-trailers, the trailer hook that machine setup wires as a commit-msg hook
+# Tests for `bin/commit-trailers`, the trailer hook that machine setup wires as a commit-msg hook
 # (dev-ekcl, INFRA-47). Covers it run on message files in a throwaway repo, as git's hook would;
-# the setup snippet's hook command run through `sh -c` with and without commit-trailers on PATH;
+# the setup snippet's hook command run through `sh -c` with and without `commit-trailers` on PATH;
 # and the same hook under real `git commit`s in throwaway repos, which need a git that runs
 # config hooks (on one that does not, the refusal case fails and the off-PATH case passes with no
 # hook run). The keys come from the repo-local dev.trailer.provenance, and global and system git
 # config are switched off for the message-file runs, so no case depends on the machine's own
 # config. What check-prereqs.sh prints of the snippet is tested in test-setup-skill.sh.
-# Usage: scripts/test-commit-trailers-script.sh
+# Usage: `scripts/test-commit-trailers-script.sh`
 set -uo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 source "$repo_root/scripts/fixture-test-lib.sh"   # fx_check, fx_scratch_dir, fx_git_repo, fx_report_fails

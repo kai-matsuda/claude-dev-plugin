@@ -4,8 +4,8 @@
 # prerequisite, prints the trailer hook's snippet as git config commands and changes nothing.
 # No check reads the SKILL.md body, only its frontmatter structure (the spec's Testing
 # Decisions). Driven from outside: jq on the snippet, the helper run against stub binaries on
-# a throwaway PATH. The trailer hook itself, bin/commit-trailers, is tested in
-# test-commit-trailers-script.sh.
+# a throwaway PATH. The trailer hook itself, `bin/commit-trailers`, is tested in
+# `test-commit-trailers-script.sh`.
 # Usage: scripts/test-setup-skill.sh
 set -uo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
