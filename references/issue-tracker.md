@@ -140,19 +140,19 @@ repo already had `core.hooksPath` set, chain the old hook from the new one in
   neither it nor `/dev:story-to-tasks` ever notes, updates or closes the epic bead.
 - Purely agent-internal work (wayfinding, research spikes, refactor sub-steps) stays in
   beads only and never gets a Jira issue unless a human needs to see it.
-- Commit messages are Conventional Commits, `type(scope): subject`: types feat, fix,
-  refactor, test, docs, chore; scope optional; the subject imperative, lowercase, no
-  trailing period, at most 72 characters. A body only when the why is not obvious from
-  the diff, never a bullet list restating it. Every commit carries its provenance as
-  trailers, `Bead: <bead-id>` when the work came from a bead and `Refs: <KEY>-<n>` for
-  the Jira epic the bead's `--external-ref` points at (never a per-task Jira issue),
-  both when both apply. Neither is inferable from a diff, so a commit without them loses
-  the link for good. They go in the last paragraph with the attribution lines and no
-  prose, since git parses only a last paragraph made of trailer lines as trailers. A
-  machine may enforce the mechanical parts with a commit-msg hook (the `commit-lint.sh`
-  the plugin ships in `skills/setup/`, when machine setup installed it); a commit it
-  rejects is fixed and retried (`harness.md`, Commits). The hook rewrites the message
-  file in one case: `Bead:`/`Refs:` lines and a following `Co-Authored-By:`/`Claude-Session:`
+- Commit messages: the subject and body follow the person's and the repo's standards, and
+  the plugin's own fixed subjects keep the `type: subject` form. Every commit carries its
+  provenance as trailers, `Bead: <bead-id>` when the work came from a bead and
+  `Refs: <KEY>-<n>` for the Jira epic the bead's `--external-ref` points at (never a
+  per-task Jira issue), both when both apply. Neither is inferable from a diff, so a
+  commit without them loses the link for good. They go in the last paragraph with the
+  attribution lines and no prose, since git parses only a last paragraph made of trailer
+  lines as trailers. A machine may enforce the mechanical parts with a commit-msg hook
+  (the trailer hook the plugin ships as `bin/commit-trailers`, when machine setup's
+  gitconfig lines wired it); a commit it rejects is fixed and retried (`harness.md`,
+  Commits). The hook rewrites the message
+  file in one case: lines with the configured provenance keys (`Bead` and `Refs`, setup's
+  default) and a following `Co-Authored-By:`/`Claude-Session:`
   paragraph split by a blank line are joined into one trailer paragraph.
 
 ## When a skill says "publish the spec to the issue tracker" (`/mattpocock-skills:to-spec`)

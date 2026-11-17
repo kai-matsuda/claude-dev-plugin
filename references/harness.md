@@ -81,14 +81,10 @@ worktree (a fix-up, a conflict resolution) or a re-run after a cut-off finds the
 message there and would spend a retry on it. Every brief to an agent that commits or merges
 (implementer, fix-up included, task orchestrator, story orchestrator) names this rule.
 
-The subject is in the imperative mood: a statement-form subject is rewritten as a command, so
-`reviewers report after every sub-agent has` becomes `make reviewers wait for every sub-agent`.
-The commit-msg hook cannot check mood, so the committer checks it by reading the subject.
-
 The message is written whole, its trailers one last paragraph with no blank line between them:
 
 ```
-docs(harness): show the trailer paragraph literally
+<subject, in the person's and the repo's style>
 
 The Commits rule shows its example message as it is written.
 

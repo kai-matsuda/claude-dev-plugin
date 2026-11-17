@@ -18,6 +18,13 @@ bare `forge-wait * * * * *`. What pinned the file moves from the exact
 path to a condition: no sandbox-writable directory is on `PATH`, which a baseline that already
 excludes `git push*` needs as well. Other scripts stay under `scripts/`.
 
+Amended (dev-ekcl.1.2, INFRA-47): `bin/` holds a second script, `commit-trailers`, the trailer
+hook, called by its bare name from a commit-msg hook in the owner's gitconfig; the setup snippet
+`skills/setup/commit-trailers.gitconfig` ships that hook command (dev-ekcl.1.3). The hook command
+skips (exits 0) when the name is not on `PATH`, so a machine without the plugin's `bin/` on `PATH`
+commits as before. A commit made outside Claude Code's Bash tool is not checked, because
+`commit-trailers` is on `PATH` only in that tool and only while the plugin is enabled.
+
 The orchestrators' plumbing was prose: each skill spelled out the git commands an agent
 types, and the lint pinned their wording. A pin proves a phrase is there, not that the
 commands work, and a step two skills share was written out in each. The landing's
