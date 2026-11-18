@@ -431,7 +431,7 @@ that section's labels and the finding as the body's Moment, and never creates a 
 the story for it; the reviewer reports findings and creates no bead either. A child is a task, and one carrying `needs-triage`
 stays open until `/dev:triage` decides it, which no run of the orchestrator can do. So a story
 is **finished** (`GLOSSARY.md`) when every child is `closed` or carries `ready-for-human`,
-`needs-triage` or `wontfix` and its `pr:` note exists: an untriaged child an earlier run
+`needs-triage` or `wontfix` and its `pr:` note exists, with its last `delivered:` note naming the branch's current tip: an untriaged child an earlier run
 left under a story holds back neither its review nor its PR, and `/dev:implement-story`'s
 **Re-evaluate the frontier** counts the same way before its review.
 

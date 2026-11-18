@@ -58,7 +58,8 @@ path of the repo it was found in; `<owner repo>` is its manifest entry name):
 `bd -C <owner> list --parent <story-id> --all --json`. A story is **finished** (the
 `${CLAUDE_PLUGIN_ROOT}/GLOSSARY.md` term) when every child is `closed` or carries `ready-for-human`,
 `needs-triage` or `wontfix`, and its notes (`bd -C <owner> show <story-id> --json`,
-`.[0].notes`) hold a `pr:` line.
+`.[0].notes`) hold a `pr:` line and, when they hold a `delivered:` line, its last one names the
+branch's current tip (`git -C <owner> rev-parse <branch>`).
 
 The position is the first row that holds:
 

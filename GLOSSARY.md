@@ -188,7 +188,10 @@ _Avoid_: story dep, sibling blocker, merge edge
 
 **Finished story**:
 A story whose children are all closed or carry `ready-for-human`, `needs-triage` or
-`wontfix`, and whose `pr:` note exists, so an earlier run reviewed and delivered it. An
+`wontfix`, and whose `pr:` note exists, so an earlier run reviewed and delivered it, and
+whose last `delivered:` note names the branch's current tip (a story with no `delivered:`
+note counts, and the next run writes one). A story whose last `delivered:` note names
+another tip is not finished: the next run delivers it again. An
 untriaged child an earlier run left under the story never holds the PR, nor the close at
 `/dev:close-story` once the PR merges: it is not a task to run, and the frontier never
 admits it. Each story has its own

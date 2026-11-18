@@ -838,6 +838,8 @@ hasc "Done" '**Done.**'
 has "Finished story" 'finished story'
 hasc "finished story tolerates untriaged children" "$pin_needs_triage_wontfix"
 lacks "finished story keyed on ready-for-human alone" "$pin_not_ready_for_human_alone"
+# a story whose last delivered: note names a tip other than the branch's current tip is not finished (dev-1b5i)
+hasc "implement-spec's finished test requires the delivered tip to be current" 'its last `delivered:` note names the branch'"'"'s current tip'
 has "story orchestrator" 'story orchestrator'
 has "implement-story" 'implement-story'
 has "opus" 'opus'
@@ -1229,6 +1231,7 @@ done <<<"$swept"
 f=$glossary_md
 lacksw "retired two-gate wording in $f" "$retired_loop"
 lacksw "retired review-only gate wording in $f" "$retired_gate"
+hasc "the glossary's finished story names the delivered-tip condition (dev-1b5i)" 'last `delivered:` note names the branch'"'"'s current tip'
 
 # the docs ship in the plugin: no path into the old dotfiles deployment (~/.claude/docs,
 # ~/.claude/hooks), a deployed copy of the reference docs (~/.claude/references) or the chezmoi
@@ -2181,6 +2184,8 @@ row_sweep implement-spec-pins "mark ready with gh" && line_lacks '^8\. ' "the de
 row_sweep implement-spec-pins "mark ready with tea" && line_lacks '^8\. ' "the deliver step marking the PR ready with tea" "$row_text"
 # step 1 does not count a story with a later checks red: note as finished, so a re-delivery's
 # red check is not hidden by the earlier delivery's pr: note (dev-xc2 review 1)
+line_has '^   The tasks are ' "a stale delivered: note unfinishes the story" 'its last `delivered:` note names the branch'"'"'s current tip'
+line_has '^   The tasks are ' "a stale delivered: tip sends the run to delivery" 'a `delivered:` note naming another tip sends the run to steps 7 and 8'
 line_has '^   The tasks are ' "a checks red: note unfinishes the story" 'with no `checks red:` line after it'
 hasc "report template shows the checks: line" 'checks:  skipped: <no forge | no workflows | none reported>'
 hasc "report template's failed: line names a red forge check" 'or forge check <name> <run URL>'
