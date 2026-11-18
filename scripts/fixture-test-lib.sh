@@ -39,11 +39,12 @@ fx_git_repo() { # <dir> [<git dir>]
   mkdir -p "$dir" && parent=$(cd "$dir/.." && pwd -P) || return 1
   GIT_CEILING_DIRECTORIES=$parent git init -q -b main --template= --separate-git-dir="$gd" "$dir" || return 1
   GIT_CEILING_DIRECTORIES=$parent fx_is_repo_top "$dir" || return 1
-  # hook.commitlint.enabled false below is the legacy opt-out, for a machine whose global config
-  # still runs the old hook.commitlint hook
+  # hook.commitstyle.enabled false and hook.commitlint.enabled false below opt the repo out of a
+  # machine's global commit-msg hooks (the commit-style hook, and the legacy commitlint one), which
+  # reject fixture messages like "base"
   git -C "$dir" config user.name Fixture && git -C "$dir" config user.email fixture@example.invalid \
     && git -C "$dir" config core.hooksPath /dev/null && git -C "$dir" config hook.committrailers.enabled false \
-    && git -C "$dir" config hook.commitlint.enabled false \
+    && git -C "$dir" config hook.commitlint.enabled false     && git -C "$dir" config hook.commitstyle.enabled false \
     && git -C "$dir" config commit.gpgsign false
 }
 # section <file> <heading>: the lines under a level-2 heading of a Markdown file, up to the next one
