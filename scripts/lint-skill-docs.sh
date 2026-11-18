@@ -1023,7 +1023,7 @@ hasc "refusal only when every story is closed" 'refused: every story is closed'
 hasc "add mode shows each story's state" 'finished, open with failed tasks, waiting'
 hasc "add mode reads the failed twice: notes" 'names the `failed twice:` reason it answers'
 hasc "add mode quizzes the additions only" 'quizzes the additions only'
-# one forge query per finished story an addition touches, run as the Forge decision says, as /close-story's
+# one forge query per story with a PR an addition touches, run as the Forge decision says, as /close-story's
 hasc_row "forge query, GitHub" repo-plumbing-pins "the merge guard's GitHub query"
 hasc_row "forge query, Forgejo/Gitea" repo-plumbing-pins "the merge guard's Forgejo query names the repo"
 lacks "Forgejo/Gitea forge query without --repo" "$pin_tea_api_without_repo"
@@ -1032,9 +1032,9 @@ hasc "MERGED forces a new story on the old one's closure" 'a new story blocked o
 hasc "MERGED reminds the close" "$pin_run_close_story"
 hasc "OPEN defaults to a re-cut" '`OPEN` defaults to a re-cut'
 hasc "no forge or a branch-form pr: asks the user" 'a branch-form `pr:` value asks the user'
-# OPEN's re-cut marks the finished dependent so the task cut may re-cut it past its pr: note;
+# OPEN's re-cut marks the dependent with a PR so the task cut may re-cut it past its pr: note;
 # a PR closed unmerged is refused, as /implement-story's merge guard refuses it (story review 1)
-hasc "OPEN marks the finished dependent for a re-cut" '`recut: <dep repo> publish <crate> <version>`'
+hasc "OPEN marks the dependent with a PR for a re-cut" '`recut: <dep repo> publish <crate> <version>`'
 # add mode splits the dependents on the pr: note, as the task cut's refusal does: a story with a pr:
 # note whose delivered tip is stale is not finished but its PR is open, so it takes the forge query
 # and the recut: note, not a bare Blocked by line (dev-1b5i)
@@ -1110,6 +1110,10 @@ has "a dependent to re-cut carries no pr: note" 'carries no `pr:` note (or carri
 lacksf "a dependent to re-cut admitted as 'not finished'" 'is not finished (or is finished and its notes carry a `recut:`'
 lacksf "the report line naming a finished story" 'cut failed: finished story'
 has "failed re-cut with a publish task holds nothing" 'already has its publish task holds nothing'
+# the task cut cites add mode's renamed heading and does not promise a PR stays open past a close (dev-1b5i)
+has "the task cut cites add mode's story with a PR" '**A story with a PR an addition touches.**'
+lacksf "the task cut citing add mode's retired 'finished' heading" 'A finished story an addition touches'
+lacksf "the task cut's PR staying open until merged, unconditioned" 'the PR stays open until merged'
 hasc "re-cut dependent also waits on a dependency without its publish" 'A dependent of the run (in the set to cut or to re-cut) with such an edge'
 # a re-cut dependent that is also a dependency joins the trigger until no story joins, and no
 # dependent waits on a publish the run creates; the cut-failure cascade covers only the run's
@@ -1120,7 +1124,7 @@ has "no wait on a publish the run creates" 'and is not re-cut in this run'
 has "cascade narrowed to the run's dependencies" 'a dependency of the run whose cutter failed or that was itself held back'
 hasc "closed-uncut rule stands on its own" 'Nor is a dependent spawned whose dependency story is `closed` with no children'
 has "re-cut line is a progress line" 'a step-1 progress line'
-# a finished dependent add mode marked with a recut: note is re-cut for that edge; the
+# a dependent with a PR that add mode marked with a recut: note is re-cut for that edge; the
 # all-closed refusal gives the live reason, not the retired stories-exist one (story review 1)
 has "a pr:-noted dependent is re-cut on its recut: note" 'a `recut:` line for that edge'
 lacks "retired stories-exist reason" 'since stories exist'
@@ -1244,7 +1248,8 @@ done <<<"$swept"
 f=$glossary_md
 lacksw "retired two-gate wording in $f" "$retired_loop"
 lacksw "retired review-only gate wording in $f" "$retired_gate"
-hasc "the glossary's finished story names the delivered-tip condition (dev-1b5i)" 'last `delivered:` note names the current tip of its integration branch'
+hasc "the glossary's finished story names the delivered-tip condition (dev-1b5i)" 'last `delivered:` note names the current tip of'
+hasc "the glossary defines a story with a PR (dev-1b5i)" '**Story with a PR**:'
 
 # the docs ship in the plugin: no path into the old dotfiles deployment (~/.claude/docs,
 # ~/.claude/hooks), a deployed copy of the reference docs (~/.claude/references) or the chezmoi
@@ -1864,6 +1869,8 @@ has "brief carries a Dependent line per dependent" 'one `Dependent:` line per de
 has "two publish tasks refusal" 'refused: block carries two publish tasks; one PR publishes one version'
 has "finished-story refusal names add mode" "add mode ($cmd_spec_to_stories_key, or the epic bead id when the story has no key)"
 has "finished story marked by add mode is re-cut" 'unless its notes carry a `recut:` line'
+has "the story cut cites add mode's story with a PR" '**A story with a PR an addition touches.**'
+lacksf "the story cut citing add mode's retired 'finished' heading" 'A finished story an addition touches'
 lacksf "the cut's refusal scoped to 'finished' stories, not the pr: note (dev-1b5i)" 'or a finished one with no such `recut:` line'
 # a re-cut that gained a publish blocker adds a second bump and re-edges open tasks
 has "re-cut adds a bump per new publish blocker" 'gained a publish blocker'
@@ -2207,6 +2214,8 @@ line_has '^   The tasks are ' "a stale delivered: tip sends the run on through s
 # step 1 does not count a story with a later checks red: note as finished, so a re-delivery's
 # red check is not hidden by the earlier delivery's pr: note (dev-xc2 review 1)
 line_has '^   The tasks are ' "a checks red: note unfinishes the story" 'with no `checks red:` line after it'
+# the in-flight list names the delivered-tip gap too, not only the missing pr: note (dev-1b5i)
+line_has '^   - every child is ' "the story gate's finished-short-of line names the delivered tip" 'a `delivered:` note naming the current tip'
 hasc "report template shows the checks: line" 'checks:  skipped: <no forge | no workflows | none reported>'
 hasc "report template's failed: line names a red forge check" 'or forge check <name> <run URL>'
 hasc "report template's failed: line names a merge conflict" 'or merge conflict <PR URL>'
