@@ -491,13 +491,16 @@ Branch and PR notes go on the story bead (next section).
 
 When every child of a story is closed or carries `ready-for-human`, `needs-triage` or
 `wontfix`, its orchestrator (`/dev:implement-story`) delivers it and leaves the story bead
-**open**; it closes at `/dev:close-story`, after the PR
-merges. Delivery records the link on the story bead only:
-`bd -C <owner> note <story-id> "pr: <url>"` (or `pr: <branch> <tip SHA>` when there
-is no forge; the `pr:` prefix is what `/dev:close-story` looks for). The integration branch
-name goes on the same bead as `branch: <name>`. That makes it a **finished story**
-(`GLOSSARY.md` in the plugin repo): a later run never touches it and only reports its
-PR or branch.
+**open**; it closes at `/dev:close-story`, after the PR merges. Delivery records the link
+on the story bead only: `bd -C <owner> note <story-id> "pr: <url>"` (or
+`pr: <branch> <tip SHA>` when there is no forge; the `pr:` prefix is what
+`/dev:close-story` looks for). The integration branch name goes on the same bead as
+`branch: <name>`. That makes it a **finished story** (`GLOSSARY.md` in the plugin repo)
+once its last `delivered:` note names the branch's current tip (a story with no
+`delivered:` note counts; a `delivered:` line with no `branch:` note, or one whose branch
+does not resolve locally, names no current tip, so the story is not finished): a later run
+only reports its PR or branch. A last `delivered:` note naming another tip leaves it not
+finished, and the next run delivers it again.
 
 The Jira side belongs to `/dev:implement-spec` alone; `/dev:implement-story` has no Jira step,
 whoever runs it. `/dev:implement-spec` does it once, in the first invocation that ends with every
