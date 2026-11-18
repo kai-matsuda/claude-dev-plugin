@@ -1035,6 +1035,14 @@ hasc "no forge or a branch-form pr: asks the user" 'a branch-form `pr:` value as
 # OPEN's re-cut marks the finished dependent so the task cut may re-cut it past its pr: note;
 # a PR closed unmerged is refused, as /implement-story's merge guard refuses it (story review 1)
 hasc "OPEN marks the finished dependent for a re-cut" '`recut: <dep repo> publish <crate> <version>`'
+# add mode splits the dependents on the pr: note, as the task cut's refusal does: a story with a pr:
+# note whose delivered tip is stale is not finished but its PR is open, so it takes the forge query
+# and the recut: note, not a bare Blocked by line (dev-1b5i)
+hasc "add mode's new blocker line goes straight onto a dependent with no pr: note" 'on an existing dependent with no `pr:` note'
+hasc "add mode names the touched story as a story with a PR" '**A story with a PR an addition touches.**'
+hasc "add mode cites the task cut's Dependents with a PR" "\`/dev:spec-to-tasks\`'s **Dependents with a PR.**"
+lacksf "add mode splitting dependents on 'not finished'" 'dependent that is not finished'
+lacksf "add mode's touched story named 'finished'" 'A finished story an addition touches'
 hasc "a PR closed unmerged is refused" "$pin_refused_pr_closed_unmerged"
 lacks "a PR closed unmerged takes OPEN's path" 'closed unmerged is not sealed|closed unmerged[^.]*takes `OPEN`'
 # step 7 in add mode writes the additions and the rewritten dependent bodies, beads only

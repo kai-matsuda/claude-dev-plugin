@@ -39,9 +39,9 @@ fx_git_repo() { # <dir> [<git dir>]
   mkdir -p "$dir" && parent=$(cd "$dir/.." && pwd -P) || return 1
   GIT_CEILING_DIRECTORIES=$parent git init -q -b main --template= --separate-git-dir="$gd" "$dir" || return 1
   GIT_CEILING_DIRECTORIES=$parent fx_is_repo_top "$dir" || return 1
-  # hook.commitstyle.enabled false and hook.commitlint.enabled false below opt the repo out of a
-  # machine's global commit-msg hooks (the commit-style hook, and the legacy commitlint one), which
-  # reject fixture messages like "base"
+  # hook.commitstyle, hook.commitlint and hook.committrailers set to false below opt the repo out of a
+  # machine's global commit-msg hooks (the commit-style hook, the legacy commitlint one and the
+  # trailer hook), which reject fixture messages like "base"
   git -C "$dir" config user.name Fixture && git -C "$dir" config user.email fixture@example.invalid \
     && git -C "$dir" config core.hooksPath /dev/null && git -C "$dir" config hook.committrailers.enabled false \
     && git -C "$dir" config hook.commitlint.enabled false \

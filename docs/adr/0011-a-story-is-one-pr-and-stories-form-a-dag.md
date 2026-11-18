@@ -35,14 +35,15 @@ non-publish gate such as a deploy). On a feature whose stories already exist it 
 and more work on it is a new feature, not an addition, so that one case is still refused.
 Add mode shows the stories with their state, reads their
 `failed twice:` notes, quizzes the additions (new stories with their edges and publish
-versions, a second blocker line and bump on a dependent that is still open) and publishes
-only those. For each finished story an addition touches it asks the forge once: a `MERGED`
+versions, a second blocker line and bump on a dependent with no PR yet) and publishes
+only those. For each story with a PR (a `pr:` note, its delivered tip
+current or stale) an addition touches it asks the forge once: a `MERGED`
 PR forces a new story (and a `/dev:close-story`), an `OPEN` one defaults to a re-cut (a
 `recut:` note on the story lets the ticket cut past its `pr:` note), a PR closed unmerged
 is refused as `/dev:implement-story` refuses it, no forge asks the user. The addition's content comes from the conversation and the notes; the Jira
 epic's description changes only when the feature's promise does. `/dev:spec-to-tickets` runs
 its cutters in topological waves and re-cuts an already-cut dependent itself when a new
-publish ticket lands. `/dev:implement-story` guards the one place a commit follows: a finished
+publish ticket lands. `/dev:implement-story` guards the one place a commit follows: a delivered
 story with an open `ready-for-agent` child gets one forge query, and a merged PR refuses.
 `/dev:implement-spec` reports a story waiting on another story's closure as a **human stop**
 (merge the PR, then `/dev:close-story`), and its Stall report points at add mode when a failure

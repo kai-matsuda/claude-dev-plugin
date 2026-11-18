@@ -131,7 +131,10 @@ PR body and bead) and PR (`branch:` and `pr:` notes on the bead) and holds its
 tasks as children; a repo session's stories are the epic bead's children, and every
 workspace-session story carries the epic's Jira key. A story is
 **finished** when every child is closed or carries `ready-for-human`, `needs-triage` or
-`wontfix`, its `pr:` note exists and its last `delivered:` note names the branch's current tip (no `delivered:` note counts; a `delivered:` line with no `branch:` note, or one whose branch does not resolve locally, names no current tip, so the story is not finished). Order
+`wontfix`, its `pr:` note exists (no `checks red:` line after it) and its last `delivered:`
+note names the branch's current tip (no `delivered:` note counts; a `delivered:` line with no
+`branch:` note, or one whose branch does not resolve locally, names no current tip, so the
+story is not finished). Order
 between stories is a text blocker on the dependent, one `## Blocked by` line per edge,
 each naming a human gate task (another repo's publish task) or a story (open until
 its `/dev:close-story`); the stories form a DAG, and there are no per-task edges across
