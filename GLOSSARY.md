@@ -420,7 +420,7 @@ _Avoid_: crash, timeout
 
 **Stop sweep**:
 What the epic orchestrator does before resuming a cut-off story orchestrator: `ListAgents`, then
-`TaskStop` on every agent it did not itself spawn, since a child whose parent's turn was
+`TaskStop` on every agent it did not itself spawn (so a story orchestrator it spawned, one it waits on included, is spared), since a child whose parent's turn was
 cut off is owned by no one else and stays listed as running however quiet it is.
 _Avoid_: cleanup, kill, orphan reaping
 
@@ -491,7 +491,7 @@ closes its PR. A cut-off orchestrator the person restarts by typing the command 
 invocation. `/dev:implement-spec` marks the start of its invocation with an `epic round start`
 note on every open story of the epic that the preflight covered, written before any delivery or review, and counts a
 story's spent budget from the last one. A story whose orchestrator an earlier invocation spawned and that still
-runs gets its note once that orchestrator's report is in, before the first review or task on it, so its budget is
+runs gets its note before the first review or task on it, which is at the latest when that orchestrator's report is in, so its budget is
 this invocation's too.
 _Avoid_: typed run, fresh run (and "attempt" for one invocation)
 
