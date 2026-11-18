@@ -59,7 +59,7 @@ path of the repo it was found in; `<owner repo>` is its manifest entry name):
 `${CLAUDE_PLUGIN_ROOT}/GLOSSARY.md` term) when every child is `closed` or carries `ready-for-human`,
 `needs-triage` or `wontfix`, and its notes (`bd -C <owner> show <story-id> --json`,
 `.[0].notes`) hold a `pr:` line and, when they hold a `delivered:` line, its last one names the
-branch's current tip (`git -C <owner> rev-parse <branch>`).
+current tip of the `branch:` note's branch (`git -C <owner> rev-parse <branch>`); a `delivered:` line with no `branch:` note, or one whose branch does not resolve locally, names no current tip, so the story is not finished.
 
 The position is the first row that holds:
 

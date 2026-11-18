@@ -41,7 +41,7 @@
 #      lines, the closed and publish-failed lines, a Jira comment over every story, no
 #      story-cut procedure; the cycle refusal, topological waves with every upstream
 #      breakdown in a dependent's brief, the inline re-cut of an already cut dependent keyed on
-#      its missing bump, a finished dependent excluded at step 1, a skipped repo's publish line
+#      its missing bump, a dependent with a PR excluded at step 1, a skipped repo's publish line
 #      as an edge with no dependency, the held-back cascade narrowed to a dependency without
 #      its publish task, and no two-wave cap (ADR 0011);
 #   (3, 4 and 1 point at the shared preflight and epic gather that section 6 checks; 3, 4 and 7
@@ -1091,11 +1091,16 @@ has "story-closure edge orders no wave" 'a story-closure edge orders no wave'
 has "the task cut re-cuts an already cut dependent" 're-cuts that dependent itself'
 has "the re-cut adds a second bump" 'second bump'
 # a skipped repo's publish line has no dependency story; the inline re-cut is keyed on the
-# missing bump; a finished dependent is excluded at step 1, and a failed re-cut of a dependency
+# missing bump; a dependent with a PR is excluded at step 1, and a failed re-cut of a dependency
 # that has its publish task holds no dependent back (chezmoi-9v4.1.8 review 1)
 has "skipped publish line is an edge with no dependency" 'an edge with no dependency in the run'
 has "re-cut keyed on the missing bump" 'has no bump child titled with that crate'
-has "finished dependent excluded at step 1" 'cut failed: finished story (pr: note present)'
+has "a dependent with a PR is excluded at step 1" 'cut failed: story with a PR (pr: note present)'
+# the re-cut test keys on the pr: note, as the refusal does: a story with a pr: note whose delivered
+# tip is stale is refused too, so "is not finished" no longer admits one (dev-1b5i)
+has "a dependent to re-cut carries no pr: note" 'carries no `pr:` note (or carries one and its notes also carry a `recut:` line'
+lacksf "a dependent to re-cut admitted as 'not finished'" 'is not finished (or is finished and its notes carry a `recut:`'
+lacksf "the report line naming a finished story" 'cut failed: finished story'
 has "failed re-cut with a publish task holds nothing" 'already has its publish task holds nothing'
 hasc "re-cut dependent also waits on a dependency without its publish" 'A dependent of the run (in the set to cut or to re-cut) with such an edge'
 # a re-cut dependent that is also a dependency joins the trigger until no story joins, and no
@@ -1109,7 +1114,7 @@ hasc "closed-uncut rule stands on its own" 'Nor is a dependent spawned whose dep
 has "re-cut line is a progress line" 'a step-1 progress line'
 # a finished dependent add mode marked with a recut: note is re-cut for that edge; the
 # all-closed refusal gives the live reason, not the retired stories-exist one (story review 1)
-has "finished dependent re-cut on its recut: note" 'a `recut:` line for that edge'
+has "a pr:-noted dependent is re-cut on its recut: note" 'a `recut:` line for that edge'
 lacks "retired stories-exist reason" 'since stories exist'
 lacks "two-wave cap or chain refusal" 'two dependency waves suffice|two suffice|at most two( dependency)? waves'
 lacks "rerun hint covering an already cut dependent" 'rerun this skill for the dependent'
@@ -1231,7 +1236,7 @@ done <<<"$swept"
 f=$glossary_md
 lacksw "retired two-gate wording in $f" "$retired_loop"
 lacksw "retired review-only gate wording in $f" "$retired_gate"
-hasc "the glossary's finished story names the delivered-tip condition (dev-1b5i)" 'last `delivered:` note names the branch'"'"'s current tip'
+hasc "the glossary's finished story names the delivered-tip condition (dev-1b5i)" 'last `delivered:` note names the current tip of its integration branch'
 
 # the docs ship in the plugin: no path into the old dotfiles deployment (~/.claude/docs,
 # ~/.claude/hooks), a deployed copy of the reference docs (~/.claude/references) or the chezmoi
@@ -1851,6 +1856,7 @@ has "brief carries a Dependent line per dependent" 'one `Dependent:` line per de
 has "two publish tasks refusal" 'refused: block carries two publish tasks; one PR publishes one version'
 has "finished-story refusal names add mode" "add mode ($cmd_spec_to_stories_key, or the epic bead id when the story has no key)"
 has "finished story marked by add mode is re-cut" 'unless its notes carry a `recut:` line'
+lacksf "the cut's refusal scoped to 'finished' stories, not the pr: note (dev-1b5i)" 'or a finished one with no such `recut:` line'
 # a re-cut that gained a publish blocker adds a second bump and re-edges open tasks
 has "re-cut adds a bump per new publish blocker" 'gained a publish blocker'
 has "re-cut re-edges kept tasks onto the new bump" 'kept ones with `bd dep add <task id> <bump id>`'

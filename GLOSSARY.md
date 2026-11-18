@@ -189,13 +189,15 @@ _Avoid_: story dep, sibling blocker, merge edge
 **Finished story**:
 A story whose children are all closed or carry `ready-for-human`, `needs-triage` or
 `wontfix`, and whose `pr:` note exists, so an earlier run reviewed and delivered it, and
-whose last `delivered:` note names the branch's current tip (a story with no `delivered:`
-note counts, and the next run writes one). A story whose last `delivered:` note names
-another tip is not finished: the next run delivers it again. An
+whose last `delivered:` note names the current tip of its integration branch (a story with
+no `delivered:` note counts, and the next run writes one). A story whose last `delivered:`
+note names another tip, or that has a `delivered:` note but no `branch:` note or a branch
+that does not resolve locally, is not finished: the next run delivers it again.
+
+Each story has its own integration branch, review and PR, recorded on the story bead. An
 untriaged child an earlier run left under the story never holds the PR, nor the close at
 `/dev:close-story` once the PR merges: it is not a task to run, and the frontier never
-admits it. Each story has its own
-integration branch, review and PR, recorded on the story bead; a later run leaves a
+admits it. A later run leaves a
 finished story untouched and only reports its PR or branch. Finished is not sealed: while
 its PR is open, add mode may mark it for a re-cut (a `recut:` note naming the new publish
 blocker, the one note that lets the task cut past its `pr:` note), and the next run

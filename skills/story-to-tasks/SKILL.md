@@ -5,7 +5,7 @@ description: "Break one story bead into tracer-bullet tasks for its owner repo, 
 
 <!-- Derived from mattpocock-skills 1.3.1's engineering breakdown skill, steps 1-5 kept in the
      plugin's order. Local changes: the input is one story bead (non-story, closed and
-     finished stories refused, a finished one unless add mode marked it with a recut: note),
+     pr:-noted stories refused, a pr:-noted one unless add mode marked it with a recut: note),
      optionally in another repo (bd -C);
      context is the story body and its Jira epic; tasks for the owner repo only; one
      complexity tier per task; two modes, alone (quiz, then publish) and called (a "story
@@ -43,7 +43,7 @@ Work from whatever is already in the conversation context.
 
 From the story body read the deliverable paragraph, `## Test seams`, `## Parent` (home name, epic bead id, `<KEY>-<n>`) and `## Blocked by`. Read the story's existing children with `bd list --parent <id> --all --json`: any child at all makes this a **re-cut**.
 
-**Publish role**: the refusals, the story-body read and the children read above all run, so a publish brief against a closed story, or a finished one with no such `recut:` line, ends on its refusal line with no bead created, and `## Blocked by` reaches step 3's pair detection. It stops here: it needs no spec, so a Jira error cannot stop it.
+**Publish role**: the refusals, the story-body read and the children read above all run, so a publish brief against a closed story, or one with a `pr:` note and no such `recut:` line, ends on its refusal line with no bead created, and `## Blocked by` reaches step 3's pair detection. It stops here: it needs no spec, so a Jira error cannot stop it.
 
 Fetch the spec as the tracker doc's "fetch the spec" says, `<id>` being the story id. Read `<epic-id>` and the home name from `## Parent`. The line reads `Home <name>` or the older `Home repo <name>` (`<name>` is the word after `Home`, or after `Home repo`), compared to `<home name>` ignoring case. Reach the epic bead with plain `bd show <epic-id> --json`, never `bd -C <path>` even when the story is read with one, and only when the names match and `<home>` has a database by the "Has a database" rule (plain `bd` climbs to an ancestor's database without one): the epic bead then lives in `<home>`'s database, the session's. Any other name means its database is not the session's, and no `bd -C` is tried, so the fetch reaches its last resort. No epic id or no home name in `## Parent`, a different home name, or a failing `bd show` counts as no epic bead. The last resort is the story body: say `cutting from the story body alone` and go on.
 
