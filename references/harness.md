@@ -100,7 +100,8 @@ stop where they are, context, worktree and claimed task intact (INFRA-28's run 1
 2026-10-20). The epic orchestrator's turn is the only one a `SendMessage` reply reaches, so only the
 epic orchestrator resumes an agent, and only a story orchestrator. First the **stop sweep**:
 `ListAgents`, then `TaskStop` on every agent id the epic orchestrator did not itself spawn (the
-orchestrators' task orchestrators, implementers and reviewers), since a child whose parent's
+orchestrators' task orchestrators, implementers and reviewers; not a story orchestrator an earlier
+invocation spawned that `/dev:implement-spec` waits on, which it treats as its own), since a child whose parent's
 turn was cut off is owned by no one else and stays listed as running however quiet it is
 (that run's implementer, "quiet for over 30 minutes"). Then one line to the same agent id,
 `resume: re-read the story and its tasks from the beads and carry on`. The beads and notes
