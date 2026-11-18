@@ -135,3 +135,7 @@ has	the no-marker check is against the orchestrators own context	against the orc
 has	the markers are written only after the preflight passes	A preflight that stops with `/add-dir` lines writes none
 has	the batch check reads the orchestrators own context, the budget count reads the notes	(a batch you spawned this invocation, which your own context holds; the budget count itself reads the notes only)
 has	a pass after a batch spends, a moved-tip story falls under the tip-not-delivered line	every pass after a batch spends the budget
+# a story whose orchestrator from an earlier invocation still runs is neither marked nor spawned (dev-nvjm)
+has	step 4 reads ListAgents before it writes a marker or spawns	read `ListAgents` before it writes a marker or spawns
+has	a story whose orchestrator still runs gets no marker and no second orchestrator	gets no `epic round start` note and no second orchestrator
+has	the running orchestrator's report is waited for as a batch report	waits for its report and acts on it as a batch report
