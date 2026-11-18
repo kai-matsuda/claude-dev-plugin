@@ -208,8 +208,8 @@ _Avoid_: done story, finished repo, touched repo, sealed story (that is a merged
 A story whose notes carry a `pr:` line, finished or not: a stale last `delivered:` note
 leaves it with a PR but not finished (the next run delivers it again). The task cut and
 add mode key on this state, not on finished: neither re-cuts it without a `recut:` note,
-and its PR stays open until it is merged or closed.
-_Avoid_: delivered story, finished story (the tip condition makes that a narrower state)
+and its PR stays open until it is merged or closed. A finished story is the narrower
+state: the tip condition makes it a story with a PR whose last `delivered:` note is current.
 
 **Reopened**:
 A standalone task that was delivered in full and then wanted again for more work: its last
