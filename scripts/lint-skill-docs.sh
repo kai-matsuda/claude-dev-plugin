@@ -1696,6 +1696,10 @@ para_has "$head_branch_from_remote_ref" "the --no-track switch" '`git switch --n
 para_has "$head_branch_from_remote_ref" "the sandbox denies the tracking write" 'denies the write to `.git/config`'
 fi
 if doc 6 "tracker rules" "$refs/issue-tracker.md"; then
+# a pr: note alone does not make a finished story: its last delivered: note must name the branch's
+# current tip, or the next run delivers again (dev-1b5i)
+hasc "a finished story's delivered note names the branch's current tip" 'once its last `delivered:` note names the branch'"'"'s current tip'
+lacksf "a pr: note alone making the finished story" 'in the plugin repo): a later run never touches it'
 # the "Has a database" rule: .beads/ exists and bd where names it (dev-e87)
 para_has "$head_has_database" "the rule checks bd where" '`bd -C <repo> where` then prints `<repo>/.beads`'
 para_has "$head_has_database" "a .beads where does not name is no database" 'counts as no database'
@@ -2182,10 +2186,12 @@ line_lacks '^8\. ' "a second copy of the forge-check wait in step 8" "$pin_forge
 line_lacks '^8\. ' "a second copy of the stray-commit check in step 8" '--no-merges --format='
 row_sweep implement-spec-pins "mark ready with gh" && line_lacks '^8\. ' "the deliver step marking the PR ready" "$row_text"
 row_sweep implement-spec-pins "mark ready with tea" && line_lacks '^8\. ' "the deliver step marking the PR ready with tea" "$row_text"
+# a story whose last delivered: note names another tip than the branch's current one is not finished,
+# so a refused push or a later fix-up gets delivered again (dev-1b5i)
+line_has '^   The tasks are ' "a stale delivered: note unfinishes the story" 'its last `delivered:` note names the branch'"'"'s current tip'
+line_has '^   The tasks are ' "a stale delivered: tip sends the run on through step 6 to delivery" 'a `delivered:` note naming another tip runs on through step 6 (an empty frontier) to steps 7 and 8'
 # step 1 does not count a story with a later checks red: note as finished, so a re-delivery's
 # red check is not hidden by the earlier delivery's pr: note (dev-xc2 review 1)
-line_has '^   The tasks are ' "a stale delivered: note unfinishes the story" 'its last `delivered:` note names the branch'"'"'s current tip'
-line_has '^   The tasks are ' "a stale delivered: tip sends the run to delivery" 'a `delivered:` note naming another tip sends the run to steps 7 and 8'
 line_has '^   The tasks are ' "a checks red: note unfinishes the story" 'with no `checks red:` line after it'
 hasc "report template shows the checks: line" 'checks:  skipped: <no forge | no workflows | none reported>'
 hasc "report template's failed: line names a red forge check" 'or forge check <name> <run URL>'

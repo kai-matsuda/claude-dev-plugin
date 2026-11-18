@@ -44,7 +44,8 @@ fx_git_repo() { # <dir> [<git dir>]
   # reject fixture messages like "base"
   git -C "$dir" config user.name Fixture && git -C "$dir" config user.email fixture@example.invalid \
     && git -C "$dir" config core.hooksPath /dev/null && git -C "$dir" config hook.committrailers.enabled false \
-    && git -C "$dir" config hook.commitlint.enabled false     && git -C "$dir" config hook.commitstyle.enabled false \
+    && git -C "$dir" config hook.commitlint.enabled false \
+    && git -C "$dir" config hook.commitstyle.enabled false \
     && git -C "$dir" config commit.gpgsign false
 }
 # section <file> <heading>: the lines under a level-2 heading of a Markdown file, up to the next one

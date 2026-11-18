@@ -496,8 +496,10 @@ merges. Delivery records the link on the story bead only:
 `bd -C <owner> note <story-id> "pr: <url>"` (or `pr: <branch> <tip SHA>` when there
 is no forge; the `pr:` prefix is what `/dev:close-story` looks for). The integration branch
 name goes on the same bead as `branch: <name>`. That makes it a **finished story**
-(`GLOSSARY.md` in the plugin repo): a later run never touches it and only reports its
-PR or branch.
+(`GLOSSARY.md` in the plugin repo) once its last `delivered:` note names the branch's current tip
+(a story with no `delivered:` note counts): a later run never touches it and only reports its
+PR or branch. A last `delivered:` note naming another tip leaves it not finished, and the
+next run delivers it again.
 
 The Jira side belongs to `/dev:implement-spec` alone; `/dev:implement-story` has no Jira step,
 whoever runs it. `/dev:implement-spec` does it once, in the first invocation that ends with every
