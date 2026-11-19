@@ -23,9 +23,14 @@ edits `~/.claude` or any file outside the repo it runs in, and the check itself 
    `hook.committrailers` entry and the provenance keys `dev.trailer.provenance` (`Bead` and `Refs`),
    generated from `skills/setup/commit-trailers.gitconfig`. The hook command names the bare
    `commit-trailers`, which Claude Code puts on the Bash tool's `PATH` from the plugin's `bin/`
-   while the plugin is enabled, and exits 0 when the name is not on `PATH`, so the lines name no
-   path or plugin version, are pasted once and stay valid across plugin updates (pasting them
-   again leaves each key once). A repo opts out with `git config hook.committrailers.enabled false`;
+   while the plugin is enabled. When the name is not on `PATH`, the command only joins a split
+   Bead/Refs and attribution paragraph pair and exits 0, checking nothing else, so a plugin
+   version from before `bin/commit-trailers` shipped still yields one trailer paragraph (dev-i023);
+   that holds once the owner has pasted these lines, with the provenance keys set and awk, sed,
+   paste and mv on `PATH` (a join that cannot run leaves the message and warns on stderr). The
+   command changed in that version, so an owner who pasted the lines from an earlier version
+   pastes them again: pasting leaves each key once and replaces the command. The lines name no
+   path or plugin version, so they stay valid across later plugin updates. A repo opts out with `git config hook.committrailers.enabled false`;
    a single commit with `git commit --no-verify`. A commit made outside that Bash tool is not
    checked.
    The output ends with `all prerequisites present` or, while Atlassian is unconfirmed,

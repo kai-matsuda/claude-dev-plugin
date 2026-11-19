@@ -151,7 +151,8 @@ repo already had `core.hooksPath` set, chain the old hook from the new one in
   (the trailer hook the plugin ships as `bin/commit-trailers`, when machine setup's
   gitconfig lines wired it); a commit it rejects is fixed and retried (`harness.md`,
   Commits). The hook rewrites the message
-  file in one case: lines with the configured provenance keys (`Bead` and `Refs`, setup's
+  file in one case, which the hook command's skip path also does inline when `commit-trailers`
+  is not on `PATH`: lines with the configured provenance keys (`Bead` and `Refs`, setup's
   default) and a following `Co-Authored-By:`/`Claude-Session:`
   paragraph split by a blank line are joined into one trailer paragraph.
 

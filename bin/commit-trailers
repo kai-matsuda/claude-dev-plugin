@@ -10,8 +10,15 @@
 # which /dev:setup prints as git config --global commands). While the plugin is enabled, its
 # bin/ is on the Bash tool's PATH, so the hook calls it by its bare name. `commit-trailers` is
 # on PATH only in Claude Code's Bash tool with the plugin enabled, and the hook command
-# skips (exits 0) when the name is missing, so a commit made in a terminal outside that tool, or
-# with the plugin disabled, is not checked.
+# skips when the name is missing, so a commit made in a terminal outside that tool, with the
+# plugin disabled, or under a plugin version from before this script shipped, is not checked. The
+# skip path still does the join repair below, inline in the command, since a command cannot call
+# a script the plugin may lack (dev-i023). It needs awk, sed, paste and mv on PATH: when the join
+# cannot run it leaves the message as written, says so on stderr and exits 0. That inline copy is
+# the join only (no key check, so a joined message is never refused): the same algorithm on the
+# same shapes, and a change to the join here changes it too; the parity cases in
+# scripts/test-commit-trailers-script.sh fail when the two diverge. A message the script would join
+# and then refuse for another stray provenance line is joined inline and passes unchecked.
 #
 # The keys come from the multi-valued git config `dev.trailer.provenance` (for example Bead and
 # Refs). With none set it exits 0 and leaves the message file untouched. With keys set:
