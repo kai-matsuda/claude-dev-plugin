@@ -6,8 +6,10 @@
 # cases, a git worktree of one (dev-i023). The real-commit cases need a git that runs config
 # hooks; on one that does not, the cases asserting a refusal or a provenance trailer after a join
 # fail, while the off-PATH exit-0 case passes with no hook run. The skip path's inline join needs
-# awk, sed, paste and mv on PATH; a parity case runs it and the script over the same message
-# shapes, and the cases for a failed join run it without awk and with an unwritable directory.
+# git, awk, sed, paste, mv and rm on PATH; a parity case runs it and the script over the same
+# message shapes, and the cases for a failed join run it without awk and with an unwritable
+# directory. The unwritable-directory case fails when run as root, which ignores the directory's
+# mode, so run this script as a normal user.
 # The keys come from the repo-local dev.trailer.provenance, and global and system git config are
 # switched off for the message-file runs, so no case depends on the machine's own config. What
 # check-prereqs.sh prints of the snippet is tested in test-setup-skill.sh.
@@ -233,6 +235,7 @@ fx_check "parity: a tab-only blank line between the paragraphs is joined alike" 
 fx_check "parity: a space-only blank line before the provenance paragraph is joined alike" parity_joined $'fix: x\n \nBead: dev-1\n\n'"$attr"
 fx_check "parity: a CRLF message is joined alike" parity_joined $'fix: x\r\n\r\nBead: dev-1\r\n\r\nCo-Authored-By: Claude <noreply@anthropic.com>\r'
 fx_check "parity: trailing # comment lines are joined alike" parity_joined $'fix: x\n\nBead: dev-1\n\n'"$attr"$'\n# comment'
+fx_check "parity: trailing blank lines are joined alike" parity_joined $'fix: x\n\nBead: dev-1\n\n'"$attr"$'\n\n'
 fx_check "parity: a provenance line as the subject is left alike" parity_msg $'Bead: dev-1\n\n'"$attr"
 fx_check "parity: prose between the paragraphs is left alike" parity_msg $'fix: x\n\nBead: dev-1\n\nProse.\n\n'"$attr"
 fx_check "parity: no attribution paragraph is left alike" parity_msg $'fix: x\n\nBead: dev-1\nRefs: INFRA-1'

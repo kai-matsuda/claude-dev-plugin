@@ -150,10 +150,10 @@ repo already had `core.hooksPath` set, chain the old hook from the new one in
   lines as trailers. A machine may enforce the mechanical parts with a commit-msg hook
   (the trailer hook the plugin ships as `bin/commit-trailers`, when machine setup's
   gitconfig lines wired it); a commit it rejects is fixed and retried (`harness.md`,
-  Commits). The hook rewrites the message
-  file in one case, which the hook command's skip path also does inline when `commit-trailers`
-  is not on `PATH`: lines with the configured provenance keys (`Bead` and `Refs`, setup's
-  default) and a following `Co-Authored-By:`/`Claude-Session:`
+  Commits). The hook rewrites the message file in one case (the hook command's skip path
+  also does it inline when `commit-trailers` is not on `PATH`, once setup's lines from a
+  plugin version with the inline join are pasted and git, awk, sed, paste, mv and rm are on
+  `PATH`): lines with the configured provenance keys (`Bead` and `Refs`, setup's default) and a following `Co-Authored-By:`/`Claude-Session:`
   paragraph split by a blank line are joined into one trailer paragraph.
 
 ## When a skill says "publish the spec to the issue tracker" (`/mattpocock-skills:to-spec`)

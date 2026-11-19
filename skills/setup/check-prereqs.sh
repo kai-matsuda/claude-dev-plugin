@@ -60,7 +60,7 @@ cat "$here/baseline-settings.json"
 # values, so pasting them again leaves each key once. The hook command itself changes between
 # plugin versions (its skip path joins split trailers inline, dev-i023), so an owner who pasted
 # the lines before that change pastes them again: the header says so.
-echo; echo "=== wire the trailer hook, run on commit-msg in every repo (paste again if an older plugin version gave you these lines: the hook command changed) ==="
+echo; echo "=== wire the trailer hook, run on commit-msg in every repo (paste again if you pasted these lines before plugin version 0.4.33: the hook command changed in it) ==="
 # Plain bash reads the snippet, since git is not a prerequisite this check can count on; the
 # snippet's form is `[section "subsection"]` headers and tab-indented `name = value` entries,
 # a value in double quotes holding \" for a quote and \\ for a backslash.

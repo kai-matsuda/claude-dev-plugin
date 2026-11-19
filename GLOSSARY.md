@@ -629,8 +629,8 @@ would not read as a trailer. It reads its provenance keys from the multi-valued 
 file is the join repair: provenance lines and a following attribution paragraph split by a
 blank line are joined into one trailer paragraph; the hook command joins it too when the
 script is not on `PATH`, and checks nothing then, provided the owner pasted the setup lines of
-a plugin version that has this inline join, the keys are set and awk, sed, paste and mv are on
-`PATH`.
+a plugin version that has this inline join, the keys are set and git, awk, sed, paste, mv and rm
+are on `PATH`.
 _Avoid_: commit-lint hook, bead hook
 
 **Machine setup**:

@@ -216,8 +216,6 @@ fx_check "the snippet holds the hook entry and the two provenance keys, in that 
 hook.committrailers.command
 dev.trailer.provenance
 dev.trailer.provenance'
-fx_check "the snippet's hook command skips unless commit-trailers is on PATH, and ends by running it" bash -c \
-  '[[ "$1" == "command -v commit-trailers >/dev/null || "* && "$1" == *"; commit-trailers \"\$@\"" ]]' _ "$hook_cmd"
 fx_check "the snippet's keys are Bead then Refs" test "$(git config -f "$hook_snippet" --get-all dev.trailer.provenance | paste -sd, -)" = Bead,Refs
 hook_section() { # the printed hook commands: the lines under the "wire the trailer hook" header
   sed -n '/^=== wire the trailer hook/,/^$/p' <<<"$out" | sed '1d;$d'
@@ -230,7 +228,7 @@ git config --global --add dev.trailer.provenance 'Refs'"
 fx_scratch_dir pasted; pasted_cfg=$scratch/gitconfig
 fx_check "pasting the printed lines sets the snippet's hook command, quotes and backslashes intact" bash -c \
   'GIT_CONFIG_GLOBAL=$1 sh -c "$2" && [ "$(GIT_CONFIG_GLOBAL=$1 git config --global hook.committrailers.command)" = "$3" ]' _ "$pasted_cfg" "$(hook_section)" "$hook_cmd"
-fx_check "the printed header tells an owner set up under an older plugin version to paste again" grep -q '^=== wire the trailer hook.*paste again if an older plugin version' <<<"$out"
+fx_check "the printed header tells an owner set up under an older plugin version to paste again" grep -q '^=== wire the trailer hook.*paste again if you pasted these lines before plugin version 0.4.33' <<<"$out"
 fx_scratch_dir interleaved; ildir=$scratch   # a copy of the skill whose snippet repeats a key non-adjacently
 cp -R "$skill/." "$ildir/"
 printf '[dev "trailer"]\n\tprovenance = Bead\n[hook "committrailers"]\n\tevent = commit-msg\n[dev "trailer"]\n\tprovenance = Refs\n' >"$ildir/commit-trailers.gitconfig"

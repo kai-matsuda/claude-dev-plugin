@@ -13,7 +13,7 @@
 # skips when the name is missing, so a commit made in a terminal outside that tool, with the
 # plugin disabled, or under a plugin version from before this script shipped, is not checked. The
 # skip path still does the join repair below, inline in the command, since a command cannot call
-# a script the plugin may lack (dev-i023). It needs awk, sed, paste and mv on PATH: when the join
+# a script the plugin may lack (dev-i023). It needs git, awk, sed, paste, mv and rm on PATH: when the join
 # cannot run it leaves the message as written, says so on stderr and exits 0. That inline copy is
 # the join only (no key check, so a joined message is never refused): the same algorithm on the
 # same shapes, and a change to the join here changes it too; the parity cases in
@@ -72,7 +72,9 @@ END {
     while (prov_first > 0 && line[prov_first] ~ provenance) prov_first--
     fix = (prov_first < prov_last && prov_first > 0 && line[prov_first] ~ /^[[:space:]]*$/)
   }
-  for (i = 1; i <= n; i++) if (!(fix && i > prov_last && i <= attr_first)) print line[i]
+  end = n
+  if (fix) while (end > 0 && line[end] == "") end--
+  for (i = 1; i <= end; i++) if (!(fix && i > prov_last && i <= attr_first)) print line[i]
   exit fix ? 0 : 3
 }' "$msg") && repaired=1
 parsed=$(printf '%s\n' "$joined" | git interpret-trailers --parse | grep -cE "$PROVENANCE" || :)
