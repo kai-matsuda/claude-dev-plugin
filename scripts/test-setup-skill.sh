@@ -210,17 +210,25 @@ fx_check "the printed rules miss a tea command" fw_miss "tea pr list --repo /x"
 # commands are generated from it, one per entry in the snippet's order; a repeated key is added,
 # not replaced, so pasting the lines twice leaves each key once
 fx_check "the trailer hook snippet ships in the setup skill's directory" test -f "$hook_snippet"
-fx_check "the snippet holds the hook entry and the two provenance keys, in that order" test "$(git config -f "$hook_snippet" --list)" = 'hook.committrailers.event=commit-msg
-hook.committrailers.command=command -v commit-trailers >/dev/null || exit 0; commit-trailers "$@"
-dev.trailer.provenance=Bead
-dev.trailer.provenance=Refs'
+# the hook command's own behaviour is tested by the trailer hook's own test script; here only its shape
+hook_cmd=$(git config -f "$hook_snippet" hook.committrailers.command)
+fx_check "the snippet holds the hook entry and the two provenance keys, in that order" test "$(git config -f "$hook_snippet" --list | cut -d= -f1)" = 'hook.committrailers.event
+hook.committrailers.command
+dev.trailer.provenance
+dev.trailer.provenance'
+fx_check "the snippet's keys are Bead then Refs" test "$(git config -f "$hook_snippet" --get-all dev.trailer.provenance | paste -sd, -)" = Bead,Refs
 hook_section() { # the printed hook commands: the lines under the "wire the trailer hook" header
   sed -n '/^=== wire the trailer hook/,/^$/p' <<<"$out" | sed '1d;$d'
 }
+hook_cmd_quoted=${hook_cmd//\'/\'\\\'\'}   # the command as printed: each single quote closes, escapes and reopens the quoting
 fx_check "full machine prints the snippet's commands, line for line" test "$(hook_section)" = "git config --global --replace-all hook.committrailers.event 'commit-msg'
-git config --global --replace-all hook.committrailers.command 'command -v commit-trailers >/dev/null || exit 0; commit-trailers \"\$@\"'
+git config --global --replace-all hook.committrailers.command '$hook_cmd_quoted'
 git config --global --replace-all dev.trailer.provenance 'Bead'
 git config --global --add dev.trailer.provenance 'Refs'"
+fx_scratch_dir pasted; pasted_cfg=$scratch/gitconfig
+fx_check "pasting the printed lines sets the snippet's hook command, quotes and backslashes intact" bash -c \
+  'GIT_CONFIG_GLOBAL=$1 sh -c "$2" && [ "$(GIT_CONFIG_GLOBAL=$1 git config --global hook.committrailers.command)" = "$3" ]' _ "$pasted_cfg" "$(hook_section)" "$hook_cmd"
+fx_check "the printed header tells an owner set up under an older plugin version to paste again" grep -q '^=== wire the trailer hook.*paste again if you pasted these lines before plugin version 0.4.33' <<<"$out"
 fx_scratch_dir interleaved; ildir=$scratch   # a copy of the skill whose snippet repeats a key non-adjacently
 cp -R "$skill/." "$ildir/"
 printf '[dev "trailer"]\n\tprovenance = Bead\n[hook "committrailers"]\n\tevent = commit-msg\n[dev "trailer"]\n\tprovenance = Refs\n' >"$ildir/commit-trailers.gitconfig"

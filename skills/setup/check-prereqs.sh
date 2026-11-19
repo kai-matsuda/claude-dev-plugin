@@ -55,19 +55,29 @@ echo "=== merge into ~/.claude/settings.json (merge the arrays; do not replace) 
 # skills/setup/SKILL.md)
 cat "$here/baseline-settings.json"
 # the commit-msg hook: its command names the bare `commit-trailers` from the plugin's bin/, so
-# the lines name no path or version and are pasted once. One command per entry of the shipped
-# snippet, in its order; --replace-all on a key's first value anywhere in the snippet and --add
-# on its later values, so pasting them again leaves each key once.
-echo; echo "=== wire the trailer hook, run on commit-msg in every repo (paste once; it holds across plugin updates) ==="
+# the lines name no path or version. One command per entry of the shipped snippet, in its
+# order; --replace-all on a key's first value anywhere in the snippet and --add on its later
+# values, so pasting them again leaves each key once. The hook command itself changes between
+# plugin versions (its skip path joins split trailers inline, dev-i023), so an owner who pasted
+# the lines before that change pastes them again: the header says so.
+echo; echo "=== wire the trailer hook, run on commit-msg in every repo (paste again if you pasted these lines before plugin version 0.4.33: the hook command changed in it) ==="
 # Plain bash reads the snippet, since git is not a prerequisite this check can count on; the
 # snippet's form is `[section "subsection"]` headers and tab-indented `name = value` entries,
-# a value in double quotes holding \" for a quote.
+# a value in double quotes holding \" for a quote and \\ for a backslash.
+config_unescape() { # <value>: git config's \\ and \" escapes undone, left to right; sets unescaped
+  local rest=$1; unescaped=
+  while [[ -n $rest ]]; do
+    if [[ $rest == '\\'* || $rest == '\"'* ]]; then unescaped+=${rest:1:1}; rest=${rest:2}
+    else unescaped+=${rest:0:1}; rest=${rest:1}; fi
+  done
+}
 seen=; section=
 while IFS= read -r line; do
   if [[ $line =~ ^\[([a-z]+)\ \"([a-z]+)\"\]$ ]]; then section=${BASH_REMATCH[1]}.${BASH_REMATCH[2]}
   elif [[ $line =~ ^[[:space:]]+([a-z]+)\ =\ (.*)$ ]]; then
     key=$section.${BASH_REMATCH[1]} val=${BASH_REMATCH[2]}
-    if [[ $val == \"*\" ]]; then val=${val#\"}; val=${val%\"}; val=${val//\\\"/\"}; fi
+    if [[ $val == \"*\" ]]; then val=${val#\"}; val=${val%\"}; config_unescape "$val"; val=$unescaped; fi
+    val=${val//\'/\'\\\'\'}   # a single quote inside the printed single-quoted value
     flag=--replace-all; [[ $seen == *" $key "* ]] && flag=--add; seen+=" $key "
     echo "git config --global $flag $key '$val'"
   fi

@@ -2,11 +2,17 @@
 # Tests for `bin/commit-trailers`, the trailer hook that machine setup wires as a commit-msg hook
 # (dev-ekcl, INFRA-47). Covers it run on message files in a throwaway repo, as git's hook would;
 # the setup snippet's hook command run through `sh -c` with and without `commit-trailers` on PATH;
-# and the same hook under real `git commit`s in throwaway repos, which need a git that runs
-# config hooks (on one that does not, the refusal case fails and the off-PATH case passes with no
-# hook run). The keys come from the repo-local dev.trailer.provenance, and global and system git
-# config are switched off for the message-file runs, so no case depends on the machine's own
-# config. What check-prereqs.sh prints of the snippet is tested in test-setup-skill.sh.
+# and the same hook under real `git commit`s in throwaway repos and, for the split-paragraph
+# cases, a git worktree of one (dev-i023). The real-commit cases need a git that runs config
+# hooks; on one that does not, the cases asserting a refusal or a provenance trailer after a join
+# fail, while the off-PATH exit-0 case passes with no hook run. The skip path's inline join needs
+# git, awk, sed, paste, mv and rm on PATH; a parity case runs it and the script over the same
+# message shapes, and the cases for a failed join run it without awk and with an unwritable
+# directory. The unwritable-directory case fails when run as root, which ignores the directory's
+# mode, so run this script as a normal user.
+# The keys come from the repo-local dev.trailer.provenance, and global and system git config are
+# switched off for the message-file runs, so no case depends on the machine's own config. What
+# check-prereqs.sh prints of the snippet is tested in test-setup-skill.sh.
 # Usage: `scripts/test-commit-trailers-script.sh`
 set -uo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
@@ -25,8 +31,8 @@ fx_check "the snippet's hook command runs commit-trailers when it is on PATH" ba
 # The same hook through a real `git commit`, so git itself builds the command line: it appends
 # its own "$@" to a config hook command, which the /bin/sh -c checks above do not reproduce
 # (dev-ekcl.1.6). The hook entries and keys are installed from the snippet file. These cases need
-# a git that runs config hooks; on one that does not, the other cases still pass and only the
-# refusal case fails, so it alone proves the hook ran.
+# a git that runs config hooks; on one that does not, the off-PATH exit-0 case still passes, and
+# the refusal case and the join cases fail, so they prove the hook ran.
 fx_scratch_dir realcommit; rcdir=$scratch
 git_bin=$(command -v git); git_dir=$(dirname "$git_bin")
 on_path=$repo_root/bin:$git_dir:/usr/bin:/bin   # commit-trailers calls sed, paste, awk and grep
@@ -56,6 +62,43 @@ fx_check "a real git commit with a Bead: line outside the trailer block is refus
   rc_refused ontrack "$rc_bad_msg" "$on_path"
 fx_check "a real git commit exits 0 when commit-trailers is not on PATH, whatever its trailers" \
   rc_commit offtrack "$rc_bad_msg" "$hookdir/empty:$git_dir"
+# the shape of 1febf1a: Bead/Refs, a blank line, then Co-Authored-By and Claude-Session. Built in
+# a git worktree of the throwaway repo, as an implementer commits (dev-i023).
+split_msg=$(printf 'fix: x\n\nBody line.\n\nBead: dev-1\nRefs: INFRA-1\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_x\n')
+printf '%s\n' "$split_msg" >"$rcdir/split-msg"
+rc_wt() { # <name>: a repo as rc_repo makes it, plus a worktree of it at <name>-wt on its own branch
+  rc_repo "$1" && git -C "$rcdir/$1" commit -q --allow-empty -m "chore: base" --no-verify &&
+    git -C "$rcdir/$1" worktree add -q -b "wt-$1" "$rcdir/$1-wt"
+}
+off_path=$hookdir/empty:$git_dir:/usr/bin:/bin   # no commit-trailers; awk, paste and mv on it for the skip path
+rc_split() { # <name> <PATH> [message file]: commit the message (the split one by default) in the worktree <name>-wt
+  env -i PATH="$2" HOME="$rcdir" GIT_CONFIG_NOSYSTEM=1 "$git_bin" -C "$rcdir/$1-wt" commit -q --allow-empty -F "${3:-$rcdir/split-msg}"
+}
+bead_trailer() { # <name>: the worktree's last commit has the Bead trailer dev-1
+  [ "$("$git_bin" -C "$rcdir/$1-wt" log -1 --format='%(trailers:key=Bead,valueonly)' | tr -d '\n')" = dev-1 ]
+}
+fx_check "the worktree repo for the split case with commit-trailers on PATH is built" rc_wt splitin
+fx_check "the worktree repo for the split case without commit-trailers on PATH is built" rc_wt splitout
+fx_check "a commit of split Bead/Refs and attribution paragraphs, commit-trailers on PATH, in a worktree succeeds" \
+  rc_split splitin "$on_path"
+fx_check "that commit, commit-trailers on PATH, has a Bead trailer" bead_trailer splitin
+fx_check "a commit of split Bead/Refs and attribution paragraphs, commit-trailers not on PATH, in a worktree succeeds" \
+  rc_split splitout "$off_path"
+fx_check "that commit, commit-trailers not on PATH, has a Bead trailer" bead_trailer splitout
+# the skip path's join touches only the 1febf1a shape: with prose between the paragraphs, or with
+# the keys unset, the blank line before the attribution lines stays
+blank_before_attr() { # <name>: the worktree's last commit has an empty line right before Co-Authored-By
+  "$git_bin" -C "$rcdir/$1-wt" log -1 --format=%B | awk '/^Co-Authored-By/ { f = (prev == "") } { prev = $0 } END { exit !f }'
+}
+printf '%s\n' "$(printf 'fix: x\n\nBead: dev-1\n\nProse between.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n')" >"$rcdir/prose-msg"
+fx_check "the repo for the prose-between shape is built" rc_wt prose
+fx_check "the repo for the keys-unset shape is built" rc_wt nokeys
+fx_check "the keys-unset repo has no provenance keys" git -C "$rcdir/nokeys" config --unset-all dev.trailer.provenance
+kept_blank() { # <name> <message file>: commit it with the hook skipping; the blank line stays
+  rc_split "$1" "$off_path" "$2" && blank_before_attr "$1"
+}
+fx_check "a skipped hook leaves a message with prose between the paragraphs as written" kept_blank prose "$rcdir/prose-msg"
+fx_check "a skipped hook with the keys unset leaves the split message as written" kept_blank nokeys "$rcdir/split-msg"
 
 trw=$work/trailers
 fx_check "trailer hook: the throwaway repo is made" fx_git_repo "$trw/repo"
@@ -171,5 +214,59 @@ trailers_msg 'Added a thing.'
 fx_check "trailer hook passes a non-Conventional subject" test "$trc" = 0
 trailers_msg $'fix: thing\nbody right under the subject'
 fx_check "trailer hook passes a body with no blank line after the subject" test "$trc" = 0
+
+# the skip path's inline join and the script's join are one behaviour in two copies, since the
+# hook command cannot call a script the plugin version may lack: both run over the same shapes
+# and must leave the same message file
+parity_msg() { # <message>: the script, then the snippet's command with commit-trailers off PATH, on copies
+  printf '%s\n' "$1" >"$trw/pmsg-script"; cp "$trw/pmsg-script" "$trw/pmsg-inline"
+  (cd "$trw/repo" && GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null "$trailers" "$trw/pmsg-script" 2>/dev/null)
+  (cd "$trw/repo" && env -i PATH="$off_path" GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null /bin/sh -c "$hook_cmd" sh "$trw/pmsg-inline" 2>/dev/null)
+  cmp -s "$trw/pmsg-script" "$trw/pmsg-inline"
+}
+parity_joined() { # <message>: parity, and the message was joined (it changed)
+  parity_msg "$1" && ! cmp -s "$trw/pmsg-inline" <(printf '%s\n' "$1")
+}
+attr=$'Co-Authored-By: Claude <noreply@anthropic.com>\nClaude-Session: https://example.test/s'
+trailers_keys Bead Refs
+fx_check "parity: the 1febf1a shape is joined alike" parity_joined $'fix: x\n\nBody.\n\nBead: dev-1\nRefs: INFRA-1\n\n'"$attr"
+fx_check "parity: two blank lines between the paragraphs are joined alike" parity_joined $'fix: x\n\nBead: dev-1\n\n\n'"$attr"
+fx_check "parity: a tab-only blank line between the paragraphs is joined alike" parity_joined $'fix: x\n\nBead: dev-1\n\t\n'"$attr"
+fx_check "parity: a space-only blank line before the provenance paragraph is joined alike" parity_joined $'fix: x\n \nBead: dev-1\n\n'"$attr"
+fx_check "parity: a CRLF message is joined alike" parity_joined $'fix: x\r\n\r\nBead: dev-1\r\n\r\nCo-Authored-By: Claude <noreply@anthropic.com>\r'
+fx_check "parity: trailing # comment lines are joined alike" parity_joined $'fix: x\n\nBead: dev-1\n\n'"$attr"$'\n# comment'
+fx_check "parity: trailing blank lines are joined alike" parity_joined $'fix: x\n\nBead: dev-1\n\n'"$attr"$'\n\n'
+fx_check "parity: a provenance line as the subject is left alike" parity_msg $'Bead: dev-1\n\n'"$attr"
+fx_check "parity: prose between the paragraphs is left alike" parity_msg $'fix: x\n\nBead: dev-1\n\nProse.\n\n'"$attr"
+fx_check "parity: no attribution paragraph is left alike" parity_msg $'fix: x\n\nBead: dev-1\nRefs: INFRA-1'
+trailers_keys 'Ref.s'
+# git parses no Ref.s trailer, so the script refuses (and keeps) such a message that the inline
+# join would join; what the two share is that the key is literal, not a regex
+fx_check "parity: a key with a regex character does not match a look-alike line" parity_msg $'fix: x\n\nRefxs: A-1\n\n'"$attr"
+inline_joins() { # <message>: the snippet's command, commit-trailers off PATH, changed the message
+  printf '%s\n' "$1" >"$trw/imsg"
+  (cd "$trw/repo" && env -i PATH="$off_path" GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null /bin/sh -c "$hook_cmd" sh "$trw/imsg" 2>/dev/null)
+  ! cmp -s "$trw/imsg" <(printf '%s\n' "$1")
+}
+fx_check "the inline join matches a key with a regex character as written" inline_joins $'fix: x\n\nRef.s: A-1\n\n'"$attr"
+inline_leaves() { ! inline_joins "$1"; }
+fx_check "the inline join does not match a look-alike of that key" inline_leaves $'fix: x\n\nRefxs: A-1\n\n'"$attr"
+trailers_keys Bead Refs
+# a join that fails is reported on stderr, and the commit is not blocked
+join_failure() { # <PATH> <dir>: the snippet's command on a split message in <dir>; sets terr, trc
+  mkdir -p "$2"; printf '%s\n' $'fix: x\n\nBead: dev-1\n\n'"$attr" >"$2/msg"; cp "$2/msg" "$2/msg0"
+  terr=$(cd "$trw/repo" && env -i PATH="$1" GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null /bin/sh -c "$hook_cmd" sh "$2/msg" 2>&1 >/dev/null); trc=$?
+}
+mkdir -p "$trw/noawk"
+for t in git sed paste mv rm; do ln -sf "$(command -v $t)" "$trw/noawk/$t"; done
+join_failure "$trw/noawk" "$trw/jf1"
+fx_check "a failed join (no awk on PATH) exits 0, leaves the message and says so on stderr" bash -c \
+  '[ "$1" = 0 ] && cmp -s "$2/msg" "$2/msg0" && grep -q "could not join the trailer paragraphs" <<<"$3"' _ "$trc" "$trw/jf1" "$terr"
+join_failure "$off_path" "$trw/jf2"   # creates the message; the directory is then made read-only
+chmod 555 "$trw/jf2"
+join_failure "$off_path" "$trw/jf2"
+chmod 755 "$trw/jf2"
+fx_check "a failed join (no write next to the message) exits 0, leaves the message and says so on stderr" bash -c \
+  '[ "$1" = 0 ] && cmp -s "$2/msg" "$2/msg0" && grep -q "could not join the trailer paragraphs" <<<"$3"' _ "$trc" "$trw/jf2" "$terr"
 
 fx_report_fails
