@@ -78,8 +78,8 @@ its task first and its `epic fix-up <k>: <tip SHA> blocking` note after, and a P
 any other is a minor for the inbox. Only a closed or landed story takes no task: its finding goes to the inbox too. A story whose tip moved still takes the task and its note, which spends a round of this invocation only; the task waits for a later run.
 A story with an open `ready-for-agent` child is not skipped, not re-polled, not marked ready and not Done:
 it goes to add mode on the tasks already filed.
-The spent budget is counted from the story's `epic round start` note, which the epic orchestrator writes once per invocation, before any delivery or review and once the preflight passes, on every open story of the epic that the preflight covered;
-a story with no marker from this invocation gets one before anything is filed on it, so the count is always this invocation's (a cut-off orchestrator the user restarts by typing the command again is a new invocation).
+The spent budget is counted from the story's `epic round start` note, which the epic orchestrator writes once per invocation, before any delivery or review and once the preflight passes, on every open story of the epic that the preflight covered, except one whose story orchestrator an earlier invocation spawned and that still runs (`/dev:implement-spec`'s **Running orchestrators**);
+a story with no marker from this invocation gets one before anything is filed on it and before its first review or task, which is at the latest when its report is in and is when that exception gets its marker, so the count is always this invocation's (a cut-off orchestrator the user restarts by typing the command again is a new invocation).
 An add-mode pass on tasks already filed is a fix-up round of its own, and each round spends once: it files nothing, writes its `epic fix-up <k>: <tip SHA>` note first, `blocking` unless the story's last `epic fix-up` note says `red`, and spends the budget only when the story has no `epic fix-up` note since its last `epic round start` note or an add-mode batch was spawned after its last `epic fix-up` note, so a re-run of a task whose round already had its batch spends. A pass on a task whose filing wrote the round's note, with no batch spawned since, writes no second note and spends nothing. The fourth round alone fails, with the Check gate's wording: it writes no fourth note, files nothing and reports `failed:`.
 
 ## Orchestrator role
@@ -91,7 +91,8 @@ brief shape of the implementer, not a role, and only the story orchestrator merg
 each task's reviewed branch (Landing a task, above).
 
 - The **epic orchestrator** is the session running `/dev:implement-spec`: it spawns one story
-  orchestrator per startable story, runs the epic row's review and reads the end state;
+  orchestrator per startable story (none for a story whose orchestrator from an earlier
+  invocation still runs, which it waits on), runs the epic row's review and reads the end state;
   nothing below it touches a task. It is the one agent a `SendMessage` reply reaches, so it
   alone resumes a cut-off story orchestrator (Cut-off agents, in `harness.md`), and its
   `TaskStop` reaches every agent of the run, since both belong to being the session.
