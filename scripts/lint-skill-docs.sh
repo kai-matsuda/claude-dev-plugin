@@ -1918,6 +1918,7 @@ has "re-cut cites the tracker doc's per-edge rules" 'the tracker doc'"'"'s per-e
 has "plugin version bump is the first task" 'the plugin version bump as its first task'
 has "every other task blocked on the plugin bump" 'every other task of the story blocked natively on that bump'
 has "a re-cut keeps the plugin bump first" 'A re-cut keeps the plugin version bump first'
+has "shipped list is the lint's version-bump rule" 'what its lint'"'"'s version-bump rule counts as shipped'
 
 fi
 
