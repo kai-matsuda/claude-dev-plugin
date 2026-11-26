@@ -68,7 +68,7 @@ sequenceDiagram
             F-->>O: report
             O->>O: the tip moved, rerun the check command, the gate exits on the moved tip once green
         end
-        opt minors out of scope, a minor a fix-up reported as left unfixed, and every minor at the epic row
+        opt minors out of scope, a minor a fix-up reported as left unfixed or reported fixed with its named file and line untouched by the diff, and every minor at the epic row
             O->>IN: capture a retro item (needs-triage), never to a bead of the story
         end
         alt task row, the owner checkout untouched

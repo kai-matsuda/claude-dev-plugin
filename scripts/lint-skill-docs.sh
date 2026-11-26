@@ -1368,7 +1368,7 @@ para_has "$head_review_verdict" "a blocking round's in-scope minors go to its fi
 para_has "$head_review_verdict" "a fix-up's report names each minor it fixed and left unfixed" "report names each minor it fixed and each"
 para_has "$head_review_verdict" "the epic row sends every round's minors to the inbox" "every round's minors go to the inbox at once"
 para_has "$head_review_verdict" "every minor unfixed when the unit lands or fails goes to the inbox" 'every minor still unfixed when the unit lands or fails goes to the inbox'
-para_has "$head_review_verdict" "a fixed claim the fix-up's diff does not bear out counts unfixed" 'a minor reported fixed whose named file and line the fix-up'"'"'s diff does not touch counts as unfixed'
+para_has "$head_review_verdict" "a fixed claim the fix-up's diff does not bear out counts unfixed" 'whose named file and line the fix-up'"'"'s diff does not touch counts as unfixed'
 para_has "$head_review_verdict" "a fanned-out reviewer reports once, after every sub-agent has" 'waits, by ending its turn, until every one of them has reported'
 para_has "$head_review_verdict" "a fanned-out reviewer sends one whole-review report, and no orchestrator acts on a partial verdict" 'whose verdict covers the whole review; no orchestrator acts on a partial verdict'
 # the model (dev-9k5.1.3): one loop run at three rows, stated once as its sentence and a table
@@ -2456,6 +2456,7 @@ line_has "$G3" "red and blocking fix-ups share one budget of three, the fourth f
 line_has "$G3" "the minors fix-up after a clean verdict spends no budget and advances no round" 'The minors fix-up spends no budget and advances no round'
 line_has "$G3" "the blocking fix-up fixes the note's in-scope minors" "fixes the note's blocking findings and its minors in the task's scope"
 line_has "$G3" "a minor unfixed when the task is reported reviewed or failed goes to the inbox" 'Every minor still unfixed when you report the task reviewed or failed goes to the inbox'
+line_has "$G3" "a minor reported fixed whose named file and line the fix-up's diff leaves untouched counts unfixed" 'a minor a fix-up reports fixed whose named file and line its diff does not touch counts as unfixed (dev-ioa4)'
 line_has "$G3" "a blocking round's out-of-scope minors go to the inbox" "the note's minors you judge out of the task's scope go to the inbox at once"
 lacks "the retired run-the-gate-again wording" 'run the check gate again, and on green spawn a reviewer again'
 # step 4 reports the reviewed branch and lands nothing: the landing is the story row's
