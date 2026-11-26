@@ -194,9 +194,8 @@ its integration branch (a story with no `delivered:` note counts, and the next r
 one). A story whose last `delivered:` note names another tip is not finished: the next run
 delivers it again;
 a `delivered:` line with no `branch:` note, or one whose branch does not resolve locally, names no current tip, so the story is not finished.
-This entry is the one
-definition of the test: the skills, reference docs and runbook that apply it cite it or
-carry a copy the lint pins clause by clause (dev-tvki).
+This entry is the one definition of the test: the skills, reference docs and runbook that apply it
+cite it or carry a copy whose wording of each clause the lint checks the file still holds (dev-tvki).
 
 Each story has its own integration branch, review and PR, recorded on the story bead. An
 untriaged child an earlier run left under the story never holds the PR, nor the close at
