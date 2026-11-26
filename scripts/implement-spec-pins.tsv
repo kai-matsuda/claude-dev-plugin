@@ -139,3 +139,5 @@ has	a pass after a batch spends, a moved-tip story falls under the tip-not-deliv
 has	step 4 reads ListAgents before it writes a marker or spawns	read `ListAgents` before it writes a marker or spawns
 has	a story whose orchestrator still runs gets no marker and no second orchestrator	gets no `epic round start` note at round start (below) and no second orchestrator
 has	the running orchestrator's report is waited for as a batch report	waits for its report and acts on it as a batch report
+# a finished story whose orchestrator from an earlier invocation still runs waits the same way (dev-1snm)
+has	a finished story whose orchestrator still runs gets no marker and no epic review until its report is in	a finished story whose orchestrator still runs gets no marker and no epic review until its report is in
