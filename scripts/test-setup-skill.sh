@@ -84,7 +84,7 @@ fx_check "CLAUDE.md stub exists and is non-empty" test -s "$stub"
 # tools dir of symlinks to only what the helper needs, so a host /usr/bin/gh never leaks in.
 fx_scratch_dir setup; work=$scratch
 mkdir -p "$work/tools"
-for t in find grep cat jq dirname; do
+for t in find grep cat jq dirname git; do
   src=$(command -v "$t") && ln -s "$src" "$work/tools/$t"
 done
 mkdir -p "$work/toolsnojq"
@@ -129,7 +129,7 @@ printf '{"projects":{"%s":{"mcpServers":{"atlassian":{}}}}}\n' "$(cd "$work/proj
 mkbin "$work/mcpjson/bin" bd gh; plugin_installed mcpjson
 printf '{"mcpServers":{"atlassian":{}}}\n' >"$work/mcpjson/project-mcp.json"
 run() { # <machine> [subdir] [tools dir]: run the helper there; sets out and rc
-  out=$(cd "$work/$1/cwd/${2:-}" && env -i PATH="$work/$1/bin:${3:-$work/tools}" HOME="$work/$1/home" \
+  out=$(cd "$work/$1/cwd/${2:-}" && env -i PATH="$work/$1/bin:${3:-$work/tools}" HOME="$work/$1/home" GIT_CONFIG_GLOBAL="$work/$1/gitconfig" \
         SETUP_PLUGINS_DIR="$work/$1/plugins" SETUP_PROJECT_MCP_JSON="$work/$1/project-mcp.json" "$(command -v bash)" "$prereqs" 2>&1)
   rc=$?
 }
@@ -287,5 +287,22 @@ done
 fx_check "empty machine asks to confirm Atlassian, not missing" bash -c 'grep -q "^confirm: Atlassian" <<<"$1" && ! grep -q "^missing: Atlassian" <<<"$1"' _ "$out"
 fx_check "empty machine still prints the CLAUDE.md stub" bash -c '[[ $1 == *"$(cat "$2")"* ]]' _ "$out" "$stub"
 fx_check "empty machine still prints the baseline snippet" prints_baseline empty
+
+# the trailer hook installed on the machine, against the command the snippet generates (dev-h115,
+# INFRA-47): current when equal, stale when a different command is set, missing when unset. Each
+# machine's git reads its own throwaway GIT_CONFIG_GLOBAL file, never the real global config.
+pre_hook='command -v commit-trailers >/dev/null || exit 0; commit-trailers "$@"'   # the pre-0.4.33 command
+for m in hookcur hookstale hookmiss; do machine "$m"; mkbin "$work/$m/bin" bd gh; mcp_config "$m"; plugin_installed "$m"; done
+git config -f "$work/hookcur/gitconfig" hook.committrailers.command "$hook_cmd"
+git config -f "$work/hookstale/gitconfig" hook.committrailers.command "$pre_hook"
+run hookcur
+fx_check "an installed hook command equal to the snippet's reports the trailer hook current" grep -qx 'trailer hook: current' <<<"$out"
+run hookstale
+fx_check "an older hook command reports the trailer hook stale" grep -q '^trailer hook: stale' <<<"$out"
+fx_check "a stale trailer hook points at pasting the lines again" grep -q '^trailer hook: stale .*paste them again' <<<"$out"
+fx_check "a stale trailer hook leaves the exit code alone" test "$rc" = 0
+run hookmiss
+fx_check "no hook command installed reports the trailer hook missing" grep -q '^trailer hook: missing' <<<"$out"
+fx_check "a missing trailer hook leaves the exit code alone" test "$rc" = 0
 
 fx_report_fails

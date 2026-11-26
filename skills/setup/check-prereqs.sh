@@ -71,17 +71,26 @@ config_unescape() { # <value>: git config's \\ and \" escapes undone, left to ri
     else unescaped+=${rest:0:1}; rest=${rest:1}; fi
   done
 }
-seen=; section=
+seen=; section=; expected=
 while IFS= read -r line; do
   if [[ $line =~ ^\[([a-z]+)\ \"([a-z]+)\"\]$ ]]; then section=${BASH_REMATCH[1]}.${BASH_REMATCH[2]}
   elif [[ $line =~ ^[[:space:]]+([a-z]+)\ =\ (.*)$ ]]; then
     key=$section.${BASH_REMATCH[1]} val=${BASH_REMATCH[2]}
     if [[ $val == \"*\" ]]; then val=${val#\"}; val=${val%\"}; config_unescape "$val"; val=$unescaped; fi
+    [[ $key == hook.committrailers.command ]] && expected=$val
     val=${val//\'/\'\\\'\'}   # a single quote inside the printed single-quoted value
     flag=--replace-all; [[ $seen == *" $key "* ]] && flag=--add; seen+=" $key "
     echo "git config --global $flag $key '$val'"
   fi
 done <"$here/commit-trailers.gitconfig"
+echo
+# the hook command set on this machine, against the one the lines above set (dev-h115, INFRA-47):
+# current when equal, stale when another command is set, missing when none is. Informational: it
+# sets no exit code, as the lines above do not, so the owner pastes the lines to clear it.
+if ! installed=$(git config --global --get hook.committrailers.command 2>/dev/null); then
+  echo "trailer hook: missing (no hook.committrailers.command set; paste the lines above)"
+elif [ "$installed" = "$expected" ]; then echo "trailer hook: current"
+else echo "trailer hook: stale (the command set differs from the lines above; paste them again)"; fi
 echo
 
 if [ "$missing" != 0 ]; then exit 1

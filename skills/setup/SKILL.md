@@ -14,7 +14,10 @@ edits `~/.claude` or any file outside the repo it runs in, and the check itself 
    `mattpocock-skills` plugin and the Atlassian MCP, each as `present:`,
    `missing:` or `confirm:`, then prints the `CLAUDE.md` stub, the baseline settings
    snippet and the `git config --global` lines that wire the trailer hook as the
-   commit-msg hook, on every machine. The Atlassian MCP is `present:` only when `~/.claude.json`
+   commit-msg hook, on every machine. It also prints the trailer hook's state as `trailer hook: current`,
+   `trailer hook: stale` or `trailer hook: missing`, comparing the machine's global
+   `hook.committrailers.command` with the command those lines set; stale and missing leave the exit
+   code alone, and the owner pastes the lines again to clear them. The Atlassian MCP is `present:` only when `~/.claude.json`
    (top level or this project) or the project's `.mcp.json` lists it under `mcpServers`;
    otherwise it is `confirm:`, never `missing:`, because a claude.ai connector is in no file.
 2. Show the owner the output. Tell them the stub goes into `~/.claude/CLAUDE.md` and the
