@@ -187,7 +187,7 @@ adds no task and orders no wave; a run held only by such edges ends as a human s
 _Avoid_: story dep, sibling blocker, merge edge
 
 **Finished story**:
-A story whose children are all closed or carry `ready-for-human`,
+A story whose children are all `closed` or carry `ready-for-human`,
 `needs-triage` or `wontfix`, and whose `pr:` note exists with no `checks red:` line after it, so an earlier
 run reviewed and delivered it, and whose last `delivered:` note names the current tip of
 its integration branch (a story with no `delivered:` note counts, and the next run writes
@@ -195,8 +195,8 @@ one). A story whose last `delivered:` note names another tip is not finished: th
 delivers it again;
 a `delivered:` line with no `branch:` note, or one whose branch does not resolve locally, names no current tip, so the story is not finished.
 This entry is the one
-definition of the test: the skills, reference docs and runbook that apply it cite it, and
-the lint pins each clause of every copy it keeps (dev-tvki).
+definition of the test: the skills, reference docs and runbook that apply it cite it or
+carry a copy the lint pins clause by clause (dev-tvki).
 
 Each story has its own integration branch, review and PR, recorded on the story bead. An
 untriaged child an earlier run left under the story never holds the PR, nor the close at

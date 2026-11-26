@@ -130,7 +130,7 @@ bead owns its branch (`feat/<story-id>`, keyed or not; the Jira key stays on its
 PR body and bead) and PR (`branch:` and `pr:` notes on the bead) and holds its
 tasks as children; a repo session's stories are the epic bead's children, and every
 workspace-session story carries the epic's Jira key. A story is
-**finished** when every child is closed or carries `ready-for-human`,
+**finished** (`GLOSSARY.md`) when every child is `closed` or carries `ready-for-human`,
 `needs-triage` or `wontfix`, its `pr:` note exists (no `checks red:` line after it) and its last `delivered:`
 note names the branch's current tip (no `delivered:` note counts;
 a `delivered:` line with no `branch:` note, or one whose branch does not resolve locally, names no current tip, so the story is not finished). Order
