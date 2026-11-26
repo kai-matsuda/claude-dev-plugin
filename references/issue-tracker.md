@@ -496,12 +496,8 @@ When every child of a story is closed or carries `ready-for-human`, `needs-triag
 on the story bead only: `bd -C <owner> note <story-id> "pr: <url>"` (or
 `pr: <branch> <tip SHA>` when there is no forge; the `pr:` prefix is what
 `/dev:close-story` looks for). The integration branch name goes on the same bead as
-`branch: <name>`. That makes it a **finished story** (`GLOSSARY.md` in the plugin repo)
-once its last `delivered:` note names the branch's current tip (a story with no
-`delivered:` note counts; a `delivered:` line with no `branch:` note, or one whose branch
-does not resolve locally, names no current tip, so the story is not finished): a later run
-only reports its PR or branch. A last `delivered:` note naming another tip leaves it not
-finished, and the next run delivers it again.
+`branch: <name>`. Whether that makes it a **finished story**, which a later run only
+reports and never delivers again, is the test in `GLOSSARY.md` in the plugin repo.
 
 The Jira side belongs to `/dev:implement-spec` alone; `/dev:implement-story` has no Jira step,
 whoever runs it. `/dev:implement-spec` does it once, in the first invocation that ends with every

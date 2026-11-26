@@ -434,8 +434,7 @@ stays open until `/dev:triage` decides it, which no run of the orchestrator can 
 is **finished** (`GLOSSARY.md`) when every child is `closed` or carries `ready-for-human`,
 `needs-triage` or `wontfix` and its `pr:` note exists (no `checks red:` line after it), with its
 last `delivered:` note naming the branch's current tip (a story with no `delivered:` note counts;
-a `delivered:` line with no `branch:` note, or one whose branch does not resolve locally, names no
-current tip, so the story is not finished): an untriaged child an earlier run
+a `delivered:` line with no `branch:` note, or one whose branch does not resolve locally, names no current tip, so the story is not finished): an untriaged child an earlier run
 left under a story holds back neither its review nor its PR, and `/dev:implement-story`'s
 **Re-evaluate the frontier** counts the same way before its review.
 

@@ -989,10 +989,10 @@ printf '%s\n' 'the forge query, as `/dev:close-story` step 4 does' >> "$scratch/
 sec=5 expect "a reference doc citing a skill's step number fails section 5 with its message" 1 "another skill's step number cited in $scratch/references/sample.md"
 
 # a section's document gone: the section fails naming it, never skips; a reference doc that two
-# sections read fails both
-for case in '1 skills/implement-spec/SKILL.md' '2 skills/workflow/SKILL.md' '2 docs/WORKFLOW.md' \
-  '3 skills/spec-to-stories/SKILL.md' '4 skills/spec-to-tasks/SKILL.md' '6 10 19 references/orchestration.md' \
-  '6 references/harness.md' '6 10 references/issue-tracker.md' '6 skills/setup-repo/SKILL.md' '7 skills/story-to-tasks/SKILL.md' '8 skills/implement-story/SKILL.md' \
+# sections read fails both; a file the finished-story pins (section 5) read fails that section too
+for case in '1 5 skills/implement-spec/SKILL.md' '2 5 skills/workflow/SKILL.md' '2 5 docs/WORKFLOW.md' \
+  '3 skills/spec-to-stories/SKILL.md' '4 skills/spec-to-tasks/SKILL.md' '5 6 10 19 references/orchestration.md' \
+  '6 references/harness.md' '6 10 references/issue-tracker.md' '6 skills/setup-repo/SKILL.md' '7 skills/story-to-tasks/SKILL.md' '5 8 skills/implement-story/SKILL.md' \
   '9 skills/close-story/SKILL.md' '6 skills/triage/SKILL.md' '12 skills/retro/SKILL.md' '16 skills/task-orchestrator/SKILL.md' '17 skills/implement-task/SKILL.md' '18 .claude/rules/cross-skill-cites.md' '0 CLAUDE.md' '0 5 GLOSSARY.md'; do
   doc=${case##* }
   fresh
@@ -1396,6 +1396,20 @@ done
 # case: a phrase in field 4 of the list, whatever its check
 for pin in 'every owner repo has a `check`' '`git -C <owner> rev-parse --show-toplevel`'; do
   awk -F '\t' -v p="$pin" '$4 == p { n++ } END { exit n ? 0 : 1 }' "$jobs/pins.list" || { echo "FAIL pin list lacks the named pin '$pin'"; fails=$((fails+1)); guard=0; }
+done
+# every copy of the finished-story test (dev-tvki) is expected to hold all six clauses, named here and
+# not read back from the lint: a deleted finished_story_clauses row or call would derive no drop
+# case for its clause, so the list is checked for each file and clause
+for rel in GLOSSARY.md skills/implement-spec/SKILL.md skills/implement-story/SKILL.md skills/workflow/SKILL.md references/orchestration.md docs/WORKFLOW.md; do
+  for clause in 'counts a child that is closed or carries ready-for-human as settled' \
+    'counts a child with needs-triage or wontfix as settled' \
+    'has the pr: note with no checks red: line after it' \
+    'has its last delivered: note naming the current tip' \
+    'counts a story with no delivered: note' \
+    'has no current tip with no branch: note or an unresolvable branch'; do
+    awk -F '\t' -v d="the finished story in $scratch/$rel $clause (dev-tvki)" '$3 == d { n++ } END { exit n ? 0 : 1 }' "$jobs/pins.list" \
+      || { echo "FAIL pin list lacks the finished-story pin '$clause' for $rel"; fails=$((fails+1)); guard=0; }
+  done
 done
 if [ "$npins" -gt 0 ] && [ "$nmoved" -gt 0 ] && [ "$nanch" -gt 0 ] && [ "$nabsent" -gt 0 ] && [ "$guard" = 1 ]; then
   echo "ok   $npins pin cases derived from the lint's list ($nmoved also moved out of their scope, $nanch also off the start of their line), $nabsent more seeding a banned text, in $nbatches lint runs and $nretried alone"
