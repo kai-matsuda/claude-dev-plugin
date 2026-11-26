@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
-# Helpers shared by the fixture tests (scripts/test-fixture-*.sh, test-lint-skill-docs.sh,
-# test-guard-rm.sh, test-guard-cd.sh, `test-phases.sh`, test-glossary-lint.sh, test-setup-skill.sh,
-# test-setup-repo-skill.sh, test-ci-workflow.sh, test-readme.sh, test-check-target.sh,
-# test-check-script.sh, `test-commit-trailers-script.sh`).
+# Helpers shared by the fixture tests. The scripts that source this file are found by search, not
+# listed: grep -rl '^[^#]*source .*fixture-test-lib' scripts (the pattern skips lines with a # before
+# source, so this header does not match itself).
 # Every helper is fx_-prefixed, so it neither shadows nor is shadowed by a sourcing script's own
 # functions, except section, which the Markdown doc tests share by that name (lint-skill-docs.sh
 # keeps its own, unrelated section). The bead helpers read $out, the fixture workspace, when called; sets fails=0, which

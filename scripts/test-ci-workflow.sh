@@ -115,7 +115,7 @@ fx_check "a test script that inits its own repo fails the git-init check" fx_eq 
 fx_check "the failure names the script that inits with -C <dir>" grep -Fq "scripts/test-hand-rolled.sh:3:" <<<"$bad_out"
 fx_check "the failure names the script that inits through a git_* wrapper" grep -Fq "scripts/test-wrapped.sh:3:" <<<"$bad_out"
 fx_check "fx_git_repo, bd init and an init in a comment pass the git-init check" "$init_check" "$init_fixtures/good"
-fx_check "the fixture lib header lists this test" grep -Fq test-ci-workflow.sh "$repo_root/scripts/fixture-test-lib.sh"
+fx_check "the fixture lib's search finds this test" grep -Fq test-ci-workflow.sh <<<"$(grep -rl '^[^#]*source .*fixture-test-lib' "$repo_root/scripts")"
 
 # the install above puts npm's node wrapper on the PATH, the binary beside it: laid out here as
 # npm lays it out, the lib's fixtures reach the binary, and any other bd is left as it is
