@@ -146,6 +146,13 @@ trailers_keys Bead Refs
 # exits 0 before reading the file, so this case does not cover that path
 printf '%s\n' $'fix: thing\n\nBead: dev-a' >"$trw/unreadable"
 chmod 000 "$trw/unreadable"
+printf '%s\n' $'fix: thing\n\nBead: dev-a' >"$trw/unreadable-nokeys"
+chmod 000 "$trw/unreadable-nokeys"
+trailers_keys
+fx_check "trailer hook with no keys set exits 0 on an unreadable message file" bash -c \
+  'cd "$2" && GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null "$1" "$3" 2>/dev/null' _ "$trailers" "$trw/repo" "$trw/unreadable-nokeys"
+chmod 600 "$trw/unreadable-nokeys"
+trailers_keys Bead Refs
 fx_check "trailer hook fails on an unreadable message file" bash -c \
   'cd "$2" && ! GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null "$1" "$3" 2>/dev/null' _ "$trailers" "$trw/repo" "$trw/unreadable"
 chmod 600 "$trw/unreadable"
