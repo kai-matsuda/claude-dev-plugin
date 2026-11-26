@@ -492,8 +492,8 @@ epic review failed is reviewed again by every invocation until it is clean or a 
 closes its PR. A cut-off orchestrator the person restarts by typing the command again is a new
 invocation. `/dev:implement-spec` marks the start of its invocation with an `epic round start`
 note on every open story of the epic that the preflight covered, written before any delivery or review, and counts a
-story's spent budget from the last one. A story whose orchestrator an earlier invocation spawned and that still
-runs gets its note before the first review or task on it, which is at the latest when that orchestrator's report is in, so its budget is
+story's spent budget from the last one. A story, startable or finished, whose orchestrator an earlier invocation
+spawned and that still runs gets its note before the first review or task on it, which is at the latest when that orchestrator's report is in, so its budget is
 this invocation's too.
 _Avoid_: typed run, fresh run (and "attempt" for one invocation)
 
