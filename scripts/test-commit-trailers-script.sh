@@ -221,6 +221,10 @@ trailers_msg 'Added a thing.'
 fx_check "trailer hook passes a non-Conventional subject" test "$trc" = 0
 trailers_msg $'fix: thing\nbody right under the subject'
 fx_check "trailer hook passes a body with no blank line after the subject" test "$trc" = 0
+# a message with no provenance trailer at all passes silently: no warning for the missing Bead
+trailers_msg $'fix: thing\n\nBody with no provenance trailer.'
+fx_check "trailer hook with keys set passes a message with no provenance trailer, exit 0 and empty stderr" \
+  bash -c '[ "$1" = 0 ] && [ -z "$2" ]' _ "$trc" "$terr"
 
 # the skip path's inline join and the script's join are one behaviour in two copies, since the
 # hook command cannot call a script the plugin version may lack: both run over the same shapes
