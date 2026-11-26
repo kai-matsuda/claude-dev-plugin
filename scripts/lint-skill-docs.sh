@@ -1258,18 +1258,26 @@ hasc "the glossary defines a story with a PR (dev-1b5i)" '**Story with a PR**:'
 # unresolvable branch (dev-tvki). Each row is a file and its wording of the delivered-tip clause, the
 # no-delivered: clause, the closed-or-ready-for-human clause and the pr: clause; the no-branch clause
 # reads the same in every copy. A row for a file that is missing fails, as hasc does for any file.
-finished_story_clauses() { # <file> <tip phrase> <no-delivered phrase> <settled phrase> <pr phrase>
+# Each phrase is pinned within one line, so a copy keeps a clause's wording on one line (a rewrap that
+# splits it turns the pin red). A row's optional anchor limits the needs-triage/wontfix clause to the
+# line that opens the test, for a file that says the same words elsewhere.
+pin_no_branch='a `delivered:` line with no `branch:` note, or one whose branch does not resolve locally, names no current tip, so the story is not finished'
+finished_story_clauses() { # <file> <tip phrase> <no-delivered phrase> <settled phrase> <pr phrase> [<anchor of the test's line>]
   f=$1
   hasc "the finished story in $f counts a child that is closed or carries ready-for-human as settled (dev-tvki)" "$4"
-  hasc "the finished story in $f counts a child with needs-triage or wontfix as settled (dev-tvki)" "$pin_needs_triage_wontfix"
+  if [ -n "${6:-}" ]; then
+    line_has "$6" "the finished story in $f counts a child with needs-triage or wontfix as settled (dev-tvki)" "$pin_needs_triage_wontfix"
+  else
+    hasc "the finished story in $f counts a child with needs-triage or wontfix as settled (dev-tvki)" "$pin_needs_triage_wontfix"
+  fi
   hasc "the finished story in $f has the pr: note with no checks red: line after it (dev-tvki)" "$5"
   hasc "the finished story in $f has its last delivered: note naming the current tip (dev-tvki)" "$2"
   hasc "the finished story in $f counts a story with no delivered: note (dev-tvki)" "$3"
-  hasc "the finished story in $f has no current tip with no branch: note or an unresolvable branch (dev-tvki)" 'a `delivered:` line with no `branch:` note, or one whose branch does not resolve locally, names no current tip, so the story is not finished'
+  hasc "the finished story in $f has no current tip with no branch: note or an unresolvable branch (dev-tvki)" "$pin_no_branch"
 }
 finished_story_clauses "$glossary_md" 'names the current tip of' 'a story with no `delivered:` note counts' 'children are all `closed` or carry `ready-for-human`,' 'whose `pr:` note exists with no `checks red:` line after it'
 finished_story_clauses "$skills/implement-spec/SKILL.md" "names the branch's current tip" 'when they carry a `delivered:` line' 'is `closed` or carries `ready-for-human`,' 'a `pr:` line with no `checks red:` line after it'
-finished_story_clauses "$skills/implement-story/SKILL.md" "names the branch's current tip" 'when it carries a `delivered:` line' '**finished** (`${CLAUDE_PLUGIN_ROOT}/GLOSSARY.md`) when every child is `closed` or carries `ready-for-human`,' 'a `pr:` line with no `checks red:` line after it'
+finished_story_clauses "$skills/implement-story/SKILL.md" "names the branch's current tip" 'when it carries a `delivered:` line' '**finished** (`${CLAUDE_PLUGIN_ROOT}/GLOSSARY.md`) when every child is `closed` or carries `ready-for-human`,' 'a `pr:` line with no `checks red:` line after it' 'A story is \*\*finished\*\*'
 finished_story_clauses "$skills/workflow/SKILL.md" "names the current tip of the \`branch:\` note's branch" 'when they hold a `delivered:` line' 'is `closed` or carries `ready-for-human`,' 'a `pr:` line with no `checks red:` line after it'
 finished_story_clauses "$refs/orchestration.md" "naming the branch's current tip" 'no `delivered:` note counts' 'is `closed` or carries `ready-for-human`,' 'its `pr:` note exists (no `checks red:` line after it)'
 finished_story_clauses "$docs/WORKFLOW.md" "names the branch's current tip" 'no `delivered:` note counts' 'is `closed` or carries `ready-for-human`,' 'its `pr:` note exists (no `checks red:` line after it)'

@@ -1397,6 +1397,20 @@ done
 for pin in 'every owner repo has a `check`' '`git -C <owner> rev-parse --show-toplevel`'; do
   awk -F '\t' -v p="$pin" '$4 == p { n++ } END { exit n ? 0 : 1 }' "$jobs/pins.list" || { echo "FAIL pin list lacks the named pin '$pin'"; fails=$((fails+1)); guard=0; }
 done
+# every copy of the finished-story test (dev-tvki) is expected to hold all six clauses, named here and
+# not read back from the lint: a deleted finished_story_clauses row or call would derive no drop
+# case for its clause, so the list is checked for each file and clause
+for rel in GLOSSARY.md skills/implement-spec/SKILL.md skills/implement-story/SKILL.md skills/workflow/SKILL.md references/orchestration.md docs/WORKFLOW.md; do
+  for clause in 'counts a child that is closed or carries ready-for-human as settled' \
+    'counts a child with needs-triage or wontfix as settled' \
+    'has the pr: note with no checks red: line after it' \
+    'has its last delivered: note naming the current tip' \
+    'counts a story with no delivered: note' \
+    'has no current tip with no branch: note or an unresolvable branch'; do
+    awk -F '\t' -v d="the finished story in $scratch/$rel $clause (dev-tvki)" '$3 == d { n++ } END { exit n ? 0 : 1 }' "$jobs/pins.list" \
+      || { echo "FAIL pin list lacks the finished-story pin '$clause' for $rel"; fails=$((fails+1)); guard=0; }
+  done
+done
 if [ "$npins" -gt 0 ] && [ "$nmoved" -gt 0 ] && [ "$nanch" -gt 0 ] && [ "$nabsent" -gt 0 ] && [ "$guard" = 1 ]; then
   echo "ok   $npins pin cases derived from the lint's list ($nmoved also moved out of their scope, $nanch also off the start of their line), $nabsent more seeding a banned text, in $nbatches lint runs and $nretried alone"
 else
