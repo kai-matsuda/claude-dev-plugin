@@ -335,10 +335,14 @@ and the rest to the inbox at once. Every fix-up's report names each minor it fix
 it left unfixed. No minor is dropped (dev-a9a):
 every minor still unfixed when the unit lands or fails goes to the inbox as a deferral, the
 tracker doc's "capture a retro item". When the unit lands, that is each minor a fix-up
-reports it left unfixed. When the unit ends `failed`, it is also every minor of its review
-notes that no fix-up's report names as fixed, since a later clean round need not report a
-minor again and its review note would be its only trace. At the epic row every round's minors go to the inbox at once (The epic
-row, above).
+reports it left unfixed, and a minor reported fixed
+whose named file and line the fix-up's diff does not touch counts as unfixed (dev-ioa4).
+A false fixed claim that names a file and line the diff does touch is outside this
+check. When the unit ends `failed`, it is also every minor of its review notes that no
+fix-up's report names as fixed (a false fixed claim names none), since a later clean
+round need not report a minor again and its review note would be its only trace. At the
+epic row
+every round's minors go to the inbox at once (The epic row, above).
 Every fix-up, red or blocking, spends the loop's budget (the Check gate rule above); a
 minors fix-up spends none, at any row. A round that reports
 every acceptance criterion met plus three wording nits is clean, and the task lands after
