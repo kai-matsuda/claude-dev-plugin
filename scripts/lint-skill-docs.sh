@@ -1368,6 +1368,7 @@ para_has "$head_review_verdict" "a blocking round's in-scope minors go to its fi
 para_has "$head_review_verdict" "a fix-up's report names each minor it fixed and left unfixed" "report names each minor it fixed and each"
 para_has "$head_review_verdict" "the epic row sends every round's minors to the inbox" "every round's minors go to the inbox at once"
 para_has "$head_review_verdict" "every minor unfixed when the unit lands or fails goes to the inbox" 'every minor still unfixed when the unit lands or fails goes to the inbox'
+para_has "$head_review_verdict" "a fixed claim the fix-up's diff does not bear out counts unfixed" 'a minor reported fixed whose named file and line the fix-up'"'"'s diff does not touch counts as unfixed'
 para_has "$head_review_verdict" "a fanned-out reviewer reports once, after every sub-agent has" 'waits, by ending its turn, until every one of them has reported'
 para_has "$head_review_verdict" "a fanned-out reviewer sends one whole-review report, and no orchestrator acts on a partial verdict" 'whose verdict covers the whole review; no orchestrator acts on a partial verdict'
 # the model (dev-9k5.1.3): one loop run at three rows, stated once as its sentence and a table
@@ -2212,6 +2213,9 @@ line_has "$G7" "a red or a blocking verdict goes to a fresh fix-up and starts th
 line_has "$G7" "the minors fix-up reruns the checks and spends no budget" 'the minors fix-up reruns the checks and spends no budget'
 line_has "$G7" "the story fix-up fixes the note's in-scope minors" "the blocking findings and the minors in the story's scope"
 line_has "$G7" "what a story fix-up leaves unfixed goes to the inbox" 'you capture each one left in the inbox'
+# a fixed claim the diff does not bear out leaves the minor unfixed (dev-ioa4)
+line_has "$G7" "each minor reported fixed is checked against the fix-up's diff" "you check each minor it reports fixed against the fix-up's diff"
+line_has "$G7" "a minor the diff does not touch counts unfixed and goes to the inbox" 'a minor whose named file and line the diff does not touch counts as unfixed'
 line_has "$G7" "a failed story gate captures its unfixed minors" "Before any \`failed:\` line this step sends to step 9, a guard's or the fourth failure's, capture in the inbox every minor of this run's \`story review\` notes that no fix-up's report names as fixed"
 line_has "$G7" "the story gate's budget is three fix-ups, red or blocking" 'The budget is three fix-ups per story, red or blocking alike'
 line_has "$G7" "the story gate's fourth failure skips delivery" 'the fourth failure skips step 8 and goes to step 9'

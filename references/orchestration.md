@@ -335,7 +335,7 @@ and the rest to the inbox at once. Every fix-up's report names each minor it fix
 it left unfixed. No minor is dropped (dev-a9a):
 every minor still unfixed when the unit lands or fails goes to the inbox as a deferral, the
 tracker doc's "capture a retro item". When the unit lands, that is each minor a fix-up
-reports it left unfixed. When the unit ends `failed`, it is also every minor of its review
+reports it left unfixed, and a minor reported fixed whose named file and line the fix-up's diff does not touch counts as unfixed, so a false fixed claim drops none (dev-ioa4). When the unit ends `failed`, it is also every minor of its review
 notes that no fix-up's report names as fixed, since a later clean round need not report a
 minor again and its review note would be its only trace. At the epic row every round's minors go to the inbox at once (The epic
 row, above).
