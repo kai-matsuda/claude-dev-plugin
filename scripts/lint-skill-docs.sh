@@ -1251,6 +1251,28 @@ lacksw "retired review-only gate wording in $f" "$retired_gate"
 hasc "the glossary's finished story names the delivered-tip condition (dev-1b5i)" 'last `delivered:` note names the current tip of'
 hasc "the glossary defines a story with a PR (dev-1b5i)" '**Story with a PR**:'
 
+# the finished-story test has one definition, the glossary's entry, and every copy of it that a
+# skill, reference doc or runbook keeps holds each clause of it: the settled children, the pr: note
+# with no checks red: line after it, the delivered tip, a story with no delivered: note, and a
+# delivered: line with no branch: note or an unresolvable branch (dev-tvki). Each row is a file and
+# its wording of the delivered-tip clause and of the no-delivered: clause; the other three clauses
+# read the same in every copy.
+finished_story_clauses() { # <file> <tip phrase> <no-delivered phrase>
+  f=$1
+  [ -f "$f" ] || return 0
+  hasc "the finished story in $f counts a child with needs-triage or wontfix as settled (dev-tvki)" "$pin_needs_triage_wontfix"
+  hasc "the finished story in $f has the pr: note with no checks red: line after it (dev-tvki)" 'no `checks red:` line after it'
+  hasc "the finished story in $f has its last delivered: note naming the current tip (dev-tvki)" "$2"
+  hasc "the finished story in $f counts a story with no delivered: note (dev-tvki)" "$3"
+  hasc "the finished story in $f has no current tip with no branch: note or an unresolvable branch (dev-tvki)" 'a `delivered:` line with no `branch:` note, or one whose branch does not resolve locally, names no current tip, so the story is not finished'
+}
+finished_story_clauses "$glossary_md" 'names the current tip of' 'a story with no `delivered:` note counts'
+finished_story_clauses "$skills/implement-spec/SKILL.md" "names the branch's current tip" 'when they carry a `delivered:` line'
+finished_story_clauses "$skills/implement-story/SKILL.md" "names the branch's current tip" 'when it carries a `delivered:` line'
+finished_story_clauses "$skills/workflow/SKILL.md" "names the current tip of the \`branch:\` note's branch" 'when they hold a `delivered:` line'
+finished_story_clauses "$refs/orchestration.md" "naming the branch's current tip" 'no `delivered:` note counts'
+finished_story_clauses "$docs/WORKFLOW.md" "names the branch's current tip" 'no `delivered:` note counts'
+
 # the docs ship in the plugin: no path into the old dotfiles deployment (~/.claude/docs,
 # ~/.claude/hooks), a deployed copy of the reference docs (~/.claude/references) or the chezmoi
 # source remains in any doc under docs/, references/, docs/agents, the skills, the project
