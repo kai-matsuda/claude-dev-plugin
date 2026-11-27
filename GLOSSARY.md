@@ -621,7 +621,9 @@ _Avoid_: project standards, local standards
 **Provenance trailer**:
 A commit trailer that links a commit to the tracked work it came from, which
 its diff cannot show: Bead: and Refs: with beads and Jira. Which keys are
-provenance trailers is set per machine, not by the plugin's tracker.
+provenance trailers is read from git config `dev.trailer.provenance` at any scope: the
+global (machine-wide) setting that `/dev:setup` prints, or a repo-local value a repo sets or
+adds to it.
 _Avoid_: bead trailer, ticket trailer, commit trailers (which include the attribution lines)
 
 **Trailer hook**:
