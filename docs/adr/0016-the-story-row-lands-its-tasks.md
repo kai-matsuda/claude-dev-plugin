@@ -48,6 +48,9 @@ that any orchestrator could run with a frontier of one.
 - **A chore skill**: `/dev:implement-chore` as the typed delivery skill. Rejected because
   `chore` is a Conventional Commits type the repo enforces, and the branch `chore/<id>`
   would deliver `fix:` commits.
+  > Amended 2026-11-27 (dev-06wc, INFRA-47): the commit style is the person's and the repo's
+  > standards, not the plugin's (ADR 0018's 2026-11-16 amendment), so the plugin enforces no
+  > commit type and the reason above no longer holds as written. It stays as history.
 
 ## Consequences
 
