@@ -205,8 +205,8 @@ and the harness doc's other rules.
 
 - The grilling that produced this spec rejected: a typed `/dev:implement-task` that also
   serves as the spawned skill (two modes in one skill); a `/dev:implement-chore` as the
-  typed delivery (`chore` is a Conventional Commits type the repo enforces, and the branch
-  `chore/<id>` would deliver `fix:` commits); keeping "ticket" as the unit's name; and
+  typed delivery (`chore` is a commit type the person's and the repo's standards set, not the
+  plugin's, and the branch `chore/<id>` would deliver `fix:` commits); keeping "ticket" as the unit's name; and
   wrapping a small bug in a story of one task (a story bead per bug and a redundant
   story-gate review).
 - The story orchestrator sending a red-on-resolved-tree to a fix-up itself was rejected
