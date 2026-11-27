@@ -143,7 +143,7 @@ fx_check "trailer hook with a backslash in a key checks that key literally" bloc
 fx_check "trailer hook error shows a backslash key literally" grep -qF '(Re\fs)' <<<"$terr"
 trailers_keys Bead Refs
 # with keys set (Bead, Refs), an unreadable message file fails the hook; with no keys set it
-# exits 0 before reading the file, so this case does not cover that path
+# exits 0 before reading the file; the no-keys case below pins that early exit (dev-48dg)
 printf '%s\n' $'fix: thing\n\nBead: dev-a' >"$trw/unreadable"
 chmod 000 "$trw/unreadable"
 printf '%s\n' $'fix: thing\n\nBead: dev-a' >"$trw/unreadable-nokeys"
