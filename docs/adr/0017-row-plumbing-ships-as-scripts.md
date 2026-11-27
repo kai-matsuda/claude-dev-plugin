@@ -18,7 +18,7 @@ bare `forge-wait * * * * *`. What pinned the file moves from the exact
 path to a condition: no sandbox-writable directory is on `PATH`, which a baseline that already
 excludes `git push*` needs as well. Other scripts stay under `scripts/`.
 
-Amended (dev-ekcl.1.2, INFRA-47): `bin/` holds a second script, `commit-trailers`, the trailer
+Amended 2026-11-16 (dev-ekcl.1.2, INFRA-47): `bin/` holds a second script, `commit-trailers`, the trailer
 hook, called by its bare name from a commit-msg hook in the owner's gitconfig; the setup snippet
 `skills/setup/commit-trailers.gitconfig` ships that hook command (dev-ekcl.1.3). The hook command
 skips the check when the name is not on `PATH`, so a machine without the plugin's `bin/` on `PATH`
