@@ -618,14 +618,14 @@ rule_literal_paths='Literal paths'
 rule_tmpdir='TMPDIR'
 # paragraph and section headings several checks scope to
 head_check_command='**Check command.**'
-head_check_gate='**Tier gates.**'
+head_tier_gates='**Tier gates.**'
 head_check_record='**Check record.**'
 head_check_scope='**Check scope.**'
 head_commits="**$rule_commits.**"
 head_considered_options='## Considered options'
 head_cut_off_agents="**$rule_cut_off.**"
 head_delivery_authority='**Delivery authority.**'
-head_epic_row='**The epic tier.**'
+head_epic_tier='**The epic tier.**'
 head_has_database='**Has a database.**'
 head_idle_rule="**$rule_idle.**"
 head_literal_paths="**$rule_literal_paths.**"
@@ -667,7 +667,7 @@ pin_retired_zero_findings_bar='not clean after three rounds|no findings at all|c
 pin_spawn_at_opus='at `model: opus`'
 pin_notes_dir_name='.spec-notes'
 pin_spec_notes_path=${pin_notes_dir_name//./\\.}
-pin_story_row_frontier_of_one='the story tier with a frontier of one'
+pin_story_tier_frontier_of_one='the story tier with a frontier of one'
 pin_tea_api_without_repo='tea api repos/'
 pin_timeout_600000='timeout: 600000'
 pin_task_orchestrator_bold='**task orchestrator**'
@@ -699,7 +699,7 @@ pin_verdict_clean='verdict: clean'
 pin_verdict_blocking='verdict: blocking (<n>)'
 pin_blocking_or_minor='**blocking** or **minor**'
 pin_cell_check_command='| the check command'
-pin_story_row_lands='The story tier lands'
+pin_story_tier_lands='The story tier lands'
 pin_retry_at_gate_on_resolved_branch='entering at the gate on the resolved branch'
 pin_landing_closes_task='A landing closes the task'
 pin_checks_skipped_no_forge='checks: skipped: no forge'
@@ -794,7 +794,7 @@ for given in "$user_claude_md" "$glossary_md"; do
 done
 # phrases the pin tables hold, read from their rows (a missing row fails the lint)
 # (each is set empty first, so a pin table or row that is gone fails its own check and not the shell)
-cmd_spec_to_stories_key= cmd_spec_to_stories_epic= epic_row_budget=
+cmd_spec_to_stories_key= cmd_spec_to_stories_epic= epic_tier_budget=
 row_phrase implement-spec-pins "add-mode stall hint" && cmd_spec_to_stories_key=$row_text
 row_phrase implement-spec-pins "add-mode stall hint without an external ref" && cmd_spec_to_stories_epic=$row_text
 
@@ -1418,7 +1418,7 @@ line_has "$row" "epic tier: no standards axis" '| none, the axis is skipped |'
 row_phrase implement-spec-pins "epic review model" && line_has "$row" "epic tier: the spec axis only at the review model of the epic's max complexity" "| the spec axis only, at $row_text |"
 line_has "$row" "epic tier: findings filed as tasks, the story re-run in add mode" '| findings filed as `ready-for-agent` tasks under the story, that story re-run in add mode |'
 line_has "$row" "epic tier: the PR marked ready, the human merges" 'the PR marked ready, the human merges'
-row_phrase implement-spec-pins "fix-up budget" && line_has "$row" "epic tier: three per story" "| $row_text |" && epic_row_budget=$row_text
+row_phrase implement-spec-pins "fix-up budget" && line_has "$row" "epic tier: three per story" "| $row_text |" && epic_tier_budget=$row_text
 for r in Task Story Epic; do
   line_has "^[|] [*][*]$r[*][*] [|]" "$r row: the check command" "$pin_cell_check_command"
   line_has "^[|] [*][*]$r[*][*] [|]" "$r row: the one exit" '| the checks green on the tip the review called clean |'
@@ -1442,14 +1442,14 @@ para_has "$head_check_scope" "every tree is checked once" "$pin_every_tree_check
 para_has "$head_check_scope" "a tree with a green check record counts as checked" 'a tree with a green check record (`exit=0`) counts as checked'
 para_has "$head_check_scope" "a red check record is checked again" 'A red record skips nothing'
 lacks "a red check record counted as checked" 'a tree with a check record counts as checked'
-para_has "$head_check_gate" "a pass skips the check only on a green record" 'unless its tree has a green record'
+para_has "$head_tier_gates" "a pass skips the check only on a green record" 'unless its tree has a green record'
 para_has "$head_check_record" "a red record's tree is checked again" 'one with a red record checks it again'
 # a fix-up that commits nothing leaves its tree red-recorded, so the checks rerun on it rather
 # than a flaky red's record spending the whole budget, and the fix-up still counts (dev-vnf)
-para_has "$head_check_gate" "a fix-up that commits nothing reruns the checks" 'so the checks rerun on the unchanged tree'
-para_has "$head_check_gate" "a fix-up that commits nothing still spends the budget" 'A fix-up that commits nothing still spends the budget'
+para_has "$head_tier_gates" "a fix-up that commits nothing reruns the checks" 'so the checks rerun on the unchanged tree'
+para_has "$head_tier_gates" "a fix-up that commits nothing still spends the budget" 'A fix-up that commits nothing still spends the budget'
 para_has "$head_check_scope" "a fix-up that commits nothing has its tree checked again" 'after a red, a fix-up that commits nothing leaves it red-recorded'
-para_has "$head_check_gate" "a fix-up that commits nothing after a blocking verdict is reviewed again" 'After a blocking verdict the unchanged tree keeps its green record'
+para_has "$head_tier_gates" "a fix-up that commits nothing after a blocking verdict is reviewed again" 'After a blocking verdict the unchanged tree keeps its green record'
 lacks "a fix-up that commits nothing re-reading the red record" 'a fix-up that commits nothing re-reads the red record'
 # a landing's conflict resolutions are capped per landing, apart from the fix-up budget, the
 # fourth conflict failing the task (dev-6qi)
@@ -1459,7 +1459,7 @@ para_has "$head_landing_a_task" "the fourth conflict fails the task" 'the fourth
 # the landing is the story tier's: the task orchestrator reports a reviewed branch and never
 # touches the owner checkout, the story orchestrator merges it serially with no lock, checks a
 # resolved tree, and a red there fails the landing with the retry entering at the gate (dev-b8d.1.4)
-para_has "$head_landing_a_task" "the story tier lands" "$pin_story_row_lands"
+para_has "$head_landing_a_task" "the story tier lands" "$pin_story_tier_lands"
 para_has "$head_landing_a_task" "the task orchestrator never touches the owner checkout" 'never touches the owner checkout'
 para_has "$head_landing_a_task" "landings are serial with no lock" 'Landings are serial, one per report, so no lock is'
 para_has "$head_landing_a_task" "the resolved tree is checked with the Check record script" 'checks the resolved tree'
@@ -1518,7 +1518,7 @@ para_has "$head_landing_a_task" "a merge that failed and left the checkout dirty
 para_has "$head_landing_a_task" "a merge that failed without a conflict is a refusal" 'a merge that failed without a conflict (`merge failed`)'
 para_has "$head_landing_a_task" "re-landing a landed tip merges nothing" 'Landing a tip already in `<branch>` runs the guards and reports `landed <sha>` with nothing merged'
 para_has "$head_check_scope" "a check is one run of the check command through the Check record script" 'one run of the check command through the Check record script'
-para_has "$head_check_gate" "each pass runs the Check record script" 'Each pass runs the Check record script on the tip'
+para_has "$head_tier_gates" "each pass runs the Check record script" 'Each pass runs the Check record script on the tip'
 sec_has "## Delivery" "the delivered tip's record is the one the Check record script wrote" 'which the Check record script wrote'
 hasc "the orchestrator runs the check command through the Check record script" 'run the check command through the Check record script, which writes'
 # the Delivery section, parametrised by the unit: the stray-commit check, the push, the PR body
@@ -1597,69 +1597,69 @@ pins_from "$pins_dir/repo-plumbing-pins.tsv" "$head_repo_plumbing"
 # minors fix-up and the conflict resolution that rerun the checks and spend nothing, the
 # reviewed tip as a sentence; the two-level loop with lint before the seams and the review
 # marker exit is retired
-hasc "Tier gates rule" "$head_check_gate"
-para_has "$head_check_gate" "one gate at every tier" 'At every tier the gate exits when the checks are green on the tip the review called clean'
-para_has "$head_check_gate" "a red or blocking verdict goes to a fresh implementer" "$pin_red_or_blocking_to_fresh_fix_up"
-para_has "$head_check_gate" "three fix-ups per unit" 'three such fix-ups per unit'
-para_has "$head_check_gate" "the epic tier budgets per story" "at the epic tier, $epic_row_budget"
-row_phrase implement-spec-pins "fix-up budget's fourth" && para_has "$head_check_gate" "a fourth failure is failed" "$row_text"
+hasc "Tier gates rule" "$head_tier_gates"
+para_has "$head_tier_gates" "one gate at every tier" 'At every tier the gate exits when the checks are green on the tip the review called clean'
+para_has "$head_tier_gates" "a red or blocking verdict goes to a fresh implementer" "$pin_red_or_blocking_to_fresh_fix_up"
+para_has "$head_tier_gates" "three fix-ups per unit" 'three such fix-ups per unit'
+para_has "$head_tier_gates" "the epic tier budgets per story" "at the epic tier, $epic_tier_budget"
+row_phrase implement-spec-pins "fix-up budget's fourth" && para_has "$head_tier_gates" "a fourth failure is failed" "$row_text"
 # the epic tier's fourth-failure lines, the same two step 6 of /dev:implement-spec reports (dev-aeo)
-row_phrase implement-spec-pins "red-check budget failure line" && para_has "$head_check_gate" "the epic tier's red fourth-failure line" "\`$row_text\` after a red check"
-row_phrase implement-spec-pins "blocking-verdict budget failure line" && para_has "$head_check_gate" "the epic tier's blocking fourth-failure line" "\`$row_text\` after a blocking verdict"
+row_phrase implement-spec-pins "red-check budget failure line" && para_has "$head_tier_gates" "the epic tier's red fourth-failure line" "\`$row_text\` after a red check"
+row_phrase implement-spec-pins "blocking-verdict budget failure line" && para_has "$head_tier_gates" "the epic tier's blocking fourth-failure line" "\`$row_text\` after a blocking verdict"
 epic_fourth_failure_lines
-para_has "$head_check_gate" "a minors fix-up and a conflict resolution rerun the checks" 'A minors fix-up and a conflict resolution move the tip, so the checks rerun'
-para_has "$head_check_gate" "and spend nothing" 'no budget is spent'
-para_has "$head_check_gate" "the reviewed tip noted on the story" 'records the reviewed tip in its notes'
-para_has "$head_check_gate" "the gate exits on the moved tip" 'the gate exits on the moved tip once its checks are green'
-para_has "$head_check_gate" "the reviewed-tip note names the moved tip" 'the reviewed-tip note on the story bead'
-para_has "$head_check_gate" "the task tier writes no reviewed-tip note" 'the task tier writes no such note'
+para_has "$head_tier_gates" "a minors fix-up and a conflict resolution rerun the checks" 'A minors fix-up and a conflict resolution move the tip, so the checks rerun'
+para_has "$head_tier_gates" "and spend nothing" 'no budget is spent'
+para_has "$head_tier_gates" "the reviewed tip noted on the story" 'records the reviewed tip in its notes'
+para_has "$head_tier_gates" "the gate exits on the moved tip" 'the gate exits on the moved tip once its checks are green'
+para_has "$head_tier_gates" "the reviewed-tip note names the moved tip" 'the reviewed-tip note on the story bead'
+para_has "$head_tier_gates" "the task tier writes no reviewed-tip note" 'the task tier writes no such note'
 # a low task's gate is its checks, plus one standards review when its diff changes prose describing
 # behaviour, every owner repo having a check command (ADR 0015)
-para_has "$head_check_gate" "a low task is gated by the checks alone unless its diff changes behaviour prose" 'A `low` task'"'"'s gate is the checks alone, with no review, unless its diff adds or changes a comment, doc, skill text or test header describing behaviour'
+para_has "$head_tier_gates" "a low task is gated by the checks alone unless its diff changes behaviour prose" 'A `low` task'"'"'s gate is the checks alone, with no review, unless its diff adds or changes a comment, doc, skill text or test header describing behaviour'
 # the fix-up budget is bounded per invocation at every tier (dev-gi1): a fresh orchestrator at any
 # row starts its unit's budget at three whatever notes earlier invocations left, the epic
 # orchestrator counts a story's spent budget from the notes after its epic round start marker,
 # an agent resumed with its context keeps its own count, and the epic tier is no exception
-para_has "$head_check_gate" "a fresh orchestrator starts its unit's budget at three" "starts its unit's budget at three whatever notes earlier invocations left"
-para_has "$head_check_gate" "the fresh budget holds at any tier" 'A fresh orchestrator at any tier'
-para_has "$head_check_gate" "a resumed agent keeps its own count" 'an agent resumed with its context keeps its own count'
-para_has "$head_check_gate" "neither the task tier nor the story tier records spent fix-ups" 'neither the task tier nor the story tier records spent fix-ups'
-row_phrase implement-spec-pins "spent budget is the fix-up notes after the story's epic round start marker" && para_has "$head_check_gate" "the epic orchestrator counts from the notes after the story's epic round start marker" "$row_text"
-para_has "$head_check_gate" "an add-mode re-run of filed tasks is a round of its own that spends" 'An add-mode re-run of tasks already filed is a round of its own and spends the budget like any other'
-para_has "$head_check_gate" "each round spends once, a filing's note and its add-mode pass included" 'Each round spends once'
-para_has "$head_check_gate" "the bound is per invocation, citing dev-l4j" 'bound a person wants is per invocation (dev-l4j)'
+para_has "$head_tier_gates" "a fresh orchestrator starts its unit's budget at three" "starts its unit's budget at three whatever notes earlier invocations left"
+para_has "$head_tier_gates" "the fresh budget holds at any tier" 'A fresh orchestrator at any tier'
+para_has "$head_tier_gates" "a resumed agent keeps its own count" 'an agent resumed with its context keeps its own count'
+para_has "$head_tier_gates" "neither the task tier nor the story tier records spent fix-ups" 'neither the task tier nor the story tier records spent fix-ups'
+row_phrase implement-spec-pins "spent budget is the fix-up notes after the story's epic round start marker" && para_has "$head_tier_gates" "the epic orchestrator counts from the notes after the story's epic round start marker" "$row_text"
+para_has "$head_tier_gates" "an add-mode re-run of filed tasks is a round of its own that spends" 'An add-mode re-run of tasks already filed is a round of its own and spends the budget like any other'
+para_has "$head_tier_gates" "each round spends once, a filing's note and its add-mode pass included" 'Each round spends once'
+para_has "$head_tier_gates" "the bound is per invocation, citing dev-l4j" 'bound a person wants is per invocation (dev-l4j)'
 lacks "the epic tier named as the budget's exception" 'The epic tier is the exception'
-para_has "$head_epic_row" "the epic tier's checks are the forge's status on the PR tip" "the forge reports them green on the PR's tip"
+para_has "$head_epic_tier" "the epic tier's checks are the forge's status on the PR tip" "the forge reports them green on the PR's tip"
 # the epic tier settles its own red check and minors (dev-bwh): a red check is filed like a
 # blocking finding, a task under the story, and spends the budget; a clean verdict's minors
 # take no last fix-up, which the epic orchestrator cannot run, and go to the inbox
-para_has "$head_epic_row" "a red check at the epic tier is filed like a blocking verdict" 'On a blocking verdict or a red check'
-para_has "$head_epic_row" "the red check's task carries its check, command and log" 'carries its check, its command and its log pointer'
-para_has "$head_epic_row" "a red check spends the epic tier's budget" 'three such fix-ups per story per invocation, red or blocking alike'
-para_has "$head_epic_row" "a pending check leaves the PR a draft" "$pin_pr_stays_a_draft and a later invocation reads it again"
-para_has "$head_epic_row" "the epic tier's minors take no last fix-up" 'minors take no last fix-up at this tier'
+para_has "$head_epic_tier" "a red check at the epic tier is filed like a blocking verdict" 'On a blocking verdict or a red check'
+para_has "$head_epic_tier" "the red check's task carries its check, command and log" 'carries its check, its command and its log pointer'
+para_has "$head_epic_tier" "a red check spends the epic tier's budget" 'three such fix-ups per story per invocation, red or blocking alike'
+para_has "$head_epic_tier" "a pending check leaves the PR a draft" "$pin_pr_stays_a_draft and a later invocation reads it again"
+para_has "$head_epic_tier" "the epic tier's minors take no last fix-up" 'minors take no last fix-up at this tier'
 # a finding from outside the story's epic reviewer is one of the epic review's findings (dev-4pm2)
-row_phrase implement-spec-pins "outside finding on a delivered tip" && para_has "$head_epic_row" "the epic tier: outside finding on a delivered tip" "$row_text"
-row_phrase implement-spec-pins "outside finding test: wrong behaviour is blocking" && para_has "$head_epic_row" "the epic tier: outside finding test: wrong behaviour is blocking" "$row_text"
-row_phrase implement-spec-pins "outside finding: a blocking one is filed at once, wherever the story stands" && para_has "$head_epic_row" "the epic tier: outside finding is filed at once, wherever the story stands" "$row_text"
-row_phrase implement-spec-pins "only a closed or landed story takes no task" && para_has "$head_epic_row" "the epic tier: only a closed or landed story takes no task" "$row_text"
-row_phrase implement-spec-pins "a story with an open fix-up task is not skipped, polled, ready or Done" && para_has "$head_epic_row" "the epic tier: a story with an open fix-up task is not skipped, polled, ready or Done" "$row_text"
-row_phrase implement-spec-pins "outside finding: task first, note after, the task is the record" && para_has "$head_epic_row" "the epic tier: outside finding: task first, note after" "$row_text"
-row_phrase implement-spec-pins "an add-mode pass on filed tasks is a fix-up round of its own" && para_has "$head_epic_row" "the epic tier: an add-mode pass on filed tasks is a fix-up round of its own" "$row_text"
-para_has "$head_epic_row" "the epic tier: the marker is written once per invocation before any delivery or review" 'writes once per invocation, before any delivery or review'
-row_phrase implement-spec-pins "the marker scope is every open story the preflight covered" && para_has "$head_epic_row" "the epic tier: the marker's scope is every open story the preflight covered" "$row_text"
-para_has "$head_epic_row" "the epic tier: the markers are written only after the preflight passes" 'once the preflight passes'
-row_phrase implement-spec-pins "an add-mode pass spends only when its round has no note yet" && para_has "$head_epic_row" "the epic tier: an add-mode pass spends only when its round has no note yet" "$row_text"
-row_phrase implement-spec-pins "a pass on a task whose filing wrote the round note writes no second note" && para_has "$head_epic_row" "the epic tier: a pass on a task whose filing wrote the round note writes no second note" "$row_text"
-row_phrase implement-spec-pins "a re-run of a task whose round had its batch spends" && para_has "$head_epic_row" "the epic tier: a re-run of a task whose round had its batch spends" "$row_text"
-row_phrase implement-spec-pins "the failing fourth-round pass writes no fourth note" && para_has "$head_epic_row" "the epic tier: the failing fourth-round pass writes no fourth note" "$row_text"
-para_has "$head_epic_row" "the epic tier: a ready PR goes back to draft first" 'goes back to draft first'
-row_phrase implement-spec-pins "a story with no marker from this invocation gets one before anything is filed on it" && para_has "$head_epic_row" "the epic tier: a story with no marker from this invocation gets one before anything is filed on it" "$row_text"
-row_phrase implement-spec-pins "the add-mode round's note kind" && para_has "$head_epic_row" "the epic tier: the add-mode round's note kind" "$row_text"
-row_phrase implement-spec-pins "the epic tier counts the budget from the epic round start marker" && para_has "$head_epic_row" "the epic tier: the budget counts from the epic round start marker" "$row_text"
-para_has "$head_epic_row" "every epic review's minors go to the inbox, blocking or clean" "verdict, an epic review's minors take no last fix-up"
-para_has "$head_epic_row" "the epic tier's minors go to the inbox" "$pin_inbox_as_deferrals"
-para_has "$head_epic_row" "the epic tier's minors go to the inbox at once" "$pin_inbox_as_deferrals at once"
+row_phrase implement-spec-pins "outside finding on a delivered tip" && para_has "$head_epic_tier" "the epic tier: outside finding on a delivered tip" "$row_text"
+row_phrase implement-spec-pins "outside finding test: wrong behaviour is blocking" && para_has "$head_epic_tier" "the epic tier: outside finding test: wrong behaviour is blocking" "$row_text"
+row_phrase implement-spec-pins "outside finding: a blocking one is filed at once, wherever the story stands" && para_has "$head_epic_tier" "the epic tier: outside finding is filed at once, wherever the story stands" "$row_text"
+row_phrase implement-spec-pins "only a closed or landed story takes no task" && para_has "$head_epic_tier" "the epic tier: only a closed or landed story takes no task" "$row_text"
+row_phrase implement-spec-pins "a story with an open fix-up task is not skipped, polled, ready or Done" && para_has "$head_epic_tier" "the epic tier: a story with an open fix-up task is not skipped, polled, ready or Done" "$row_text"
+row_phrase implement-spec-pins "outside finding: task first, note after, the task is the record" && para_has "$head_epic_tier" "the epic tier: outside finding: task first, note after" "$row_text"
+row_phrase implement-spec-pins "an add-mode pass on filed tasks is a fix-up round of its own" && para_has "$head_epic_tier" "the epic tier: an add-mode pass on filed tasks is a fix-up round of its own" "$row_text"
+para_has "$head_epic_tier" "the epic tier: the marker is written once per invocation before any delivery or review" 'writes once per invocation, before any delivery or review'
+row_phrase implement-spec-pins "the marker scope is every open story the preflight covered" && para_has "$head_epic_tier" "the epic tier: the marker's scope is every open story the preflight covered" "$row_text"
+para_has "$head_epic_tier" "the epic tier: the markers are written only after the preflight passes" 'once the preflight passes'
+row_phrase implement-spec-pins "an add-mode pass spends only when its round has no note yet" && para_has "$head_epic_tier" "the epic tier: an add-mode pass spends only when its round has no note yet" "$row_text"
+row_phrase implement-spec-pins "a pass on a task whose filing wrote the round note writes no second note" && para_has "$head_epic_tier" "the epic tier: a pass on a task whose filing wrote the round note writes no second note" "$row_text"
+row_phrase implement-spec-pins "a re-run of a task whose round had its batch spends" && para_has "$head_epic_tier" "the epic tier: a re-run of a task whose round had its batch spends" "$row_text"
+row_phrase implement-spec-pins "the failing fourth-round pass writes no fourth note" && para_has "$head_epic_tier" "the epic tier: the failing fourth-round pass writes no fourth note" "$row_text"
+para_has "$head_epic_tier" "the epic tier: a ready PR goes back to draft first" 'goes back to draft first'
+row_phrase implement-spec-pins "a story with no marker from this invocation gets one before anything is filed on it" && para_has "$head_epic_tier" "the epic tier: a story with no marker from this invocation gets one before anything is filed on it" "$row_text"
+row_phrase implement-spec-pins "the add-mode round's note kind" && para_has "$head_epic_tier" "the epic tier: the add-mode round's note kind" "$row_text"
+row_phrase implement-spec-pins "the epic tier counts the budget from the epic round start marker" && para_has "$head_epic_tier" "the epic tier: the budget counts from the epic round start marker" "$row_text"
+para_has "$head_epic_tier" "every epic review's minors go to the inbox, blocking or clean" "verdict, an epic review's minors take no last fix-up"
+para_has "$head_epic_tier" "the epic tier's minors go to the inbox" "$pin_inbox_as_deferrals"
+para_has "$head_epic_tier" "the epic tier's minors go to the inbox at once" "$pin_inbox_as_deferrals at once"
 para_has "$head_review_verdict" "the Review verdict sends the epic tier's minors to the inbox" 'always to the inbox (The epic tier, above)'
 lacks "the retired two-level check order" 'lint first, then the test seams'
 # the seam-test blocking case, and the one review tool
@@ -1669,7 +1669,7 @@ para_has "$head_review_verdict" "the no-seam-test case skips a standalone task w
 hasc "the one review tool" "$pin_code_review_tool at every tier"
 # /dev:implement-task in one paragraph under the table, the table keeping three rows (dev-b8d.1.6)
 para_has "$head_standalone_task" "the paragraph names /dev:implement-task" "$pin_implement_task_id"
-para_has "$head_standalone_task" "the paragraph: the story tier with a frontier of one" "$pin_story_row_frontier_of_one"
+para_has "$head_standalone_task" "the paragraph: the story tier with a frontier of one" "$pin_story_tier_frontier_of_one"
 para_has "$head_standalone_task" "the paragraph: no story gate" "$pin_no_story_bead_or_gate"
 para_has "$head_standalone_task" "the paragraph: the PR opened ready" 'a PR opened ready'
 para_has "$head_standalone_task" "the paragraph: the close at delivery" 'closes the task at delivery'
@@ -2515,7 +2515,7 @@ hasc "the non-task refusal" '`<id> is of type <type>, not a task; /dev:implement
 hasc "the story-task refusal names /dev:implement-story" "\`<id> refused: its parent <story-id> is a story; run $cmd_implement_story\`"
 hasc "the not-ready refusal" '`<id> refused: not ready-for-agent'
 # the story tier with a frontier of one, no story bead and no story gate
-hasc "the story tier with a frontier of one" "$pin_story_row_frontier_of_one"
+hasc "the story tier with a frontier of one" "$pin_story_tier_frontier_of_one"
 hasc "no story gate" "$pin_no_story_bead_or_gate"
 # the plumbing: the same make probe and refusal, the forge decision, the gitignore rule, the branch
 # the make probe, its refusal, the forge decision, the Gitignore commit and the merge guard's
