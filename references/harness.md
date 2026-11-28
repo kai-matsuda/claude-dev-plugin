@@ -174,7 +174,7 @@ line, which makes the agent independent of the draw. Two riders, from that probe
 state does not survive a Bash call (the next call saw the old `TMPDIR` again), so the
 `export` is repeated at the head of every call that runs `mktemp`, a heredoc or a script:
 `export TMPDIR=<worktree>/.tmp; <command>`. A `git` call takes no such prefix: git runs alone,
-each git call its own Bash call with no `export` in front. And macOS `mktemp` (`/usr/bin/mktemp` on
+each git call its own Bash call with no `export` in front. A script runs as that prefix and the script call alone: its exit code is read from the tool result and a saved log is read in a separate call, with no `time` wrapper, no `; echo rc=$?` and no redirect chained into a grep, since the worktree guard refuses a chain it cannot verify as a script run (dev-zy89). And macOS `mktemp` (`/usr/bin/mktemp` on
 Darwin 27, whatever its manual says of `-t`) ignores `TMPDIR` altogether, with or without
 `-t`, and uses the user temp directory under `/var/folders`, so `mktemp -d` always takes
 an explicit template under the directory, `mktemp -d <worktree>/.tmp/<name>.XXXXXX` (the

@@ -738,6 +738,9 @@ spelled='spelled literally in every later `export`'
 forms_edit="file edits go through the Edit tool (the harness doc's Literal paths rule)"
 forms_commit="a commit message with trailers is written whole to \`<worktree>/.tmp/commit-msg\` and committed with \`git commit -F\` on that file (the harness doc's Commits rule)"
 forms_glob="a glob passed as a flag is quoted, as \`--include='*.md'\` (the harness doc's Shell commands section)"
+# the accepted script-call shape the implementer and fix-up briefs state beside the forms, pointing at
+# the harness doc's TMPDIR rule for the reason (dev-zy89)
+script_shape="A script runs as the TMPDIR prefix then the script call alone, its exit code read from the tool result and its saved log read in a separate call (the harness doc's TMPDIR rule)"
 # the story gate's two phrases whose order the step 7 awk check reads (below) beside their pins
 gate_first='Each pass runs the checks first'
 gate_same='the same SHA exits the gate'
@@ -1715,6 +1718,7 @@ para_has "$head_tmpdir" "mktemp -d takes a template under .tmp" "$pin_mktemp_tem
 para_has "$head_tmpdir" "the calls the export prefixes" 'every call that runs `mktemp`, a heredoc or a script'
 para_has "$head_tmpdir" "git runs alone" 'git runs alone,'
 para_has "$head_tmpdir" "a git call takes no export in front" 'each git call its own Bash call with no `export` in front'
+para_has "$head_tmpdir" "a script runs as the prefix and the script call alone" 'A script runs as that prefix and the script call alone'
 # file edits in a worktree go through the Edit tool, not sed -f or a python heredoc (dev-xvq5)
 para_has "$head_literal_paths" "file edits go through the Edit tool" 'the Edit tool, in place of `sed -f` or a python heredoc'
 para_has "$head_idle_rule" "the Idle rule names the check command" 'every run of the check command'
@@ -2389,6 +2393,9 @@ line_has '^3\. ' "the red fix-up brief says a glob passed as a flag is quoted" "
 line_has '^3\. ' "the blocking fix-up brief says file edits go through the Edit tool" "$forms_edit"
 line_has '^3\. ' "the blocking fix-up brief says a commit message with trailers goes through a message file" "$forms_commit"
 line_has '^3\. ' "the blocking fix-up brief says a glob passed as a flag is quoted" "$forms_glob"
+line_has '^2\. ' "the implementer brief says a script runs as the TMPDIR prefix then the script call alone" "$script_shape"
+line_has '^3\. ' "the red fix-up brief says a script runs as the TMPDIR prefix then the script call alone" "$script_shape"
+line_has '^3\. ' "the blocking fix-up brief says a script runs as the TMPDIR prefix then the script call alone" "$script_shape"
 lacks "the zero-findings bar" "$pin_retired_zero_findings_bar"
 # the skill states its tier of the orchestration doc's table, the run's check command from its brief, and
 # cites the harness doc in one line (dev-9k5.1.7); its tier reports a reviewed branch (dev-b8d.1.4)
