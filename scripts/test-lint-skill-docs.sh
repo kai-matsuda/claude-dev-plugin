@@ -1169,7 +1169,7 @@ swap_phrase references/harness.md "$pinned_phrase" 'here-document'
 printf '\nA %s elsewhere in the doc.\n' "$pinned_phrase" >> "$scratch/references/harness.md"
 expect "harness doc whose TMPDIR rule names no heredoc fails" 1
 
-section_case 6 references/orchestration.md 'At the epic tier it is `failed: <story-id> checks failed after three fix-ups`' "a Tier gates allowing a third epic-tier fourth-failure line"
+section_case 6 references/orchestration.md 'At the epic tier it is `failed: <story-id> checks failed after three fix-ups`' "a Tier gates rule allowing a third epic-tier fourth-failure line"
 
 fresh
 swap_phrase references/orchestration.md '`/.worktrees/`, `/.spec-notes/` and `/.tmp/`' '`/.tmp/`, `/.worktrees/` and `/.spec-notes/`'
@@ -1800,15 +1800,15 @@ expect "implement-spec counting only blocking verdicts fails" 1 "a budget of blo
 # the epic tier's fourth failure reads only the Tier gates' two lines (dev-aeo)
 fresh_spec
 echo 'report `failed: <story-id> epic gate not clean after three fix-ups`' >> "$spec"
-expect "implement-spec with a fourth-failure line the Tier gates does not allow fails" 1 "an epic-tier fourth-failure line the Tier gates does not allow" "$spec" "$scratch/docs/WORKFLOW.md"
+expect "implement-spec with a fourth-failure line the Tier gates rule does not allow fails" 1 "an epic-tier fourth-failure line the Tier gates rule does not allow" "$spec" "$scratch/docs/WORKFLOW.md"
 
 fresh_spec
 echo 'report `failed: <story-id> epic review failed after 3 fix-ups`' >> "$spec"
-expect "implement-spec with a reworded fix-up count fails" 1 "an epic-tier fourth-failure line the Tier gates does not allow" "$spec" "$scratch/docs/WORKFLOW.md"
+expect "implement-spec with a reworded fix-up count fails" 1 "an epic-tier fourth-failure line the Tier gates rule does not allow" "$spec" "$scratch/docs/WORKFLOW.md"
 
 # the Tier gates' allowed lines are blanked as literal text: a row reworded to hold a / (the lint
 # once passed it to sed as a pattern, which failed and left the scan empty) still lets a line the
-# Tier gates does not allow fail
+# Tier gates rule does not allow fail
 pins_copy
 pin_phrase "red-check budget failure line"
 slashed="$pinned_phrase/x"
@@ -1816,7 +1816,7 @@ for doc in pins/implement-spec-pins.tsv skills/implement-spec/SKILL.md reference
   swap_phrase "$doc" "$pinned_phrase" "$slashed"
 done
 printf '\n%s\n' 'report `failed: <story-id> epic gate not clean after three fix-ups`' >> "$scratch/skills/implement-spec/SKILL.md"
-expect "a reworded fourth-failure row holding a / still fails a line the Tier gates does not allow" 1 "an epic-tier fourth-failure line the Tier gates does not allow"
+expect "a reworded fourth-failure row holding a / still fails a line the Tier gates rule does not allow" 1 "an epic-tier fourth-failure line the Tier gates rule does not allow"
 unset pins_dir
 
 fresh_spec
@@ -2982,13 +2982,13 @@ for case in "$ban_two_level|present: the retired two-level check order" \
   sec=$s expect "orchestration doc with '${case%%|*}' fails" 1 "${case#*|}"
 done
 
-# the row regaining the landing's conflict resolutions fails (dev-b8d.1.4)
+# the tier regaining the landing's conflict resolutions fails (dev-b8d.1.4)
 fresh
 pin_phrase "the tier's conflict resolutions"; resolutions=$pinned_phrase
-pin_phrase "the row budgets three fix-ups"
-pin_anchor "the row budgets three fix-ups"
+pin_phrase "the tier budgets three fix-ups"
+pin_anchor "the tier budgets three fix-ups"
 swap_phrase skills/task-orchestrator/SKILL.md "($pinned_anchor.*)$pinned_phrase" "\\1$pinned_phrase and three $resolutions per landing"
-sec=16 expect "task-orchestrator whose row regains conflict resolutions fails" 1 "present: the tier's conflict resolutions"
+sec=16 expect "task-orchestrator whose tier regains conflict resolutions fails" 1 "present: the tier's conflict resolutions"
 
 fresh
 echo "grep -q '^check:' <owner>/Makefile tells which" >> "$scratch/skills/implement-story/SKILL.md"
@@ -2997,7 +2997,7 @@ expect "a step 3 that greps the Makefile for the check target fails" 1 "present:
 # a task orchestrator that resolves the check command per task again fails, so parallel tasks
 # share one gate (dev-yyu)
 fresh
-pin_phrase "the row opens on the task orchestrator"
+pin_phrase "the tier opens on the task orchestrator"
 row_open=$pinned_phrase
 pin_phrase "the skill never resolves the check command itself"
 never_resolve=$pinned_phrase
@@ -3007,7 +3007,7 @@ sec=16 expect "a task orchestrator that looks up the check target per task fails
 
 fresh
 swap_phrase skills/task-orchestrator/SKILL.md "$row_open" 'You are the ticket runner'
-sec="5 16" expect "a row opening on the old ticket role fails" 1 "missing: the row opens on the task orchestrator"
+sec="5 16" expect "a tier opening on the old ticket role fails" 1 "missing: the tier opens on the task orchestrator"
 
 for case in 'Resolve the owner repo'"'"'s **lint command** once, here beside the forge.|present: the retired lint-command resolution' \
   '`make lint` when `<owner>`'"'"'s Makefile has a `lint` target|present: the retired lint-command resolution' \

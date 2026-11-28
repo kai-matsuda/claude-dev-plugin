@@ -7,7 +7,7 @@
 #      the story-closure human stop and the add-mode stall hint pinned (chezmoi-9v4.1.6); the
 #      epic tier (dev-9k5.1.8): the role named, the harness doc cited, the epic review (one PR at
 #      a time, the default-branch diff, the Jira Epic's spec, no standards axis, the epic's max
-#      tier), draft until clean with the mark-ready commands, the add-mode fix-up (one task per
+#      complexity), draft until clean with the mark-ready commands, the add-mode fix-up (one task per
 #      blocking finding, three per story, the fourth failed in one of the Tier gates' two lines
 #      and no other, dev-aeo) and the review: end-state line, with
 #      no epic-tier role and no PR opened here; its home database gate cites the tracker doc's
@@ -405,7 +405,7 @@ retired_row_names() {
 epic_fourth_failure_lines() {
   local scan other='failed: <story-id> [^`]*fix-up' red blocking
   unchanged_file && return 0
-  # the two lines the Tier gates allows are the pin table's rows, so a reword of one follows it;
+  # the two lines the Tier gates rule allows are the pin table's rows, so a reword of one follows it;
   # they are blanked as literal text by index, not as a pattern (a phrase may hold a / or a pattern
   # character), and not by bash's ${//}, which is quadratic in bash 3.2
   row_phrase implement-spec-pins "red-check budget failure line" || return 0
@@ -419,7 +419,7 @@ epic_fourth_failure_lines() {
     }
     print }' "$f")
   if grep -q "$other" <<<"$scan"; then
-    bad "present: an epic-tier fourth-failure line the Tier gates does not allow"
+    bad "present: an epic-tier fourth-failure line the Tier gates rule does not allow"
     grep -n "$other" <<<"$scan" | head -3
   fi
 }
@@ -2393,15 +2393,15 @@ lacks "the zero-findings bar" "$pin_retired_zero_findings_bar"
 # the skill states its tier of the orchestration doc's table, the run's check command from its brief, and
 # cites the harness doc in one line (dev-9k5.1.7); its tier reports a reviewed branch (dev-b8d.1.4)
 H="$anchor_task_orchestrator_header"
-hase "the row opens on the task orchestrator" "$H"
+hase "the tier opens on the task orchestrator" "$H"
 for pin in "your tier is the task tier of the orchestration doc's table|the skill names its tier of the orchestration doc's table" \
-  'you build with one implementer in a worktree|the row builds with one implementer in a worktree' \
-  'check with the check command|the row checks with the check command' \
-  "review the task's body as the spec axis and the task diff as the standards axis, on the next model up, at \`low\` only a standards reviewer for a diff that changes a comment, doc, skill text or test header describing behaviour, fix up|the row reviews the task body and diff on the next model up, at low a standards review of changed prose only" \
-  'fix up by pointer brief in the same worktree|the row fixes up by pointer brief in the same worktree' \
-  'report the reviewed branch for the story orchestrator to land|the row reports its reviewed branch for the story orchestrator to land' \
-  'exit when the checks are green on the tip the review called clean|the row exits on green checks at the tip the review called clean' \
-  'within three fix-ups|the row budgets three fix-ups'; do
+  'you build with one implementer in a worktree|the tier builds with one implementer in a worktree' \
+  'check with the check command|the tier checks with the check command' \
+  "review the task's body as the spec axis and the task diff as the standards axis, on the next model up, at \`low\` only a standards reviewer for a diff that changes a comment, doc, skill text or test header describing behaviour, fix up|the tier reviews the task body and diff on the next model up, at low a standards review of changed prose only" \
+  'fix up by pointer brief in the same worktree|the tier fixes up by pointer brief in the same worktree' \
+  'report the reviewed branch for the story orchestrator to land|the tier reports its reviewed branch for the story orchestrator to land' \
+  'exit when the checks are green on the tip the review called clean|the tier exits on green checks at the tip the review called clean' \
+  'within three fix-ups|the tier budgets three fix-ups'; do
   line_has "$H" "${pin#*|}" "${pin%%|*}"
 done
 line_lacks "$H" "the tier's conflict resolutions" "$pin_conflict_resolutions"
@@ -2418,7 +2418,7 @@ line_lacks "$H" "the per-task check command by Makefile convention" "Makefile ha
 # task exiting on green (dev-cq0.1.4, dev-1xf.1.2)
 G3='^3\. \*\*Task gate\*\*, every complexity'
 hase "task orchestrator step 3 opens with the task gate, every complexity" "$G3"
-line_has "$G3" "the loop step cites the orchestration doc's loop" "as the orchestration doc's Tier gates says"
+line_has "$G3" "the loop step cites the orchestration doc's loop" "as the orchestration doc's Tier gates rule says"
 line_has "$G3" "a red starts the loop over from the checks" 'A red spawns a fresh implementer on the fix-up and the loop starts over from the checks'
 line_has "$G3" "a blocking verdict starts the loop over from the checks, never straight to the reviewers" 'a blocking verdict spawns a fresh implementer on the fix-up and the loop starts over from the checks, never straight to the reviewers'
 line_has "$G3" "a clean verdict exits the loop" '**Clean** exits the loop'

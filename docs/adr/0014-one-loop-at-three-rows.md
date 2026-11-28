@@ -4,8 +4,9 @@ status: accepted
 
 > Amended 2026-11-28 (dev-p0sh): vocabulary only; the decision stands. The three rows below
 > are now **tiers** (the task tier, the story tier and the epic tier), and the check gate is
-> the task gate, the story gate and the epic gate, each tier gate still gated by the one
-> check command; one run of that command on a tree is a **check run**. The text below keeps
+> the task gate and the story gate, which run the one check command, and the epic gate,
+> which runs no checks of its own and reads the forge gate's verdict (ADR 0015's note of
+> this date); one run of that command on a tree is a **check run**. The text below keeps
 > the words of its day.
 
 > Amended 2026-11-15 (dev-gc8c, INFRA-45): the orchestration doc cited below as

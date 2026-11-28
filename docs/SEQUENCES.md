@@ -24,7 +24,7 @@ sequenceDiagram
     participant V as Reviewer (review model, on the next model up)
     participant F as Fix-up (per the tier's Fix-up column)
     participant IN as Inbox (plain bd, home)
-    participant U as Row above (or the human)
+    participant U as Tier above (or the human)
 
     Note over F: task tier, a fresh implementer in the same worktree
     Note over F: story tier, a fresh implementer in a fix-up worktree

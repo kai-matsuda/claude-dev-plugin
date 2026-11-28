@@ -241,8 +241,8 @@ orchestrator; the forge runs it too, for the forge gate.
 _Avoid_: gate command, CI command, lint command
 
 **Check**:
-One validation a gate runs: a unit or integration test run, a lint, a build, a forge CI
-job. The check command runs an owner repo's checks; the forge gate reads the forge's.
+One pass-or-fail step a tier gate or the forge gate reads: a unit or integration test run,
+a lint, a build, a forge CI job. The check command runs an owner repo's checks; the forge gate reads the forge's.
 _Avoid_: test suite, validation
 
 **Check run**:
