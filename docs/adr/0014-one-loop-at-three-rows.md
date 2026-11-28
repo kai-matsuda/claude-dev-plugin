@@ -6,6 +6,12 @@ status: accepted
 > `docs/agents/orchestration.md` now lives at `references/orchestration.md` at the plugin
 > root. The text below keeps the path of its day.
 
+> Amended 2026-11-28 (dev-kgda, INFRA-47): a `low` ticket whose diff adds or changes a comment,
+> doc, skill text or test header describing behaviour gets one standards reviewer at `sonnet`,
+> its verdict handled as a `medium` ticket's is; a `low` ticket whose diff changes only code
+> keeps the checks as its gate. The Consequences line "`low` tickets still have no review" holds
+> for code-only diffs alone.
+
 > Supersedes ADR 0001 (two review tools, one tier up, at two stages).
 
 > Amended by dev-6qi (INFRA-33, 2026-10-27): only a green check record (`exit=0`) counts as

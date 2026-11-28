@@ -13,6 +13,11 @@ status: accepted
 > `/dev:setup-repo` writes no `ci` target. The rule is stated once, in the rules doc's Check
 > command paragraph (`docs/agents/orchestration.md`).
 
+> Amended 2026-11-28 (dev-kgda, INFRA-47): "a `low` ticket's gate is the checks alone" holds for
+> a `low` ticket whose diff changes only code; one that adds or changes a comment, doc, skill
+> text or test header describing behaviour adds one standards reviewer at `sonnet` (ADR 0014's
+> amendment of the same date).
+
 > Amends ADR 0014 (`docs/adr/0014-one-loop-at-three-rows.md`): its "a repo opts in by adding
 > the target" and the review-only gate that followed from it, with the dev-5e4 and dev-2p5
 > amendments that patched that gate.

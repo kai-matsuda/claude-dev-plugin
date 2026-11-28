@@ -43,10 +43,10 @@ sequenceDiagram
             O->>BD: note the failing command and its log
             O->>F: fix-up by pointer brief
             F-->>O: report, the loop starts over from the checks
-        else checks green, the task row at low, no reviewer
+        else checks green, the task row at low with no prose describing behaviour in its diff, no reviewer
             Note over O: the loop exits on green
         else checks green, any other row or tier
-            O->>V: spawn the review, the row's axes (the epic row, the spec axis only)
+            O->>V: spawn the review, the row's axes (the epic row, the spec axis only, a low task the standards axis alone)
             V-->>O: findings tagged blocking or minor, last line the verdict
             O->>BD: note the review with the verdict line
             Note over O: the story row also records the reviewed tip in its notes

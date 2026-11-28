@@ -472,7 +472,9 @@ The skill adds its own refusals after these.
 2. Pick the implementation model from the bead's `complexity` tier (table below).
 3. Work it; `bd note <id>` for progress worth keeping across sessions.
 4. Under `/dev:implement-story` and `/dev:implement-task` every task passes the check gate before merge: the task
-   orchestrator runs the checks, and only `medium` and `high` tasks add the review. It spawns
+   orchestrator runs the checks, and `medium` and `high` tasks add the review, and a `low` task adds one standards reviewer at `sonnet` only when its diff
+   adds or changes a comment, doc, skill text or test header describing behaviour (a code-only
+   `low` task runs no review). A `medium` or `high` task spawns
    two reviewers, one per axis (the task's body as the spec axis, the task diff as the
    standards axis), both at the tier's review model, each briefed to run the
    `mattpocock-skills:code-review` skill on the task's branch since the integration tip; a
