@@ -1778,6 +1778,7 @@ lacks "a routed bead of type chore" '--type chore -l complexity:'
 # here; no skill carries its own copy (dev-hmjc)
 sec_has '## When a skill says "capture a retro item" (`/dev:retro`)' "the capture searches the open needs-triage beads first" 'bd search "<title words>" --status open -l needs-triage'
 sec_has '## When a skill says "capture a retro item" (`/dev:retro`)' "a repeat is noted, not filed again" 'bd note <id> "seen again: <moment>"'
+sec_has '## When a skill says "capture a retro item" (`/dev:retro`)' "the capture also searches open beads without the label" 'a routed standalone task'
 sec_before '## When a skill says "capture a retro item" (`/dev:retro`)' "the capture searches the inbox before it creates the bead" 'bd search "<title words>"' 'bd create "<title>"'
 # the one test of the session mode (ADR 0008), stated once, in the opening before any section
 for need in '`<home>` is the session'"'"'s repo' '`<home>/repos.yaml`' '**workspace session**' '**repo session**' 'the only owner'; do

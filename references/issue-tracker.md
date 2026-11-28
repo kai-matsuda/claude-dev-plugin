@@ -534,14 +534,16 @@ workspace session, the home repo's in a repo session. `bd` runs plainly, in `<ho
 When `<home>` has no database by the "Has a database" rule, stop: no skill initialises
 a database unattended. Every
 surviving candidate becomes one bead there, unless the inbox already holds it. Search
-the open inbox beads first, by the candidate's title words:
+the open beads first, by the candidate's title words, with the inbox label and without it:
 
 ```bash
 bd search "<title words>" --status open -l needs-triage
+bd search "<title words>" --status open
 ```
 
-A hit for the same fix is a repeat: note it, create nothing, so `/dev:triage` sees the
-recurrence and not a duplicate.
+The second search covers every open bead, the inbox's included, so a routed standalone task
+for the same fix is a hit too. A hit for the same fix is a repeat: note it, create nothing, so
+`/dev:triage` sees the recurrence and not a duplicate.
 
 ```bash
 bd note <id> "seen again: <moment>"

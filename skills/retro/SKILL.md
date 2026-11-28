@@ -94,8 +94,8 @@ watching, straight after an unattended `/dev:implement-spec`.
      the tracker doc's rule maps it back, and the body names the source path; when no
      mapping is found, the file counts as it stands. Never rerun a mapping outside the
      sandbox.
-   - A repeat follows the tracker doc's "capture a retro item" search: an open inbox bead
-     for the same fix is noted, not filed twice. A second moment is the recurrence
+   - A repeat follows the tracker doc's "capture a retro item" search: an open bead, inbox
+     or routed task, for the same fix is noted, not filed twice. A second moment is the recurrence
      evidence `/dev:triage` wants.
    - External ref: the Jira key of the epic bead the session implemented, when there was
      one. Otherwise none.
