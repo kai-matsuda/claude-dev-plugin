@@ -48,7 +48,7 @@ _Avoid_: ticket (any level of something to do; a story is not one), sub-task
 
 **Standalone task**:
 A task with no story: a triaged retro item or a small bug. It is
-the task row's unit all the same.
+the task tier's unit all the same.
 _Avoid_: loose bead, orphan task
 
 **Integration branch**:
@@ -60,7 +60,7 @@ _Avoid_: feature branch (a feature across repos has one per story), story branch
 **Task branch**:
 The branch one task is built on, in its own worktree, cut from the integration branch's
 tip. The task orchestrator's agents are the only ones that write to it; it reports the
-tip its review called clean, and the story row lands that tip.
+tip its review called clean, and the story tier lands that tip.
 _Avoid_: implementer branch
 
 **Test seam**:
@@ -91,7 +91,7 @@ _Avoid_: story graph, dependency graph
 
 **Task cut**:
 The second cut: every story of a feature cut into its tasks, with their blocking edges
-and tiers, in dependency order (the dependency's story before its dependents). It ends at
+and complexities, in dependency order (the dependency's story before its dependents). It ends at
 the publish of each story's tasks to beads and the one Jira comment covering them.
 _Avoid_: cut two, task breakdown, ticket cut
 
@@ -233,13 +233,19 @@ stays sealed. `/dev:implement-task` runs the same guard on an open standalone ta
 _Avoid_: merge check, PR check, seal check
 
 **Check command**:
-The one command an owner repo's check runs: `make check`. Every owner repo has a `check`
+The one command that runs an owner repo's checks: `make check`. Every owner repo has a `check`
 target: `/dev:setup-repo` adds one, and a story run in a repo with none fails at once
-(`references/orchestration.md`, "Review"). Every row runs the same one, resolved once per
-story run by the story orchestrator, which hands it to each task orchestrator.
+(`references/orchestration.md`, "Review"). The task gate and the story gate run the same
+one, resolved once per story run by the story orchestrator, which hands it to each task
+orchestrator; the forge runs it too, for the forge gate.
 _Avoid_: gate command, CI command, lint command
 
 **Check**:
+One validation a gate runs: a unit or integration test run, a lint, a build, a forge CI
+job. The check command runs an owner repo's checks; the forge gate reads the forge's.
+_Avoid_: test suite, validation
+
+**Check run**:
 One run of the check command on a tree, named by the tip's tree SHA. Every tree is checked
 once green: a tree with a green check record counts as checked, one with a red record is
 checked again, and a sibling landing, a conflict resolution or a fix-up's commit makes a new
@@ -249,7 +255,7 @@ _Avoid_: pre-flight, verification step
 **Fixture case**:
 A case in a fixture test (a `scripts/test-fixture-*.sh` that ends in `run_phases`),
 whose seam is a live subagent run: `seed <case>`, the skill run, then `assert <case>`. The
-check skips one that was never run, so the Check gate at the task row runs every case the task's diff adds or
+check command skips one that was never run, so the task gate runs every case the task's diff adds or
 changes, and a new or changed case with no assert record is a blocking finding.
 _Avoid_: fixture test case, live case
 
@@ -261,12 +267,12 @@ _Avoid_: assert log, fixture result
 **Seam run**:
 An implementer's own run of the tests at its unit's test seams (its touched modules, for a
 task that names none), or of a failing test script a fix-up brief names, as many times as
-it likes while it builds. Never a check and never
+it likes while it builds. Never a check run and never
 the check command: it writes no check record and counts for nothing at the gate.
 _Avoid_: local check, implementer check, dev check
 
 **Check record**:
-The command, its exit and its log of one check, written by the orchestrator that ran it
+The command, its exit and its log of one check run, written by the orchestrator that ran it
 (through `scripts/check.sh`, the Check record script, which also skips a green-recorded
 tree) under the owner checkout's scratch directory, keyed by the tree SHA. Only an orchestrator
 writes one, an implementer's own runs never count, and the PR's Evidence is the record of
@@ -275,36 +281,69 @@ delivered-tip note on the story bead (`delivered: <tip SHA> <check record>`), th
 the epic review reads.
 _Avoid_: check stamp, check cache, run log
 
-**Check gate**:
-The one gate every row (task, story, epic) runs: the check command, then the review. It
-exits when the checks are green on the tip the review called clean; at the task row, a live run
-of each **Fixture case** the task's diff adds or changes runs beside the checks. A red or a blocking
-verdict goes to a fresh implementer by pointer brief (at the epic row, to `ready-for-agent`
-tasks under the story) and the loop starts over, three such
-fix-ups per unit (per story at the epic row) per invocation and the fourth `failed`; a minors fix-up and
-a conflict resolution move the tip, so the checks rerun, but no reviewer runs again and no
-budget is spent: the gate exits on the moved tip once its checks are green. The story
-orchestrator records that tip in the reviewed-tip note (`review: <tip SHA>`), so a rerun
-knows it: on the story bead under `/dev:implement-story`, on the task bead under
-`/dev:implement-task`, which has no story bead; the task row writes no such note.
-_Avoid_: test gate, lint gate, seam gate, check and review loop, review marker
+**Tier**:
+One of the three work-item tiers, the epic, the story and the task, each with its own
+orchestrator and its own gate; `references/orchestration.md`'s table gives each tier's
+parameters. A tier is named by its unit: the task tier, the story tier, the epic tier.
+Bare "row" keeps its other senses (a row of the Stages table or of a pin table).
+_Avoid_: task row, story row, epic row, work-item level
+
+**Complexity**:
+A task's `complexity:` label, `low`, `medium` or `high`, which picks its implementation
+model and its review model (the tracker doc's "Complexity labels"). A story's complexity is
+the max of its tasks', an epic's the max of its stories'. The reviewer runs on the next
+model up from the implementer.
+_Avoid_: complexity tier
+
+**Gate**:
+A point a unit waits at until it passes. The tier gates (the task gate, the story gate and
+the epic gate) and the forge gate pass on their checks, the tier gates with a review too;
+a human gate passes when a person closes its human gate task, and runs no checks. So a
+sentence about checks names the tier gates or the forge gate, never every gate.
+_Avoid_: check gate, test gate, lint gate, seam gate
+
+**Task gate**:
+The task tier's gate, run by the task orchestrator on the task branch: the check command,
+then the two-axis review, one loop. It exits when the checks are green on the tip the
+review called clean; a live run of each **Fixture case** the task's diff adds or changes
+runs beside the checks. A red or a blocking verdict goes to a fresh implementer by pointer
+brief and the loop starts over, three such fix-ups per unit per invocation and the fourth
+`failed`; a minors fix-up and a conflict resolution move the tip, so the checks rerun, but
+no reviewer runs again and no budget is spent: the gate exits on the moved tip once its
+checks are green. The task orchestrator writes no reviewed-tip note.
+_Avoid_: check and review loop, review marker
+
+**Story gate**:
+The story tier's gate: the task gate's loop, run by the story orchestrator on the
+integration branch tip with the same fix-up budget (its fix-ups in a fix-up worktree). The
+story orchestrator records the tip it exits on in the reviewed-tip note
+(`review: <tip SHA>`), so a rerun knows it: on the story bead under `/dev:implement-story`;
+under `/dev:implement-task`, which has no story bead and no story gate, it records the task
+gate's tip on the task bead.
+
+**Epic gate**:
+The epic tier's gate, run by the epic orchestrator once every story has delivered: it reads
+the forge gate's verdict on each story's delivered tip, then runs the spec-axis review
+against the Jira Epic's spec; it runs no checks of its own. A red check or a blocking
+verdict is filed as `ready-for-agent` tasks under the story, three such fix-ups per story
+per invocation and the fourth `failed`, and its minors go to the inbox.
 
 **Review verdict**:
-The line a reviewer's report ends on, at every row: `verdict: clean` when no finding is
+The line a reviewer's report ends on, at every tier gate: `verdict: clean` when no finding is
 blocking, else `verdict: blocking (<n>)`. Every finding is tagged **blocking** (an
 acceptance criterion unmet, a behaviour wrong, a test missing, or no test at a story seam
 exercising the criteria) or **minor** (wording, naming, a nit that changes no behaviour an
-acceptance criterion names). The spec axis judges the row's unit (task body, story body,
+acceptance criterion names). The spec axis judges the tier's unit (task body, story body,
 Jira Epic spec); the standards axis judges what entered since the last standards review,
-and is skipped at the epic row. A clean round sends its minors to one last
-fix-up or to the inbox (at the epic row, always the inbox) and moves on; a blocking
+and is skipped at the epic gate. A clean round sends its minors to one last
+fix-up or to the inbox (at the epic gate, always the inbox) and moves on; a blocking
 round's fix-up fixes its in-scope minors too and the rest go to the inbox at once, and every minor still unfixed when the unit
-lands or fails goes to the inbox; a red or blocking fix-up spends the check gate's
+lands or fails goes to the inbox; a red or blocking fix-up spends the tier gate's
 budget, a minors fix-up spends none (`references/orchestration.md`, "Review").
 _Avoid_: zero findings, nit-free, pass/fail
 
 **Epic orchestrator**:
-The session that runs `/dev:implement-spec`, the epic row's orchestrator: it spawns one story
+The session that runs `/dev:implement-spec`, the epic tier's orchestrator: it spawns one story
 orchestrator per startable story, runs the epic review once every story has delivered,
 holding each PR a draft until its verdict is clean, and reads the end state; nothing below
 it touches a task. It is the only agent whose turn a `SendMessage` reply reaches, so it
@@ -313,11 +352,11 @@ run.
 _Avoid_: feature orchestrator, top-level orchestrator, main session, driver
 
 **Story orchestrator**:
-The story row's orchestrator: it works one story's frontier in its owner repo, one task
+The story tier's orchestrator: it works one story's frontier in its owner repo, one task
 orchestrator per task, lands each reviewed task branch (the stray-commit check, the
 merge, a conflict to an implementer in the task's worktree and then a fast-forward, at
 most three resolutions per landing, a red on a resolved tree to a fresh task
-orchestrator), runs the story's check gate on the integration branch and delivers it as a
+orchestrator), runs the story gate on the integration branch and delivers it as a
 draft PR. Landings are serial, one per report, so no lock is needed. Spawned per story by
 the epic orchestrator, or the session itself when `/dev:implement-story` is typed in the
 story's repo. The session running `/dev:implement-task` on a standalone task is one too,
@@ -326,8 +365,8 @@ what it delivers, as a PR opened ready.
 _Avoid_: sub-orchestrator, repo agent, merger, chore orchestrator
 
 **Task orchestrator**:
-The task row's orchestrator, the subagent running `/dev:task-orchestrator`: it owns one
-task from claim to a reviewed branch, its implementer, its check gate and its fix-ups,
+The task tier's orchestrator, the subagent running `/dev:task-orchestrator`: it owns one
+task from claim to a reviewed branch, its implementer, its task gate and its fix-ups,
 and never touches the owner checkout. It enters at the gate when the branch already carries
 commits (a cut-off's replacement, or a retry after a conflict resolution's red). Spawned
 per frontier task by a story orchestrator (`/dev:implement-story` or `/dev:implement-task`),
@@ -338,14 +377,14 @@ _Avoid_: task agent, worker, task runner
 **Claim entry**:
 The task orchestrator's entry for a fresh task, a brief with no `gate entry:` line: it
 claims the task, spawns the implementer in a new worktree reset onto the integration
-branch tip, then runs the check gate. Every spawn is one but a gate entry.
+branch tip, then runs the task gate. Every spawn is one but a gate entry.
 _Avoid_: fresh entry, cold start
 
 **Gate entry**:
 The task orchestrator's entry when the task's branch already carries commits: a cut-off
 task orchestrator's replacement on its surviving branch, the one retry after a red on
 a conflict-resolved tree, or a first failure's retry whose Cut-off probe finds commits.
-It claims the task and goes straight to the check gate on the
+It claims the task and goes straight to the task gate on the
 branch, worktree path and tip its brief names, with a fresh budget and no implementer
 build; after a red on a resolved tree, the brief also carries that red record's log.
 _Avoid_: re-entry, resume entry
@@ -358,7 +397,7 @@ not a role of its own (ADR 0014).
 _Avoid_: fix-up implementer, fixer
 
 **Landing**:
-The story row's move of one reviewed task branch onto the integration branch, made by
+The story tier's move of one reviewed task branch onto the integration branch, made by
 the orchestrator on the owner checkout: guards on the owner checkout and on the task
 branch's reviewed tip, the stray-commit check, then one merge. A conflict goes to an
 implementer in the task's worktree and the landing is tried again; a standalone task's
@@ -389,12 +428,14 @@ a hit stops the merge or push with `failed: stray commit <sha> <subject>` (`fail
 merge <sha> changes <path>` for a stray merge).
 _Avoid_: push guard, stray check
 
-**Forge-check wait**:
-The story orchestrator's wait, after the delivery push, for the PR's forge checks on the
-pushed tip, before the delivery is recorded: a red check is a `failed: forge check <name>
+**Forge gate**:
+The forge's checks on the pushed tip, after the story gate and before the epic gate: the
+story orchestrator waits on them after the delivery push, before the delivery is recorded.
+It belongs to delivery, not to a tier, so a standalone task passes it too; it runs no review
+and takes no fix-ups. A red check is a `failed: forge check <name>
 <run URL>` line and leaves the story unfinished; a PR git cannot merge, read first, is a
 `failed: merge conflict <PR URL>` line and leaves it unfinished too; a repo with no forge or
-no checks delivers with a `checks: skipped` line. The one long shell wait the Idle rule
+no checks delivers with a `checks: skipped` line. Its wait is the one long shell wait the Idle rule
 allows (the merge-state re-read adds only bounded `sleep 10` calls). The forge-wait script,
 `forge-wait <owner> <gh|tea> <repo> <pr> <tip SHA>` (shipped in the plugin's `bin/`, so called
 by its bare name), is the wait as one plain command: it prints `checks finished` (exit 0),
@@ -409,7 +450,7 @@ that has pasted the pair (valid across plugin updates) the plain run should need
 on Claude Code 2.1.308 with the exact-path form of the pair, the bare-name form unprobed), and a
 plain run's config error (a machine without the matching pair) is rerun once with the sandbox
 disabled, and the step reads the checks afterwards.
-_Avoid_: CI wait, check poll
+_Avoid_: forge-check wait, CI wait, check poll
 
 **Cut-off**:
 An Agent call that returns an API error (a session or rate limit) in place of its report.
@@ -508,7 +549,7 @@ _Avoid_: pause, handoff, blocked run
 **Stall**:
 The end of an invocation of `/dev:implement-spec` or `/dev:implement-story` whose frontier is empty, with
 nothing in flight and no `ready-for-human` task open, while some task the story still
-waits for is open (Finished story above), the check gate loop has failed a fourth time,
+waits for is open (Finished story above), a tier gate has failed a fourth time,
 red or review, after its three fix-ups, or the push was refused. The invocation reports each
 stuck task with its open blocker, a red check as `failed: <check> <command>`, a review
 as `failed: review mattpocock-skills:code-review`, or the refused push with its command.
@@ -661,6 +702,6 @@ The settings snippet the dev plugin ships for the machine setup: the denies on s
 files, the asks on destructive git and on pushing beads, the `bd` allow, and the sandbox
 enabled with the beads and Dolt directories writable and push and fetch outside it. It
 holds nothing org-specific apart from one sandbox exclusion and one allow for the plugin's own
-`forge-wait` (see Forge-check wait); toolchain, registry and forge-CLI lines are the machine
+`forge-wait` (see Forge gate); toolchain, registry and forge-CLI lines are the machine
 owner's.
 _Avoid_: recommended settings, the settings file

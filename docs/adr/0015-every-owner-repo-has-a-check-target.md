@@ -2,6 +2,12 @@
 status: accepted
 ---
 
+> Amended 2026-11-28 (dev-p0sh): vocabulary only; the decision stands. The rows below are
+> now **tiers**; the check gate is the task gate and the story gate, which run the one check
+> command, and the epic gate, which reads the forge gate (the forge-check wait of its day);
+> one run of `make check` on a tree is a **check run**. The text below keeps the words of its
+> day.
+
 > Amended 2026-11-15 (dev-gc8c, INFRA-45): the orchestration doc cited below as
 > `docs/agents/orchestration.md` now lives at `references/orchestration.md` at the plugin
 > root. The text below keeps the path of its day.

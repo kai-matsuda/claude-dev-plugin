@@ -5,12 +5,12 @@
 #   1. the /implement-spec epic orchestrator text (chezmoi-0jp.24): no task-level procedure, names the
 #      refusals, the spawn with its pointer at the waiting rule (chezmoi-p4q) and the end states,
 #      the story-closure human stop and the add-mode stall hint pinned (chezmoi-9v4.1.6); the
-#      epic row (dev-9k5.1.8): the role named, the harness doc cited, the epic review (one PR at
+#      epic tier (dev-9k5.1.8): the role named, the harness doc cited, the epic review (one PR at
 #      a time, the default-branch diff, the Jira Epic's spec, no standards axis, the epic's max
 #      tier), draft until clean with the mark-ready commands, the add-mode fix-up (one task per
-#      blocking finding, three per story, the fourth failed in one of the Check gate's two lines
+#      blocking finding, three per story, the fourth failed in one of the Tier gates' two lines
 #      and no other, dev-aeo) and the review: end-state line, with
-#      no epic-row role and no PR opened here; its home database gate cites the tracker doc's
+#      no epic-tier role and no PR opened here; its home database gate cites the tracker doc's
 #      "Has a database" rule (dev-e87);
 #   2. the human runbook docs/WORKFLOW.md (chezmoi-0jp.25) and the /workflow skill:
 #      names only commands that exist, no stale cross-repo wording, the cut skills' argument
@@ -56,7 +56,7 @@
 #      "workspace's inbox", the "home repo <home repo>" Parent form); no "run_in_background:
 #      false", since no foreground spawn exists (chezmoi-p4q); none of the retired story-DAG
 #      wording ("one story per repo", feat/<key>-<n>, "chains are out of scope", "only text
-#      blocker", "two waves suffice"; ADR 0011); none of the Check gate's retired
+#      blocker", "two waves suffice"; ADR 0011); none of the Tier gates' retired
 #      two-gate wording ("Evidence run", "a later run reviews the fix", "a third round of
 #      either kind", "a second red", dev-1xf.1.4), which the root GLOSSARY.md lacks too; and
 #      none of the retired vocabulary (dev-9k5.1.11): the epic, task and landing roles, the
@@ -72,7 +72,7 @@
 #      sandbox) with its idle rule (Bash in the foreground only below the epic orchestrator, chezmoi-p4q), the
 #      model (dev-9k5.1.3): the loop sentence, the table's header and each of its three rows, the
 #      two scoping rules (only a green check record skips a run, dev-6qi), the six trust rules as a
-#      closed list, the check command, the check record, the one gate exit, the epic row's two
+#      closed list, the check command, the check record, the one gate exit, the epic tier's two
 #      fourth-failure lines and no third (dev-aeo), a fix-up that commits
 #      nothing rerunning the checks and spending budget (dev-vnf), a landing's cap of three
 #      conflict resolutions, the seam-test blocking case and the one review tool, with the two-level
@@ -137,7 +137,7 @@
 #      guard, which section 6 pins, dev-yykg), a red record checked again and a
 #      fix-up that commits nothing checked again at step 7, the story gate exiting on a
 #      reviewed tip (dev-vnf), with the lint-command resolution retired (dev-9k5.1.7),
-#      and its story gate (step 7) is the orchestration doc's Check gate loop at the story row: it exits
+#      and its story gate (step 7) is the orchestration doc's Tier gates loop at the story tier: it exits
 #      when the checks are green on the tip the review called clean, reads the checks from the
 #      check records, keeps the reviewed tip in the story's review: note, reviews the story's body
 #      (spec) and what entered since the task reviews (standards), sends a red or a blocking
@@ -146,7 +146,7 @@
 #      check record, and step 9 leaves the records in place; "Running the checks" and "the command and
 #      its output" are gone (section 5's sweep covers the review marker, the merger, the keyed
 #      branch, the Evidence run and the second-red stall) (dev-cq0.1.5, dev-1xf.1.3, dev-9k5.1.9); section 6 checks the
-#      orchestration doc's Check gate;
+#      orchestration doc's Tier gates;
 #   9. /close-story: its Forgejo/Gitea query carries --repo <path> as the intro and
 #      /implement-story's merge guard do (dev-hac); its task check skips a child carrying
 #      needs-triage or wontfix, as the finished story does, and its refusal names each open
@@ -183,12 +183,12 @@
 #      that spawn it; its brief carries only what the story run knows; two entries (claim, gate)
 #      selected by the brief; one report line (reviewed: <task branch> <worktree path> <tip SHA>,
 #      needs split:, failed:); no write to the owner checkout and no close; and the pins that
-#      moved with the old task orchestrator brief: the task row's parameters, the run's check
+#      moved with the old task orchestrator brief: the task tier's parameters, the run's check
 #      command from the brief, the harness doc in one line, the turn ended after a spawn, the
 #      TMPDIR and plain-command lines, a check record per tree SHA, the two-axis review with its
 #      verdict line, the fix-up budget and the minors rule. Section 5 sweeps the lock wait.
 #  17. /implement-task (dev-b8d.1.6): the non-task, story-task and not-ready refusals, the story
-#      row's plumbing (the make probe and its refusal, the forge decided once, the gitignore rule,
+#      tier's plumbing (the make probe and its refusal, the forge decided once, the gitignore rule,
 #      task/<id> with a branch: note), one task orchestrator with the short brief, the landing by
 #      the Land script with --ff-only, the orchestration doc's Delivery with the PR opened ready and never a draft,
 #      delivered: before pr: and the close at delivery, no forge's pushed branch and skipped-checks
@@ -400,12 +400,12 @@ retired_row_names() {
   lacksw "the built-in code-review named in $f" 'built-in `code-review`'
   lacksw "the two review tools paragraph in $f" 'Two review tools'
 }
-# the epic row's fourth failure reads only the Check gate's two lines, red or blocking (dev-aeo):
+# the epic tier's fourth failure reads only the Tier gates' two lines, red or blocking (dev-aeo):
 # both are blanked, so any other `failed: <story-id> ...` naming a fix-up left in $f is a FAIL
 epic_fourth_failure_lines() {
   local scan other='failed: <story-id> [^`]*fix-up' red blocking
   unchanged_file && return 0
-  # the two lines the Check gate allows are the pin table's rows, so a reword of one follows it;
+  # the two lines the Tier gates allows are the pin table's rows, so a reword of one follows it;
   # they are blanked as literal text by index, not as a pattern (a phrase may hold a / or a pattern
   # character), and not by bash's ${//}, which is quadratic in bash 3.2
   row_phrase implement-spec-pins "red-check budget failure line" || return 0
@@ -419,7 +419,7 @@ epic_fourth_failure_lines() {
     }
     print }' "$f")
   if grep -q "$other" <<<"$scan"; then
-    bad "present: an epic-row fourth-failure line the Check gate does not allow"
+    bad "present: an epic-tier fourth-failure line the Tier gates does not allow"
     grep -n "$other" <<<"$scan" | head -3
   fi
 }
@@ -618,14 +618,14 @@ rule_literal_paths='Literal paths'
 rule_tmpdir='TMPDIR'
 # paragraph and section headings several checks scope to
 head_check_command='**Check command.**'
-head_check_gate='**Check gate.**'
+head_check_gate='**Tier gates.**'
 head_check_record='**Check record.**'
 head_check_scope='**Check scope.**'
 head_commits="**$rule_commits.**"
 head_considered_options='## Considered options'
 head_cut_off_agents="**$rule_cut_off.**"
 head_delivery_authority='**Delivery authority.**'
-head_epic_row='**The epic row.**'
+head_epic_row='**The epic tier.**'
 head_has_database='**Has a database.**'
 head_idle_rule="**$rule_idle.**"
 head_literal_paths="**$rule_literal_paths.**"
@@ -667,7 +667,7 @@ pin_retired_zero_findings_bar='not clean after three rounds|no findings at all|c
 pin_spawn_at_opus='at `model: opus`'
 pin_notes_dir_name='.spec-notes'
 pin_spec_notes_path=${pin_notes_dir_name//./\\.}
-pin_story_row_frontier_of_one='the story row with a frontier of one'
+pin_story_row_frontier_of_one='the story tier with a frontier of one'
 pin_tea_api_without_repo='tea api repos/'
 pin_timeout_600000='timeout: 600000'
 pin_task_orchestrator_bold='**task orchestrator**'
@@ -699,7 +699,7 @@ pin_verdict_clean='verdict: clean'
 pin_verdict_blocking='verdict: blocking (<n>)'
 pin_blocking_or_minor='**blocking** or **minor**'
 pin_cell_check_command='| the check command'
-pin_story_row_lands='The story row lands'
+pin_story_row_lands='The story tier lands'
 pin_retry_at_gate_on_resolved_branch='entering at the gate on the resolved branch'
 pin_landing_closes_task='A landing closes the task'
 pin_checks_skipped_no_forge='checks: skipped: no forge'
@@ -720,14 +720,14 @@ cite_delivery_authority="the orchestration doc's Delivery authority"
 # the phrases every worktree brief carries, each written once (dev-yqpz)
 tmpdir_line='TMPDIR line'
 plain_command='plain-command line, one plain `git` or `bd` command per Bash call, every path spelled out'
-# the standards every implementer and reviewer brief at the task and story rows names: both rules
+# the standards every implementer and reviewer brief at the task and story tiers names: both rules
 # folders, the repo's winning, a missing folder no error, a rule scoped by its own text or path
 # (ADR 0018, dev-7mkq.1.6); the reviewer's adds the root standards file and the breach form
 rules_folders='the coding standards in `~/.claude/rules/` and `<owner>/.claude/rules/`'
 standards_terms='(the repo'"'"'s win where the two conflict; a missing or empty folder is not an error; a rule applies only where its own text or path scope says it does)'
 standards_implementer="$rules_folders $standards_terms"
 standards_reviewer="$rules_folders, with \`<owner>\`'s root \`CODING_STANDARDS.md\` or \`CONTRIBUTING.md\` where it has one counted with the repo's $standards_terms, plus \`GLOSSARY.md\` and \`docs/adr/\` in \`<owner>\` where they exist, each breach reported as the rule's heading, the file and line, and the reader who would be misled or broken"
-# the task row's spec reviewer reads no standards and names both folders as the standards reviewer's
+# the task tier's spec reviewer reads no standards and names both folders as the standards reviewer's
 standards_spec_reviewer="with $rules_folders left to the standards reviewer"
 # where a reviewer or fix-up brief points for quoting a glob passed as a flag (dev-elkb)
 shell_section='the Shell commands section of `<plugin root>/references/harness.md`'
@@ -744,7 +744,7 @@ gate_same='the same SHA exits the gate'
 failing_script_clause="each failing test script read off the log's FAIL lines (it runs that script green as its seam run before it reports; with no test-script FAIL line, the failing step's name and the touched modules' tests as its seam run)"
 gate_entry='`gate entry: <task branch> <worktree path> <tip SHA>`'
 rec_green='a tree with a green record (`exit=0`) is checked: run nothing'
-rec_red='a red record is no check, so the tree is checked again'
+rec_red='a red record is no check run, so the tree is checked again'
 rec_any='a tree with a record is checked: read its exit and run nothing'
 rec_fixup='After a red, a fix-up that commits nothing leaves the tree red-recorded, so the next pass checks it again'
 rec_call='check > <owner>/.tmp/checks/<tree>/log'
@@ -817,7 +817,7 @@ pins_from "$pins_dir/implement-spec-pins.tsv"
 epic_fourth_failure_lines
 # the glossary avoids "human task" for the human gate task ("ready-for-human task" is fine)
 lacks "glossary's avoided term human task" "$pin_avoided_term_human_task"
-# the epic row reviews and marks ready, but opening a PR stays the story orchestrator's
+# the epic tier reviews and marks ready, but opening a PR stays the story orchestrator's
 lacks "PR-opening steps" 'draft PR|pr create|pulls create|open(s|ing)? (a|the) PR'
 lacks "a budget of blocking verdicts only" 'three blocking verdicts'
 lacks "a spent budget skipping the review" 'is failed and not reviewed again'
@@ -854,7 +854,7 @@ has "orchestration pointer" 'orchestration.md'
 # the epic review reads delivery from the orchestration doc's Delivery section, never from a step number
 # of /dev:implement-story (dev-b8d.1.3 review 1)
 row_phrase implement-spec-pins "the delivered: note's shape" && hasc "the epic review cites the Delivery section for the delivered: note" "the orchestration doc's Delivery section writes \`$row_text\`"
-hasc "draft until clean cites the Delivery section's forge-check wait" "the orchestration doc's Delivery section's forge-check wait"
+hasc "draft until clean cites the Delivery section's forge gate" "the orchestration doc's Delivery section's forge gate"
 # (no skill cites another skill's step number: section 5 sweeps every skill, dev-0ohl)
 has "preflight pointer" "$pin_cite_preflight"
 
@@ -884,22 +884,21 @@ hasc "argument paragraph" '**The argument.**'
 line_has '^[|] 4b [|]' "4b names implement-task" "$pin_implement_task_task_id"
 hasc "the small-bug route is one bd create then implement-task" "one \`bd create\`, then $pin_implement_task_task_id"
 line_has "$anchor_runbook_row_4a" "4a names the task orchestrators" "$pin_task_orchestrator_bold"
-# the story row lands (ADR 0016): 4a's task orchestrator reports a reviewed branch that its
+# the story tier lands (ADR 0016): 4a's task orchestrator reports a reviewed branch that its
 # story orchestrator lands, and 4b's session lands its one task's (dev-b8d.1 story review 1)
 line_has "$anchor_runbook_row_4a" "4a: the story orchestrator lands each task" 'the story orchestrator lands each reviewed branch'
 line_has '^[|] 4b [|]' "4b: the session lands the task" 'the session lands its reviewed branch'
 lacks "a task orchestrator landing its own task in the runbook" 'lands the task itself'
-# 4a's check gate reviews medium and high tasks, and a low task whose diff changes prose describing
+# 4a's task gate reviews medium and high tasks, and a low task whose diff changes prose describing
 # behaviour; a low task whose diff touches no such prose has the checks alone (ADR 0015)
-line_has "$anchor_runbook_row_4a" "4a reviews medium and high tasks and low tasks that change behaviour prose" '(the checks, then, for `medium` and `high`, and for a `low` task whose diff changes a comment, doc, skill text or test header describing behaviour, a review one tier up'
-hase "the one review tool paragraph" '^One review tool, three rows'
+line_has "$anchor_runbook_row_4a" "4a reviews medium and high tasks and low tasks that change behaviour prose" '(the checks, then, for `medium` and `high`, and for a `low` task whose diff changes a comment, doc, skill text or test header describing behaviour, a review on the next model up'
+hase "the one review tool paragraph" '^One review tool, three tiers'
 # the task review is medium and high, plus a low task whose diff changes prose describing
 # behaviour, every owner repo having a check command (ADR 0015)
 hasc "the runbook reviews medium and high tasks and low tasks that change behaviour prose" "task's review model, for \`medium\` and \`high\`, and for a \`low\` task whose diff changes a comment, doc, skill text or test header describing behaviour, on the standards axis alone; at the story"
 lacks "the runbook's task review limited to medium and high" '(`medium` and `high` only)'
 line_has '^[|] 4a [|] opus [|]' "session model 4a: the epic orchestrator session" 'The epic orchestrator session'
 
-lacks "retired task gate name in the runbook" 'task gate'
 
 # stale wording
 for pat in 'cross-repo task' 'per-task `pr:`' 'single orchestrator' 'one orchestrator drives'; do
@@ -1153,7 +1152,7 @@ walkup='nearest ancestor|walking up|walk up|one level up|the home repo included|
 # feat/<key>-<n> (now feat/<story-id>), chains out of scope and the one text blocker (now a
 # DAG), and the two-wave cap (now topological waves).
 retired_dag="one story per repo|feat/<key>-<n>|$pin_chains_out_of_scope|only text blocker|two waves suffice"
-# the Check gate's retired two-gate wording (dev-1xf.1.4): the Evidence run, the later
+# the Tier gates' retired two-gate wording (dev-1xf.1.4): the Evidence run, the later
 # run that reviews a fix, the third-round wording and the second-red stall
 retired_loop='evidence run|a later run reviews the fix|a third round of either kind|a second red'
 # the gate with no check command (ADR 0015): every owner repo has a check target, so no doc names
@@ -1174,7 +1173,7 @@ moved_names="($rule_waiting|$rule_idle|$rule_commits|$rule_cut_off|worktrees|han
 # <x>/.beads, or as a repo "with `.beads/`"; the gates cite the tracker doc's "Has a database" rule
 beads_gate='test -d [^ ]*/\.beads|`<[a-z ]+>/\.beads` (is )?missing|no `<[a-z ]+>/\.beads`|with (no )?`\.beads/`'
 moved_rule='(orchestration doc|orchestration\.md)`?(, |'\''s (([a-z-]+ ){1,3}says \(|scratch space \(|[a-z-]+ )?)'"$moved_names"'([^a-z]|$)|'"$moved_names"'"?( rule)? (of|in) (the )?`?(orchestration doc|orchestration\.md)'
-# the task row as a skill (INFRA-37): one route per unit. No doc names a flat epic, the small-bug
+# the task tier as a skill (INFRA-37): one route per unit. No doc names a flat epic, the small-bug
 # path, the two upstream skills it replaces or the rejected chore names (never the bare word
 # chore, which the gitignore commit subject's `chore:` type uses)
 retired_route='flat[ -](epics?|shape)|small[ -]bug path|mattpocock-skills:implement([^-a-z]|$)|(^|[^-a-z])to-tickets([^-a-z]|$)|implement-chore|chore orchestrator|chore/'
@@ -1234,7 +1233,7 @@ while IFS= read -r f; do
   # a .beads/ that bd where does not resolve to is no database, so a gate on the directory alone
   # lets a rerun file into the database bd climbs to (dev-e87)
   lacksw "an existence-only beads database gate in $f" "$beads_gate"
-  # the story row lands each reviewed task branch serially, one per report, so the task
+  # the story tier lands each reviewed task branch serially, one per report, so the task
   # orchestrator's wait on the owner checkout's lock and its index.lock probe are gone
   # (dev-b8d.1.4)
   lacksw "the retired lock wait in $f" 'lock wait|index\.lock|under the lock'
@@ -1252,6 +1251,13 @@ lacksw "retired two-gate wording in $f" "$retired_loop"
 lacksw "retired review-only gate wording in $f" "$retired_gate"
 hasc "the glossary's finished story names the delivered-tip condition (dev-1b5i)" 'last `delivered:` note names the current tip of'
 hasc "the glossary defines a story with a PR (dev-1b5i)" '**Story with a PR**:'
+# each gate is named at its tier, the forge gate beside them, and a check run apart from a
+# check; the retired names are only _Avoid_ phrases now (dev-p0sh)
+for term in Tier Complexity Check 'Check run' Gate 'Task gate' 'Story gate' 'Epic gate' 'Forge gate'; do
+  hasc "the glossary defines $term (dev-p0sh)" "**$term**:"
+done
+lacksf "the glossary's retired Check gate entry (dev-p0sh)" '**Check gate**:'
+lacksf "the glossary's retired Forge-check wait entry (dev-p0sh)" '**Forge-check wait**:'
 
 # the finished-story test has one definition, the glossary's entry, and every copy of it that a
 # skill, reference doc or runbook keeps holds each clause of it: the settled children (closed, or
@@ -1356,76 +1362,76 @@ para_has "$head_plugin_root" "resolved once per session" 'once per session'
 para_has "$head_plugin_root" "the orchestration doc path spelled literally in every brief" '<plugin root>/references/'
 para_has "$head_plugin_root" "spelled out in every brief" 'every brief'
 # a reviewer tags every finding blocking or minor and ends on a verdict line; a round with no
-# blocking findings is clean; every fix-up, red or blocking, spends the check gate loop's budget. The
+# blocking findings is clean; every fix-up, red or blocking, spends the tier gate's budget. The
 # rule is stated once here; the runner brief and the story review point at it (chezmoi-49k)
 hasc "Review verdict rule" "$head_review_verdict"
 para_has "$head_review_verdict" "the clean verdict line" "$pin_verdict_clean"
 para_has "$head_review_verdict" "the blocking verdict line" "$pin_verdict_blocking"
 para_has "$head_review_verdict" "the blocking-or-minor tags" "$pin_blocking_or_minor"
 para_has "$head_review_verdict" "a round with no blocking findings is clean" 'no blocking findings is **clean**'
-para_has "$head_review_verdict" "the low task's standards reviewer has narrower blocking cases" "the \`low\` task's standards reviewer (Check gate) has narrower blocking cases"
+para_has "$head_review_verdict" "the low task's standards reviewer has narrower blocking cases" "the \`low\` task's standards reviewer (Tier gates) has narrower blocking cases"
 para_has "$head_review_verdict" "every fix-up, red or blocking, spends the loop's budget" "Every fix-up, red or blocking, spends the loop's budget"
 # no minor is dropped (dev-a9a): a blocking round's fix-up fixes its in-scope minors and names
 # what it left, and every minor still unfixed when the unit lands or fails goes to the inbox
 para_has "$head_review_verdict" "a blocking round's in-scope minors go to its fix-up" "those in the unit's scope go to its fix-up"
 para_has "$head_review_verdict" "a fix-up's report names each minor it fixed and left unfixed" "report names each minor it fixed and each"
-para_has "$head_review_verdict" "the epic row sends every round's minors to the inbox" "every round's minors go to the inbox at once"
+para_has "$head_review_verdict" "the epic tier sends every round's minors to the inbox" "every round's minors go to the inbox at once"
 para_has "$head_review_verdict" "every minor unfixed when the unit lands or fails goes to the inbox" 'every minor still unfixed when the unit lands or fails goes to the inbox'
 para_has "$head_review_verdict" "a fixed claim the fix-up's diff does not bear out counts unfixed" 'whose named file and line the fix-up'"'"'s diff does not touch counts as unfixed'
 para_has "$head_review_verdict" "a fanned-out reviewer reports once, after every sub-agent has" 'waits, by ending its turn, until every one of them has reported'
 para_has "$head_review_verdict" "a fanned-out reviewer sends one whole-review report, and no orchestrator acts on a partial verdict" 'whose verdict covers the whole review; no orchestrator acts on a partial verdict'
-# the model (dev-9k5.1.3): one loop run at three rows, stated once as its sentence and a table
-# whose rows give each level its parameters; each row pinned on its own line, so a cell kept
+# the model (dev-9k5.1.3): one loop run at three tiers, stated once as its sentence and a table
+# whose rows give each tier its parameters; each row pinned on its own line, so a cell kept
 # elsewhere in the doc cannot stand in
-hasc "the loop sentence" 'claim a unit, have a subagent build it, check it, review it, send a failure to a fresh fix-up or land it at the row above, and report one line'
-line_has '^[|] Row [|]' "the table's header names every parameter" '| Orchestrator | Builds | Checks | Review spec axis | Review standards axis | Reviewer and model | Fix-up | Lands by | Exits when | Budget |'
+hasc "the loop sentence" 'claim a unit, have a subagent build it, check it, review it, send a failure to a fresh fix-up or land it at the tier above, and report one line'
+line_has '^[|] Tier [|]' "the table's header names every parameter" '| Orchestrator | Builds | Checks | Review spec axis | Review standards axis | Reviewer and model | Fix-up | Lands by | Exits when | Budget |'
 row='^[|] [*][*]Task[*][*] [|]'
-line_has "$row" "task row: the task orchestrator" '| task orchestrator |'
-line_has "$row" "task row: one implementer in a worktree" '| one implementer in a worktree |'
-line_has "$row" "task row: the task's body as spec" "| the task's body |"
-line_has "$row" "task row: the task diff as standards" '| the task diff |'
-line_has "$row" "task row: both axes at the review model, at low the standards axis alone for changed prose" "| both axes, at the task's review model; at \`low\`, the standards axis alone at \`sonnet\`, only for a diff that changes a comment, doc, skill text or test header describing behaviour (Check gate) |"
-# the task row reports its reviewed branch and the story row merges it, the resolution cap
-# moving with the landing to the story row (dev-b8d.1.4)
-line_has "$row" "task row: lands by reporting its reviewed branch for the story orchestrator to merge" '| reports its reviewed branch, which the story orchestrator merges |'
-line_has "$row" "task row: a fix-up by pointer brief, same worktree" '| an implementer by pointer brief, same worktree |'
-line_has "$row" "task row: three fix-ups" '| three fix-ups |'
-line_lacks "$row" "task row: a conflict resolution budget" "$pin_conflict_resolutions"
+line_has "$row" "task tier: the task orchestrator" '| task orchestrator |'
+line_has "$row" "task tier: one implementer in a worktree" '| one implementer in a worktree |'
+line_has "$row" "task tier: the task's body as spec" "| the task's body |"
+line_has "$row" "task tier: the task diff as standards" '| the task diff |'
+line_has "$row" "task tier: both axes at the review model, at low the standards axis alone for changed prose" "| both axes, at the task's review model; at \`low\`, the standards axis alone at \`sonnet\`, only for a diff that changes a comment, doc, skill text or test header describing behaviour (Tier gates) |"
+# the task tier reports its reviewed branch and the story tier merges it, the resolution cap
+# moving with the landing to the story tier (dev-b8d.1.4)
+line_has "$row" "task tier: lands by reporting its reviewed branch for the story orchestrator to merge" '| reports its reviewed branch, which the story orchestrator merges |'
+line_has "$row" "task tier: a fix-up by pointer brief, same worktree" '| an implementer by pointer brief, same worktree |'
+line_has "$row" "task tier: three fix-ups" '| three fix-ups |'
+line_lacks "$row" "task tier: a conflict resolution budget" "$pin_conflict_resolutions"
 row='^[|] [*][*]Story[*][*] [|]'
-line_has "$row" "story row: the story orchestrator" '| story orchestrator |'
-line_has "$row" "story row: task orchestrators over the frontier" '| task orchestrators in parallel over the frontier |'
-line_has "$row" "story row: the story's body as spec" "| the story's body |"
-line_has "$row" "story row: what entered since as standards" "what entered since the last standards review: $pin_conflict_resolutions, cross-task coherence and the story gate's fix-up commits"
-line_has "$row" "story row: both axes at the review model of the story's max tier" "| both axes, at the review model of the story's max tier |"
-line_has "$row" "story row: a fix-up by pointer brief in a fix-up worktree" '| an implementer by pointer brief in a fix-up worktree |'
-line_has "$row" "story row: lands by merging each reviewed task branch, then a push, the PR a draft" '| merges each reviewed task branch after the stray-commit check; push, the PR staying a draft |'
-line_has "$row" "story row: three fix-ups and three conflict resolutions per landing" "| three fix-ups; $pin_conflict_resolutions_per_landing |"
+line_has "$row" "story tier: the story orchestrator" '| story orchestrator |'
+line_has "$row" "story tier: task orchestrators over the frontier" '| task orchestrators in parallel over the frontier |'
+line_has "$row" "story tier: the story's body as spec" "| the story's body |"
+line_has "$row" "story tier: what entered since as standards" "what entered since the last standards review: $pin_conflict_resolutions, cross-task coherence and the story gate's fix-up commits"
+line_has "$row" "story tier: both axes at the review model of the story's max complexity" "| both axes, at the review model of the story's max complexity |"
+line_has "$row" "story tier: a fix-up by pointer brief in a fix-up worktree" '| an implementer by pointer brief in a fix-up worktree |'
+line_has "$row" "story tier: lands by merging each reviewed task branch, then a push, the PR a draft" '| merges each reviewed task branch after the stray-commit check; push, the PR staying a draft |'
+line_has "$row" "story tier: three fix-ups and three conflict resolutions per landing" "| three fix-ups; $pin_conflict_resolutions_per_landing |"
 row='^[|] [*][*]Epic[*][*] [|]'
-line_has "$row" "epic row: the epic orchestrator" '| epic orchestrator |'
-line_has "$row" "epic row: story orchestrators over the frontier" '| story orchestrators in parallel over the frontier |'
-line_has "$row" "epic row: the check command as the forge runs it" "$pin_cell_check_command as the forge runs it |"
-row_phrase implement-spec-pins "epic review spec axis" && line_has "$row" "epic row: the Jira Epic's spec" "| $row_text |"
-line_has "$row" "epic row: no standards axis" '| none, the axis is skipped |'
-row_phrase implement-spec-pins "epic review model" && line_has "$row" "epic row: the spec axis only at the review model of the epic's max tier" "| the spec axis only, at $row_text |"
-line_has "$row" "epic row: findings filed as tasks, the story re-run in add mode" '| findings filed as `ready-for-agent` tasks under the story, that story re-run in add mode |'
-line_has "$row" "epic row: the PR marked ready, the human merges" 'the PR marked ready, the human merges'
-row_phrase implement-spec-pins "fix-up budget" && line_has "$row" "epic row: three per story" "| $row_text |" && epic_row_budget=$row_text
+line_has "$row" "epic tier: the epic orchestrator" '| epic orchestrator |'
+line_has "$row" "epic tier: story orchestrators over the frontier" '| story orchestrators in parallel over the frontier |'
+line_has "$row" "epic tier: the check command as the forge runs it" "$pin_cell_check_command as the forge runs it |"
+row_phrase implement-spec-pins "epic review spec axis" && line_has "$row" "epic tier: the Jira Epic's spec" "| $row_text |"
+line_has "$row" "epic tier: no standards axis" '| none, the axis is skipped |'
+row_phrase implement-spec-pins "epic review model" && line_has "$row" "epic tier: the spec axis only at the review model of the epic's max complexity" "| the spec axis only, at $row_text |"
+line_has "$row" "epic tier: findings filed as tasks, the story re-run in add mode" '| findings filed as `ready-for-agent` tasks under the story, that story re-run in add mode |'
+line_has "$row" "epic tier: the PR marked ready, the human merges" 'the PR marked ready, the human merges'
+row_phrase implement-spec-pins "fix-up budget" && line_has "$row" "epic tier: three per story" "| $row_text |" && epic_row_budget=$row_text
 for r in Task Story Epic; do
   line_has "^[|] [*][*]$r[*][*] [|]" "$r row: the check command" "$pin_cell_check_command"
   line_has "^[|] [*][*]$r[*][*] [|]" "$r row: the one exit" '| the checks green on the tip the review called clean |'
 done
 # the two scoping rules: what a review reads at a row, and which trees a row checks
 hasc "review scoping rule" "$head_review_scope"
-para_has "$head_review_scope" "the spec axis takes the row's own unit" "The spec axis takes the row's own unit"
+para_has "$head_review_scope" "the spec axis takes the tier's own unit" "The spec axis takes the tier's own unit"
 para_has "$head_review_scope" "the standards axis reads what entered since" 'The standards axis reviews what entered since the last standards review'
 para_has "$head_review_scope" "the review scope's why is ADR 0014" 'ADR 0014 in the plugin repo'
-para_has "$head_review_scope" "the story row's standards axis takes the gate's fix-up commits" "the story gate's own fix-up commits"
+para_has "$head_review_scope" "the story tier's standards axis takes the gate's fix-up commits" "the story gate's own fix-up commits"
 # the orchestration doc's account of the briefs names both rules folders in the briefs' words, and
-# leaves the epic row's review without standards (ADR 0018, dev-7mkq.1.6)
+# leaves the epic tier's review without standards (ADR 0018, dev-7mkq.1.6)
 hasc "standards scoping rule" "$head_standards_scope"
-para_has "$head_standards_scope" "every implementer brief at the task and story rows names both rules folders" "Every implementer brief at the task row and the story row, a fix-up's and a conflict resolution's included, reads $standards_implementer"
-para_has "$head_standards_scope" "every standards reviewer brief at the task and story rows names both rules folders and the breach form" "The standards axis of the review at those rows is read against $standards_reviewer"
-para_has "$head_standards_scope" "the epic row's review names no standards" "The epic row's review names no standards"
+para_has "$head_standards_scope" "every implementer brief at the task and story tiers names both rules folders" "Every implementer brief at the task tier and the story tier, a fix-up's and a conflict resolution's included, reads $standards_implementer"
+para_has "$head_standards_scope" "every standards reviewer brief at the task and story tiers names both rules folders and the breach form" "The standards axis of the review at those tiers is read against $standards_reviewer"
+para_has "$head_standards_scope" "the epic tier's review names no standards" "The epic tier's review names no standards"
 hasc "check scoping rule" "$head_check_scope"
 para_has "$head_check_scope" "every tree is checked once" "$pin_every_tree_checked_once"
 # only a green record lets a later agent skip the run; a red one is checked again, so a flaky or
@@ -1447,10 +1453,10 @@ lacks "a fix-up that commits nothing re-reading the red record" 'a fix-up that c
 para_has "$head_landing_a_task" "a landing takes at most three conflict resolutions" "A landing takes at most three $pin_conflict_resolutions"
 para_has "$head_landing_a_task" "the resolution cap is apart from the fix-up budget" 'apart from the fix-up budget'
 para_has "$head_landing_a_task" "the fourth conflict fails the task" 'the fourth conflict ends the task `failed`'
-# the landing is the story row's: the task orchestrator reports a reviewed branch and never
+# the landing is the story tier's: the task orchestrator reports a reviewed branch and never
 # touches the owner checkout, the story orchestrator merges it serially with no lock, checks a
 # resolved tree, and a red there fails the landing with the retry entering at the gate (dev-b8d.1.4)
-para_has "$head_landing_a_task" "the story row lands" "$pin_story_row_lands"
+para_has "$head_landing_a_task" "the story tier lands" "$pin_story_row_lands"
 para_has "$head_landing_a_task" "the task orchestrator never touches the owner checkout" 'never touches the owner checkout'
 para_has "$head_landing_a_task" "landings are serial with no lock" 'Landings are serial, one per report, so no lock is'
 para_has "$head_landing_a_task" "the resolved tree is checked with the Check record script" 'checks the resolved tree'
@@ -1460,7 +1466,7 @@ para_has "$head_landing_a_task" "a landing closes the task" "$pin_landing_closes
 para_has "$head_landing_a_task" "the story gate's fix-ups land by the same procedure" "fix-up branches land by the same procedure"
 para_has "$head_check_scope" "a changed tree is checked again" 'changes the tree, so it is checked again'
 # the six trust rules, a closed list
-hasc "trust rule 1: reviewer one tier up" '1. The reviewer runs one tier of model above the implementer'
+hasc "trust rule 1: reviewer on the next model up" '1. The reviewer runs on the next model up from the implementer'
 hasc "trust rule 2: a fresh fix-up, never a message back" "2. A fix-up is a fresh implementer in the unit's worktree, never a message back"
 hasc "trust rule 3: an implementer's own check runs never count" "3. An implementer's own check runs never count"
 hasc "trust rule 4: the stray-commit check before every merge and push" '4. The stray-commit check runs before every merge and every push'
@@ -1492,7 +1498,7 @@ hasc "the Check record script is the shipped script" '`<plugin root>/scripts/che
 hasc "a red is read from the tail the script prints" 'a red is read from the tail the script prints, never a whole log'
 lacks "the compound record command in the orchestration doc" 'mkdir -p <owner>/.tmp/checks'
 # the implementer brief rule, stated once: a worktree brief says seam run, with the touched-modules fallback, and never the check command or the script
-para_has "$head_check_command" "the brief names the seam run" 'A worktree brief at every row names the seam run (the Seam run term in `GLOSSARY.md`)'
+para_has "$head_check_command" "the brief names the seam run" 'A worktree brief at every tier names the seam run (the Seam run term in `GLOSSARY.md`)'
 para_has "$head_check_command" "the seam run fallback is the touched modules' tests" "the touched modules' tests for a standalone task that names no seams."
 para_has "$head_check_command" "the brief never says the check command or the script" 'It never says the check command or the script; only an orchestrator checks a tree.'
 # every other passage that cites the Check record script names the script
@@ -1513,7 +1519,7 @@ para_has "$head_check_gate" "each pass runs the Check record script" 'Each pass 
 sec_has "## Delivery" "the delivered tip's record is the one the Check record script wrote" 'which the Check record script wrote'
 hasc "the orchestrator runs the check command through the Check record script" 'run the check command through the Check record script, which writes'
 # the Delivery section, parametrised by the unit: the stray-commit check, the push, the PR body
-# with the check record as Evidence, the forge-check wait with its six-call bound, the notes order
+# with the check record as Evidence, the forge gate with its six-call bound, the notes order
 hase "Delivery section" '^## Delivery$'
 sec_has "## Delivery" "Delivery is parametrised by the unit" 'parametrised by the unit it delivers: a **story**'
 sec_has "## Delivery" "Delivery names the standalone task" 'or a **standalone task** (delivered by its own skill)'
@@ -1530,7 +1536,7 @@ sec_has "## Repo plumbing and Cut-off probe" "the Forge decision reruns a sandbo
 sec_has "## Delivery" "Delivery's PR body is written by mattpocock-skills:pr" 'the Skill tool with `mattpocock-skills:pr` to write the body'
 sec_has "## Delivery" "Delivery's PR body is written with a forge" '3. **PR body.** With a forge, call the Skill tool'
 row_phrase implement-spec-pins "tea fallback evidence" && sec_has "## Delivery" "Delivery's Evidence is the delivered tip's check record" "its Evidence $row_text"
-sec_has "## Delivery" "Delivery waits for the forge checks" '4. **Forge-check wait**, before the delivery is recorded'
+sec_has "## Delivery" "Delivery waits for the forge checks" '4. **Forge gate**, before the delivery is recorded'
 sec_has "## Delivery" "Delivery treats a failing forge read as an error, not a skip" 'is a forge error, never a skip'
 sec_has "## Delivery" "Delivery reads the merge state on every forge PR, ahead of the workflows read" 'Read whether the PR can merge on every forge PR, ahead of the workflows read'
 sec_has "## Delivery" "Delivery reads the gh merge state and head together" 'gh pr view <n> --repo <forge-slug> --json mergeable,headRefOid'
@@ -1549,8 +1555,8 @@ sec_has "## Delivery" "Delivery fetches the default branch as the push runs on t
 sec_has "## Delivery" "Delivery verifies the default branch ref before merge-tree" 'git -C <owner> rev-parse --verify origin/<default branch>'
 sec_has "## Delivery" "Delivery's conflict fix is the human's" 'resolve the conflict on the branch, and a rerun pushes it again and reads the merge state again'
 sec_has "## Delivery" "Delivery's conflict does not spend the wait's timeout" 'the wait is not entered and its `timeout` is not spent'
-sec_has "## Delivery" "Delivery bounds the forge-check wait" 'at most six calls in all'
-sec_has "## Delivery" "the forge-check wait is the forge-wait script, called with the pushed tip (dev-bveq)" 'wait with the **forge-wait script**, `forge-wait <owner> <gh|tea> <forge-slug> <n> <tip SHA>`'
+sec_has "## Delivery" "Delivery bounds the forge gate" 'at most six calls in all'
+sec_has "## Delivery" "the forge gate is the forge-wait script, called with the pushed tip (dev-bveq)" 'wait with the **forge-wait script**, `forge-wait <owner> <gh|tea> <forge-slug> <n> <tip SHA>`'
 sec_has "## Delivery" "the forge-wait script runs as one plain command in one foreground call, plain first (dev-bveq)" 'as one plain command in one foreground Bash call with `timeout: 600000`'
 sec_has "## Delivery" "the forge-wait script waits for the head at the tip and the checks registered, then finished (dev-bveq)" "It waits until the PR's head is \`<tip SHA>\` and its checks have registered"
 sec_has "## Delivery" "the forge-wait script's finished line and exit 0 (dev-bveq)" 'It prints `checks finished` and exits 0 once no check is pending, a red check included'
@@ -1564,7 +1570,7 @@ sec_has "## Delivery" "the gh merge read and its UNKNOWN re-reads are plain forg
 sec_has "## Delivery" "the UNKNOWN re-reads are plain calls with a sleep call between (dev-bveq)" 'a `sleep 10` call between reads, at most six reads, each a plain call'
 sec_has "## Delivery" "the tea checks read is one plain tea api call, not a pipe (dev-bveq)" 'on `tea`, one plain forge command, `tea api --repo <owner> repos/{owner}/{repo}/commits/<tip SHA>/status`'
 sec_has "## Repo plumbing and Cut-off probe" "the Forge decision keeps each forge command plain and points to the forge-wait script (dev-bveq)" "so a forge call the plugin repeats lives in a script, as Delivery step 4's forge-wait script does"
-lacks "the inline compound forge-check wait loop (dev-bveq)" 'until h=|until s=|gh.err|tea.err'
+lacks "the inline compound forge gate loop (dev-bveq)" 'until h=|until s=|gh.err|tea.err'
 lacks "the compound-call sandbox exception (dev-bveq)" 'a compound call, an exception to one command per Bash call|any other compound or `\$\(\.\.\.\)` call|is a compound call run with the sandbox disabled|The one exception is a compound call'
 sec_has "## Repo plumbing and Cut-off probe" "the Forge decision defines the forge CLI's config error once (dev-urom)" "the forge CLI's config error (\`unable to get or create config file\` or \`failed to read configuration\`; not a missing login)"
 sec_has "## Repo plumbing and Cut-off probe" "the Merge guard decides and runs its forge query as the Forge decision says, once" 'decided and run as the Forge decision says (plain first)'
@@ -1584,83 +1590,83 @@ sec_has "## Delivery" "Delivery records delivered: ahead of pr:" 'The `delivered
 hase "Repo plumbing and Cut-off probe section" "^$head_repo_plumbing\$"
 # the phrases pinned one by one, in a table the regression test derives its drop cases from too
 pins_from "$pins_dir/repo-plumbing-pins.tsv" "$head_repo_plumbing"
-# the one gate semantics at every row (INFRA-33): the exit, the fix-up and its budget, the
+# the one gate semantics at every tier (INFRA-33): the exit, the fix-up and its budget, the
 # minors fix-up and the conflict resolution that rerun the checks and spend nothing, the
 # reviewed tip as a sentence; the two-level loop with lint before the seams and the review
 # marker exit is retired
-hasc "Check gate rule" "$head_check_gate"
-para_has "$head_check_gate" "one gate at every row" 'At every row the gate exits when the checks are green on the tip the review called clean'
+hasc "Tier gates rule" "$head_check_gate"
+para_has "$head_check_gate" "one gate at every tier" 'At every tier the gate exits when the checks are green on the tip the review called clean'
 para_has "$head_check_gate" "a red or blocking verdict goes to a fresh implementer" "$pin_red_or_blocking_to_fresh_fix_up"
 para_has "$head_check_gate" "three fix-ups per unit" 'three such fix-ups per unit'
-para_has "$head_check_gate" "the epic row budgets per story" "at the epic row, $epic_row_budget"
+para_has "$head_check_gate" "the epic tier budgets per story" "at the epic tier, $epic_row_budget"
 row_phrase implement-spec-pins "fix-up budget's fourth" && para_has "$head_check_gate" "a fourth failure is failed" "$row_text"
-# the epic row's fourth-failure lines, the same two step 6 of /dev:implement-spec reports (dev-aeo)
-row_phrase implement-spec-pins "red-check budget failure line" && para_has "$head_check_gate" "the epic row's red fourth-failure line" "\`$row_text\` after a red check"
-row_phrase implement-spec-pins "blocking-verdict budget failure line" && para_has "$head_check_gate" "the epic row's blocking fourth-failure line" "\`$row_text\` after a blocking verdict"
+# the epic tier's fourth-failure lines, the same two step 6 of /dev:implement-spec reports (dev-aeo)
+row_phrase implement-spec-pins "red-check budget failure line" && para_has "$head_check_gate" "the epic tier's red fourth-failure line" "\`$row_text\` after a red check"
+row_phrase implement-spec-pins "blocking-verdict budget failure line" && para_has "$head_check_gate" "the epic tier's blocking fourth-failure line" "\`$row_text\` after a blocking verdict"
 epic_fourth_failure_lines
 para_has "$head_check_gate" "a minors fix-up and a conflict resolution rerun the checks" 'A minors fix-up and a conflict resolution move the tip, so the checks rerun'
 para_has "$head_check_gate" "and spend nothing" 'no budget is spent'
 para_has "$head_check_gate" "the reviewed tip noted on the story" 'records the reviewed tip in its notes'
 para_has "$head_check_gate" "the gate exits on the moved tip" 'the gate exits on the moved tip once its checks are green'
 para_has "$head_check_gate" "the reviewed-tip note names the moved tip" 'the reviewed-tip note on the story bead'
-para_has "$head_check_gate" "the task row writes no reviewed-tip note" 'the task row writes no such note'
+para_has "$head_check_gate" "the task tier writes no reviewed-tip note" 'the task tier writes no such note'
 # a low task's gate is its checks, plus one standards review when its diff changes prose describing
 # behaviour, every owner repo having a check command (ADR 0015)
 para_has "$head_check_gate" "a low task is gated by the checks alone unless its diff changes behaviour prose" 'A `low` task'"'"'s gate is the checks alone, with no review, unless its diff adds or changes a comment, doc, skill text or test header describing behaviour'
-# the fix-up budget is bounded per invocation at every row (dev-gi1): a fresh orchestrator at any
+# the fix-up budget is bounded per invocation at every tier (dev-gi1): a fresh orchestrator at any
 # row starts its unit's budget at three whatever notes earlier invocations left, the epic
 # orchestrator counts a story's spent budget from the notes after its epic round start marker,
-# an agent resumed with its context keeps its own count, and the epic row is no exception
+# an agent resumed with its context keeps its own count, and the epic tier is no exception
 para_has "$head_check_gate" "a fresh orchestrator starts its unit's budget at three" "starts its unit's budget at three whatever notes earlier invocations left"
-para_has "$head_check_gate" "the fresh budget holds at any row" 'A fresh orchestrator at any row'
+para_has "$head_check_gate" "the fresh budget holds at any tier" 'A fresh orchestrator at any tier'
 para_has "$head_check_gate" "a resumed agent keeps its own count" 'an agent resumed with its context keeps its own count'
-para_has "$head_check_gate" "neither the task row nor the story row records spent fix-ups" 'neither the task row nor the story row records spent fix-ups'
+para_has "$head_check_gate" "neither the task tier nor the story tier records spent fix-ups" 'neither the task tier nor the story tier records spent fix-ups'
 row_phrase implement-spec-pins "spent budget is the fix-up notes after the story's epic round start marker" && para_has "$head_check_gate" "the epic orchestrator counts from the notes after the story's epic round start marker" "$row_text"
 para_has "$head_check_gate" "an add-mode re-run of filed tasks is a round of its own that spends" 'An add-mode re-run of tasks already filed is a round of its own and spends the budget like any other'
 para_has "$head_check_gate" "each round spends once, a filing's note and its add-mode pass included" 'Each round spends once'
 para_has "$head_check_gate" "the bound is per invocation, citing dev-l4j" 'bound a person wants is per invocation (dev-l4j)'
-lacks "the epic row named as the budget's exception" 'The epic row is the exception'
-para_has "$head_epic_row" "the epic row's checks are the forge's status on the PR tip" "the forge reports them green on the PR's tip"
-# the epic row settles its own red check and minors (dev-bwh): a red check is filed like a
+lacks "the epic tier named as the budget's exception" 'The epic tier is the exception'
+para_has "$head_epic_row" "the epic tier's checks are the forge's status on the PR tip" "the forge reports them green on the PR's tip"
+# the epic tier settles its own red check and minors (dev-bwh): a red check is filed like a
 # blocking finding, a task under the story, and spends the budget; a clean verdict's minors
 # take no last fix-up, which the epic orchestrator cannot run, and go to the inbox
-para_has "$head_epic_row" "a red check at the epic row is filed like a blocking verdict" 'On a blocking verdict or a red check'
+para_has "$head_epic_row" "a red check at the epic tier is filed like a blocking verdict" 'On a blocking verdict or a red check'
 para_has "$head_epic_row" "the red check's task carries its check, command and log" 'carries its check, its command and its log pointer'
-para_has "$head_epic_row" "a red check spends the epic row's budget" 'three such fix-ups per story per invocation, red or blocking alike'
+para_has "$head_epic_row" "a red check spends the epic tier's budget" 'three such fix-ups per story per invocation, red or blocking alike'
 para_has "$head_epic_row" "a pending check leaves the PR a draft" "$pin_pr_stays_a_draft and a later invocation reads it again"
-para_has "$head_epic_row" "the epic row's minors take no last fix-up" 'minors take no last fix-up at this row'
+para_has "$head_epic_row" "the epic tier's minors take no last fix-up" 'minors take no last fix-up at this tier'
 # a finding from outside the story's epic reviewer is one of the epic review's findings (dev-4pm2)
-row_phrase implement-spec-pins "outside finding on a delivered tip" && para_has "$head_epic_row" "the epic row: outside finding on a delivered tip" "$row_text"
-row_phrase implement-spec-pins "outside finding test: wrong behaviour is blocking" && para_has "$head_epic_row" "the epic row: outside finding test: wrong behaviour is blocking" "$row_text"
-row_phrase implement-spec-pins "outside finding: a blocking one is filed at once, wherever the story stands" && para_has "$head_epic_row" "the epic row: outside finding is filed at once, wherever the story stands" "$row_text"
-row_phrase implement-spec-pins "only a closed or landed story takes no task" && para_has "$head_epic_row" "the epic row: only a closed or landed story takes no task" "$row_text"
-row_phrase implement-spec-pins "a story with an open fix-up task is not skipped, polled, ready or Done" && para_has "$head_epic_row" "the epic row: a story with an open fix-up task is not skipped, polled, ready or Done" "$row_text"
-row_phrase implement-spec-pins "outside finding: task first, note after, the task is the record" && para_has "$head_epic_row" "the epic row: outside finding: task first, note after" "$row_text"
-row_phrase implement-spec-pins "an add-mode pass on filed tasks is a fix-up round of its own" && para_has "$head_epic_row" "the epic row: an add-mode pass on filed tasks is a fix-up round of its own" "$row_text"
-para_has "$head_epic_row" "the epic row: the marker is written once per invocation before any delivery or review" 'writes once per invocation, before any delivery or review'
-row_phrase implement-spec-pins "the marker scope is every open story the preflight covered" && para_has "$head_epic_row" "the epic row: the marker's scope is every open story the preflight covered" "$row_text"
-para_has "$head_epic_row" "the epic row: the markers are written only after the preflight passes" 'once the preflight passes'
-row_phrase implement-spec-pins "an add-mode pass spends only when its round has no note yet" && para_has "$head_epic_row" "the epic row: an add-mode pass spends only when its round has no note yet" "$row_text"
-row_phrase implement-spec-pins "a pass on a task whose filing wrote the round note writes no second note" && para_has "$head_epic_row" "the epic row: a pass on a task whose filing wrote the round note writes no second note" "$row_text"
-row_phrase implement-spec-pins "a re-run of a task whose round had its batch spends" && para_has "$head_epic_row" "the epic row: a re-run of a task whose round had its batch spends" "$row_text"
-row_phrase implement-spec-pins "the failing fourth-round pass writes no fourth note" && para_has "$head_epic_row" "the epic row: the failing fourth-round pass writes no fourth note" "$row_text"
-para_has "$head_epic_row" "the epic row: a ready PR goes back to draft first" 'goes back to draft first'
-row_phrase implement-spec-pins "a story with no marker from this invocation gets one before anything is filed on it" && para_has "$head_epic_row" "the epic row: a story with no marker from this invocation gets one before anything is filed on it" "$row_text"
-row_phrase implement-spec-pins "the add-mode round's note kind" && para_has "$head_epic_row" "the epic row: the add-mode round's note kind" "$row_text"
-row_phrase implement-spec-pins "the epic row counts the budget from the epic round start marker" && para_has "$head_epic_row" "the epic row: the budget counts from the epic round start marker" "$row_text"
+row_phrase implement-spec-pins "outside finding on a delivered tip" && para_has "$head_epic_row" "the epic tier: outside finding on a delivered tip" "$row_text"
+row_phrase implement-spec-pins "outside finding test: wrong behaviour is blocking" && para_has "$head_epic_row" "the epic tier: outside finding test: wrong behaviour is blocking" "$row_text"
+row_phrase implement-spec-pins "outside finding: a blocking one is filed at once, wherever the story stands" && para_has "$head_epic_row" "the epic tier: outside finding is filed at once, wherever the story stands" "$row_text"
+row_phrase implement-spec-pins "only a closed or landed story takes no task" && para_has "$head_epic_row" "the epic tier: only a closed or landed story takes no task" "$row_text"
+row_phrase implement-spec-pins "a story with an open fix-up task is not skipped, polled, ready or Done" && para_has "$head_epic_row" "the epic tier: a story with an open fix-up task is not skipped, polled, ready or Done" "$row_text"
+row_phrase implement-spec-pins "outside finding: task first, note after, the task is the record" && para_has "$head_epic_row" "the epic tier: outside finding: task first, note after" "$row_text"
+row_phrase implement-spec-pins "an add-mode pass on filed tasks is a fix-up round of its own" && para_has "$head_epic_row" "the epic tier: an add-mode pass on filed tasks is a fix-up round of its own" "$row_text"
+para_has "$head_epic_row" "the epic tier: the marker is written once per invocation before any delivery or review" 'writes once per invocation, before any delivery or review'
+row_phrase implement-spec-pins "the marker scope is every open story the preflight covered" && para_has "$head_epic_row" "the epic tier: the marker's scope is every open story the preflight covered" "$row_text"
+para_has "$head_epic_row" "the epic tier: the markers are written only after the preflight passes" 'once the preflight passes'
+row_phrase implement-spec-pins "an add-mode pass spends only when its round has no note yet" && para_has "$head_epic_row" "the epic tier: an add-mode pass spends only when its round has no note yet" "$row_text"
+row_phrase implement-spec-pins "a pass on a task whose filing wrote the round note writes no second note" && para_has "$head_epic_row" "the epic tier: a pass on a task whose filing wrote the round note writes no second note" "$row_text"
+row_phrase implement-spec-pins "a re-run of a task whose round had its batch spends" && para_has "$head_epic_row" "the epic tier: a re-run of a task whose round had its batch spends" "$row_text"
+row_phrase implement-spec-pins "the failing fourth-round pass writes no fourth note" && para_has "$head_epic_row" "the epic tier: the failing fourth-round pass writes no fourth note" "$row_text"
+para_has "$head_epic_row" "the epic tier: a ready PR goes back to draft first" 'goes back to draft first'
+row_phrase implement-spec-pins "a story with no marker from this invocation gets one before anything is filed on it" && para_has "$head_epic_row" "the epic tier: a story with no marker from this invocation gets one before anything is filed on it" "$row_text"
+row_phrase implement-spec-pins "the add-mode round's note kind" && para_has "$head_epic_row" "the epic tier: the add-mode round's note kind" "$row_text"
+row_phrase implement-spec-pins "the epic tier counts the budget from the epic round start marker" && para_has "$head_epic_row" "the epic tier: the budget counts from the epic round start marker" "$row_text"
 para_has "$head_epic_row" "every epic review's minors go to the inbox, blocking or clean" "verdict, an epic review's minors take no last fix-up"
-para_has "$head_epic_row" "the epic row's minors go to the inbox" "$pin_inbox_as_deferrals"
-para_has "$head_epic_row" "the epic row's minors go to the inbox at once" "$pin_inbox_as_deferrals at once"
-para_has "$head_review_verdict" "the Review verdict sends the epic row's minors to the inbox" 'always to the inbox (The epic row, above)'
+para_has "$head_epic_row" "the epic tier's minors go to the inbox" "$pin_inbox_as_deferrals"
+para_has "$head_epic_row" "the epic tier's minors go to the inbox at once" "$pin_inbox_as_deferrals at once"
+para_has "$head_review_verdict" "the Review verdict sends the epic tier's minors to the inbox" 'always to the inbox (The epic tier, above)'
 lacks "the retired two-level check order" 'lint first, then the test seams'
 # the seam-test blocking case, and the one review tool
 para_has "$head_review_verdict" "no test at a story seam is blocking" 'no test at a story seam exercises the criteria'
 # a standalone task's body may carry ## Test seams; without one the case does not apply (dev-b8d.1.6)
 para_has "$head_review_verdict" "the no-seam-test case skips a standalone task without test seams" 'a standalone task whose body has no `## Test seams` names no seam, and the case does not apply to it'
-hasc "the one review tool" "$pin_code_review_tool at every row"
+hasc "the one review tool" "$pin_code_review_tool at every tier"
 # /dev:implement-task in one paragraph under the table, the table keeping three rows (dev-b8d.1.6)
 para_has "$head_standalone_task" "the paragraph names /dev:implement-task" "$pin_implement_task_id"
-para_has "$head_standalone_task" "the paragraph: the story row with a frontier of one" "$pin_story_row_frontier_of_one"
+para_has "$head_standalone_task" "the paragraph: the story tier with a frontier of one" "$pin_story_row_frontier_of_one"
 para_has "$head_standalone_task" "the paragraph: no story gate" "$pin_no_story_bead_or_gate"
 para_has "$head_standalone_task" "the paragraph: the PR opened ready" 'a PR opened ready'
 para_has "$head_standalone_task" "the paragraph: the close at delivery" 'closes the task at delivery'
@@ -1712,10 +1718,10 @@ para_has "$head_tmpdir" "a git call takes no export in front" 'each git call its
 # file edits in a worktree go through the Edit tool, not sed -f or a python heredoc (dev-xvq5)
 para_has "$head_literal_paths" "file edits go through the Edit tool" 'the Edit tool, in place of `sed -f` or a python heredoc'
 para_has "$head_idle_rule" "the Idle rule names the check command" 'every run of the check command'
-# the story orchestrator's forge-check wait is the one long shell wait the rule allows (dev-xc2),
+# the story orchestrator's forge gate is the one long shell wait the rule allows (dev-xc2),
 # the task orchestrator's lock wait gone with the lock (dev-b8d.1.4), which section 5 sweeps
-para_has "$head_idle_rule" "the Idle rule names the forge-check wait as its one long shell wait" "The one long shell wait is the story orchestrator's"
-para_has "$head_idle_rule" "the Idle rule cites the Delivery section for the forge-check wait" "forge-check wait (the orchestration doc's Delivery section)"
+para_has "$head_idle_rule" "the Idle rule names the forge gate as its one long shell wait" "The one long shell wait is the story orchestrator's"
+para_has "$head_idle_rule" "the Idle rule cites the Delivery section for the forge gate" "forge gate (the orchestration doc's Delivery section)"
 # (no step number cited for the wait: section 5's sweep covers references/, dev-90up)
 lacks "the Idle rule's second shell wait" 'two shell waits|The other is the story orchestrator'
 lacks "the Idle rule's retired story's-checks clause" "these are the story's checks"
@@ -1761,18 +1767,18 @@ lacksf "a pr: note alone making the finished story" 'in the plugin repo): a late
 para_has "$head_has_database" "the rule checks bd where" '`bd -C <repo> where` then prints `<repo>/.beads`'
 para_has "$head_has_database" "a .beads where does not name is no database" 'counts as no database'
 para_has "$head_has_database" "every gate cites the rule" 'applies this rule and cites it'
-# every task passes the check gate; the review is medium and high, and low only for changed prose (ADR 0014, ADR 0015)
-lacks "medium and high tasks passing the check gate" '`medium` and `high` tasks pass the check gate'
-hasc "every task passes the check gate" 'every task passes the check gate'
+# every task passes the task gate; the review is medium and high, and low only for changed prose (ADR 0014, ADR 0015)
+lacks "medium and high tasks passing the task gate" '`medium` and `high` tasks pass the task gate'
+hasc "every task passes the task gate" 'every task passes the task gate'
 hasc "the tracker doc reviews medium and high tasks and low tasks that change behaviour prose" '`medium` and `high` tasks add the review. A `low` task adds'
 # the task gate's review is two reviewers, one per axis, as /dev:task-orchestrator spawns them
 sec_has "$head_start_work_on_a_task" "the task gate's review is two-axis" 'two reviewers, one per axis'
-# the task's close is the story row's at landing, never the task row's (ADR 0016, dev-b8d.1
+# the task's close is the story tier's at landing, never the task tier's (ADR 0016, dev-b8d.1
 # story review 2)
 sec_has "$head_start_work_on_a_task" "the story orchestrator closes the task at landing" 'the story orchestrator closes the task at landing'
 # a routed triage item is a standalone task, the one type /dev:implement-task takes; the
 # inbox bead stays a chore, a retro item and no task (dev-b8d.1 story review 1)
-sec_has '## When a skill says "route a triaged item" (`/dev:triage`)' "the routed bead is a task" 'create "<title>" --type task -l complexity:<tier>,retro'
+sec_has '## When a skill says "route a triaged item" (`/dev:triage`)' "the routed bead is a task" 'create "<title>" --type task -l complexity:<complexity>,retro'
 lacks "a routed bead of type chore" '--type chore -l complexity:'
 # the capture rule searches the open needs-triage beads before bd create and notes a repeat, once,
 # here; no skill carries its own copy (dev-hmjc)
@@ -1868,18 +1874,18 @@ hasc "ADR 0014 decides every tree is checked once" "$pin_every_tree_checked_once
 # a red record checked again and the landing's resolution cap amend the ADR (dev-6qi)
 hasc "ADR 0014 amended by dev-6qi" '> Amended by dev-6qi'
 # ADR 0014 is superseded in part by ADR 0016, its status line intact; ADR 0016 records that the
-# story row lands its tasks, why, the options considered, the rename and the budget's move
+# story tier lands its tasks, why, the options considered, the rename and the budget's move
 hasc "ADR 0014 superseded in part by ADR 0016" '> Superseded in part by ADR 0016'
 fi
 if doc 6 "ADR 0016" "$docs/adr/0016-the-story-row-lands-its-tasks.md"; then
 line_hase "$anchor_adr_status_accepted" "ADR 0016 is accepted" "$anchor_adr_status_accepted"
 hasc "ADR 0016 supersedes ADR 0014 in part" 'Supersedes in part ADR 0014'
-hasc "ADR 0016 decides the story row lands its tasks" "**$pin_story_row_lands its tasks.**"
+hasc "ADR 0016 decides the story tier lands its tasks" '**The story row lands its tasks.**'
 hasc "ADR 0016 has considered options" "$head_considered_options"
-hasc "ADR 0016 option: the story row sends a red tree to a fix-up" '**The story row sending a red resolved tree to a fix-up itself**'
+hasc "ADR 0016 option: the story tier sends a red tree to a fix-up" '**The story row sending a red resolved tree to a fix-up itself**'
 hasc "ADR 0016 option: a typed skill that is also the spawned one" '**A typed skill that is also the spawned one**'
 hasc "ADR 0016 option: a chore skill" '**A chore skill**'
-hasc "ADR 0016 moves the resolution budget to the story row" "$pin_conflict_resolutions_per_landing"
+hasc "ADR 0016 moves the resolution budget to the story tier" "$pin_conflict_resolutions_per_landing"
 hasc "ADR 0016 rejects the red-tree fix-up for the task-row gate it would run" 'run a task-row gate'
 hasc "ADR 0016 rejects the typed-and-spawned skill for its two modes" 'two modes in one skill'
 hasc "ADR 0016 rejects the chore skill for the branch it would deliver" 'would deliver `fix:` commits'
@@ -1977,7 +1983,7 @@ lacks "a lock wait sleeping and re-checking the lock by hand" 'waits [0-9]+ seco
 # notification (chezmoi-p4q); the rule itself is checked in 6
 hasc "frontier spawn ends the turn" 'then end your turn: each task orchestrator'
 hasc "the skill names the harness doc's Idle rule" "the $cite_harness_idle_rule"
-# the story row lands each reviewed task branch itself (dev-b8d.1.4): in the turn the reviewed:
+# the story tier lands each reviewed task branch itself (dev-b8d.1.4): in the turn the reviewed:
 # report resumes it, serially and with no lock; the landing is the Land script's call; a conflict
 # to an implementer in the task's worktree, the resolved tree checked with the orchestration doc's call,
 # then the Land script again with --ff-only; three resolutions per landing, the fourth failed; a
@@ -1995,7 +2001,7 @@ sec_has "## Landing" "the conflict implementer merges the integration tip into t
 line_has '^3\. A conflict goes to an implementer' "the conflict implementer brief names both rules folders" "reads $standards_implementer"
 sec_has "## Landing" "the resolved tree is checked with the orchestration doc's call" "run the orchestration doc's Check record script, \`<plugin root>/scripts/check.sh <worktree path> <owner>\`, with the task's worktree as its \`<worktree path>\`, in one foreground Bash call with \`timeout: 600000\`, \`<plugin root>\` spelled as the path this session resolved; the script runs nothing on a tree with a green record"
 line_lacks '^3\. A conflict goes to an implementer' "the landing reading the resolved tree's record itself" 'run nothing on a green record'
-sec_has "## Landing" "no reviewer runs on the resolution" 'No reviewer runs: the story row'"'"'s standards axis sees the resolution'
+sec_has "## Landing" "no reviewer runs on the resolution" 'No reviewer runs: the story tier'"'"'s standards axis sees the resolution'
 # a resolution always moves the task branch past the reviewed tip, so the Land script is called with
 # the resolved tip, the tree just checked, never the reviewed one, and a refusal names that tip
 sec_has "## Landing" "a moved-past refusal names the tip passed, reviewed or resolved" 'a `moved past <tip>` names the `<tip SHA>` you passed: the reviewed tip on a first call, the resolved tip after a resolution'
@@ -2165,8 +2171,8 @@ plumbing_copies
 lacks "the retired grep for the check target" "grep -q .\\^check:"
 lacks "the retired lint-command resolution" 'resolve the owner repo.s \*\*lint command\*\*|`make lint` when `<owner>`.s makefile has a `lint` target'
 lacksf "the retired lint placeholder" '`<lint>`'
-# the story gate (step 7) is the orchestration doc's Check gate loop on the integration branch tip, the
-# story row of its table (dev-9k5.1.9): it exits when the checks are green on the tip the review
+# the story gate (step 7) is the orchestration doc's Tier gates loop on the integration branch tip, the
+# story tier of its table (dev-9k5.1.9): it exits when the checks are green on the tip the review
 # called clean; each pass reads the checks from the check records first (a recorded tree runs
 # nothing, an unrecorded one is checked once in the clean owner checkout and recorded), then
 # compares the reviewed tip the story keeps in its review: note; the review's spec axis is the
@@ -2177,7 +2183,7 @@ lacksf "the retired lint placeholder" '`<lint>`'
 # draft, its Evidence the delivered tip's check record; step 9 leaves the records in place
 G7='^7\. '
 hase "step 7 is the story gate" '^7\. \*\*Story gate\.\*\*'
-line_has "$G7" "the story gate names its row of the orchestration doc's table" "the story row of the orchestration doc's table"
+line_has "$G7" "the story gate names its tier of the orchestration doc's table" "the story tier of the orchestration doc's table"
 line_has "$G7" "the story gate exits on green checks at the tip the review called clean" 'it exits when the checks are green on the tip the review called clean'
 line_has "$G7" "the story gate runs the checks first in each pass" "$gate_first"
 line_has "$G7" "the story gate reads the tree only of a clean owner checkout" 'confirm the owner checkout is clean, `git -C <owner> status --porcelain` prints nothing'
@@ -2185,10 +2191,10 @@ line_has "$G7" "the story gate reads the tree only of a clean owner checkout" 'c
 # why, the failed line naming the files, its exit classified as step 6 says
 line_has "$G7" "the story gate confirms the owner checkout is on the integration branch" '`git -C <owner> branch --show-current` prints `<branch>`'
 line_has "$G7" "the story gate's off-branch failed line" '`failed: <story-id> not on <branch>`'
-line_has "$G7" "the story gate's clean-checkout guard says why untracked files count" 'untracked files count, since the check runs on the working tree while the record keys on the committed tree'
+line_has "$G7" "the story gate's clean-checkout guard says why untracked files count" 'untracked files count, since the check command runs on the working tree while the record keys on the committed tree'
 line_has "$G7" "the dirty-checkout failed line names the files" '`failed: <story-id> owner checkout dirty: <files>`, `<files>` the paths that status call printed, classified as step 6 says'
 line_has "$G7" "the story gate leaves the green-record read to the script" 'resolved. The script reads the tip'"'"'s tree record itself: on a green record it runs nothing, whichever orchestrator wrote it'
-line_has "$G7" "the story gate has the script check a red-recorded tree again" 'a red record is no check, so the script checks the tree again'
+line_has "$G7" "the story gate has the script check a red-recorded tree again" 'a red record is no check run, so the script checks the tree again'
 line_lacks "$G7" "the story gate reading the green record itself" "$rec_green"
 line_lacks "$G7" "the story gate reading the record path itself" 'its record is `<owner>/.tmp/checks/<tree>/record`'
 line_lacks "$G7" "the story gate skipping the run on a red record" "$rec_any"
@@ -2207,7 +2213,7 @@ line_has "$G7" "the story review note names the reviewed tip" '`bd -C <owner> no
 line_has "$G7" "a green tip the review called clean exits the gate" "$gate_same"
 line_has "$G7" "the story review's spec axis is the story's body" "the spec axis is the story's body"
 line_has "$G7" "the story review's standards axis is what entered since the task reviews" "the standards axis is what entered since the task reviews: the $pin_conflict_resolutions and the coherence across tasks"
-# the story review and its fix-ups name both rules folders, in the task row's words (ADR 0018,
+# the story review and its fix-ups name both rules folders, in the task tier's words (ADR 0018,
 # dev-7mkq.1.6)
 line_has "$G7" "the story review brief names both rules folders and the breach form" "read against $standards_reviewer"
 line_has "$G7" "the story fix-up brief names both rules folders" "reads $standards_implementer"
@@ -2247,7 +2253,7 @@ line_has '^8\. ' "step 8 cites the stray-commit script by name" 'run through the
 line_has '^8\. ' "step 8 opens the draft itself" 'open the draft after the push if step 3 could not'
 line_has '^8\. ' "step 8 appends the sibling line" 'append the sibling line (rebuilt as in step 3)'
 line_has '^8\. ' "step 8 runs the sibling refresh" "only then run step 3's sibling refresh"
-line_lacks '^8\. ' "a second copy of the forge-check wait in step 8" "$pin_forge_wait_script"
+line_lacks '^8\. ' "a second copy of the forge gate in step 8" "$pin_forge_wait_script"
 line_lacks '^8\. ' "a second copy of the stray-commit check in step 8" '--no-merges --format='
 row_sweep implement-spec-pins "mark ready with gh" && line_lacks '^8\. ' "the deliver step marking the PR ready" "$row_text"
 row_sweep implement-spec-pins "mark ready with tea" && line_lacks '^8\. ' "the deliver step marking the PR ready with tea" "$row_text"
@@ -2283,7 +2289,7 @@ lacks "the retired Evidence phrase" 'the command and its output'
 
 fi
 
-# ---- 16. /task-orchestrator: the task row as a skill, spawned only, to a reviewed branch ----
+# ---- 16. /task-orchestrator: the task tier as a skill, spawned only, to a reviewed branch ----
 # what was /implement-story's task orchestrator brief (dev-b8d.1.4): typed bare it refuses in one
 # line naming the two skills that spawn it; two entries selected by the brief; one report line,
 # reviewed: with the branch, worktree and tip, needs split: or failed:; no write to the owner
@@ -2321,15 +2327,15 @@ hasc "the skill names the harness doc's Idle rule" "The $cite_harness_idle_rule 
 for step in 2 3; do
   line_has "^$step\. " "the task orchestrator's step $step: check and test timeout" "$pin_timeout_600000"
 done
-# a fresh task orchestrator starts at round 1 whatever earlier attempts noted, the Check gate's
+# a fresh task orchestrator starts at round 1 whatever earlier attempts noted, the Tier gates'
 # fresh budget; a replaced implementer's no reset holds within one task orchestrator (dev-drw)
 CUT='^A subagent that returns an API error'
 line_has "$CUT" "a fresh task orchestrator starts at round 1" 'so you start at round 1'
 line_has "$CUT" "the fresh start ignores earlier attempts' notes" 'whatever `checks <n>:` or `review <n>:` notes earlier attempts left'
-line_has "$CUT" "the fresh start points at the orchestration doc's Check gate" "your task starts over from \`<branch>\`'s tip (the orchestration doc's Check gate)"
+line_has "$CUT" "the fresh start points at the orchestration doc's Tier gates" "your task starts over from \`<branch>\`'s tip (the orchestration doc's Tier gates)"
 line_has "$CUT" "a replaced implementer's no reset holds within one task orchestrator" 'no reset within this task orchestrator'
-# the task row's implementer, fix-up and standards reviewer briefs name both rules folders, in the
-# story row's words (dev-co6, ADR 0018, dev-7mkq.1.6)
+# the task tier's implementer, fix-up and standards reviewer briefs name both rules folders, in the
+# story tier's words (dev-co6, ADR 0018, dev-7mkq.1.6)
 line_has '^2\. ' "the task implementer brief names both rules folders" "reads $standards_implementer"
 line_has '^3\. ' "the task fix-up brief names both rules folders" "reads $standards_implementer"
 line_has '^3\. ' "the task spec reviewer brief leaves both rules folders to the standards reviewer" "$standards_spec_reviewer"
@@ -2384,42 +2390,42 @@ line_has '^3\. ' "the blocking fix-up brief says file edits go through the Edit 
 line_has '^3\. ' "the blocking fix-up brief says a commit message with trailers goes through a message file" "$forms_commit"
 line_has '^3\. ' "the blocking fix-up brief says a glob passed as a flag is quoted" "$forms_glob"
 lacks "the zero-findings bar" "$pin_retired_zero_findings_bar"
-# the skill states its row of the orchestration doc's table, the run's check command from its brief, and
-# cites the harness doc in one line (dev-9k5.1.7); its row reports a reviewed branch (dev-b8d.1.4)
+# the skill states its tier of the orchestration doc's table, the run's check command from its brief, and
+# cites the harness doc in one line (dev-9k5.1.7); its tier reports a reviewed branch (dev-b8d.1.4)
 H="$anchor_task_orchestrator_header"
 hase "the row opens on the task orchestrator" "$H"
-for pin in "your row is the task row of the orchestration doc's table|the skill names its row of the orchestration doc's table" \
+for pin in "your tier is the task tier of the orchestration doc's table|the skill names its tier of the orchestration doc's table" \
   'you build with one implementer in a worktree|the row builds with one implementer in a worktree' \
   'check with the check command|the row checks with the check command' \
-  "review the task's body as the spec axis and the task diff as the standards axis, one tier up, at \`low\` only a standards reviewer for a diff that changes a comment, doc, skill text or test header describing behaviour, fix up|the row reviews the task body and diff one tier up, at low a standards review of changed prose only" \
+  "review the task's body as the spec axis and the task diff as the standards axis, on the next model up, at \`low\` only a standards reviewer for a diff that changes a comment, doc, skill text or test header describing behaviour, fix up|the row reviews the task body and diff on the next model up, at low a standards review of changed prose only" \
   'fix up by pointer brief in the same worktree|the row fixes up by pointer brief in the same worktree' \
   'report the reviewed branch for the story orchestrator to land|the row reports its reviewed branch for the story orchestrator to land' \
   'exit when the checks are green on the tip the review called clean|the row exits on green checks at the tip the review called clean' \
   'within three fix-ups|the row budgets three fix-ups'; do
   line_has "$H" "${pin#*|}" "${pin%%|*}"
 done
-line_lacks "$H" "the row's conflict resolutions" "$pin_conflict_resolutions"
+line_lacks "$H" "the tier's conflict resolutions" "$pin_conflict_resolutions"
 line_has "$H" "the skill cites the harness doc in one line" 'The harness mechanics are in `<plugin root>/references/harness.md`'
 line_has "$H" "every brief it sends cites the harness doc" 'every brief you send cites it in one line'
 # the story orchestrator resolves the check command once per run and the brief carries it; the
 # skill never resolves it itself (dev-yyu)
-line_has "$H" "the row's check command is the brief's" 'check command `<check command>`'
+line_has "$H" "the tier's check command is the brief's" 'check command `<check command>`'
 line_has "$H" "the skill never resolves the check command itself" 'never resolve it yourself'
 row_sweep repo-plumbing-pins "the check target is read from make's database" && line_lacks "$H" "the per-task check target lookup" "$row_text"
 line_lacks "$H" "the per-task check command by Makefile convention" "Makefile has a \`check\` target"
-# the Check gate (step 3): checks ahead of the reviewers, each check one record call,
+# the Tier gates (step 3): checks ahead of the reviewers, each check one record call,
 # a red noted, a red and a blocking verdict both to a fresh fix-up on one budget of three, a low
 # task exiting on green (dev-cq0.1.4, dev-1xf.1.2)
-G3='^3\. \*\*Check gate\*\*, every tier'
-hase "task orchestrator step 3 opens with the check gate, every tier" "$G3"
-line_has "$G3" "the loop step cites the orchestration doc's loop" "as the orchestration doc's Check gate says"
+G3='^3\. \*\*Task gate\*\*, every complexity'
+hase "task orchestrator step 3 opens with the task gate, every complexity" "$G3"
+line_has "$G3" "the loop step cites the orchestration doc's loop" "as the orchestration doc's Tier gates says"
 line_has "$G3" "a red starts the loop over from the checks" 'A red spawns a fresh implementer on the fix-up and the loop starts over from the checks'
 line_has "$G3" "a blocking verdict starts the loop over from the checks, never straight to the reviewers" 'a blocking verdict spawns a fresh implementer on the fix-up and the loop starts over from the checks, never straight to the reviewers'
 line_has "$G3" "a clean verdict exits the loop" '**Clean** exits the loop'
 # a new or changed fixture case runs end to end at the gate, since the check skips an unrun
 # one: seed, one subagent at the seed's brief, assert, the assert record kept beside the check
 # record; both reviewers' blocking lists count a case with no assert record (dev-lf9v, INFRA-45)
-line_has "$G3" "the gate seeds, runs a subagent on and asserts each new or changed fixture case" 'when the task'"'"'s diff adds or changes a case in one, then on the green tip, for each such case, in the task'"'"'s worktree, you run its test script'"'"'s `seed <case>`, spawn one subagent at the tier'"'"'s implementation model to follow the brief the seed prints'
+line_has "$G3" "the gate seeds, runs a subagent on and asserts each new or changed fixture case" 'when the task'"'"'s diff adds or changes a case in one, then on the green tip, for each such case, in the task'"'"'s worktree, you run its test script'"'"'s `seed <case>`, spawn one subagent at the complexity'"'"'s implementation model to follow the brief the seed prints'
 line_has "$G3" "the gate runs the assert in one foreground call with the long timeout" 'run `assert <case>` in one foreground Bash call with `timeout: 600000`'
 line_has "$G3" "the fixture subagent brief starts with the TMPDIR line and the plain-command line and points at the Shell commands section" 'its own brief starting with the TMPDIR line, then the plain-command line, one plain `git` or `bd` command per Bash call, every path spelled out, and pointing at the Shell commands section of `<plugin root>/references/harness.md`'
 line_has "$G3" "the gate records the assert beside the check record" 'keep the assert'"'"'s output as the case'"'"'s **assert record** beside the check record'
@@ -2427,14 +2433,14 @@ line_has "$G3" "the assert record sits at the owner's check-record path for the 
 line_has "$G3" "the gate notes each assert's result on the task bead" 'note <task-id> "assert <case>: <pass or fail>"'
 line_has "$G3" "the spec reviewer brief names each fixture case and its assert record" "the spec reviewer's brief names each such case and the assert record's path"
 line_has "$G3" "a fixture case with no assert record is a blocking finding" 'a new or changed fixture case with no assert record (a missing test, whatever the check'"'"'s green)'
-line_has "$G3" "the check gate runs before step 3's reviewer" "handled as a \`medium\` task's is (the \`review <round>:\` note, a blocking verdict to a fresh implementer on the fix-up, a clean round's minors); for \`medium\` and \`high\`, $pin_spawn_two_reviewers"
+line_has "$G3" "the task gate's checks run before step 3's reviewer" "handled as a \`medium\` task's is (the \`review <round>:\` note, a blocking verdict to a fresh implementer on the fix-up, a clean round's minors); for \`medium\` and \`high\`, $pin_spawn_two_reviewers"
 unchanged_file || ! grep -E "$G3" "$f" | sed 's/Green: .*//' | grep -qF -- "$pin_spawn_two_reviewers" || bad "present: task orchestrator step 3 spawns a reviewer ahead of the checks' green"
 # one reviewer per axis, combined into one verdict line (dev-bzd)
 line_has "$G3" "the task review spawns one reviewer per axis" "$pin_spawn_two_reviewers, one per axis"
 line_has "$G3" "the two reviewers combine their reports into one verdict line" 'Combine the two reports into one verdict line'
 line_lacks "$G3" "the reviewer told to spawn the skill's sub-agents" "the skill's two sub-agents spawned"
 line_has "$G3" "a code-only low task exits the loop on green checks" 'Green: a `low` task whose diff touches no comment, doc, skill text or test header describing behaviour exits the loop, go to step 4; a `low` task whose diff does spawns one **standards reviewer** at `sonnet`'
-line_has "$G3" "a low task changing such prose gets one standards reviewer at sonnet" 'a `low` task whose diff does spawns one **standards reviewer** at `sonnet`, the low tier'"'"'s review model'
+line_has "$G3" "a low task changing such prose gets one standards reviewer at sonnet" 'a `low` task whose diff does spawns one **standards reviewer** at `sonnet`, the low complexity'"'"'s review model'
 line_has "$G3" "the low standards reviewer checks Doc claims carry their conditions" 'against the personal standard "Doc claims carry their conditions" (`~/.claude/rules/doc-claims-carry-conditions.md`) and the code it describes'
 line_has "$G3" "the low standards reviewer calls the code-review skill itself" "told to call the Skill tool with \`mattpocock-skills:code-review\` and do that skill's standards sub-agent brief itself, spawning no one"
 line_has "$G3" "the low standards reviewer's brief says what it does without the personal rule file" 'where `~/.claude/rules/doc-claims-carry-conditions.md` is absent it checks each touched sentence'
@@ -2446,7 +2452,7 @@ line_has "$G3" "the gate keys the check on the tree SHA" '`git -C <worktree path
 line_has "$G3" "the gate reads the tree only of a clean worktree" 'First confirm the worktree is clean, `git -C <worktree path> status --porcelain` prints nothing; a dirty worktree goes to a fresh implementer as a red does'
 line_lacks "$G3" "the clean-worktree guard that hides untracked files" '`git -C <worktree path> status --porcelain --untracked-files=no`'
 line_has "$G3" "the gate leaves the green-record read to the script" 'The script reads the tip'"'"'s tree record itself: on a green record it runs nothing, whichever orchestrator wrote it'
-line_has "$G3" "the gate has the script check a red-recorded tree again" 'a red record is no check, so the script checks the tree again and replaces the record'
+line_has "$G3" "the gate has the script check a red-recorded tree again" 'a red record is no check run, so the script checks the tree again and replaces the record'
 line_lacks "$G3" "the gate reading the green record itself" "$rec_green"
 line_lacks "$G3" "the gate reading the record path itself" 'its check record is `<owner>/.tmp/checks/<tree>/record`'
 line_lacks "$G3" "the gate skipping the run on a red record" "$rec_any"
@@ -2471,7 +2477,7 @@ line_has "$G3" "a minor unfixed when the task is reported reviewed or failed goe
 line_has "$G3" "a minor reported fixed whose named file and line the fix-up's diff leaves untouched counts unfixed" 'a minor a fix-up reports fixed whose named file and line its diff does not touch counts as unfixed (dev-ioa4)'
 line_has "$G3" "a blocking round's out-of-scope minors go to the inbox" "the note's minors you judge out of the task's scope go to the inbox at once"
 lacks "the retired run-the-gate-again wording" 'run the check gate again, and on green spawn a reviewer again'
-# step 4 reports the reviewed branch and lands nothing: the landing is the story row's
+# step 4 reports the reviewed branch and lands nothing: the landing is the story tier's
 R4='^4\. \*\*Report the reviewed branch\.\*\*'
 hase "step 4 reports the reviewed branch" "$R4"
 line_has "$R4" "step 4 lands nothing and closes nothing" 'You land nothing and close nothing'
@@ -2486,7 +2492,7 @@ line_has "$G3" "the spec reviewer reads a standalone task's own test seams" "and
 fi
 
 # ---- 17. /implement-task: a standalone task delivered as a PR opened ready ----
-# the story row with a frontier of one (dev-b8d.1.6): typed, it refuses a bead of another type, a
+# the story tier with a frontier of one (dev-b8d.1.6): typed, it refuses a bead of another type, a
 # story's task (naming /dev:implement-story <story-id>) and one not ready-for-agent; it reuses the
 # story orchestrator's plumbing (the make probe and its refusal, the forge decision, the gitignore
 # rule, task/<id> off the default branch with a branch: note), spawns one task orchestrator with
@@ -2501,8 +2507,8 @@ hasc "report template's failed: line names a merge conflict" 'or merge conflict 
 hasc "the non-task refusal" '`<id> is of type <type>, not a task; /dev:implement-task takes a standalone task bead id.`'
 hasc "the story-task refusal names /dev:implement-story" "\`<id> refused: its parent <story-id> is a story; run $cmd_implement_story\`"
 hasc "the not-ready refusal" '`<id> refused: not ready-for-agent'
-# the story row with a frontier of one, no story bead and no story gate
-hasc "the story row with a frontier of one" "$pin_story_row_frontier_of_one"
+# the story tier with a frontier of one, no story bead and no story gate
+hasc "the story tier with a frontier of one" "$pin_story_row_frontier_of_one"
 hasc "no story gate" "$pin_no_story_bead_or_gate"
 # the plumbing: the same make probe and refusal, the forge decision, the gitignore rule, the branch
 # the make probe, its refusal, the forge decision, the Gitignore commit and the merge guard's

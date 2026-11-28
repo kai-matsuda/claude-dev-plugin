@@ -71,7 +71,7 @@ since the command is missing. The agent calls it by its bare name and both rules
 command, ending in five `*` words: `forge-wait * * * * *`. Neither rule holds a path or a plugin version,
 so the owner (or a setup tool such as chezmoi) pastes the pair once and it stays valid across
 plugin updates; the printed snippet is the file's text as it is.
-Without the pair the delivery's forge-check wait fails on the forge CLI's config error inside
+Without the pair the delivery's forge gate fails on the forge CLI's config error inside
 the sandbox and, in a permission mode that prompts for an unlisted command (the default; ADR
 0009), needs an unsandboxed rerun with a permission prompt, which an unattended story
 orchestrator cannot answer (dev-tt2l, INFRA-44). The pattern is the bare command name, so a

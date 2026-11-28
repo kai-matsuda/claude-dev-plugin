@@ -1,6 +1,6 @@
 # Orchestration rules
 
-How the agents that run a feature behave: one loop, run at three rows. Read by every
+How the agents that run a feature behave: one loop, run at three tiers. Read by every
 orchestrating skill: `/dev:implement-spec` (the **epic orchestrator**),
 `/dev:implement-story` and `/dev:implement-task` (the **story orchestrator**) and
 `/dev:task-orchestrator` (the **task orchestrator** it spawns). A skill owns its own
@@ -15,29 +15,29 @@ working-directory preflight is the one mechanic that stays here.
 
 ## The loop
 
-Every row runs one loop: claim a unit, have a subagent build it, check it, review it, send a failure to a fresh fix-up or land it at the row above, and report one line.
+Every tier runs one loop: claim a unit, have a subagent build it, check it, review it, send a failure to a fresh fix-up or land it at the tier above, and report one line.
 
-The table gives each row its parameters; the loop's text, the two scoping rules and the six
-trust rules below are shared by all three rows. The unit is a task, a story or an epic. The
-human is not a row: a ready PR is theirs to merge.
+The table gives each tier its parameters; the loop's text, the two scoping rules and the six
+trust rules below are shared by all three tiers. The unit is a task, a story or an epic. The
+human is not a tier: a ready PR is theirs to merge.
 
-| Row | Orchestrator | Builds | Checks | Review spec axis | Review standards axis | Reviewer and model | Fix-up | Lands by | Exits when | Budget |
+| Tier | Orchestrator | Builds | Checks | Review spec axis | Review standards axis | Reviewer and model | Fix-up | Lands by | Exits when | Budget |
 |---|---|---|---|---|---|---|---|---|---|---|
-| **Task** | task orchestrator | one implementer in a worktree | the check command, and a live run of each fixture case the task's diff adds or changes | the task's body | the task diff | both axes, at the task's review model; at `low`, the standards axis alone at `sonnet`, only for a diff that changes a comment, doc, skill text or test header describing behaviour (Check gate) | an implementer by pointer brief, same worktree | reports its reviewed branch, which the story orchestrator merges | the checks green on the tip the review called clean | three fix-ups |
-| **Story** | story orchestrator | task orchestrators in parallel over the frontier | the check command | the story's body | what entered since the last standards review: conflict resolutions, cross-task coherence and the story gate's fix-up commits | both axes, at the review model of the story's max tier | an implementer by pointer brief in a fix-up worktree | merges each reviewed task branch after the stray-commit check; push, the PR staying a draft | the checks green on the tip the review called clean | three fix-ups; three conflict resolutions per landing |
-| **Epic** | epic orchestrator | story orchestrators in parallel over the frontier | the check command as the forge runs it | the Jira Epic's spec | none, the axis is skipped | the spec axis only, at the review model of the epic's max tier | findings filed as `ready-for-agent` tasks under the story, that story re-run in add mode | the PR marked ready, the human merges, then `/dev:close-story` and `/dev:close-epic` | the checks green on the tip the review called clean | three per story |
+| **Task** | task orchestrator | one implementer in a worktree | the check command, and a live run of each fixture case the task's diff adds or changes | the task's body | the task diff | both axes, at the task's review model; at `low`, the standards axis alone at `sonnet`, only for a diff that changes a comment, doc, skill text or test header describing behaviour (Tier gates) | an implementer by pointer brief, same worktree | reports its reviewed branch, which the story orchestrator merges | the checks green on the tip the review called clean | three fix-ups |
+| **Story** | story orchestrator | task orchestrators in parallel over the frontier | the check command | the story's body | what entered since the last standards review: conflict resolutions, cross-task coherence and the story gate's fix-up commits | both axes, at the review model of the story's max complexity | an implementer by pointer brief in a fix-up worktree | merges each reviewed task branch after the stray-commit check; push, the PR staying a draft | the checks green on the tip the review called clean | three fix-ups; three conflict resolutions per landing |
+| **Epic** | epic orchestrator | story orchestrators in parallel over the frontier | the check command as the forge runs it | the Jira Epic's spec | none, the axis is skipped | the spec axis only, at the review model of the epic's max complexity | findings filed as `ready-for-agent` tasks under the story, that story re-run in add mode | the PR marked ready, the human merges, then `/dev:close-story` and `/dev:close-epic` | the checks green on the tip the review called clean | three per story |
 
 **The standalone task.** `/dev:implement-task <id>`, typed in the repo whose beads hold a
-standalone task, is the story row with a frontier of one: a story orchestrator with
-no story bead and no story gate. It runs the story row's plumbing (Repo plumbing and Cut-off probe below: the
+standalone task, is the story tier with a frontier of one: a story orchestrator with
+no story bead and no story gate. It runs the story tier's plumbing (Repo plumbing and Cut-off probe below: the
 check target, the forge decision, the Gitignore commit and the merge guard; the branch off the
 default branch with a `branch:` note), spawns one task orchestrator with the same brief, lands its reviewed branch
 by a fast-forward, since nothing else moves the branch, and delivers it by the Delivery
 section as a PR opened ready, not draft, since no spec sits above the task's own body: the
-task gate's review is the only review, and its green record on the same tip is the check.
-It closes the task at delivery, after the `delivered:` and `pr:` notes, and a rerun applies the merge guard on the `pr:` note only to an open task; a closed task with one is finished and reported from its notes. It is a parameter of the story row, so the table keeps its three rows.
+task gate's review is the only review, and its green record on the same tip is the check run.
+It closes the task at delivery, after the `delivered:` and `pr:` notes, and a rerun applies the merge guard on the `pr:` note only to an open task; a closed task with one is finished and reported from its notes. It is a parameter of the story tier, so the table keeps its three rows.
 
-**Landing a task.** The story row lands: the task orchestrator reports its reviewed
+**Landing a task.** The story tier lands: the task orchestrator reports its reviewed
 branch and never touches the owner checkout, and the story orchestrator, in the turn that
 report resumes it, runs the stray-commit check and merges the task branch onto the
 integration branch. A `git merge` that applies is a command, not an edit, so it does not
@@ -45,7 +45,7 @@ break the never-implement rule. Landings are serial, one per report, so no lock 
 needed. A conflict goes to an implementer in the task's worktree, briefed to merge the
 integration tip into the task branch; the story orchestrator checks the resolved tree, a
 new tree, with the Check record script, then lands the resolved tip through the Land script with `--ff-only` (a plain retry without it on `diverged`). The resolved tree is not reviewed
-again: the story row's standards axis sees it. A landing closes the task. The story gate's
+again: the story tier's standards axis sees it. A landing closes the task. The story gate's
 fix-up branches land by the same procedure.
 A landing takes at most three conflict resolutions, apart from the fix-up budget, since a
 sibling that moved the integration branch is no failure of the task's. A landing runs from
@@ -57,7 +57,7 @@ orchestrator entering at the gate on the resolved branch, whose fix-up spends th
 budget, and the budget bounds the landings and the cap the resolutions in each (dev-6qi).
 The **Land script** makes one landing attempt: `<plugin root>/scripts/land.sh <owner> <branch> <task branch> <tip> [--ff-only]`, one foreground Bash call, with `<branch>` the integration branch (or the standalone task's base) and `<tip>` the task branch's reported tip. It confirms the owner checkout is on `<branch>` and clean, untracked files counted, and that `<task branch>` is at `<tip>`, runs the stray-commit script on `<branch>..<tip>`, then makes one merge attempt of `<tip>` itself, never the branch name, so a task branch that moves after the check lands nothing unchecked (a fast-forward only under `--ff-only`; a plain merge's message is the one `git merge` writes, `Merge branch '<task branch>'`, with ` into <branch>` added unless `<branch>` is `main` or `master`), and touches git only, never `bd`. It prints one line: `landed <sha>` with exit 0, `<sha>` being `<branch>`'s tip; `conflict` with exit 1, after the script's own `merge --abort` left the owner checkout clean; or `refused: <reason>` with exit 2 and nothing merged (bar the dirty-merge reason below), the reason being `not on <branch>`, `owner checkout dirty: <files>`, `<task branch> moved past <tip>`, `stray commit <sha> <subject>`, or `diverged` (only under `--ff-only`), and also a wrong usage, an owner that is not a git checkout, a merge that failed without a conflict (`merge failed`), or a stray-commit script refusal, each with its own reason. The `stray commit <sha> <subject>` reason reads `stray merge <sha> changes <path>` for a merge commit that changes a path of its own. A `<task branch>` that does not exist is not at `<tip>`, so it is the `moved past` refusal. A merge that failed and left the owner checkout dirty after its `merge --abort` is the one refusal that may leave that checkout changed: its reason is `merge failed and left <owner> dirty`. Landing a tip already in `<branch>` runs the guards and reports `landed <sha>` with nothing merged.
 
-**The epic row.** The epic orchestrator runs its review once every story reports
+**The epic tier.** The epic orchestrator runs its review once every story reports
 delivered, one PR at a time in its owner repo: the diff from the default branch to the
 story's integration branch, the Jira Epic's spec as the spec axis. Every PR stays a draft
 until its verdict is clean, then is marked ready, so the human's review comes after the
@@ -67,7 +67,7 @@ and the delivered tip's check record is the PR's Evidence. On a blocking verdict
 finding that carries its check, its command and its log pointer, and re-runs that story's
 orchestrator in add mode; three such fix-ups per story per invocation, red or blocking alike. A pending
 check is neither: the PR stays a draft and a later invocation reads it again. Whatever its
-verdict, an epic review's minors take no last fix-up at this row, since the epic orchestrator
+verdict, an epic review's minors take no last fix-up at this tier, since the epic orchestrator
 implements nothing and its one fix-up is a task under the story, where no minor goes
 (Review verdict): they go to the inbox as deferrals at once, the tracker doc's "capture a retro item", and on a clean
 verdict the PR is marked ready once its checks are green.
@@ -80,11 +80,11 @@ A story with an open `ready-for-agent` child is not skipped, not re-polled, not 
 it goes to add mode on the tasks already filed.
 The spent budget is counted from the story's `epic round start` note, which the epic orchestrator writes once per invocation, before any delivery or review and once the preflight passes, on every open story of the epic that the preflight covered, except one, startable or finished, whose story orchestrator an earlier invocation spawned and that still runs (`/dev:implement-spec`'s **Running orchestrators**; a finished one gets no epic review until that orchestrator has reported);
 a story with no marker from this invocation gets one before anything is filed on it and before its first review or task, which is at the latest when its report is in and is when that exception gets its marker, so the count is always this invocation's (a cut-off orchestrator the user restarts by typing the command again is a new invocation).
-An add-mode pass on tasks already filed is a fix-up round of its own, and each round spends once: it files nothing, writes its `epic fix-up <k>: <tip SHA>` note first, `blocking` unless the story's last `epic fix-up` note says `red`, and spends the budget only when the story has no `epic fix-up` note since its last `epic round start` note or an add-mode batch was spawned after its last `epic fix-up` note, so a re-run of a task whose round already had its batch spends. A pass on a task whose filing wrote the round's note, with no batch spawned since, writes no second note and spends nothing. The fourth round alone fails, with the Check gate's wording: it writes no fourth note, files nothing and reports `failed:`.
+An add-mode pass on tasks already filed is a fix-up round of its own, and each round spends once: it files nothing, writes its `epic fix-up <k>: <tip SHA>` note first, `blocking` unless the story's last `epic fix-up` note says `red`, and spends the budget only when the story has no `epic fix-up` note since its last `epic round start` note or an add-mode batch was spawned after its last `epic fix-up` note, so a re-run of a task whose round already had its batch spends. A pass on a task whose filing wrote the round's note, with no batch spawned since, writes no second note and spends nothing. The fourth round alone fails, with the Tier gates' wording: it writes no fourth note, files nothing and reports `failed:`.
 
 ## Orchestrator role
 
-Five roles run a feature, named by their row: the **epic orchestrator**, the **story
+Five roles run a feature, named by their tier: the **epic orchestrator**, the **story
 orchestrator**, the **task orchestrator**, the **implementer** and the **reviewer**. The
 plain word "orchestrator" in these rules means any of the three. A fix-up is a
 brief shape of the implementer, not a role, and only the story orchestrator merges: it lands
@@ -92,13 +92,13 @@ each task's reviewed branch (Landing a task, above).
 
 - The **epic orchestrator** is the session running `/dev:implement-spec`: it spawns one story
   orchestrator per startable story (none for a story, startable or finished, whose orchestrator from an earlier
-  invocation still runs, which it waits on), runs the epic row's review and reads the end state;
+  invocation still runs, which it waits on), runs the epic tier's review and reads the end state;
   nothing below it touches a task. It is the one agent a `SendMessage` reply reaches, so it
   alone resumes a cut-off story orchestrator (Cut-off agents, in `harness.md`), and its
   `TaskStop` reaches every agent of the run, since both belong to being the session.
 - The **story orchestrator** implements one story: it works the story's frontier in its
   owner repo, one task orchestrator per task, lands each reviewed task branch serially and
-  closes its task, runs the story row's gate and delivers the
+  closes its task, runs the story gate and delivers the
   integration branch and its PR. Spawned per story by the epic orchestrator, or the session
   itself when `/dev:implement-story` is typed in the story's repo.
 - The **task orchestrator**, the subagent running `/dev:task-orchestrator`, owns one task
@@ -107,15 +107,15 @@ each task's reviewed branch (Landing a task, above).
   so no task's churn outlives it.
 - The **implementer** builds a unit or fixes one, test-first at the story's test seams, and
   commits; it is the only role that edits a file.
-- The **reviewer** runs the row's review and reports its findings and its verdict line.
+- The **reviewer** runs the tier's review and reports its findings and its verdict line.
 
 An orchestrator never implements. Every change to source, tests, docs, or build files is
-made by a subagent spawned at the tier's model; no change is small enough to be an
+made by a subagent spawned at the complexity's model; no change is small enough to be an
 exception. A one-line fix is a `complexity:low` task's worth of work and gets a `haiku`
 implementer, not an inline edit.
 
 The orchestrator does: read the spec, story and tasks; spawn exploration, implementer and
-reviewer subagents (or, at the story row, task orchestrators, which own those per task)
+reviewer subagents (or, at the story tier, task orchestrators, which own those per task)
 with the right `model:`; pass context pointers; track the frontier; run the check command through the Check record script, which writes
 its check record; run `bd` operations (claim, split, note, close); create and report the
 integration branch; and do repo plumbing that no task owns, namely the branch itself and
@@ -131,7 +131,7 @@ The orchestrator never: calls `Edit`/`Write` on anything a task could own; runs 
 tests in order to fix them; resolves a merge conflict by hand; patches a review finding
 itself; or "finishes off" a subagent's work when it comes back incomplete. When a subagent
 fails, bails, or leaves a gap, the answer is always another subagent (a fresh implementer, a
-split, or a fix-up at the right tier) with a better brief. Opening a source file to change it
+split, or a fix-up at the right model) with a better brief. Opening a source file to change it
 is the signal to spawn.
 
 Communication to and from subagents is sparse and goes through context pointers (spec,
@@ -142,7 +142,7 @@ since an Agent call returns at once in this harness (Waiting, in `harness.md`). 
 orchestrator never resumes a child with `SendMessage`: the reply lands in the top-level
 session, not in the orchestrator, whose turn is over (INFRA-27's run, 2026-10-19; ADR 0012
 in the plugin repo). Only the epic orchestrator resumes an agent, and only a cut-off story
-orchestrator. A child that needs another pass gets a fresh subagent, same tier, same
+orchestrator. A child that needs another pass gets a fresh subagent, same model, same
 worktree, with the findings in its brief.
 
 **Delivery authority.** The typed command is the authority for what it delivers. `/dev:implement-spec`,
@@ -166,37 +166,37 @@ inline.
 
 ## Scoping rules
 
-**Review scope.** One review tool, `mattpocock-skills:code-review` at every row, runs with
-two axes, one tier up (Complexity tier).
-The spec axis takes the row's own unit: the task's body (its acceptance criteria and the
+**Review scope.** One review tool, `mattpocock-skills:code-review` at every tier, runs with
+two axes, on the next model up (Complexity).
+The spec axis takes the tier's own unit: the task's body (its acceptance criteria and the
 story's test seams), the story's body, the Jira Epic's spec.
 The standards axis reviews what entered since the last standards review: the task diff at
-the task row; the conflict resolutions, the coherence across tasks and the story gate's own fix-up commits at the story row,
-since each task's diff was reviewed at its own row; nothing at the epic row, where the axis
+the task tier; the conflict resolutions, the coherence across tasks and the story gate's own fix-up commits at the story tier,
+since each task's diff was reviewed at its own tier; nothing at the epic tier, where the axis
 is skipped. So no line is read for standards twice (ADR 0014 in the plugin repo).
 
 **Standards scope.** The plugin ships no coding standards; they are the user's, the personal
 standards and the repo standards, and every brief names them by path, so none depends on what
 Claude Code loads into a subagent (ADR 0018 in the plugin repo).
-Every implementer brief at the task row and the story row, a fix-up's and a conflict resolution's included, reads the coding standards in `~/.claude/rules/` and `<owner>/.claude/rules/` (the repo's win where the two conflict; a missing or empty folder is not an error; a rule applies only where its own text or path scope says it does).
-The standards axis of the review at those rows is read against the coding standards in `~/.claude/rules/` and `<owner>/.claude/rules/`, with `<owner>`'s root `CODING_STANDARDS.md` or `CONTRIBUTING.md` where it has one counted with the repo's (the repo's win where the two conflict; a missing or empty folder is not an error; a rule applies only where its own text or path scope says it does), plus `GLOSSARY.md` and `docs/adr/` in `<owner>` where they exist, each breach reported as the rule's heading, the file and line, and the reader who would be misled or broken.
-The epic row's review names no standards: it runs the spec axis only.
+Every implementer brief at the task tier and the story tier, a fix-up's and a conflict resolution's included, reads the coding standards in `~/.claude/rules/` and `<owner>/.claude/rules/` (the repo's win where the two conflict; a missing or empty folder is not an error; a rule applies only where its own text or path scope says it does).
+The standards axis of the review at those tiers is read against the coding standards in `~/.claude/rules/` and `<owner>/.claude/rules/`, with `<owner>`'s root `CODING_STANDARDS.md` or `CONTRIBUTING.md` where it has one counted with the repo's (the repo's win where the two conflict; a missing or empty folder is not an error; a rule applies only where its own text or path scope says it does), plus `GLOSSARY.md` and `docs/adr/` in `<owner>` where they exist, each breach reported as the rule's heading, the file and line, and the reader who would be misled or broken.
+The epic tier's review names no standards: it runs the spec axis only.
 
-**Check scope.** Every tree is checked once green. A check is one run of the check command through the Check record script
+**Check scope.** Every tree is checked once green. A check run is one run of the check command through the Check record script
 on a tree, named by the tip's tree SHA, and a tree with a green check record (`exit=0`) counts as checked at
-any row, whichever orchestrator wrote it, so a later agent spends no check run on it.
+any tier, whichever orchestrator wrote it, so a later agent spends no check run on it.
 A red record skips nothing: a later pass or a resumed run checks that tree again, its record
 replacing the red one, so a flaky or environmental red never sticks to its tree (dev-6qi). A
 sibling landing, a conflict resolution or a fix-up's commit
 changes the tree, so it is checked again;
 after a red, a fix-up that commits nothing leaves it red-recorded, so it is checked again too
-(Check gate).
+(Tier gates).
 
 ## Trust rules
 
-Six rules hold at every row:
+Six rules hold at every tier:
 
-1. The reviewer runs one tier of model above the implementer, since a same-tier reviewer shares its blind spots (Complexity tier).
+1. The reviewer runs on the next model up from the implementer, since a same-model reviewer shares its blind spots (Complexity).
 2. A fix-up is a fresh implementer in the unit's worktree, never a message back to the agent that built the unit.
 3. An implementer's own check runs never count: only a check record an orchestrator wrote does.
 4. The stray-commit check runs before every merge and every push.
@@ -239,18 +239,18 @@ built from one (Literal paths in `harness.md`), so a brief that names a variable
 doc it cannot open. Every pointer a brief carries, "the harness doc's TMPDIR rule" or "the
 harness doc's Idle rule", names that doc by its own absolute path, `<plugin root>/references/harness.md`.
 
-## Complexity tier
+## Complexity
 
 Each task carries a `complexity:low|medium|high` label that maps to an implementation model
 and a review model. The table and its rules are in `issue-tracker.md`, "Complexity labels";
 the mapping is mechanical.
 
-The reviewer is always one tier of model above the implementer (trust rule 1). Set `model:`
+The reviewer is always on the next model up from the implementer (trust rule 1). Set `model:`
 on every Agent call explicitly; never let it default to the orchestrator's own model. The
 review tool runs at whatever model invokes it, so reviewers are spawned at the review model
 and never run by the implementer. An implementer resolving a task's conflict runs at that
-task's implementation model. The story row's review and fix-up run at the max tier of the
-story's tasks, the epic row's at the max tier of the epic's: review at that tier's review
+task's implementation model. The story tier's review and fix-up run at the max complexity of the
+story's tasks, the epic tier's at the max complexity of the epic's: review at that complexity's review
 model, fix-up at its implementation model.
 
 ## Review
@@ -258,13 +258,13 @@ model, fix-up at its implementation model.
 **Check command.** One command per owner repo, `make check`, and every owner repo has a `check`
 target (ADR 0015): `/dev:setup-repo` adds one, and a story run in a repo with none ends at once
 with `failed: no check target`. So every tree is checked, and a commit that moves the tip after
-the review always has its new tree checked. Every row runs the same command; nothing else is a
-check. The story orchestrator resolves it once per run and hands it to each task orchestrator in its brief, so the parallel tasks of one run
+the review always has its new tree checked. The task gate and the story gate run the same
+command, and the forge runs it for the forge gate; it runs every check the repo has. The story orchestrator resolves it once per run and hands it to each task orchestrator in its brief, so the parallel tasks of one run
 share one gate (dev-yyu). Test seams are not checks: no order
 among them and no log per seam. A test seam stays the story's testing boundary, named in its
 body: the implementer's brief names the seams as where its tests go, and the reviewer's as
 where the unit's criteria must be exercised.
-A worktree brief at every row names the seam run (the Seam run term in `GLOSSARY.md`):
+A worktree brief at every tier names the seam run (the Seam run term in `GLOSSARY.md`):
 the tests at the unit's seams, or
 the touched modules' tests for a standalone task that names no seams.
 A red fix-up's brief names each failing test script as its seam run.
@@ -277,49 +277,49 @@ No other repo has a `ci` target, and `/dev:setup-repo` writes none.
 
 **Check record.** The orchestrator that runs the check command on a tree writes a check
 record, the command, its exit and the log, under the owner checkout's scratch directory
-(`<owner>/.tmp/`) keyed by the tree SHA; a later agent at any row that reaches a tree with a
+(`<owner>/.tmp/`) keyed by the tree SHA; a later agent at any tier that reaches a tree with a
 green record treats it as checked, and one with a red record checks it again (Check scope). Only an orchestrator writes a check record: an
 implementer's own runs never count (trust rule 3). The PR's Evidence is the record of the delivered tip's tree.
 
 The call that writes a record is `<plugin root>/scripts/check.sh <worktree path> <owner>`, one foreground Bash call with `timeout: 600000`, run once per tree. `<tree>` is the tip's tree, `git -C <worktree path> rev-parse HEAD^{tree}`, and `<worktree path>` the checkout holding that tip: the task's worktree, or `<owner>` when the owner checkout is on the branch. A green costs one `exit=0` line and no check output enters the orchestrator's context; a red is read from the tail the script prints, never a whole log.
 
-**Check gate.** At every row the gate exits when the checks are green on the tip the review called clean.
+**Tier gates.** At every tier the gate exits when the checks are green on the tip the review called clean.
 Each pass runs the Check record script on the tip, unless its tree has a green record, then the review.
-A `low` task's gate is the checks alone, with no review, unless its diff adds or changes a comment, doc, skill text or test header describing behaviour: then one standards reviewer at `sonnet`, the low tier's review model, reads each touched sentence against the personal standard "Doc claims carry their conditions" and the code it describes, and its verdict is handled as a `medium` task's is. A `low` task whose diff touches no comment, doc, skill text or test header describing behaviour keeps the checks alone.
-At the task row, a fixture case the task's diff adds or changes (seed, subagent run, assert) is run end to end on the green tip, since the check skips an unrun one, and its assert record is kept beside the check record; a new or changed case with no assert record is a blocking finding (dev-lf9v).
+A `low` task's gate is the checks alone, with no review, unless its diff adds or changes a comment, doc, skill text or test header describing behaviour: then one standards reviewer at `sonnet`, the low complexity's review model, reads each touched sentence against the personal standard "Doc claims carry their conditions" and the code it describes, and its verdict is handled as a `medium` task's is. A `low` task whose diff touches no comment, doc, skill text or test header describing behaviour keeps the checks alone.
+At the task tier, a fixture case the task's diff adds or changes (seed, subagent run, assert) is run end to end on the green tip, since the check command skips an unrun one, and its assert record is kept beside the check record; a new or changed case with no assert record is a blocking finding (dev-lf9v).
 A red or a blocking verdict goes to a fresh implementer by pointer brief and the loop starts over
-(at the epic row, to `ready-for-agent` tasks under the story, The epic row above);
-three such fix-ups per unit (at the epic row, three per story), and the fourth is `failed`,
+(at the epic tier, to `ready-for-agent` tasks under the story, The epic tier above);
+three such fix-ups per unit (at the epic tier, three per story), and the fourth is `failed`,
 one line whose reason names the last failure's cause, a red check or a blocking verdict (dev-aeo).
-At the epic row it is `failed: <story-id> checks red after three fix-ups` after a red check and `failed: <story-id> epic review not clean after three fix-ups` after a blocking verdict, and no other wording.
+At the epic tier it is `failed: <story-id> checks red after three fix-ups` after a red check and `failed: <story-id> epic review not clean after three fix-ups` after a blocking verdict, and no other wording.
 A fix-up that commits nothing (a flaky red it could not reproduce, say) leaves the tip and its tree
 where they were, and the loop starts over from the checks all the same: after a red that tree's
 record is red, and a red record skips nothing (Check scope), so the checks rerun on the unchanged tree
 rather than one red record spending the whole budget, and a flaky red can go green there (dev-vnf).
-After a blocking verdict the unchanged tree keeps its green record, so the pass runs no check and
-the review runs again; at the story row a green on a tip the `review:` note still names exits.
+After a blocking verdict the unchanged tree keeps its green record, so the pass makes no check run and
+the review runs again; at the story tier a green on a tip the `review:` note still names exits.
 A fix-up that commits nothing still spends the budget, so a red that stays red on an unchanged tree
 still fails at the fourth.
-A fresh orchestrator at any row starts its unit's budget at three whatever notes earlier invocations left,
+A fresh orchestrator at any tier starts its unit's budget at three whatever notes earlier invocations left,
 and an agent resumed with its context keeps its own count (Cut-off agents in `harness.md`).
-The epic orchestrator's spent budget for a story is the number of its `epic fix-up` notes that follow its last `epic round start` note, whatever their tip (The epic row, above).
+The epic orchestrator's spent budget for a story is the number of its `epic fix-up` notes that follow its last `epic round start` note, whatever their tip (The epic tier, above).
 An add-mode re-run of tasks already filed is a round of its own and spends the budget like any other, so it cannot repeat past the fourth round. Each round spends once: a round whose filing already wrote its `epic fix-up` note is not charged again by the add-mode pass that follows it.
 The bound a person wants is per invocation (dev-l4j): a person who types `/dev:implement-spec`, `/dev:implement-story` or `/dev:implement-task` again starts a new invocation,
 and a replaced task orchestrator's budget starts afresh, from the integration branch tip at the claim entry or from the tip its brief hands it at the gate entry (`/dev:task-orchestrator`'s "Two entries"),
-so neither the task row nor the story row records spent fix-ups for a later invocation to count from.
+so neither the task tier nor the story tier records spent fix-ups for a later invocation to count from.
 A minors fix-up and a conflict resolution move the tip, so the checks rerun, but no reviewer
 runs again and no budget is spent: the gate exits on the moved tip once its checks are green.
 The story orchestrator records the reviewed tip in its notes, the reviewed-tip note on the story bead
 (`review: <tip SHA>`), which names that moved tip, so a rerun knows the tip the review called
-clean and reviews only a tip that has moved past it; the task row writes no such note.
+clean and reviews only a tip that has moved past it; the task tier writes no such note.
 On delivery it records the delivered tip and its check record, `delivered: <tip SHA> <check record>`,
-which the epic row reads as the story's delivered tip.
+which the epic tier reads as the story's delivered tip.
 
-**Review verdict.** Every reviewer, at every row, tags every finding **blocking** or **minor** and ends its report on one verdict line. A
+**Review verdict.** Every reviewer, at every tier, tags every finding **blocking** or **minor** and ends its report on one verdict line. A
 finding is blocking when an acceptance criterion is unmet, a behaviour is wrong, a test is
 missing, or no test at a story seam exercises the criteria the unit names
 (a standalone task whose body has no `## Test seams` names no seam, and the case does not apply to it);
-the `low` task's standards reviewer (Check gate) has narrower blocking cases: a touched sentence that misstates the
+the `low` task's standards reviewer (Tier gates) has narrower blocking cases: a touched sentence that misstates the
 behaviour it describes or drops a condition it holds under, and none of the cases above;
 it is minor when it changes no behaviour an acceptance criterion names (wording, naming, a nit). The last line is
 `verdict: clean` when no finding is blocking, else `verdict: blocking (<n>)`, `<n>` the
@@ -329,8 +329,8 @@ whose verdict covers the whole review; no orchestrator acts on a partial verdict
 (dev-f7k8). A round with no blocking findings is **clean**, whatever its
 minors: they go to one last fix-up, or to the inbox as a deferral when the
 orchestrator judges them out of the unit's scope (the tracker doc's "capture a retro item";
-Frontier, Deferrals, below), never to a bead of the story, and at the epic row, which has
-no last fix-up, always to the inbox (The epic row, above); then the unit lands, and no
+Frontier, Deferrals, below), never to a bead of the story, and at the epic tier, which has
+no last fix-up, always to the inbox (The epic tier, above); then the unit lands, and no
 reviewer runs over that last fix-up. A blocking round's minors are sorted the same way:
 those in the unit's scope go to its fix-up, pointed at the round's note, with its blockers,
 and the rest to the inbox at once. Every fix-up's report names each minor it fixed and each
@@ -343,10 +343,10 @@ A false fixed claim that names a file and line the diff does touch is outside th
 check. When the unit ends `failed`, it is also every minor of its review notes that no
 fix-up's report names as fixed (a false fixed claim names none), since a later clean
 round need not report a minor again and its review note would be its only trace. At the
-epic row
-every round's minors go to the inbox at once (The epic row, above).
-Every fix-up, red or blocking, spends the loop's budget (the Check gate rule above); a
-minors fix-up spends none, at any row. A round that reports
+epic tier
+every round's minors go to the inbox at once (The epic tier, above).
+Every fix-up, red or blocking, spends the loop's budget (the Tier gates rule above); a
+minors fix-up spends none, at any tier. A round that reports
 every acceptance criterion met plus three wording nits is clean, and the task lands after
 one fix-up. Before this rule a round was clean only with no finding of either kind
 (INFRA-29's runs, 2026-10-22 to 2026-10-23): `chezmoi-9v4.1.5` failed twice on rounds that
@@ -361,8 +361,8 @@ The delivery procedure, parametrised by the unit it delivers: a **story** (`/dev
 1. **Stray-commit check**, before any push: run the **stray-commit script**, `<plugin root>/scripts/stray-commit.sh <owner> <default branch>..<branch>`, which reads every non-merge commit the push would carry against the repo's `user.email` and `Bead:` trailer (a merge commit is not read for either) and compares each two-parent merge with the merge of its parents (`git merge-tree`), and prints `stray commit <sha> <subject>` for the first non-merge commit with another author or no `Bead:` trailer, or `stray merge <sha> changes <path>` for the first merge that changes a path its parents' merge does not (for a merge made with git's default `ort` strategy and default options, a clean merge or a conflict resolution changes only the conflicted paths and, for a file/directory conflict's side path `<path>~<parent>` (`<parent>` being the parent's SHA as passed to `git merge-tree`), `<path>` itself and a path under `<path>/` that the merge removed, so it passes; a merge made otherwise, with `-X`, `-s recursive` or a different `merge.renames` or rename limit, can show its auto-merged paths as `stray merge`), exit 1, or nothing with exit 0; exit 2 is a one-line `refused: <reason>` (a wrong usage, a non-repo, no `user.email`, an unreadable range, no scratch directory to make, an octopus merge, which has more than two parents, a merge whose parents `git merge-tree` cannot merge, or a failed `git diff-tree`) that ends the delivery with nothing pushed and a `failed: <reason>` line. Such a commit came from outside the run (a test whose throwaway repo failed to init commits into the enclosing checkout), and a stray merge is content an agent inside the run added in a merge (merge c52b89e of INFRA-39's story): push nothing and end the delivery with a `failed: stray commit <sha> <subject>` line (`failed: stray merge <sha> changes <path>` for a stray merge).
 2. **Push.** With a forge: `git -C <owner> push -u origin <branch>`, so the PR carries every merge. The push runs as every forge command does (the Forge decision's plain-first rule); a plain error that is not a rerun case, or one that outlasts the rerun outside the sandbox, is a refused push, and a sandbox denial of the push (the cases the Forge decision names) reruns as that decision says, never read as a refused push, and only a refusal that outlasts the rerun is a refused push (dev-dbhs). A refused push ends the delivery with a `failed: push <command>: <error>` line. With no forge: push the branch when `<owner>` has an `origin` (the same command, the same `failed: push` line when refused); with no `origin` the branch stays local and the report names it.
 3. **PR body.** With a forge, call the Skill tool with `mattpocock-skills:pr` to write the body, its Evidence the delivered tip's check record (`<check record>`: its command and exit, and `tail -n 20` of its log), then append the skill's own lines and write the body back on stdin (`gh pr edit <n> --repo <forge-slug> --body-file -`, or `tea pr edit <n> --repo <owner> --description-file -`).
-4. **Forge-check wait**, before the delivery is recorded, so a unit is never finished on a PR its CI rejects. Read whether the PR can merge on every forge PR, ahead of the workflows read, skipped only with no forge, because GitHub fires no `pull_request` run for a conflicted PR and a repo's push trigger may be limited to the default branch, so such a tip has no run for the wait to catch and no workflows read would stop it. On `gh`: `gh pr view <n> --repo <forge-slug> --json mergeable,headRefOid -q '.mergeable + " " + .headRefOid'`, a `mergeable` of `CONFLICTING` a conflict, `MERGEABLE` clean, and a head other than `<tip SHA>` (the push not yet seen) read like `UNKNOWN`. The `gh` merge read and its `UNKNOWN` re-reads (below) are plain forge commands and run plain first, as the Forge decision says. On `tea`, git decides, since by Gitea's source tea's `mergeable` is also false for a WIP PR and while the forge is still checking (Forgejo and a live server unconfirmed), and a story PR is a WIP draft: `git -C <owner> fetch origin <default branch>` (run as the push is), then `git -C <owner> rev-parse --verify origin/<default branch>` and `git -C <owner> merge-tree --write-tree origin/<default branch> <branch>`, a ref that does not resolve a forge error as below, else exit 1 a conflict, exit 0 clean. A PR git cannot merge ends the delivery on `failed: merge conflict <PR URL>`, then `bd -C <owner> note <unit-id> "checks red: <tip SHA> merge conflict"`, so the unit is not finished even when an earlier delivery left a `pr:` note, with no `delivered:` or `pr:` note, so the unit stays open; the wait is not entered and its `timeout` is not spent. The fix is the human's (or a task added in add mode): resolve the conflict on the branch, and a rerun pushes it again and reads the merge state again. Clean goes on. A `gh` merge state of `UNKNOWN` is not yet known: it is read again, never read as a conflict (a `sleep 10` call between reads, at most six reads, each a plain call); one still `UNKNOWN` after the sixth read goes on. A merge read that fails or returns no state is a forge error, never a skip: the delivery ends at it with `failed: forge check <command>: <error>`. Whether the forge has checks to wait for is then read from the pushed tip's tree: `git -C <owner> ls-tree -d --name-only <branch> .github/workflows` on `gh`, and the same for `.forgejo/workflows`, `.gitea/workflows` and `.github/workflows` on `tea`; no directory listed means no checks: skip the wait, with `checks: skipped: no workflows` in the report (a GitHub repo whose only checks come from an outside app is skipped too). With no forge there are no checks to wait for, and the report carries `checks: skipped: no forge`. A skip for no workflows or no forge has no wait for a conflict to appear in, so the read above stands. With a forge, workflows and a PR that can merge or whose state is still `UNKNOWN`, wait with the **forge-wait script**, `forge-wait <owner> <gh|tea> <forge-slug> <n> <tip SHA>`, by its bare name (when the bare name resolves is stated in `/dev:setup`; `tea` finds its repo from `<owner>` and reads the status by `<tip SHA>`, but the script checks `<forge-slug>`, `<n>` and `<tip SHA>` on `tea` too; `<tip SHA>` is the tip just pushed), as one plain command in one foreground Bash call with `timeout: 600000` (the Idle rule in `harness.md`; never a background call or a `Monitor`), run plain first as the Forge decision says. It waits until the PR's head is `<tip SHA>` and its checks have registered, so the last tip's finished checks never stand in for them, then until they have finished. It prints `checks finished` and exits 0 once no check is pending, a red check included (the read below decides); it prints `forge error: <text>` and exits 1 at once on the forge CLI's config error (defined in the Forge decision), or on a `gh` watch that failed with checks still pending or unreadable, never looping to its `timeout`; on `gh` it reads the head again after the watch (the checks are read by PR number) and prints `forge error: head moved: the PR head is <head>, not the verified tip <tip SHA>` and exits 1 when the head is no longer `<tip SHA>` (a push to the PR during the wait); a failed head read other than the config error is retried, as the loop reads are, so `checks finished` is for the tip's checks as of that read, and the read of the checks below is by PR number again. Plain first applies to it: a plain run's `forge error` that is the config error reruns the script once with the sandbox disabled, and only the rerun's `forge error` ends the delivery with `failed: forge check forge-wait: <text>` (a `forge error` that is not the config error ends it at the plain run). It prints `refused: <reason>` and exits 2 on a wrong usage, a forge other than `gh` or `tea`, a `<forge-slug>` not `owner/name`, an `<n>` not digits, a `<tip SHA>` not 7 to 64 hex digits, or `tea` without `jq` on `PATH`, which ends the delivery with `failed: forge check forge-wait: <reason>`, with no rerun. Workflows that never run on the PR (push-only triggers, path filters) leave it waiting until the `timeout` ends it, with no output; so does a loop read that keeps failing for another reason (a sandbox network denial), and the read of the checks that follows then shows it. Whether the call returns or its `timeout` ends it, then read the checks: on `gh`, one plain forge command, `gh pr checks <n> --repo <forge-slug> --json name,bucket,link`, each check its `name`, `bucket` and `link`; on `tea`, one plain forge command, `tea api --repo <owner> repos/{owner}/{repo}/commits/<tip SHA>/status`, each of its `statuses` a check with its `context`, `status` and `target_url`, a failed `tea` call a forge error (its config error reruns that one call once with the sandbox disabled, as the Forge decision says, and only the rerun's failure is the forge error), so empty output is never read as no status line. A read that fails with anything but gh's `no checks reported` is a forge error, never a skip: the delivery ends at it as at a red check, with `failed: forge check <command>: <error>`. No check at all (gh's `no checks reported`, or no status line) is a forge with no checks, for a repo whose workflows never run on PRs, but a state that was still `UNKNOWN`, or a conflict that appeared during the wait, would reach it too, so read the merge state once more first, one read with the same command (on `gh`; on `tea` the same `merge-tree`): a conflict ends as above, anything else (a state still `UNKNOWN`, a head other than `<tip SHA>`) goes on to `checks: skipped: none reported` in the report, and delivery goes on. A red check (`bucket` `fail` or `cancel`, status `failure` or `error`) wins over any check still pending. With none red, a check still pending (`bucket` `pending`, status `pending`) runs the wait call again, at most six calls in all; one pending after the sixth counts as red. A red check ends the delivery: `bd -C <owner> note <unit-id> "checks red: <tip SHA>"`, so the unit is not finished even when an earlier delivery left a `pr:` note, and no `delivered:` or `pr:` note is written; one `failed: forge check <name> <run URL>` line per red check. The fix is the human's (or a task added in add mode): a rerun on the same tip pushes it again and waits on the same checks. Every check green (`pass` or `skipping`, status `success` or `warning`): delivery goes on.
-5. **Record the delivery**, in this order. `bd -C <owner> note <unit-id> "delivered: <tip SHA> <check record>"` first, `<tip SHA>` the tip just delivered (`git -C <owner> rev-parse <branch>`) and `<check record>` its record's path. Only a delivery writes it, so a run that fails anywhere before it leaves the last `delivered:` line naming an earlier tip, and the epic row reviews a story only on the tip that line names. Then `bd -C <owner> note <unit-id> "pr: <url>"`, or `pr: <branch> <tip SHA>` when there is no forge. The `delivered:` note goes ahead of the `pr:` note, since a `pr:` note makes a closed task finished (the delivery closes the task after both notes) and a story finished once its last `delivered:` note names the branch's current tip: a run cut off between the two leaves no `pr:` note, and the next run delivers again.
+4. **Forge gate**, before the delivery is recorded, so a unit is never finished on a PR its CI rejects. Read whether the PR can merge on every forge PR, ahead of the workflows read, skipped only with no forge, because GitHub fires no `pull_request` run for a conflicted PR and a repo's push trigger may be limited to the default branch, so such a tip has no run for the wait to catch and no workflows read would stop it. On `gh`: `gh pr view <n> --repo <forge-slug> --json mergeable,headRefOid -q '.mergeable + " " + .headRefOid'`, a `mergeable` of `CONFLICTING` a conflict, `MERGEABLE` clean, and a head other than `<tip SHA>` (the push not yet seen) read like `UNKNOWN`. The `gh` merge read and its `UNKNOWN` re-reads (below) are plain forge commands and run plain first, as the Forge decision says. On `tea`, git decides, since by Gitea's source tea's `mergeable` is also false for a WIP PR and while the forge is still checking (Forgejo and a live server unconfirmed), and a story PR is a WIP draft: `git -C <owner> fetch origin <default branch>` (run as the push is), then `git -C <owner> rev-parse --verify origin/<default branch>` and `git -C <owner> merge-tree --write-tree origin/<default branch> <branch>`, a ref that does not resolve a forge error as below, else exit 1 a conflict, exit 0 clean. A PR git cannot merge ends the delivery on `failed: merge conflict <PR URL>`, then `bd -C <owner> note <unit-id> "checks red: <tip SHA> merge conflict"`, so the unit is not finished even when an earlier delivery left a `pr:` note, with no `delivered:` or `pr:` note, so the unit stays open; the wait is not entered and its `timeout` is not spent. The fix is the human's (or a task added in add mode): resolve the conflict on the branch, and a rerun pushes it again and reads the merge state again. Clean goes on. A `gh` merge state of `UNKNOWN` is not yet known: it is read again, never read as a conflict (a `sleep 10` call between reads, at most six reads, each a plain call); one still `UNKNOWN` after the sixth read goes on. A merge read that fails or returns no state is a forge error, never a skip: the delivery ends at it with `failed: forge check <command>: <error>`. Whether the forge has checks to wait for is then read from the pushed tip's tree: `git -C <owner> ls-tree -d --name-only <branch> .github/workflows` on `gh`, and the same for `.forgejo/workflows`, `.gitea/workflows` and `.github/workflows` on `tea`; no directory listed means no checks: skip the wait, with `checks: skipped: no workflows` in the report (a GitHub repo whose only checks come from an outside app is skipped too). With no forge there are no checks to wait for, and the report carries `checks: skipped: no forge`. A skip for no workflows or no forge has no wait for a conflict to appear in, so the read above stands. With a forge, workflows and a PR that can merge or whose state is still `UNKNOWN`, wait with the **forge-wait script**, `forge-wait <owner> <gh|tea> <forge-slug> <n> <tip SHA>`, by its bare name (when the bare name resolves is stated in `/dev:setup`; `tea` finds its repo from `<owner>` and reads the status by `<tip SHA>`, but the script checks `<forge-slug>`, `<n>` and `<tip SHA>` on `tea` too; `<tip SHA>` is the tip just pushed), as one plain command in one foreground Bash call with `timeout: 600000` (the Idle rule in `harness.md`; never a background call or a `Monitor`), run plain first as the Forge decision says. It waits until the PR's head is `<tip SHA>` and its checks have registered, so the last tip's finished checks never stand in for them, then until they have finished. It prints `checks finished` and exits 0 once no check is pending, a red check included (the read below decides); it prints `forge error: <text>` and exits 1 at once on the forge CLI's config error (defined in the Forge decision), or on a `gh` watch that failed with checks still pending or unreadable, never looping to its `timeout`; on `gh` it reads the head again after the watch (the checks are read by PR number) and prints `forge error: head moved: the PR head is <head>, not the verified tip <tip SHA>` and exits 1 when the head is no longer `<tip SHA>` (a push to the PR during the wait); a failed head read other than the config error is retried, as the loop reads are, so `checks finished` is for the tip's checks as of that read, and the read of the checks below is by PR number again. Plain first applies to it: a plain run's `forge error` that is the config error reruns the script once with the sandbox disabled, and only the rerun's `forge error` ends the delivery with `failed: forge check forge-wait: <text>` (a `forge error` that is not the config error ends it at the plain run). It prints `refused: <reason>` and exits 2 on a wrong usage, a forge other than `gh` or `tea`, a `<forge-slug>` not `owner/name`, an `<n>` not digits, a `<tip SHA>` not 7 to 64 hex digits, or `tea` without `jq` on `PATH`, which ends the delivery with `failed: forge check forge-wait: <reason>`, with no rerun. Workflows that never run on the PR (push-only triggers, path filters) leave it waiting until the `timeout` ends it, with no output; so does a loop read that keeps failing for another reason (a sandbox network denial), and the read of the checks that follows then shows it. Whether the call returns or its `timeout` ends it, then read the checks: on `gh`, one plain forge command, `gh pr checks <n> --repo <forge-slug> --json name,bucket,link`, each check its `name`, `bucket` and `link`; on `tea`, one plain forge command, `tea api --repo <owner> repos/{owner}/{repo}/commits/<tip SHA>/status`, each of its `statuses` a check with its `context`, `status` and `target_url`, a failed `tea` call a forge error (its config error reruns that one call once with the sandbox disabled, as the Forge decision says, and only the rerun's failure is the forge error), so empty output is never read as no status line. A read that fails with anything but gh's `no checks reported` is a forge error, never a skip: the delivery ends at it as at a red check, with `failed: forge check <command>: <error>`. No check at all (gh's `no checks reported`, or no status line) is a forge with no checks, for a repo whose workflows never run on PRs, but a state that was still `UNKNOWN`, or a conflict that appeared during the wait, would reach it too, so read the merge state once more first, one read with the same command (on `gh`; on `tea` the same `merge-tree`): a conflict ends as above, anything else (a state still `UNKNOWN`, a head other than `<tip SHA>`) goes on to `checks: skipped: none reported` in the report, and delivery goes on. A red check (`bucket` `fail` or `cancel`, status `failure` or `error`) wins over any check still pending. With none red, a check still pending (`bucket` `pending`, status `pending`) runs the wait call again, at most six calls in all; one pending after the sixth counts as red. A red check ends the delivery: `bd -C <owner> note <unit-id> "checks red: <tip SHA>"`, so the unit is not finished even when an earlier delivery left a `pr:` note, and no `delivered:` or `pr:` note is written; one `failed: forge check <name> <run URL>` line per red check. The fix is the human's (or a task added in add mode): a rerun on the same tip pushes it again and waits on the same checks. Every check green (`pass` or `skipping`, status `success` or `warning`): delivery goes on.
+5. **Record the delivery**, in this order. `bd -C <owner> note <unit-id> "delivered: <tip SHA> <check record>"` first, `<tip SHA>` the tip just delivered (`git -C <owner> rev-parse <branch>`) and `<check record>` its record's path. Only a delivery writes it, so a run that fails anywhere before it leaves the last `delivered:` line naming an earlier tip, and the epic tier reviews a story only on the tip that line names. Then `bd -C <owner> note <unit-id> "pr: <url>"`, or `pr: <branch> <tip SHA>` when there is no forge. The `delivered:` note goes ahead of the `pr:` note, since a `pr:` note makes a closed task finished (the delivery closes the task after both notes) and a story finished once its last `delivered:` note names the branch's current tip: a run cut off between the two leaves no `pr:` note, and the next run delivers again.
 
 ## Repo plumbing and Cut-off probe
 

@@ -79,3 +79,16 @@ scripts/test-glossary-lint.sh rules doc  # the avoided term the test seeds
 scripts/test-lint-skill-docs.sh human task  # seeds the retired term the lint rejects
 scripts/test-lint-skill-docs.sh review marker  # seeds the retired term the lint rejects
 skills/glossary-lint/glossary-lint.sh rules doc  # the example term of the header comment
+CLAUDE.md validation  # bd's managed Beads block
+docs/adr/0001-two-stage-review.md check gate  # the gate in the words of its day, before the tier gates were named
+docs/adr/0005-retro-inbox-in-workspace-beads.md complexity tier  # the complexity label in the words of its day
+docs/adr/0012-nested-orchestrators-wait-on-the-completion-notification.md story row  # the story tier in the words of its day
+docs/adr/0014-one-loop-at-three-rows.md check gate  # the tier gates in the words of its day, named so by the dev-p0sh amendment
+docs/adr/0014-one-loop-at-three-rows.md story row  # the story tier in the words of its day
+docs/adr/0014-one-loop-at-three-rows.md epic row  # the epic tier in the words of its day
+docs/adr/0015-every-owner-repo-has-a-check-target.md story row  # the story tier in the words of its day
+docs/adr/0015-every-owner-repo-has-a-check-target.md check gate  # the tier gates in the words of its day, named so by the dev-p0sh amendment
+docs/adr/0015-every-owner-repo-has-a-check-target.md forge-check wait  # the forge gate in the words of its day, named so by the dev-p0sh amendment
+docs/adr/0016-the-story-row-lands-its-tasks.md story row  # the story tier in the words of its day
+docs/adr/0016-the-story-row-lands-its-tasks.md task row  # the task tier in the words of its day
+docs/adr/0017-row-plumbing-ships-as-scripts.md forge-check wait  # the forge gate in the words of its day

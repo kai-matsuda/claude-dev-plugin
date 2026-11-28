@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Tests for bin/forge-wait <owner> <gh|tea> <repo> <pr> <tip SHA>, the Forge-check wait
+# Tests for bin/forge-wait <owner> <gh|tea> <repo> <pr> <tip SHA>, the Forge gate
 # script: run against stub gh and tea on PATH (FORGE_WAIT_SLEEP=0), reading its output lines and
 # exit status. Covers, for gh and for tea: the forge CLI's config error (exit 1 at once), a head
 # not yet at the tip, checks registered then passing, and checks failing (both exit 0 with

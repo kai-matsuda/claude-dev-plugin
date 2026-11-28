@@ -131,7 +131,7 @@ repo already had `core.hooksPath` set, chain the old hook from the new one in
   `docs/adr/`.
 - Triage state is a Jira label on the epic (see `docs/agents/triage-labels.md` in the repo
   being worked on). Mirror it on the epic bead with `bd label add <id> <label>`.
-- Every task carries exactly one `complexity:<tier>` label (see "Complexity labels").
+- Every task carries exactly one `complexity:<complexity>` label (see "Complexity labels").
 - Human-facing comments and decisions go to the Jira epic (`addCommentToJiraIssue`);
   `bd note` is for agent-local progress that nobody else needs to read.
 - Epic bead writes: of the cuts, only `/dev:spec-to-stories` writes on the epic bead, creating
@@ -224,7 +224,7 @@ never creates an epic bead without a key; one made by hand can lack it, which st
    the epic bead has one. Only repo-session stories have a parent: a parent cannot span
    databases. Every repo-session story, however many the home repo holds, is created
    with `--parent <epic-id>`, so the stories gather (`bd children <epic-id>`) finds them
-   all. A story carries no labels. It has no `complexity:` tier (its review model is the
+   all. A story carries no labels. It has no `complexity:` label (its review model is the
    highest among its tasks) and no triage label, and `--no-inherit-labels` keeps the
    epic bead's `ready-for-agent` off every repo-session story, so tasks created under a
    story inherit nothing.
@@ -268,7 +268,7 @@ order of step 6 below:
 
 ```bash
 bd [-C <owner>] create "<task title>" --parent <story-id> \
-  -l complexity:<tier>,ready-for-agent \
+  -l complexity:<complexity>,ready-for-agent \
   --deps blocked-by:<id>,blocked-by:<id> --body-file -   # body = the issue template
 ```
 
@@ -468,15 +468,15 @@ The skill adds its own refusals after these.
 1. `bd update <id> --claim` (the bead already exists from the task cut; if it doesn't,
    create it under the story, or as a standalone task with no parent when there is none
    (never under the epic bead: that makes the epic malformed), with a
-   `complexity:<tier>` label first).
-2. Pick the implementation model from the bead's `complexity` tier (table below).
+   `complexity:<complexity>` label first).
+2. Pick the implementation model from the bead's `complexity` label (table below).
 3. Work it; `bd note <id>` for progress worth keeping across sessions.
-4. Under `/dev:implement-story` and `/dev:implement-task` every task passes the check gate before merge: the task
+4. Under `/dev:implement-story` and `/dev:implement-task` every task passes the task gate before merge: the task
    orchestrator runs the checks. `medium` and `high` tasks add the review. A `low` task adds
    one standards reviewer at `sonnet` only when its diff adds or changes a comment, doc, skill
    text or test header describing behaviour; one that touches none of those runs no review. A `medium` or `high` task spawns
    two reviewers, one per axis (the task's body as the spec axis, the task diff as the
-   standards axis), both at the tier's review model, each briefed to run the
+   standards axis), both at the complexity's review model, each briefed to run the
    `mattpocock-skills:code-review` skill on the task's branch since the integration tip; a
    red or a blocking verdict goes to a fresh implementer in the same worktree, never back to
    the first one by `SendMessage` (`orchestration.md`, Trust rules, rule 2). The implementer
@@ -587,7 +587,7 @@ issue template, then its inbox bead closes pointing at it. Its type is `task`, t
 no task:
 
 ```bash
-bd [-C <owner>] create "<title>" --type task -l complexity:<tier>,retro,<ready label> \
+bd [-C <owner>] create "<title>" --type task -l complexity:<complexity>,retro,<ready label> \
   [--external-ref <KEY>-<n>] --acceptance "<criteria>" --body-file -
 bd close <inbox-id> --reason "routed: <owner repo> <new-id>"
 ```
@@ -620,8 +620,8 @@ it still passes the permission gate.
 
 ## Complexity labels (beads only)
 
-Every task gets exactly one `complexity:<tier>` label when it is created; an epic bead,
-a story, an inbox bead and a map bead carry none. The tier picks the model for
+Every task gets exactly one `complexity:<complexity>` label when it is created; an epic bead,
+a story, an inbox bead and a map bead carry none. The label picks the model for
 implementation and for review. Jira never carries this label; it is an agent-routing
 concern.
 
@@ -633,18 +633,18 @@ concern.
 
 Rules:
 
-- The reviewer is always one tier of model above the implementer. A same-tier reviewer
+- The reviewer is always on the next model up from the implementer. A same-model reviewer
   shares the implementer's blind spots; the step up is where review earns its cost.
-- When unsure between two tiers, pick the higher one; downgrading later is cheap.
+- When unsure between two complexities, pick the higher one; downgrading later is cheap.
 - Re-label if the work turns out harder than estimated (`bd label remove <id> complexity:<old>`
   then `bd label add <id> complexity:<new>`) and say so with `bd note`, so estimate-vs-actual
   stays visible.
-- A story's tier is the max of its tasks'. The final two-axis review runs per story at
-  that tier's review model, as `orchestration.md` "Complexity tier" says.
+- A story's complexity is the max of its tasks'. The final two-axis review runs per story at
+  that complexity's review model, as `orchestration.md` "Complexity" says.
 
 Applying it: when a skill spawns an implementation or review subagent, pass the mapped
 model via the Agent tool's `model` parameter. When the session does the work itself, with
-no subagent, state the bead's tier so the user can `/model` accordingly.
+no subagent, state the bead's complexity so the user can `/model` accordingly.
 
 Queries: `bd list -l complexity:high` for work that needs the big model;
 `bd ready -l complexity:low` for cheap, grabbable work.
