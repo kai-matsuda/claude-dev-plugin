@@ -89,7 +89,9 @@ assert() { # <case>
   local r story title crate version publish_re
   fx_check "the run saved its end block" test -s "$out/report.txt"
   story=$(fx_one "$1" '.issue_type=="story"'); title=$(fx_field "$1" "$story" .title); read -r crate version <<<"$(pair)"
-  publish_re="^[0-9]+[.)] \**publish $crate ${version//./\\.}"   # a task titled as the tracker doc's publish task
+  # A task titled as the tracker doc's publish task, its title bare or behind step 4's
+  # **Title**: label.
+  publish_re="^[0-9]+[.)] \**([Tt]itle\**:\**[[:space:]]*)?\**publish $crate ${version//./\\.}"
   fx_check "the block is headed '$1 $story $title'" grep -Fqx "$1 $story $title" <<<"$(block)"
   fx_check "the block lists two tasks or more" test "$(tasks | grep -c .)" -ge 2
   fx_check "the tasks are numbered 1..N with no gap" numbered_in_order
