@@ -307,9 +307,11 @@ fx_check "a missing trailer hook leaves the exit code alone" test "$rc" = 0
 
 # the baseline exclusions and forge-wait permissions against the user's settings.json, read from the
 # machine's $HOME/.claude/settings.json: one missing: line per baseline entry the file lacks,
-# a confirm: line when the file is absent or unreadable, the exit code left alone
-for m in setfull setlack setabsent setbroken; do machine "$m"; mkbin "$work/$m/bin" bd gh; mcp_config "$m"; plugin_installed "$m"; done
-mkdir -p "$work/setfull/home/.claude" "$work/setlack/home/.claude" "$work/setbroken/home/.claude"
+# a confirm: line when the file is absent or unreadable or jq is not there to read it, the exit code
+# left alone by these lines (only a missing prerequisite sets it); an empty file or one holding
+# null is readable and holds no entry, so every baseline entry is reported missing
+for m in setfull setlack setabsent setbroken setempty setnull setnobd setnojq; do machine "$m"; mkbin "$work/$m/bin" bd gh; mcp_config "$m"; plugin_installed "$m"; done
+mkdir -p "$work/setfull/home/.claude" "$work/setlack/home/.claude" "$work/setbroken/home/.claude" "$work/setempty/home/.claude" "$work/setnull/home/.claude" "$work/setnobd/home/.claude" "$work/setnojq/home/.claude"
 jq '{sandbox: {excludedCommands: .sandbox.excludedCommands}, permissions: {allow: .permissions.allow}}' "$snippet" >"$work/setfull/home/.claude/settings.json"
 jq 'del(.sandbox.excludedCommands[] | select(. == "git -C * push*"))' "$work/setfull/home/.claude/settings.json" >"$work/setlack/home/.claude/settings.json"
 mkdir "$work/setbroken/home/.claude/settings.json"   # a directory stands in for a file the sandbox refuses to read
@@ -317,17 +319,39 @@ run setlack
 fx_check "settings lacking git -C * push* print a missing: line naming it" grep -qxF 'missing: sandbox.excludedCommands entry git -C * push*' <<<"$out"
 fx_check "settings lacking one exclusion print exactly one such missing: line" test "$(grep -c '^missing: sandbox' <<<"$out")" = 1
 fx_check "settings lacking one exclusion leave the exit code alone" test "$rc" = 0
+fx_check "settings lacking one exclusion end the output saying so, not all prerequisites present" bash -c '[ "$(tail -n 1 <<<"$1")" = "prerequisites present; baseline settings entries not merged: 1" ]' _ "$out"
 run setfull
-fx_check "settings holding every baseline exclusion print no sandbox missing: line" bash -c '! grep -q "^missing: sandbox\|^confirm: sandbox\|^missing: permissions" <<<"$1"' _ "$out"
+fx_check "settings holding every baseline exclusion print no sandbox missing: line" bash -c '! grep -q -e "^missing: sandbox" -e "^confirm: baseline settings" -e "^missing: permissions" <<<"$1"' _ "$out"
 fx_check "settings holding every baseline exclusion exit 0" test "$rc" = 0
 jq 'del(.permissions.allow[] | select(startswith("Bash(forge-wait")))' "$work/setfull/home/.claude/settings.json" >"$work/setlack/home/.claude/settings.json"
 run setlack
 fx_check "settings lacking the forge-wait permission print a missing: line naming it" grep -qxF 'missing: permissions.allow entry Bash(forge-wait * * * * *)' <<<"$out"
 run setabsent
-fx_check "an absent settings file prints a confirm: line, not missing:" bash -c 'grep -q "^confirm: sandbox exclusions" <<<"$1" && ! grep -q "^missing: sandbox" <<<"$1"' _ "$out"
+fx_check "an absent settings file prints a confirm: line, not missing:" bash -c 'grep -q "^confirm: baseline settings" <<<"$1" && ! grep -q "^missing: sandbox" <<<"$1"' _ "$out"
 fx_check "an absent settings file leaves the exit code alone" test "$rc" = 0
 run setbroken
-fx_check "an unreadable settings file prints a confirm: line, not missing:" bash -c 'grep -q "^confirm: sandbox exclusions" <<<"$1" && ! grep -q "^missing: sandbox" <<<"$1"' _ "$out"
+fx_check "an unreadable settings file prints a confirm: line, not missing:" bash -c 'grep -q "^confirm: baseline settings" <<<"$1" && ! grep -q "^missing: sandbox" <<<"$1"' _ "$out"
 fx_check "an unreadable settings file leaves the exit code alone" test "$rc" = 0
+
+# an empty file and a null file are readable with no entries: every baseline entry is reported
+baseline_entries=$(jq '[.sandbox.excludedCommands[], (.permissions.allow[] | select(test("forge-wait")))] | length' "$snippet")
+: >"$work/setempty/home/.claude/settings.json"
+printf 'null\n' >"$work/setnull/home/.claude/settings.json"
+for m in setempty setnull; do
+  run "$m"
+  fx_check "$m settings report every baseline entry missing" test "$(grep -c '^missing: \(sandbox\|permissions\)' <<<"$out")" = "$baseline_entries"
+  fx_check "$m settings leave the exit code alone" test "$rc" = 0
+done
+# a missing prerequisite still exits 1 beside a settings gap, and the gap is still reported
+rm "$work/setnobd/bin/bd"   # the loop above stubbed every prerequisite
+cp "$work/setlack/home/.claude/settings.json" "$work/setnobd/home/.claude/settings.json"
+run setnobd
+fx_check "a missing prerequisite beside a settings gap exits 1" test "$rc" = 1
+fx_check "a missing prerequisite beside a settings gap still reports the gap" grep -q '^missing: permissions.allow entry' <<<"$out"
+# no jq: the settings file cannot be read, so it is a confirm: line, not a missing: per entry
+cp "$work/setfull/home/.claude/settings.json" "$work/setnojq/home/.claude/settings.json"
+run setnojq "" "$work/toolsnojq"
+fx_check "no jq: settings are a confirm: line" grep -q '^confirm: baseline settings' <<<"$out"
+fx_check "no jq: no settings entry is reported missing" bash -c '! grep -q -e "^missing: sandbox" -e "^missing: permissions" <<<"$1"' _ "$out"
 
 fx_report_fails

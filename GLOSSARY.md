@@ -644,7 +644,8 @@ trailer hook (the script, `bin/commit-trailers`, ships in the plugin; the hook c
 gitconfig snippet from which setup generates `git config --global` commands the owner runs,
 with no script copy), and
 the lines the runbook has the owner add by hand (the `~/src` sandbox allowlist,
-`beads.role`, `BD_EXPORT_AUTO`). `/dev:setup` checks the prerequisites and hands the owner
+`beads.role`, `BD_EXPORT_AUTO`). `/dev:setup` checks the prerequisites, compares the baseline's sandbox exclusions and
+forge-wait allows with the owner's `~/.claude/settings.json`, and hands the owner
 the stub, the baseline and the hook's gitconfig lines, nothing more; on Kai's own machines
 chezmoi applies all of it, so the skill finds nothing missing there.
 _Avoid_: bootstrap, onboarding
