@@ -889,11 +889,13 @@ line_has "$anchor_runbook_row_4a" "4a names the task orchestrators" "$pin_task_o
 line_has "$anchor_runbook_row_4a" "4a: the story orchestrator lands each task" 'the story orchestrator lands each reviewed branch'
 line_has '^[|] 4b [|]' "4b: the session lands the task" 'the session lands its reviewed branch'
 lacks "a task orchestrator landing its own task in the runbook" 'lands the task itself'
-# 4a's check gate reviews medium and high tasks, a low task's gate being its checks (ADR 0015)
-line_has "$anchor_runbook_row_4a" "4a reviews medium and high tasks" '(the checks, then, for `medium` and `high`, and for a `low` task whose diff changes prose describing behaviour, a review one tier up'
+# 4a's check gate reviews medium and high tasks, and a low task whose diff changes prose describing
+# behaviour; a low task whose diff touches no such prose has the checks alone (ADR 0015)
+line_has "$anchor_runbook_row_4a" "4a reviews medium and high tasks and low tasks that change behaviour prose" '(the checks, then, for `medium` and `high`, and for a `low` task whose diff changes prose describing behaviour, a review one tier up'
 hase "the one review tool paragraph" '^One review tool, three rows'
-# the task review is medium and high only, every owner repo having a check command (ADR 0015)
-hasc "the runbook reviews medium and high tasks" "task's review model, for \`medium\` and \`high\`, and for a \`low\` task whose diff changes prose describing behaviour, on the standards axis alone; at the story"
+# the task review is medium and high, plus a low task whose diff changes prose describing
+# behaviour, every owner repo having a check command (ADR 0015)
+hasc "the runbook reviews medium and high tasks and low tasks that change behaviour prose" "task's review model, for \`medium\` and \`high\`, and for a \`low\` task whose diff changes prose describing behaviour, on the standards axis alone; at the story"
 lacks "the runbook's task review limited to medium and high" '(`medium` and `high` only)'
 line_has '^[|] 4a [|] opus [|]' "session model 4a: the epic orchestrator session" 'The epic orchestrator session'
 
@@ -1381,7 +1383,7 @@ line_has "$row" "task row: the task orchestrator" '| task orchestrator |'
 line_has "$row" "task row: one implementer in a worktree" '| one implementer in a worktree |'
 line_has "$row" "task row: the task's body as spec" "| the task's body |"
 line_has "$row" "task row: the task diff as standards" '| the task diff |'
-line_has "$row" "task row: both axes at the review model, none at low" "| both axes, at the task's review model; at \`low\`, the standards axis alone at \`sonnet\`, only for a diff that changes prose describing behaviour (Check gate) |"
+line_has "$row" "task row: both axes at the review model, at low the standards axis alone for changed prose" "| both axes, at the task's review model; at \`low\`, the standards axis alone at \`sonnet\`, only for a diff that changes prose describing behaviour (Check gate) |"
 # the task row reports its reviewed branch and the story row merges it, the resolution cap
 # moving with the landing to the story row (dev-b8d.1.4)
 line_has "$row" "task row: lands by reporting its reviewed branch for the story orchestrator to merge" '| reports its reviewed branch, which the story orchestrator merges |'
@@ -1601,8 +1603,9 @@ para_has "$head_check_gate" "the reviewed tip noted on the story" 'records the r
 para_has "$head_check_gate" "the gate exits on the moved tip" 'the gate exits on the moved tip once its checks are green'
 para_has "$head_check_gate" "the reviewed-tip note names the moved tip" 'the reviewed-tip note on the story bead'
 para_has "$head_check_gate" "the task row writes no reviewed-tip note" 'the task row writes no such note'
-# a low task's gate is its checks, every owner repo having a check command (ADR 0015)
-para_has "$head_check_gate" "a low task is gated by the checks alone" 'A `low` task'"'"'s gate is the checks alone, with no review, unless its diff adds or changes a comment, doc, skill text or test header describing behaviour'
+# a low task's gate is its checks, plus one standards review when its diff changes prose describing
+# behaviour, every owner repo having a check command (ADR 0015)
+para_has "$head_check_gate" "a low task is gated by the checks alone unless its diff changes behaviour prose" 'A `low` task'"'"'s gate is the checks alone, with no review, unless its diff adds or changes a comment, doc, skill text or test header describing behaviour'
 # the fix-up budget is bounded per invocation at every row (dev-gi1): a fresh orchestrator at any
 # row starts its unit's budget at three whatever notes earlier invocations left, the epic
 # orchestrator counts a story's spent budget from the notes after its epic round start marker,
@@ -1757,10 +1760,10 @@ lacksf "a pr: note alone making the finished story" 'in the plugin repo): a late
 para_has "$head_has_database" "the rule checks bd where" '`bd -C <repo> where` then prints `<repo>/.beads`'
 para_has "$head_has_database" "a .beads where does not name is no database" 'counts as no database'
 para_has "$head_has_database" "every gate cites the rule" 'applies this rule and cites it'
-# every task passes the check gate; only the review is medium and high (ADR 0014, ADR 0015)
+# every task passes the check gate; the review is medium and high, and low only for changed prose (ADR 0014, ADR 0015)
 lacks "medium and high tasks passing the check gate" '`medium` and `high` tasks pass the check gate'
 hasc "every task passes the check gate" 'every task passes the check gate'
-hasc "the tracker doc reviews medium and high tasks" '`medium` and `high` tasks add the review, and a `low` task adds one standards reviewer at `sonnet` only when its diff'
+hasc "the tracker doc reviews medium and high tasks and low tasks that change behaviour prose" '`medium` and `high` tasks add the review. A `low` task adds'
 # the task gate's review is two reviewers, one per axis, as /dev:task-orchestrator spawns them
 sec_has "$head_start_work_on_a_task" "the task gate's review is two-axis" 'two reviewers, one per axis'
 # the task's close is the story row's at landing, never the task row's (ADR 0016, dev-b8d.1
@@ -2428,10 +2431,10 @@ unchanged_file || ! grep -E "$G3" "$f" | sed 's/Green: .*//' | grep -qF -- "$pin
 line_has "$G3" "the task review spawns one reviewer per axis" "$pin_spawn_two_reviewers, one per axis"
 line_has "$G3" "the two reviewers combine their reports into one verdict line" 'Combine the two reports into one verdict line'
 line_lacks "$G3" "the reviewer told to spawn the skill's sub-agents" "the skill's two sub-agents spawned"
-line_has "$G3" "a code-only low task exits the loop on green checks" 'Green: a `low` task whose diff adds or changes no comment, doc, skill text or test header describing behaviour exits the loop, go to step 4'
+line_has "$G3" "a code-only low task exits the loop on green checks" 'Green: a `low` task whose diff touches none of those (a comment, doc, skill text or test header describing behaviour) exits the loop, go to step 4'
 line_has "$G3" "a low task changing such prose gets one standards reviewer at sonnet" 'a `low` task whose diff does spawns one **standards reviewer** at `sonnet`, the low tier'"'"'s review model'
 line_has "$G3" "the low standards reviewer checks Doc claims carry their conditions" 'against the personal standard "Doc claims carry their conditions" (`~/.claude/rules/doc-claims-carry-conditions.md`) and the code it describes'
-line_has "$G3" "the low standards verdict is handled as a medium task's is" "its verdict is handled as a \`medium\` task's is"
+line_has "$G3" "the low standards verdict is handled as a medium task's is" "its one \`verdict:\` line is the note's verdict, handled as a \`medium\` task's is"
 line_has "$anchor_task_step_2_implementer" "task orchestrator step 2's implementer runs no gate and spawns no one" 'The implementer runs no gate and spawns no one'
 # the check record keyed by the tree SHA, written only by the task orchestrator; only a green
 # record skips the run (dev-9k5.1.7, dev-6qi, dev-vnf)

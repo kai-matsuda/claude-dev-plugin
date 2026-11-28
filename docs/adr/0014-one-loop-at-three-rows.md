@@ -8,7 +8,7 @@ status: accepted
 
 > Amended 2026-11-28 (dev-kgda, INFRA-47): a `low` ticket whose diff adds or changes a comment,
 > doc, skill text or test header describing behaviour gets one standards reviewer at `sonnet`,
-> its verdict handled as a `medium` ticket's is; a `low` ticket whose diff changes only code
+> its verdict handled as a `medium` ticket's is; a `low` ticket whose diff touches none of those
 > keeps the checks as its gate. The Consequences line "`low` tickets still have no review" holds
 > for code-only diffs alone.
 

@@ -14,8 +14,8 @@ status: accepted
 > command paragraph (`docs/agents/orchestration.md`).
 
 > Amended 2026-11-28 (dev-kgda, INFRA-47): "a `low` ticket's gate is the checks alone" holds for
-> a `low` ticket whose diff changes only code; one that adds or changes a comment, doc, skill
-> text or test header describing behaviour adds one standards reviewer at `sonnet` (ADR 0014's
+> a `low` ticket whose diff touches no comment, doc, skill text or test header describing
+> behaviour; one that adds or changes one adds one standards reviewer at `sonnet` (ADR 0014's
 > amendment of the same date).
 
 > Amends ADR 0014 (`docs/adr/0014-one-loop-at-three-rows.md`): its "a repo opts in by adding
