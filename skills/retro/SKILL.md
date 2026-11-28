@@ -94,9 +94,11 @@ watching, straight after an unattended `/dev:implement-spec`.
      the tracker doc's rule maps it back, and the body names the source path; when no
      mapping is found, the file counts as it stands. Never rerun a mapping outside the
      sandbox.
-   - A repeat follows the tracker doc's "capture a retro item" search: an open inbox bead
-     for the same fix is noted, not filed twice. A second moment is the recurrence
-     evidence `/dev:triage` wants.
+   - A repeat follows the tracker doc's "capture a retro item" search: an open inbox bead for
+     the same fix is noted, not filed twice; in a repo session a routed task for it is noted
+     too, and in a workspace session it is filed again (the tracker doc says why). A second
+     moment on an inbox bead is the recurrence evidence `/dev:triage` wants; on a routed task
+     it is for that task's implementer.
    - External ref: the Jira key of the epic bead the session implemented, when there was
      one. Otherwise none.
    - Body, read from stdin with `--body-file -`:

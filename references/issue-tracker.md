@@ -534,14 +534,21 @@ workspace session, the home repo's in a repo session. `bd` runs plainly, in `<ho
 When `<home>` has no database by the "Has a database" rule, stop: no skill initialises
 a database unattended. Every
 surviving candidate becomes one bead there, unless the inbox already holds it. Search
-the open inbox beads first, by the candidate's title words:
+the open beads first, by the candidate's title words, with the inbox label and without it:
 
 ```bash
 bd search "<title words>" --status open -l needs-triage
+bd search "<title words>" --status open
 ```
 
-A hit for the same fix is a repeat: note it, create nothing, so `/dev:triage` sees the
-recurrence and not a duplicate.
+The second search covers every open bead in `<home>`'s database. In a repo session that database
+is the owner repo's, so a routed standalone task for the same fix is a hit too. In a workspace
+session it is the workspace root's alone: a task routed to an owner repo lives in that repo's
+database, a plain `bd search` in `<home>` does not reach it, and a repeat of a routed fix is
+filed again as a new inbox bead, which `/dev:triage` catches as a duplicate when it routes that
+item. A hit for the same fix is a repeat: note it, create nothing. A note on an inbox bead is the
+recurrence `/dev:triage` reads, since it sees inbox hits only; a note on a routed task records the
+recurrence on the task its implementer works from, not for `/dev:triage`.
 
 ```bash
 bd note <id> "seen again: <moment>"

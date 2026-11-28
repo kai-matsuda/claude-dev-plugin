@@ -1957,8 +1957,9 @@ sec=6 expect "a routed bead of type chore fails" 1 "a routed bead of type chore"
 # moved after the create block fails naming the pin
 fresh
 rewrite references/issue-tracker.md awk '
-  /^bd search "<title words>" --status open -l needs-triage$/ { held = $0; next }
-  held != "" && /^  \[--external-ref / { print; print held; held = ""; next }
+  /^bd search "<title words>" --status open -l needs-triage$/ { held = held $0 "\n"; next }
+  /^bd search "<title words>" --status open$/ { held = held $0 "\n"; next }
+  held != "" && /^  \[--external-ref / { print; printf "%s", held; held = ""; next }
   { print }'
 sec=6 expect "a capture that creates before it searches fails" 1 "out of order: the capture searches the inbox before it creates the bead"
 
