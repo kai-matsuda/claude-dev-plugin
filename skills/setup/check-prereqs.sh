@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Report each prerequisite of the dev plugin as present or missing. Read-only: it writes
-# nothing, anywhere. Exit 0 when all are present, 1 when any is missing. The settings-file
-# lines (baseline exclusions and forge-wait permissions) are informational and set no exit code.
+# nothing, anywhere. Exit 0 when all are present, 1 when any is missing. The baseline settings
+# lines (exclusions and forge-wait permissions) are informational and set no exit code.
 # SETUP_PLUGINS_DIR overrides the plugins directory (default ~/.claude/plugins).
 set -uo pipefail
 plugins_dir=${SETUP_PLUGINS_DIR:-$HOME/.claude/plugins}
