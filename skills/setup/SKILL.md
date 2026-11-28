@@ -17,7 +17,14 @@ edits `~/.claude` or any file outside the repo it runs in, and the check itself 
    commit-msg hook, on every machine. It also prints the trailer hook's state as `trailer hook: current`,
    `trailer hook: stale` or `trailer hook: missing`, comparing the machine's global
    `hook.committrailers.command` with the command those lines set; stale and missing leave the exit
-   code alone, and the owner pastes the lines again to clear them. The Atlassian MCP is `present:` only when `~/.claude.json`
+   code alone, and the owner pastes the lines again to clear them. It also reads
+   `~/.claude/settings.json` and prints one `missing:` line per baseline `sandbox.excludedCommands`
+   entry and per baseline `forge-wait` allow entry the file lacks (exact match), so an owner whose
+   sandboxed push fails sees which exclusion is not merged; an absent or unreadable file is a
+   `confirm:` line (also when `jq` is absent), and neither leaves the exit code changed; an
+   empty file or one holding `null` is readable with no entries, so every compared entry is
+   `missing:`. When any such line is printed and no prerequisite is missing, the output's last
+   line says how many entries are not merged (a missing prerequisite exits 1 before that line). The Atlassian MCP is `present:` only when `~/.claude.json`
    (top level or this project) or the project's `.mcp.json` lists it under `mcpServers`;
    otherwise it is `confirm:`, never `missing:`, because a claude.ai connector is in no file.
 2. Show the owner the output. Tell them the stub goes into `~/.claude/CLAUDE.md` and the
@@ -37,11 +44,18 @@ edits `~/.claude` or any file outside the repo it runs in, and the check itself 
    until a change to the join changes the snippet, which needs a re-paste. A repo opts out with
    `git config hook.committrailers.enabled false`; a single commit with
    `git commit --no-verify`. A commit made outside that Bash tool is not checked.
-   The output ends with `all prerequisites present` or, while Atlassian is unconfirmed,
-   `all checked prerequisites present; confirm Atlassian in /mcp`; the owner may already
+   When no prerequisite is missing, the output ends with `all prerequisites present` or, while
+   Atlassian is unconfirmed or `~/.claude/settings.json` is unread,
+   `all checked prerequisites present; confirm Atlassian in /mcp`, the same ending
+   `confirm baseline settings` or both joined by `and`, or, when baseline settings
+   entries are not merged, `prerequisites present; baseline settings entries not merged: <n>`
+   (with `; confirm Atlassian in /mcp` appended while Atlassian is unconfirmed); the owner may already
    hold the stub, snippet and hook, so they compare rather than paste.
-3. For each `missing:` line, tell the owner how to install it (the line names the source).
-   For a `confirm:` line, ask the owner to check `/mcp` for the Atlassian server.
+3. For each prerequisite `missing:` line, tell the owner how to install it (the line names the source).
+   For a `confirm:` line, ask the owner to check `/mcp` for the Atlassian server. For a
+   `missing: sandbox.excludedCommands` or `missing: permissions.allow` line, tell the owner to
+   merge that entry from the snippet into `~/.claude/settings.json`; for the settings `confirm:`
+   line, to compare the file with the snippet.
 4. Finish with `/dev:setup-repo` as the next step, per repo.
 
 The baseline is org-neutral apart from one rule pair: it denies reads of secret files, asks

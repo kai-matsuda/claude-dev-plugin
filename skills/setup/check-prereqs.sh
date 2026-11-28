@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 # Report each prerequisite of the dev plugin as present or missing. Read-only: it writes
-# nothing, anywhere. Exit 0 when all are present, 1 when any is missing.
+# nothing, anywhere. Exit 0 when all are present, 1 when any prerequisite is missing. The
+# baseline settings lines (exclusions and forge-wait permissions), though they start `missing:`,
+# are informational and set no exit code. When no prerequisite is missing, the last line says
+# how many are not merged and what is left to confirm; when one is missing the script exits 1
+# before that line.
 # SETUP_PLUGINS_DIR overrides the plugins directory (default ~/.claude/plugins).
 set -uo pipefail
 plugins_dir=${SETUP_PLUGINS_DIR:-$HOME/.claude/plugins}
@@ -44,8 +48,26 @@ elif jq -e '(.mcpServers // {}) | keys | any(test("atlassian"; "i"))' "${SETUP_P
 if [ "$atlassian" = 1 ]; then present "Atlassian MCP"
 else echo "confirm: Atlassian MCP (claude.ai connector or mcpServers entry; check /mcp)"; fi
 
-# the stub and the baseline are always printed, for the owner to paste
 here=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)
+
+# The baseline's sandbox.excludedCommands and forge-wait allow entries against the user's
+# settings file, so an owner whose sandboxed push fails sees which exclusion is not pasted.
+# Informational like the Atlassian line: it sets no exit code. An absent or unreadable file, or no
+# jq to read it, is a confirm: line. An empty file or one holding null is readable and holds no
+# entry, so each compared entry is missing: from it. Exact string match, as the entries are the rules.
+settings=$HOME/.claude/settings.json
+unmerged=0 unread=0
+if lacking=$(jq -r --slurpfile have "$settings" '
+     ($have[0] // {}) as $s
+     | (.sandbox.excludedCommands[] | select(. as $e | ($s.sandbox.excludedCommands // []) | index($e) | not)
+        | "missing: sandbox.excludedCommands entry " + .),
+       (.permissions.allow[] | select(test("forge-wait"))
+        | select(. as $e | ($s.permissions.allow // []) | index($e) | not)
+        | "missing: permissions.allow entry " + .)' "$here/baseline-settings.json" 2>/dev/null); then
+  [ -z "$lacking" ] || { echo "$lacking"; while IFS= read -r _; do unmerged=$((unmerged+1)); done <<<"$lacking"; }
+else unread=1; echo "confirm: baseline settings ($settings absent or unreadable, or jq absent; compare it with the baseline below)"; fi
+
+# the stub and the baseline are always printed, for the owner to paste
 echo; echo "=== paste into ~/.claude/CLAUDE.md ==="; cat "$here/claude-md-stub.md"
 echo
 echo "=== merge into ~/.claude/settings.json (merge the arrays; do not replace) ==="
@@ -93,6 +115,12 @@ elif [ "$installed" = "$expected" ]; then echo "trailer hook: current"
 else echo "trailer hook: stale (the command set differs from the lines above; paste them again)"; fi
 echo
 
-if [ "$missing" != 0 ]; then exit 1
-elif [ "$atlassian" = 1 ]; then echo "all prerequisites present"
-else echo "all checked prerequisites present; confirm Atlassian in /mcp"; fi
+if [ "$missing" != 0 ]; then exit 1; fi
+to_confirm=
+[ "$atlassian" = 1 ] || to_confirm="Atlassian in /mcp"
+[ "$unread" = 0 ] || to_confirm="${to_confirm:+$to_confirm and }baseline settings"
+if [ "$unmerged" != 0 ]; then
+  msg="prerequisites present; baseline settings entries not merged: $unmerged"
+  echo "${msg}${to_confirm:+; confirm $to_confirm}"
+elif [ -z "$to_confirm" ]; then echo "all prerequisites present"
+else echo "all checked prerequisites present; confirm $to_confirm"; fi

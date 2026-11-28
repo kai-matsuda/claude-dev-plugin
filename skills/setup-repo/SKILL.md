@@ -12,9 +12,12 @@ in step 4.
 
 1. **Check the machine setup.** Run `bash ${CLAUDE_PLUGIN_ROOT}/skills/setup/check-prereqs.sh`;
    it writes nothing. It also prints a CLAUDE.md stub and a settings snippet; only its
-   `missing:` and `confirm:` lines matter here. If any line starts `missing:`, stop and
-   tell the owner to run `/dev:setup` first, then rerun this skill. A `confirm:` line
-   (Atlassian) does not stop it.
+   `missing:` and `confirm:` lines matter here. If any line starts `missing:`, stop and tell
+   the owner to run `/dev:setup` first, then rerun this skill, except a
+   `missing: sandbox.excludedCommands entry` or `missing: permissions.allow entry` line,
+   which reports an unmerged baseline settings entry: it is informational here and does not
+   stop the skill. A `confirm:` line (Atlassian, or
+   the baseline settings) does not stop it either.
 2. **Explore.** Read, never write: whether `CLAUDE.md` exists and has a `## Agent skills`
    block with a `Jira project key:` line; whether `.beads/` exists; whether `GLOSSARY.md`
    and `docs/adr/` exist, and whether the repo is multi-context (a `GLOSSARY-MAP.md`);
