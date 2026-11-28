@@ -348,7 +348,7 @@ cp "$work/setlack/home/.claude/settings.json" "$work/setnobd/home/.claude/settin
 run setnobd
 fx_check "a missing prerequisite beside a settings gap exits 1" test "$rc" = 1
 fx_check "a missing prerequisite beside a settings gap still reports the gap" grep -q '^missing: permissions.allow entry' <<<"$out"
-# no jq: the settings file cannot be read, so it is a confirm: line, not a missing: per entry
+# no jq: the baseline settings cannot be read, so it is a confirm: line, not a missing: per entry
 cp "$work/setfull/home/.claude/settings.json" "$work/setnojq/home/.claude/settings.json"
 run setnojq "" "$work/toolsnojq"
 fx_check "no jq: settings are a confirm: line" grep -q '^confirm: baseline settings' <<<"$out"
