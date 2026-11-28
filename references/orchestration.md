@@ -23,7 +23,7 @@ human is not a row: a ready PR is theirs to merge.
 
 | Row | Orchestrator | Builds | Checks | Review spec axis | Review standards axis | Reviewer and model | Fix-up | Lands by | Exits when | Budget |
 |---|---|---|---|---|---|---|---|---|---|---|
-| **Task** | task orchestrator | one implementer in a worktree | the check command, and a live run of each fixture case the task's diff adds or changes | the task's body | the task diff | both axes, at the task's review model; at `low`, the standards axis alone at `sonnet`, only for a diff that changes prose describing behaviour (Check gate) | an implementer by pointer brief, same worktree | reports its reviewed branch, which the story orchestrator merges | the checks green on the tip the review called clean | three fix-ups |
+| **Task** | task orchestrator | one implementer in a worktree | the check command, and a live run of each fixture case the task's diff adds or changes | the task's body | the task diff | both axes, at the task's review model; at `low`, the standards axis alone at `sonnet`, only for a diff that changes a comment, doc, skill text or test header describing behaviour (Check gate) | an implementer by pointer brief, same worktree | reports its reviewed branch, which the story orchestrator merges | the checks green on the tip the review called clean | three fix-ups |
 | **Story** | story orchestrator | task orchestrators in parallel over the frontier | the check command | the story's body | what entered since the last standards review: conflict resolutions, cross-task coherence and the story gate's fix-up commits | both axes, at the review model of the story's max tier | an implementer by pointer brief in a fix-up worktree | merges each reviewed task branch after the stray-commit check; push, the PR staying a draft | the checks green on the tip the review called clean | three fix-ups; three conflict resolutions per landing |
 | **Epic** | epic orchestrator | story orchestrators in parallel over the frontier | the check command as the forge runs it | the Jira Epic's spec | none, the axis is skipped | the spec axis only, at the review model of the epic's max tier | findings filed as `ready-for-agent` tasks under the story, that story re-run in add mode | the PR marked ready, the human merges, then `/dev:close-story` and `/dev:close-epic` | the checks green on the tip the review called clean | three per story |
 
@@ -285,7 +285,7 @@ The call that writes a record is `<plugin root>/scripts/check.sh <worktree path>
 
 **Check gate.** At every row the gate exits when the checks are green on the tip the review called clean.
 Each pass runs the Check record script on the tip, unless its tree has a green record, then the review.
-A `low` task's gate is the checks alone, with no review, unless its diff adds or changes a comment, doc, skill text or test header describing behaviour: then one standards reviewer at `sonnet`, the low tier's review model, reads each touched sentence against the personal standard "Doc claims carry their conditions" and the code it describes, and its verdict is handled as a `medium` task's is. A `low` task whose diff touches none of those keeps the checks alone.
+A `low` task's gate is the checks alone, with no review, unless its diff adds or changes a comment, doc, skill text or test header describing behaviour: then one standards reviewer at `sonnet`, the low tier's review model, reads each touched sentence against the personal standard "Doc claims carry their conditions" and the code it describes, and its verdict is handled as a `medium` task's is. A `low` task whose diff touches no comment, doc, skill text or test header describing behaviour keeps the checks alone.
 At the task row, a fixture case the task's diff adds or changes (seed, subagent run, assert) is run end to end on the green tip, since the check skips an unrun one, and its assert record is kept beside the check record; a new or changed case with no assert record is a blocking finding (dev-lf9v).
 A red or a blocking verdict goes to a fresh implementer by pointer brief and the loop starts over
 (at the epic row, to `ready-for-agent` tasks under the story, The epic row above);
@@ -319,6 +319,8 @@ which the epic row reads as the story's delivered tip.
 finding is blocking when an acceptance criterion is unmet, a behaviour is wrong, a test is
 missing, or no test at a story seam exercises the criteria the unit names
 (a standalone task whose body has no `## Test seams` names no seam, and the case does not apply to it);
+the `low` task's standards reviewer (Check gate) has narrower blocking cases: a touched sentence that misstates the
+behaviour it describes or drops a condition it holds under, and none of the cases above;
 it is minor when it changes no behaviour an acceptance criterion names (wording, naming, a nit). The last line is
 `verdict: clean` when no finding is blocking, else `verdict: blocking (<n>)`, `<n>` the
 count of blocking findings. A reviewer that fans its review out to sub-agents

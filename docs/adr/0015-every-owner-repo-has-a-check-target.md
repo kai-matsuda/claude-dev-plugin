@@ -13,7 +13,7 @@ status: accepted
 > `/dev:setup-repo` writes no `ci` target. The rule is stated once, in the rules doc's Check
 > command paragraph (`docs/agents/orchestration.md`).
 
-> Amended 2026-11-28 (dev-kgda, INFRA-47): "a `low` ticket's gate is the checks alone" holds for
+> Amended 2026-11-27 (dev-kgda, INFRA-47): "a `low` ticket's gate is the checks alone" holds for
 > a `low` ticket whose diff touches no comment, doc, skill text or test header describing
 > behaviour; one that adds or changes one adds one standards reviewer at `sonnet` (ADR 0014's
 > amendment of the same date).

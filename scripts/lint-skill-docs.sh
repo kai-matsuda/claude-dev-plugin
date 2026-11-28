@@ -891,11 +891,11 @@ line_has '^[|] 4b [|]' "4b: the session lands the task" 'the session lands its r
 lacks "a task orchestrator landing its own task in the runbook" 'lands the task itself'
 # 4a's check gate reviews medium and high tasks, and a low task whose diff changes prose describing
 # behaviour; a low task whose diff touches no such prose has the checks alone (ADR 0015)
-line_has "$anchor_runbook_row_4a" "4a reviews medium and high tasks and low tasks that change behaviour prose" '(the checks, then, for `medium` and `high`, and for a `low` task whose diff changes prose describing behaviour, a review one tier up'
+line_has "$anchor_runbook_row_4a" "4a reviews medium and high tasks and low tasks that change behaviour prose" '(the checks, then, for `medium` and `high`, and for a `low` task whose diff changes a comment, doc, skill text or test header describing behaviour, a review one tier up'
 hase "the one review tool paragraph" '^One review tool, three rows'
 # the task review is medium and high, plus a low task whose diff changes prose describing
 # behaviour, every owner repo having a check command (ADR 0015)
-hasc "the runbook reviews medium and high tasks and low tasks that change behaviour prose" "task's review model, for \`medium\` and \`high\`, and for a \`low\` task whose diff changes prose describing behaviour, on the standards axis alone; at the story"
+hasc "the runbook reviews medium and high tasks and low tasks that change behaviour prose" "task's review model, for \`medium\` and \`high\`, and for a \`low\` task whose diff changes a comment, doc, skill text or test header describing behaviour, on the standards axis alone; at the story"
 lacks "the runbook's task review limited to medium and high" '(`medium` and `high` only)'
 line_has '^[|] 4a [|] opus [|]' "session model 4a: the epic orchestrator session" 'The epic orchestrator session'
 
@@ -1363,6 +1363,7 @@ para_has "$head_review_verdict" "the clean verdict line" "$pin_verdict_clean"
 para_has "$head_review_verdict" "the blocking verdict line" "$pin_verdict_blocking"
 para_has "$head_review_verdict" "the blocking-or-minor tags" "$pin_blocking_or_minor"
 para_has "$head_review_verdict" "a round with no blocking findings is clean" 'no blocking findings is **clean**'
+para_has "$head_review_verdict" "the low task's standards reviewer has narrower blocking cases" "the \`low\` task's standards reviewer (Check gate) has narrower blocking cases"
 para_has "$head_review_verdict" "every fix-up, red or blocking, spends the loop's budget" "Every fix-up, red or blocking, spends the loop's budget"
 # no minor is dropped (dev-a9a): a blocking round's fix-up fixes its in-scope minors and names
 # what it left, and every minor still unfixed when the unit lands or fails goes to the inbox
@@ -1383,7 +1384,7 @@ line_has "$row" "task row: the task orchestrator" '| task orchestrator |'
 line_has "$row" "task row: one implementer in a worktree" '| one implementer in a worktree |'
 line_has "$row" "task row: the task's body as spec" "| the task's body |"
 line_has "$row" "task row: the task diff as standards" '| the task diff |'
-line_has "$row" "task row: both axes at the review model, at low the standards axis alone for changed prose" "| both axes, at the task's review model; at \`low\`, the standards axis alone at \`sonnet\`, only for a diff that changes prose describing behaviour (Check gate) |"
+line_has "$row" "task row: both axes at the review model, at low the standards axis alone for changed prose" "| both axes, at the task's review model; at \`low\`, the standards axis alone at \`sonnet\`, only for a diff that changes a comment, doc, skill text or test header describing behaviour (Check gate) |"
 # the task row reports its reviewed branch and the story row merges it, the resolution cap
 # moving with the landing to the story row (dev-b8d.1.4)
 line_has "$row" "task row: lands by reporting its reviewed branch for the story orchestrator to merge" '| reports its reviewed branch, which the story orchestrator merges |'
@@ -2389,7 +2390,7 @@ hase "the row opens on the task orchestrator" "$H"
 for pin in "your row is the task row of the orchestration doc's table|the skill names its row of the orchestration doc's table" \
   'you build with one implementer in a worktree|the row builds with one implementer in a worktree' \
   'check with the check command|the row checks with the check command' \
-  "review the task's body as the spec axis and the task diff as the standards axis, one tier up, at \`low\` only a standards reviewer for a diff that changes prose describing behaviour, fix up|the row reviews the task body and diff one tier up, at low a standards review of changed prose only" \
+  "review the task's body as the spec axis and the task diff as the standards axis, one tier up, at \`low\` only a standards reviewer for a diff that changes a comment, doc, skill text or test header describing behaviour, fix up|the row reviews the task body and diff one tier up, at low a standards review of changed prose only" \
   'fix up by pointer brief in the same worktree|the row fixes up by pointer brief in the same worktree' \
   'report the reviewed branch for the story orchestrator to land|the row reports its reviewed branch for the story orchestrator to land' \
   'exit when the checks are green on the tip the review called clean|the row exits on green checks at the tip the review called clean' \
@@ -2425,15 +2426,17 @@ line_has "$G3" "the assert record sits at the owner's check-record path for the 
 line_has "$G3" "the gate notes each assert's result on the task bead" 'note <task-id> "assert <case>: <pass or fail>"'
 line_has "$G3" "the spec reviewer brief names each fixture case and its assert record" "the spec reviewer's brief names each such case and the assert record's path"
 line_has "$G3" "a fixture case with no assert record is a blocking finding" 'a new or changed fixture case with no assert record (a missing test, whatever the check'"'"'s green)'
-line_has "$G3" "the check gate runs before step 3's reviewer" "; for \`medium\` and \`high\`, $pin_spawn_two_reviewers"
+line_has "$G3" "the check gate runs before step 3's reviewer" "handled as a \`medium\` task's is (the \`review <round>:\` note, a blocking verdict to a fresh implementer on the fix-up, a clean round's minors); for \`medium\` and \`high\`, $pin_spawn_two_reviewers"
 unchanged_file || ! grep -E "$G3" "$f" | sed 's/Green: .*//' | grep -qF -- "$pin_spawn_two_reviewers" || bad "present: task orchestrator step 3 spawns a reviewer ahead of the checks' green"
 # one reviewer per axis, combined into one verdict line (dev-bzd)
 line_has "$G3" "the task review spawns one reviewer per axis" "$pin_spawn_two_reviewers, one per axis"
 line_has "$G3" "the two reviewers combine their reports into one verdict line" 'Combine the two reports into one verdict line'
 line_lacks "$G3" "the reviewer told to spawn the skill's sub-agents" "the skill's two sub-agents spawned"
-line_has "$G3" "a code-only low task exits the loop on green checks" 'Green: a `low` task whose diff touches none of those (a comment, doc, skill text or test header describing behaviour) exits the loop, go to step 4'
+line_has "$G3" "a code-only low task exits the loop on green checks" 'Green: a `low` task whose diff touches no comment, doc, skill text or test header describing behaviour exits the loop, go to step 4; a `low` task whose diff does spawns one **standards reviewer** at `sonnet`'
 line_has "$G3" "a low task changing such prose gets one standards reviewer at sonnet" 'a `low` task whose diff does spawns one **standards reviewer** at `sonnet`, the low tier'"'"'s review model'
 line_has "$G3" "the low standards reviewer checks Doc claims carry their conditions" 'against the personal standard "Doc claims carry their conditions" (`~/.claude/rules/doc-claims-carry-conditions.md`) and the code it describes'
+line_has "$G3" "the low standards reviewer calls the code-review skill itself" "told to call the Skill tool with \`mattpocock-skills:code-review\` and do that skill's standards sub-agent brief itself, spawning no one"
+line_has "$G3" "the low standards reviewer's brief says what it does without the personal rule file" 'where `~/.claude/rules/doc-claims-carry-conditions.md` is absent it checks each touched sentence'
 line_has "$G3" "the low standards verdict is handled as a medium task's is" "its one \`verdict:\` line is the note's verdict, handled as a \`medium\` task's is"
 line_has "$anchor_task_step_2_implementer" "task orchestrator step 2's implementer runs no gate and spawns no one" 'The implementer runs no gate and spawns no one'
 # the check record keyed by the tree SHA, written only by the task orchestrator; only a green

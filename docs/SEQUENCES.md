@@ -43,7 +43,7 @@ sequenceDiagram
             O->>BD: note the failing command and its log
             O->>F: fix-up by pointer brief
             F-->>O: report, the loop starts over from the checks
-        else checks green, the task row at low with no prose describing behaviour in its diff, no reviewer
+        else checks green, the task row at low with no comment, doc, skill text or test header describing behaviour in its diff, no reviewer
             Note over O: the loop exits on green
         else checks green, any other row or tier
             O->>V: spawn the review, the row's axes (the epic row, the spec axis only, a low task the standards axis alone)
