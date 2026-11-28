@@ -128,6 +128,9 @@ mkbin "$work/projmcp/bin" bd gh; plugin_installed projmcp
 printf '{"projects":{"%s":{"mcpServers":{"atlassian":{}}}}}\n' "$(cd "$work/projmcp/cwd" && pwd -P)" >"$work/projmcp/home/.claude.json"
 mkbin "$work/mcpjson/bin" bd gh; plugin_installed mcpjson
 printf '{"mcpServers":{"atlassian":{}}}\n' >"$work/mcpjson/project-mcp.json"
+# the full machine holds every baseline entry, so its settings line is neither missing: nor confirm:
+mkdir -p "$work/full/home/.claude"
+jq '{sandbox: {excludedCommands: .sandbox.excludedCommands}, permissions: {allow: .permissions.allow}}' "$snippet" >"$work/full/home/.claude/settings.json"
 run() { # <machine> [subdir] [tools dir]: run the helper there; sets out and rc
   out=$(cd "$work/$1/cwd/${2:-}" && env -i PATH="$work/$1/bin:${3:-$work/tools}" HOME="$work/$1/home" GIT_CONFIG_GLOBAL="$work/$1/gitconfig" \
         SETUP_PLUGINS_DIR="$work/$1/plugins" SETUP_PROJECT_MCP_JSON="$work/$1/project-mcp.json" "$(command -v bash)" "$prereqs" 2>&1)
@@ -309,7 +312,7 @@ fx_check "a missing trailer hook leaves the exit code alone" test "$rc" = 0
 # machine's $HOME/.claude/settings.json: one missing: line per baseline entry the file lacks,
 # a confirm: line when the file is absent or unreadable or jq is not there to read it, the exit code
 # left alone by these lines (only a missing prerequisite sets it); an empty file or one holding
-# null is readable and holds no entry, so every baseline entry is reported missing
+# null is readable and holds no entry, so every compared entry is reported missing
 for m in setfull setlack setabsent setbroken setempty setnull setnobd setnojq; do machine "$m"; mkbin "$work/$m/bin" bd gh; mcp_config "$m"; plugin_installed "$m"; done
 mkdir -p "$work/setfull/home/.claude" "$work/setlack/home/.claude" "$work/setbroken/home/.claude" "$work/setempty/home/.claude" "$work/setnull/home/.claude" "$work/setnobd/home/.claude" "$work/setnojq/home/.claude"
 jq '{sandbox: {excludedCommands: .sandbox.excludedCommands}, permissions: {allow: .permissions.allow}}' "$snippet" >"$work/setfull/home/.claude/settings.json"
@@ -321,7 +324,7 @@ fx_check "settings lacking one exclusion print exactly one such missing: line" t
 fx_check "settings lacking one exclusion leave the exit code alone" test "$rc" = 0
 fx_check "settings lacking one exclusion end the output saying so, not all prerequisites present" bash -c '[ "$(tail -n 1 <<<"$1")" = "prerequisites present; baseline settings entries not merged: 1" ]' _ "$out"
 run setfull
-fx_check "settings holding every baseline exclusion print no sandbox missing: line" bash -c '! grep -q -e "^missing: sandbox" -e "^confirm: baseline settings" -e "^missing: permissions" <<<"$1"' _ "$out"
+fx_check "settings holding every baseline exclusion print no settings missing: or confirm: line" bash -c '! grep -q -e "^missing: sandbox" -e "^confirm: baseline settings" -e "^missing: permissions" <<<"$1"' _ "$out"
 fx_check "settings holding every baseline exclusion exit 0" test "$rc" = 0
 jq 'del(.permissions.allow[] | select(startswith("Bash(forge-wait")))' "$work/setfull/home/.claude/settings.json" >"$work/setlack/home/.claude/settings.json"
 run setlack
@@ -329,6 +332,7 @@ fx_check "settings lacking the forge-wait permission print a missing: line namin
 run setabsent
 fx_check "an absent settings file prints a confirm: line, not missing:" bash -c 'grep -q "^confirm: baseline settings" <<<"$1" && ! grep -q "^missing: sandbox" <<<"$1"' _ "$out"
 fx_check "an absent settings file leaves the exit code alone" test "$rc" = 0
+fx_check "an absent settings file ends the output asking to confirm them, not all prerequisites present" bash -c '[ "$(tail -n 1 <<<"$1")" = "all checked prerequisites present; confirm baseline settings" ]' _ "$out"
 run setbroken
 fx_check "an unreadable settings file prints a confirm: line, not missing:" bash -c 'grep -q "^confirm: baseline settings" <<<"$1" && ! grep -q "^missing: sandbox" <<<"$1"' _ "$out"
 fx_check "an unreadable settings file leaves the exit code alone" test "$rc" = 0

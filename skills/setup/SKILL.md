@@ -22,9 +22,9 @@ edits `~/.claude` or any file outside the repo it runs in, and the check itself 
    entry and per baseline `forge-wait` allow entry the file lacks (exact match), so an owner whose
    sandboxed push fails sees which exclusion is not merged; an absent or unreadable file is a
    `confirm:` line (also when `jq` is absent), and neither leaves the exit code changed; an
-   empty file or one holding `null` is readable with no entries, so every baseline entry is
-   `missing:`. When any such line is printed, the output's last line says how many entries are
-   not merged. The Atlassian MCP is `present:` only when `~/.claude.json`
+   empty file or one holding `null` is readable with no entries, so every compared entry is
+   `missing:`. When any such line is printed and no prerequisite is missing, the output's last
+   line says how many entries are not merged (a missing prerequisite exits 1 before that line). The Atlassian MCP is `present:` only when `~/.claude.json`
    (top level or this project) or the project's `.mcp.json` lists it under `mcpServers`;
    otherwise it is `confirm:`, never `missing:`, because a claude.ai connector is in no file.
 2. Show the owner the output. Tell them the stub goes into `~/.claude/CLAUDE.md` and the
@@ -44,8 +44,10 @@ edits `~/.claude` or any file outside the repo it runs in, and the check itself 
    until a change to the join changes the snippet, which needs a re-paste. A repo opts out with
    `git config hook.committrailers.enabled false`; a single commit with
    `git commit --no-verify`. A commit made outside that Bash tool is not checked.
-   The output ends with `all prerequisites present` or, while Atlassian is unconfirmed,
-   `all checked prerequisites present; confirm Atlassian in /mcp`, or, when baseline settings
+   When no prerequisite is missing, the output ends with `all prerequisites present` or, while
+   Atlassian is unconfirmed or `~/.claude/settings.json` is unread,
+   `all checked prerequisites present; confirm Atlassian in /mcp`, the same ending
+   `confirm baseline settings` or both joined by `and`, or, when baseline settings
    entries are not merged, `prerequisites present; baseline settings entries not merged: <n>`
    (with `; confirm Atlassian in /mcp` appended while Atlassian is unconfirmed); the owner may already
    hold the stub, snippet and hook, so they compare rather than paste.
