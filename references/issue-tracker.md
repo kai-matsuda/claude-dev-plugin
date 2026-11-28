@@ -541,9 +541,14 @@ bd search "<title words>" --status open -l needs-triage
 bd search "<title words>" --status open
 ```
 
-The second search covers every open bead, the inbox's included, so a routed standalone task
-for the same fix is a hit too. A hit for the same fix is a repeat: note it, create nothing, so
-`/dev:triage` sees the recurrence and not a duplicate.
+The second search covers every open bead in `<home>`'s database. In a repo session that database
+is the owner repo's, so a routed standalone task for the same fix is a hit too. In a workspace
+session it is the workspace root's alone: a task routed to an owner repo lives in that repo's
+database, a plain `bd search` in `<home>` does not reach it, and a repeat of a routed fix is
+filed again as a new inbox bead, which `/dev:triage` catches as a duplicate when it routes that
+item. A hit for the same fix is a repeat: note it, create nothing. A note on an inbox bead is the
+recurrence `/dev:triage` reads, since it sees inbox hits only; a note on a routed task records the
+recurrence on the task its implementer works from, not for `/dev:triage`.
 
 ```bash
 bd note <id> "seen again: <moment>"
