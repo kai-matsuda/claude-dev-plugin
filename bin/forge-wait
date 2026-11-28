@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# The forge-check wait (glossary: Forge-check wait) as one plain command, so a narrow sandbox
+# The forge gate (glossary: Forge gate) as one plain command, so a narrow sandbox
 # exemption or permission rule can match it: waits until the PR's head is the pushed <tip SHA> and
 # its checks have registered, then until they have finished. It reads no verdict: Delivery step 4
 # reads the checks afterwards. Output lines, one exit status:

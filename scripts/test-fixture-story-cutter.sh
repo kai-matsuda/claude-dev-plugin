@@ -54,9 +54,9 @@ seed() { # <case>
   if [ "$1" = consumer ]; then cat <<T
 
 lib $(fx_one lib '.issue_type=="story"') Story: fixture-lib multiply
-1. Add multiply to fixture-lib. Tier: complexity:low. Blocked by: none. What it delivers: fixture_lib::multiply(left, right) returns the product, beside add.
-2. Test multiply in fixture-lib. Tier: complexity:low. Blocked by: 1. What it delivers: cargo test covers multiply at the story's test seam.
-3. publish $crate $version. Tier: complexity:low. Blocked by: 1, 2. What it delivers: the human stop that publishes $crate $version so the consumer can bump to it.
+1. Add multiply to fixture-lib. Complexity: complexity:low. Blocked by: none. What it delivers: fixture_lib::multiply(left, right) returns the product, beside add.
+2. Test multiply in fixture-lib. Complexity: complexity:low. Blocked by: 1. What it delivers: cargo test covers multiply at the story's test seam.
+3. publish $crate $version. Complexity: complexity:low. Blocked by: 1, 2. What it delivers: the human stop that publishes $crate $version so the consumer can bump to it.
 T
   fi
 }
@@ -67,7 +67,7 @@ T
 # closing remark, is not a task).
 block() { sed -E 's/^[[:space:]]*[#>*-]*[[:space:]]*//; s/[[:space:]*]+$//' "$out/report.txt" 2>/dev/null; }
 tasks() { block | awk '/^[0-9]+[.)] /{if (t) print t; t=$0; next} /^$/{if (t) print t; t=""; next} t{t=t " " $0} END{if (t) print t}'; }
-tier_re='complexity:(low|medium|high)'
+complexity_re='complexity:(low|medium|high)'
 no_blocker_re='[Bb]locked[- ]by\**:?\**[[:space:]]*(none|nothing|n/a|—|–)\**([.;,]|$|[[:space:]]+[A-Z])'
 every_task() { # <regex>   every task line matches, and there is at least one
   local t; t=$(tasks); [ -n "$t" ] && [ "$(grep -cE "$1" <<<"$t")" = "$(grep -c . <<<"$t")" ]
@@ -89,11 +89,13 @@ assert() { # <case>
   local r story title crate version publish_re
   fx_check "the run saved its end block" test -s "$out/report.txt"
   story=$(fx_one "$1" '.issue_type=="story"'); title=$(fx_field "$1" "$story" .title); read -r crate version <<<"$(pair)"
-  publish_re="^[0-9]+[.)] \**publish $crate ${version//./\\.}"   # a task titled as the tracker doc's publish task
+  # A task titled as the tracker doc's publish task, its title bare or behind step 4's
+  # **Title**: label.
+  publish_re="^[0-9]+[.)] \**([Tt]itle\**:\**[[:space:]]*)?\**publish $crate ${version//./\\.}"
   fx_check "the block is headed '$1 $story $title'" grep -Fqx "$1 $story $title" <<<"$(block)"
   fx_check "the block lists two tasks or more" test "$(tasks | grep -c .)" -ge 2
   fx_check "the tasks are numbered 1..N with no gap" numbered_in_order
-  fx_check "every task carries a complexity tier" every_task "$tier_re"
+  fx_check "every task carries a complexity" every_task "$complexity_re"
   fx_check "every task names its blockers" every_task '[Bb]locked[- ]by'
   fx_check "every numbered blocker is an earlier task of the block" blockers_name_earlier_tasks
   case "$1" in

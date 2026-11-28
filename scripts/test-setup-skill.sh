@@ -57,7 +57,7 @@ fx_check "the implementer's reset with -C matches no ask rule" no_ask_match "$sn
 fx_check "the implementer's plain reset matches no ask rule" no_ask_match "$snippet" 'git reset --keep feat/x'
 ask_matches() { ! no_ask_match "$@"; }
 fx_check "the ask rule still catches a hard reset" ask_matches "$snippet" 'git reset --hard feat/x'
-# the forge-check wait: one narrow rule pair covers the plugin's forge-wait command, which the
+# the forge gate: one narrow rule pair covers the plugin's forge-wait command, which the
 # plugin ships in bin/ so Claude Code puts it on PATH while the plugin is enabled (dev-21sr, INFRA-44).
 # The pair names the bare command, so it holds across plugin updates
 fw_pat='forge-wait * * * * *'

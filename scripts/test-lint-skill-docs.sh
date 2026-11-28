@@ -1054,11 +1054,11 @@ ban ban_medium_high_only "the runbook's task review limited to medium and high"
 echo "at the task $ban_medium_high_only on both axes" >> "$scratch/docs/WORKFLOW.md"
 expect "runbook copy limiting the task review to medium and high fails" 1 "the runbook's task review limited to medium and high"
 
-# every implementer and reviewer brief at the task and story rows names both rules folders, the
+# every implementer and reviewer brief at the task and story tiers names both rules folders, the
 # personal ~/.claude/rules/ and the repo's .claude/rules/ (ADR 0018, dev-7mkq.1.6): one brief
 # missing either folder fails its own pin and no sibling brief's on its line (the ;-list of
 # descriptions after the folder). drop_first, drop_second and drop_last take the folder out of
-# the first, second or last brief on the anchored line, where the task row's step 3 holds the
+# the first, second or last brief on the anchored line, where the task tier's step 3 holds the
 # spec reviewer's, the standards reviewer's and then a fix-up's brief
 spec_d='the task spec reviewer brief leaves both rules folders to the standards reviewer'
 std_d='the task standards reviewer brief names both rules folders and the breach form'
@@ -1169,7 +1169,7 @@ swap_phrase references/harness.md "$pinned_phrase" 'here-document'
 printf '\nA %s elsewhere in the doc.\n' "$pinned_phrase" >> "$scratch/references/harness.md"
 expect "harness doc whose TMPDIR rule names no heredoc fails" 1
 
-section_case 6 references/orchestration.md 'At the epic row it is `failed: <story-id> checks failed after three fix-ups`' "a Check gate allowing a third epic-row fourth-failure line"
+section_case 6 references/orchestration.md 'At the epic tier it is `failed: <story-id> checks failed after three fix-ups`' "a Tier gates rule allowing a third epic-tier fourth-failure line"
 
 fresh
 swap_phrase references/orchestration.md '`/.worktrees/`, `/.spec-notes/` and `/.tmp/`' '`/.tmp/`, `/.worktrees/` and `/.spec-notes/`'
@@ -1797,18 +1797,18 @@ ban ban_blocking_only "a budget of blocking verdicts only"
 echo "$ban_blocking_only are fixed up" >> "$spec"
 expect "implement-spec counting only blocking verdicts fails" 1 "a budget of blocking verdicts only" "$spec" "$scratch/docs/WORKFLOW.md"
 
-# the epic row's fourth failure reads only the Check gate's two lines (dev-aeo)
+# the epic tier's fourth failure reads only the Tier gates' two lines (dev-aeo)
 fresh_spec
 echo 'report `failed: <story-id> epic gate not clean after three fix-ups`' >> "$spec"
-expect "implement-spec with a fourth-failure line the Check gate does not allow fails" 1 "an epic-row fourth-failure line the Check gate does not allow" "$spec" "$scratch/docs/WORKFLOW.md"
+expect "implement-spec with a fourth-failure line the Tier gates rule does not allow fails" 1 "an epic-tier fourth-failure line the Tier gates rule does not allow" "$spec" "$scratch/docs/WORKFLOW.md"
 
 fresh_spec
 echo 'report `failed: <story-id> epic review failed after 3 fix-ups`' >> "$spec"
-expect "implement-spec with a reworded fix-up count fails" 1 "an epic-row fourth-failure line the Check gate does not allow" "$spec" "$scratch/docs/WORKFLOW.md"
+expect "implement-spec with a reworded fix-up count fails" 1 "an epic-tier fourth-failure line the Tier gates rule does not allow" "$spec" "$scratch/docs/WORKFLOW.md"
 
-# the Check gate's allowed lines are blanked as literal text: a row reworded to hold a / (the lint
+# the Tier gates' allowed lines are blanked as literal text: a row reworded to hold a / (the lint
 # once passed it to sed as a pattern, which failed and left the scan empty) still lets a line the
-# Check gate does not allow fail
+# Tier gates rule does not allow fail
 pins_copy
 pin_phrase "red-check budget failure line"
 slashed="$pinned_phrase/x"
@@ -1816,7 +1816,7 @@ for doc in pins/implement-spec-pins.tsv skills/implement-spec/SKILL.md reference
   swap_phrase "$doc" "$pinned_phrase" "$slashed"
 done
 printf '\n%s\n' 'report `failed: <story-id> epic gate not clean after three fix-ups`' >> "$scratch/skills/implement-spec/SKILL.md"
-expect "a reworded fourth-failure row holding a / still fails a line the Check gate does not allow" 1 "an epic-row fourth-failure line the Check gate does not allow"
+expect "a reworded fourth-failure row holding a / still fails a line the Tier gates rule does not allow" 1 "an epic-tier fourth-failure line the Tier gates rule does not allow"
 unset pins_dir
 
 fresh_spec
@@ -1895,7 +1895,7 @@ fresh
 echo 'The closure chain goes through a dependency chain of stories, merged in order.' >> "$scratch/docs/WORKFLOW.md"
 expect "runbook copy mentioning a dependency chain of closures passes" 0
 
-# the Check gate's retired two-gate wording is swept from every file kind (the banned texts are
+# the Tier gates' retired two-gate wording is swept from every file kind (the banned texts are
 # seeded from the lint's list); docs/specs keeps the words
 fresh
 ban_nth ban_evidence_run "retired two-gate wording in $scratch/docs/WORKFLOW.md" 1
@@ -2934,15 +2934,15 @@ printf '%s\n' '== 5. retired phrases' 'FAIL: present: z in /d/references/cite-1.
 fx_check "a cite batch with a FAIL outside section 18 vouches for nothing" \
   judge_cites_gives '' 'fires|silent|fires another check|passes|named' 1
 
-# the task row's budget regaining the conflict resolutions the landing took to the story row
+# the task tier's budget regaining the conflict resolutions the landing took to the story tier
 fresh
-pin_phrase "story row: three fix-ups and three conflict resolutions per landing"
+pin_phrase "story tier: three fix-ups and three conflict resolutions per landing"
 story_budget=$pinned_phrase
-pin_phrase "task row: three fix-ups"
-pin_anchor "task row: three fix-ups"
+pin_phrase "task tier: three fix-ups"
+pin_anchor "task tier: three fix-ups"
 an=$pinned_anchor tb=$pinned_phrase sb=$story_budget rewrite "$orch" awk '$0 ~ ENVIRON["an"] && (i = index($0, ENVIRON["tb"])) {
   $0 = substr($0, 1, i - 1) ENVIRON["sb"] substr($0, i + length(ENVIRON["tb"])) } { print }'
-sec=6 expect "orchestration doc's Task row regaining the conflict resolutions fails" 1 "present: task row: a conflict resolution budget"
+sec=6 expect "orchestration doc's Task tier regaining the conflict resolutions fails" 1 "present: task tier: a conflict resolution budget"
 # a red check record counted as checked, seeded back in the orchestration doc (dev-6qi)
 fresh
 ban ban_any_record "a red check record counted as checked"
@@ -2953,12 +2953,12 @@ fresh
 ban ban_rereads_red "a fix-up that commits nothing re-reading the red record"
 printf '\nSo %s.\n' "$ban_rereads_red" >> "$scratch/$orch"
 sec=6 expect "orchestration doc letting a fix-up that commits nothing re-read the red record fails" 1 "present: a fix-up that commits nothing re-reading the red record"
-# the Check gate's retired sentence naming the epic row as the budget's exception, seeded back
+# the Tier gates' retired sentence naming the epic tier as the budget's exception, seeded back
 fresh
-ban ban_epic_exception "the epic row named as the budget's exception"
+ban ban_epic_exception "the epic tier named as the budget's exception"
 printf '\n%s\n%s\n' "$ban_epic_exception: it spans runs while its PRs wait on their checks, so it counts each" \
-  "story's budget from the story's \`epic fix-up\` notes (The epic row, above)." >> "$scratch/$orch"
-sec=6 expect "orchestration doc naming the epic row as the budget's exception fails" 1 "present: the epic row named as the budget's exception"
+  "story's budget from the story's \`epic fix-up\` notes (The epic tier, above)." >> "$scratch/$orch"
+sec=6 expect "orchestration doc naming the epic tier as the budget's exception fails" 1 "present: the epic tier named as the budget's exception"
 # the accepted status is the frontmatter line itself: an amended status, or the words in the body, do not pass
 fresh
 pin_phrase "ADR 0014 is accepted"
@@ -2982,13 +2982,13 @@ for case in "$ban_two_level|present: the retired two-level check order" \
   sec=$s expect "orchestration doc with '${case%%|*}' fails" 1 "${case#*|}"
 done
 
-# the row regaining the landing's conflict resolutions fails (dev-b8d.1.4)
+# the tier regaining the landing's conflict resolutions fails (dev-b8d.1.4)
 fresh
-pin_phrase "the row's conflict resolutions"; resolutions=$pinned_phrase
-pin_phrase "the row budgets three fix-ups"
-pin_anchor "the row budgets three fix-ups"
+pin_phrase "the tier's conflict resolutions"; resolutions=$pinned_phrase
+pin_phrase "the tier budgets three fix-ups"
+pin_anchor "the tier budgets three fix-ups"
 swap_phrase skills/task-orchestrator/SKILL.md "($pinned_anchor.*)$pinned_phrase" "\\1$pinned_phrase and three $resolutions per landing"
-sec=16 expect "task-orchestrator whose row regains conflict resolutions fails" 1 "present: the row's conflict resolutions"
+sec=16 expect "task-orchestrator whose tier regains conflict resolutions fails" 1 "present: the tier's conflict resolutions"
 
 fresh
 echo "grep -q '^check:' <owner>/Makefile tells which" >> "$scratch/skills/implement-story/SKILL.md"
@@ -2997,7 +2997,7 @@ expect "a step 3 that greps the Makefile for the check target fails" 1 "present:
 # a task orchestrator that resolves the check command per task again fails, so parallel tasks
 # share one gate (dev-yyu)
 fresh
-pin_phrase "the row opens on the task orchestrator"
+pin_phrase "the tier opens on the task orchestrator"
 row_open=$pinned_phrase
 pin_phrase "the skill never resolves the check command itself"
 never_resolve=$pinned_phrase
@@ -3007,7 +3007,7 @@ sec=16 expect "a task orchestrator that looks up the check target per task fails
 
 fresh
 swap_phrase skills/task-orchestrator/SKILL.md "$row_open" 'You are the ticket runner'
-sec="5 16" expect "a row opening on the old ticket role fails" 1 "missing: the row opens on the task orchestrator"
+sec="5 16" expect "a tier opening on the old ticket role fails" 1 "missing: the tier opens on the task orchestrator"
 
 for case in 'Resolve the owner repo'"'"'s **lint command** once, here beside the forge.|present: the retired lint-command resolution' \
   '`make lint` when `<owner>`'"'"'s Makefile has a `lint` target|present: the retired lint-command resolution' \
@@ -3133,7 +3133,7 @@ sec=5 expect "implement-story regaining the review marker as the exit fails" 1 "
 # position: a reviewer spawned ahead of the checks' green (the green's own spawn kept too)
 fresh
 pin_phrase "the task review spawns one reviewer per axis"; spawn_two=${pinned_phrase%%,*}
-pin_phrase "task orchestrator step 3 opens with the check gate, every tier"
+pin_phrase "task orchestrator step 3 opens with the task gate, every complexity"
 swap_phrase skills/task-orchestrator/SKILL.md "^(${pinned_phrase#^}, )" "\\1for \`medium\` and \`high\` $spawn_two alongside it, "
 sec=16 expect "task-orchestrator step 3 spawning the reviewers before the checks' green fails" 1 "present: task orchestrator step 3 spawns a reviewer ahead of the checks' green"
 
@@ -3168,7 +3168,7 @@ expect "a bare /<skill> in docs/adr fails the namespace rule" 1 "$ns_msg in $scr
 # every skill GLOSSARY.md names must exist; a glossary naming a missing skill (/dev:not-built-yet) fails
 fresh
 echo 'The `/dev:task-orchestrator` and `/dev:implement-task` run it.' >> "$scratch/GLOSSARY.md"
-expect "the glossary naming the task row's skills passes" 0
+expect "the glossary naming the task tier's skills passes" 0
 fresh
 echo 'The `/dev:not-built-yet` runs it.' >> "$scratch/GLOSSARY.md"
 expect "the glossary naming another missing skill fails" 1 "/dev:not-built-yet names no skill"

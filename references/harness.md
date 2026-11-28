@@ -56,7 +56,7 @@ Bash call (INFRA-30's run: two `make lint` calls
 were backgrounded that way, and one agent went looking for its own process with `ps`).
 This is the mechanism behind the no-polling rule above, and why INFRA-29's until-loops
 and Monitors woke agents with stale state. The one long shell wait is the story orchestrator's
-forge-check wait (the orchestration doc's Delivery section): one
+forge gate (the orchestration doc's Delivery section): one
 foreground Bash call, the forge-wait script, that waits for the PR's forge checks on the
 pushed tip, bounded by its `timeout: 600000` and run again while a check is still pending, at
 most six calls (its merge-state re-read before it is at most six plain reads with a `sleep 10`
@@ -113,7 +113,7 @@ spawns a fresh orchestrator that re-reads the beads (INFRA-30's run, 2026-10-24)
 
 Every other agent is replaced, never resumed: to its orchestrator a cut-off child is a
 `failed: cut off by <error>` report, and the next pass gives the work a fresh subagent,
-same tier, same worktree, as a child that needs another pass gets one. A cut-off
+same model, same worktree, as a child that needs another pass gets one. A cut-off
 is no verdict on the task: it rejoins the frontier with its failure count unchanged. Its
 claim outlives the orchestrator, and `bd ready` excludes an `in_progress` task, so the story
 orchestrator `bd -C <owner> unclaim <task-id>`s it before the next frontier read. A

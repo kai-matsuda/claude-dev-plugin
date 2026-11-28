@@ -25,7 +25,7 @@ has	epic review, one PR at a time	one PR at a time
 has	epic review diff	the diff from the default branch to the integration branch
 has	epic review spec axis	the Jira Epic's spec
 has	epic review skips the standards axis	no standards axis
-has	epic review model	the review model of the epic's max tier
+has	epic review model	the review model of the epic's max complexity
 has	draft until clean	stays a draft until its verdict is clean
 has	mark ready with gh	gh pr ready <n> --repo <forge-slug>	gh pr ready
 has	mark ready with tea	tea pr edit <n> --repo <owner> --ready
@@ -50,7 +50,7 @@ has	cut-off reviewer rule	reviewer that returns an error instead of a report
 has	tea fallback evidence	the delivered tip's check record
 has	batch clause's reason	reports no delivery this invocation
 # epic review 2 (dev-9k5.1.8)
-has	fix-up tasks at the epic's max tier	complexity:<the epic's max tier>
+has	fix-up tasks at the epic's max complexity	complexity:<the epic's max complexity>
 has	no-CI fallback tied to the tip by the review: marker	the story's `review:` note names this same tip
 has	Done accepts closed or landed stories	is `closed` or has its PR landed
 has	Stall names a PR closed without landing	closed without landing
@@ -86,7 +86,7 @@ has	replaced reviewer's stop sweep	the stop sweep, then spawn a fresh one
 has	end state reads step 6's forge reads	step 6's forge reads
 has	red-check budget failure line	failed: <story-id> checks red after three fix-ups
 has	blocking-verdict budget failure line	failed: <story-id> epic review not clean after three fix-ups
-has	the budget failure line is the Check gate's	report the orchestration doc's Check gate line for the last failure
+has	the budget failure line is the Tier gates'	report the orchestration doc's Tier gates line for the last failure
 has	pending checks re-polled after a fix-up batch	any whose checks were pending
 has	end state's checks pending outcome	clean with checks pending
 hasc	waiting rule pointer	the harness doc's Waiting
@@ -117,7 +117,7 @@ has	an outside finding's ready PR is returned to draft	a PR already marked ready
 has	outside finding's fourth-round failure line	even when the review itself was clean
 has	the skip rule's add mode files nothing and writes its round's note	goes to Fix-up's add mode on the tasks already filed, filing nothing and writing its round's note unless its filing already wrote it
 has	a fix-up note on the tip with no open child is reviewed again	A story whose `epic fix-up` note names its current tip with no open child is reviewed again
-has	the epic row counts the budget from the epic round start marker	spent budget is counted from the story's `epic round start` note
+has	the epic tier counts the budget from the epic round start marker	spent budget is counted from the story's `epic round start` note
 has	an add-mode pass on filed tasks is a fix-up round of its own	An add-mode pass on tasks already filed is a fix-up round of its own
 has	the add-mode round's note kind	`blocking` unless the story's last `epic fix-up` note says `red`
 has	mark ready defers to the skip rule's open fix-up	Green, and no open fix-up task (the skip rule above)

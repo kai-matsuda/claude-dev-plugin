@@ -1,6 +1,6 @@
 ---
 name: triage
-description: "Decide the inbox with the user: accept or reject each needs-triage bead, then route the accepted ones to the owning repo's beads with acceptance criteria and a complexity tier."
+description: "Decide the inbox with the user: accept or reject each needs-triage bead, then route the accepted ones to the owning repo's beads with acceptance criteria and a complexity."
 disable-model-invocation: true
 ---
 
@@ -8,7 +8,7 @@ Works the **inbox**: the `needs-triage` beads in the home's beads database (**th
 test** in the tracker doc's (`${CLAUDE_PLUGIN_ROOT}/references/issue-tracker.md`) opening: the workspace's in a workspace session, the repo's in
 a repo session), filed by `/dev:retro` or by hand. A human accepts or rejects each one; you
 make the accepted ones implementable the way `/dev:story-to-tasks` makes a story implementable:
-acceptance criteria, a complexity tier, and a bead in the repo that owns the change. The
+acceptance criteria, a complexity, and a bead in the repo that owns the change. The
 accept question in step 4 is the point of this skill, so it runs only with the user
 present.
 
@@ -83,7 +83,7 @@ is what goes into them.
    are checkable without the original session: the check fails on a seeded violation; a
    fresh session follows the pointer; the reviewer cites the new rule. Name no file paths
    in the body except the one file the fix changes.
-3. **Tier** from the complexity table, rounding up. **Ready label**: `ready-for-agent`, or
+3. **Complexity** from the complexity table, rounding up. **Ready label**: `ready-for-agent`, or
    `ready-for-human` when the fix needs a person: an access grant, a tool install, a vendor
    dashboard. A `retro:foreign` item is always `ready-for-human`, and so is a foreign one
    in a workspace session; either keeps its intended location in the body.
@@ -107,7 +107,7 @@ Absent → skip and say so once. Never an issue per item.
 
 One line per inbox bead handled:
 
-`<inbox id> → <repo> <new id> complexity:<tier> <ready label>` · or `wontfix` · or
+`<inbox id> → <repo> <new id> complexity:<complexity> <ready label>` · or `wontfix` · or
 `needs-info`
 
 Then what to type next: `/dev:implement-task <id>` in the owner repo, or `bd -C <repo> ready` to

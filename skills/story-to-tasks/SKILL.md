@@ -8,7 +8,7 @@ description: "Break one story bead into tracer-bullet tasks for its owner repo, 
      pr:-noted stories refused, a pr:-noted one unless add mode marked it with a recut: note),
      optionally in another repo (bd -C);
      context is the story body and its Jira epic; tasks for the owner repo only; one
-     complexity tier per task; two modes, alone (quiz, then publish) and called (a "story
+     complexity per task; two modes, alone (quiz, then publish) and called (a "story
      cutter" brief returns the breakdown, a "Publish this block" brief publishes it); Spec: file
      fallback; the story's design field as orientation; re-cut edge moves; publishing, dependency-repo and
      re-cut rules live in ${CLAUDE_PLUGIN_ROOT}/references/issue-tracker.md; task template without
@@ -72,7 +72,7 @@ Break the story into **tracer bullet** tasks, every one landing in the owner rep
 
 Give each task its **blocking edges**: the other tasks of this story that must complete before it can start. A task with no blockers can start immediately. This includes a check: a task adding a lint rule, a test or a CI step that asserts files other tasks of this story create is blocked natively on every one of those tasks, directly or transitively (as the story's last implementation task, say); landed earlier, the check fails each of them. A version check is the reverse: a story that changes what a Claude Code plugin ships (a repo with `.claude-plugin/plugin.json`; what its lint's version-bump rule counts as shipped, in this plugin the rule in `scripts/lint-skill-docs.sh`) gets the plugin version bump as its first task, blocked by nothing but a dependent's crate bumps, which stay the story's roots, and every other task of the story blocked natively on that bump, since that repo's check fails a shipped change with no version change; landed later, the plugin version bump leaves each earlier task red. One plugin version bump covers the whole story. A re-cut keeps the plugin version bump first: new tasks take `--deps` onto it, a story with no plugin version bump yet gets one, and each open task that is not a bump, not claimed or `in_progress`, and not yet waiting on the open plugin version bump takes `bd dep add <task id> <plugin bump id>`, listed as a moved edge. Each task's verification runs at the story's `## Test seams`.
 
-Give each task one tier from the tracker doc's "Complexity labels" table.
+Give each task one complexity from the tracker doc's "Complexity labels" table.
 
 **Wide refactors are the exception to vertical slicing.** A **wide refactor** is one mechanical change (rename a column, retype a shared symbol) whose **blast radius** fans across the whole codebase, so a single edit breaks thousands of call sites at once and no vertical slice can land green. Don't force it into a tracer bullet; sequence it as **expand–contract**. First expand: add the new form beside the old so nothing breaks. Then migrate the call sites over in batches sized by blast radius (per package, per directory), each batch its own task blocked by the expand, keeping CI green batch to batch because the old form still exists. Finally contract: delete the old form once no caller remains, in a task blocked by every migrate batch. When even the batches can't stay green alone, keep the sequence but let them share an integration branch (the story's) that all block a final integrate-and-verify task; green is promised only there.
 
@@ -80,14 +80,14 @@ Give each task one tier from the tracker doc's "Complexity labels" table.
 
 **Re-cut.** `closed` children stay as they are. The breakdown lists every open child as kept or dropped, beside the new tasks; a claimed or `in_progress` child is always kept. Each dropped task names the new tasks replacing it, and every kept task (the publish task included) that the dropped one blocked moves its edge onto those replacements. Apply the tracker doc's per-edge re-cut rules to the publish task, the bumps and the text blockers. A dependent that gained a publish blocker since its last cut (a new `## Blocked by` line with no bump yet) gets its own bump for it (a second one when it already had one; a bump covers the blocker whose crate its title names, and for a blocker a `recut:` line names, whose crate and version: a point release bumps a crate the story already bumps), and every open task that is not a bump, its publish task included, takes a native edge onto the new bump: new tasks with `--deps`, kept ones with `bd dep add <task id> <bump id>`; list each as a moved edge.
 
-**Publish role**: of this step only the dependency-pair detection runs, so step 5 knows which side the story is on and takes the pair's order from there; the slices, tiers, edges and the pair's extra tasks are the block's as approved. A dependency story (the brief names a dependent) whose block carries no `publish <crate> <version>` task → `<id> refused: publish block for a dependency story carries no publish task`, stop; a block carrying two is refused as at step 3.
+**Publish role**: of this step only the dependency-pair detection runs, so step 5 knows which side the story is on and takes the pair's order from there; the slices, complexities, edges and the pair's extra tasks are the block's as approved. A dependency story (the brief names a dependent) whose block carries no `publish <crate> <version>` task → `<id> refused: publish block for a dependency story carries no publish task`, stop; a block carrying two is refused as at step 3.
 
 ### 4. Quiz the user (alone) or return the breakdown (called)
 
 The breakdown is a numbered list. For each task, show:
 
 - **Title**: short descriptive name
-- **Tier**: its `complexity:` label
+- **Complexity**: its `complexity:` label
 - **Blocked by**: which other tasks of this story (if any) must complete first
 - **What it delivers**: the end-to-end behaviour this task makes work
 
@@ -113,7 +113,7 @@ The Jira comment: **alone**, add the tracker doc's one-story comment, covering t
 
 Do NOT close or modify the story or the epic bead, apart from the dependent story's text blocker line the tracker doc tells you to fill in; the epic bead is never written, as the tracker doc's "epic bead writes" convention says.
 
-End on one block: `<owner repo> <story-id> <story title>`, then one line per task `<bead-id> <title> complexity:<tier> blocked-by:<ids|none>`, then the Jira comment's issue key or `no Jira comment`.
+End on one block: `<owner repo> <story-id> <story title>`, then one line per task `<bead-id> <title> complexity:<complexity> blocked-by:<ids|none>`, then the Jira comment's issue key or `no Jira comment`.
 
 <issue-template>
 
